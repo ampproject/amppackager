@@ -16,9 +16,18 @@
   packages = ["go/signedexchange"]
   revision = "76c6e6987c837c9828dc2903c55f858b23ebd14c"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/pquerna/cachecontrol"
+  packages = [
+    ".",
+    "cacheobject"
+  ]
+  revision = "525d0eb5f91d30e3b1548de401b7ef9ea6898520"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c63d04b0d30b2c6273b921930e205701de1c3114a49f53dc9ff9d7c922f02cf4"
+  inputs-digest = "84f97799ecbb0bf329e448f7878b1db36703ede09801a94c69cfc1e4aa22e969"
   solver-name = "gps-cdcl"
   solver-version = 1
