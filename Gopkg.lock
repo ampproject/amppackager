@@ -6,6 +6,7 @@
   name = "github.com/WICG/webpackage"
   packages = [
     "go/signedexchange/cbor",
+    "go/signedexchange/certurl",
     "go/signedexchange/mice"
   ]
   revision = "6400cbc3f5f82d9d3f950ac7e37b5948050a8f54"
@@ -28,6 +29,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "84f97799ecbb0bf329e448f7878b1db36703ede09801a94c69cfc1e4aa22e969"
+  inputs-digest = "1f0351b8115630a5b1c5bc23e7ff6a9f26428828f225eebc49b96d2a5f00c7cb"
   solver-name = "gps-cdcl"
   solver-version = 1

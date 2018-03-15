@@ -1,21 +1,33 @@
+// TODO(twifkak): Test this.
 package main
 
 import (
+	"bytes"
+	"crypto"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"path"
 	"time"
 
 	"github.com/pquerna/cachecontrol"
 	// TODO(twifkak): github.com/pelletier/go-toml (chosen per https://github.com/golang/dep/issues/119)
 	"github.com/nyaxt/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange/certurl"
 )
 
+// Must end in a slash, for ServeMux's sake.
+const certUrlPrefix = "/amppkg/cert/";
+
 // Advised against, per
-// https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#rfc.section.4.1,
+// https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#stateful-headers,
 // and blocked in http://crrev.com/c/958945.
 var statefulResponseHeaders = map[string]bool{
 	"Authentication-Control":    true,
@@ -35,22 +47,6 @@ const maxBodyLength = 1 << 10
 
 // TODO(twifkak): What value should this be?
 const miRecordSize = 4096
-
-func hello(resp http.ResponseWriter, req *http.Request) {
-	// TODO(twifkak): Write.
-	resp.Header().Set("Content-Type", "text/plain")
-	if req.URL.Path == "/" {
-		// TODO(twifkak): Link or redirect to documentation.
-		_, err := resp.Write([]byte("hello world"))
-		if err != nil {
-			// TODO(twifkak): Log request details.
-			// TODO(twifkak): Is it worth logging these? Maybe just connection drops.
-			log.Println("Error serving request:", err)
-		}
-	} else {
-		http.NotFound(resp, req)
-	}
-}
 
 type httpError struct {
 	InternalMsg string
@@ -80,6 +76,57 @@ func (e httpError) LogAndRespond(resp http.ResponseWriter) {
 	http.Error(resp, e.ExternalMsg(), e.StatusCode)
 }
 
+// The basename for the given cert, as served by this packager's cert cache.
+// Should be stable and unique (e.g. content-addressing).
+func certName(cert *x509.Certificate) string {
+	sum := sha256.Sum256(cert.Raw)
+	return base64.URLEncoding.EncodeToString(sum[:])
+}
+
+func hello(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "text/plain")
+	if req.URL.Path == "/" {
+		// TODO(twifkak): Link or redirect to documentation.
+		_, err := resp.Write([]byte("hello world"))
+		if err != nil {
+			// TODO(twifkak): Log request details.
+			// TODO(twifkak): Is it worth logging these? Maybe just connection drops.
+			log.Println("Error serving request:", err)
+			return
+		}
+	} else {
+		http.NotFound(resp, req)
+	}
+}
+
+type CertCache struct {
+	// TODO(twifkak): Support multiple certs.
+	certName string
+	certMessage []byte
+}
+
+func newCertCache(cert *x509.Certificate, pemContent []byte) (*CertCache, error) {
+	this := new(CertCache)
+	this.certName = certName(cert)
+	// TODO(twifkak): Refactor CertificateMessageFromPEM to be based on the x509.Certificate instead.
+	var err error
+	this.certMessage, err = certurl.CertificateMessageFromPEM(pemContent)
+	if err != nil {
+		return nil, err
+	}
+	return this, nil
+}
+
+func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	if req.URL.Path == path.Join(certUrlPrefix, this.certName) {
+		resp.Header().Set("Content-Type", "application/tls-cert-chain")
+		resp.Header().Set("ETag", "\"" + this.certName + "\"")
+		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.certMessage))
+	} else {
+		http.NotFound(resp, req)
+	}
+}
+
 // Iff there is an error, it logs, writes to resp, and returns an error.
 func parseUrls(fetch string, sign string, resp http.ResponseWriter) (*url.URL, *httpError) {
 	// TODO(twifkak): Validate fetch and sign against respective whitelists of hosts/URLs.
@@ -104,6 +151,7 @@ func fetchUrl(fetch string) (*http.Request, *http.Response, *httpError) {
 	// TODO(twifkak): Strip non-printable characters + newlines
 	// before logging any input data.
 	log.Println("Fetching URL:", fetch)
+	// TODO(twifkak): Translate into AMP CDN URL, until transform API is available.
 	client := http.Client{
 		// TODO(twifkak): Load-test and see if non-default
 		// transport settings (e.g. max idle conns per host)
@@ -144,8 +192,30 @@ func validateFetch(req *http.Request, resp *http.Response) *httpError {
 	return nil
 }
 
-// TODO(twifkak): Test this.
-func packager(resp http.ResponseWriter, req *http.Request) {
+func genCertUrl(cert *x509.Certificate) (*url.URL, error) {
+	urlPath := path.Join(certUrlPrefix, certName(cert))
+	// TODO(twifkak): Make this an absolute URL.
+	return url.Parse(urlPath)
+}
+
+type Packager struct {
+	// TODO(twifkak): Support multiple certs. This will require generating
+	// a signature for each one.
+	cert *x509.Certificate
+	// TODO(twifkak): Do we want to allow multiple keys?
+	key crypto.PrivateKey
+	validityUrl *url.URL
+}
+
+func newPackager(cert *x509.Certificate, key crypto.PrivateKey) (*Packager, error) {
+	validityUrl, err := url.Parse("https://cdn.ampproject.org/null-validity")
+	if err != nil {
+		return nil, err
+	}
+	return &Packager{cert, key, validityUrl}, nil
+}
+
+func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// TODO(twifkak): See if there are any other validations or
 	// sanitizations that need adding.
 
@@ -178,40 +248,94 @@ func packager(resp http.ResponseWriter, req *http.Request) {
 	for header, _ := range statefulResponseHeaders {
 		fetchResp.Header.Del(header)
 	}
-	body, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
+	// TODO(twifkak): Consider rewriting cache control headers.
+	// TODO(twifkak): Add some link-rel-preloads.
+	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
 		log.Println("Error reading body:", err)
 		http.Error(resp, "502 bad gateway", http.StatusBadGateway)
 		return
 	}
-	_, err = signedexchange.NewExchange(signUrl, http.Header{}, fetchResp.StatusCode, fetchResp.Header, body, miRecordSize)
+	exchange, err := signedexchange.NewExchange(signUrl, http.Header{}, fetchResp.StatusCode, fetchResp.Header, fetchBody, miRecordSize)
 	if err != nil {
-		log.Println("Error building exchange:", err)
-		http.Error(resp, "500 internal server error", http.StatusInternalServerError)
+		newHttpError(http.StatusInternalServerError, "Error building exchange:", err).LogAndRespond(resp)
 		return
 	}
-	//signer := signedexchange.Signer{
-	//	Date        time.Time
-	//	Expires     time.Time
-	//	Certs       []*x509.Certificate
-	//	CertUrl     *url.URL
-	//	ValidityUrl *url.URL
-	//	PrivKey     crypto.PrivateKey
-	//	Rand        io.Reader
-	//}
-	// TODO(twifkak): Consider rewriting cache control headers.
-	// TODO(twifkak): Construct CBOR thing.
+	certUrl, err := genCertUrl(this.cert)
+	if err != nil {
+		newHttpError(http.StatusInternalServerError, "Error building cert URL:", err).LogAndRespond(resp)
+		return
+	}
+	signer := signedexchange.Signer{
+		// Expires - Date must be <= 604800 seconds, per
+		// https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#signature-validity.
+		Date:    time.Now().Add(-24 * time.Hour),
+		Expires: time.Now().Add(6 * 24 * time.Hour),
+		Certs:   []*x509.Certificate{this.cert},
+		CertUrl: certUrl,
+		// TODO(twifkak): Upload this file.
+		ValidityUrl: this.validityUrl,
+		PrivKey:     this.key,
+		// TODO(twifkak): Should we make Rand user-configurable? The
+		// default is to use getrandom(2) if available, else
+		// /dev/urandom.
+	}
+	if err := exchange.AddSignatureHeader(&signer); err != nil {
+		newHttpError(http.StatusInternalServerError, "Error signing exchange:", err).LogAndRespond(resp)
+		return
+	}
+	// TODO(twifkak): Make this a streaming response. How will we handle errors after part of the response has already been sent?
+	var body bytes.Buffer
+	if err := signedexchange.WriteExchangeFile(&body, exchange); err != nil {
+		newHttpError(http.StatusInternalServerError, "Error serializing exchange:", err).LogAndRespond(resp)
+	}
+
+	// TODO(twifkak): Set some other headers, like maybe cache ones.
+	resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
+	if _, err := resp.Write(body.Bytes()); err != nil {
+		log.Println("Error writing response:", err)
+		return
+	}
 }
 
 // Exposes an HTTP server. Don't run this on the open internet, for at least two reasons:
 //  - It exposes an API that allows people to sign any URL as any other URL.
 //  - It is in cleartext.
 func main() {
+	// TODO(twifkak): Specify paths to these as a config file.
+	// TODO(twifkak): Do we need to support other cert/key storage formats?
+	certPem := []byte{}
+	keyPem := []byte{}
+
+	certs, err := signedexchange.ParseCertificates(certPem)
+	if err != nil {
+		panic(err)
+	}
+	if certs == nil || len(certs) == 0 {
+		panic("no cert found")
+	}
+	cert := certs[0]
+
+	key, _ := pem.Decode(keyPem)
+	if key == nil {
+		panic("no key found")
+	}
+
+	packager, err := newPackager(cert, key)
+	if err != nil {
+		panic(err)
+	}
+	certCache, err := newCertCache(cert, certPem)
+	if err != nil {
+		panic(err)
+	}
+
 	// TODO(twifkak): Make log output configurable.
 	// TODO(twifkak): Replace with my own ServeMux.
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(hello))
-	mux.Handle("/package", http.HandlerFunc(packager))
+	mux.Handle("/amppkg/doc", packager)
+	mux.Handle(certUrlPrefix, certCache)
 	// TODO(twifkak): Add a basic logging intercept (or use a Go lib for this stuff).
 	server := http.Server{
 		// TODO(twifkak): Make this configurable.
