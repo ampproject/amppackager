@@ -1,6 +1,8 @@
 // TODO(twifkak): Make a Makefile or whatever Go uses.
 // TODO(twifkak): Make or import some error-chaining facility, and replace every "return nil, err" or "panic(err)" with something that adds context.
 // TODO(twifkak): Test this.
+// TODO(twifkak): Document code.
+// TODO(twifkak): Write a README.
 package main
 
 import (
@@ -29,8 +31,11 @@ import (
 
 var flagConfig = flag.String("config", "./amppkg.toml", "Path to the config toml file.")
 
-// Must end in a slash, for ServeMux's sake.
-const certUrlPrefix = "/amppkg/cert/"
+// Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
+var acceptableSchemes = map[string]bool{"http": true, "https": true}
+
+// Must start without a slash, for PackagerBase's sake.
+const certUrlPrefix = "amppkg/cert"
 
 // Advised against, per
 // https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#stateful-headers,
@@ -83,7 +88,9 @@ func (e httpError) LogAndRespond(resp http.ResponseWriter) {
 }
 
 // The basename for the given cert, as served by this packager's cert cache.
-// Should be stable and unique (e.g. content-addressing).
+// Should be stable and unique (e.g. content-addressing). Clients should
+// url.PathEscape this, just in case its format changes to need escaping in the
+// future.
 func certName(cert *x509.Certificate) string {
 	sum := sha256.Sum256(cert.Raw)
 	return base64.URLEncoding.EncodeToString(sum[:])
@@ -124,7 +131,8 @@ func newCertCache(cert *x509.Certificate, pemContent []byte) (*CertCache, error)
 }
 
 func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	if req.URL.Path == path.Join(certUrlPrefix, this.certName) {
+	println("path", req.URL.Path)
+	if req.URL.Path == path.Join("/", certUrlPrefix, this.certName) {
 		// https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cert-chain-format
 		resp.Header().Set("Content-Type", "application/tls-cert-chain")
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
@@ -138,6 +146,7 @@ func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 func parseUrls(fetch string, sign string, resp http.ResponseWriter) (*url.URL, *httpError) {
 	// TODO(twifkak): Validate fetch and sign against respective whitelists of hosts/URLs.
 	// TODO(twifkak): Validate that the fetch URL matches the sign URL.
+	// TODO(twifkak): Validate that the signed URL is https.
 	if fetch == "" {
 		return nil, newHttpError(http.StatusBadRequest, "fetch URL is unspecified")
 	}
@@ -200,12 +209,6 @@ func validateFetch(req *http.Request, resp *http.Response) *httpError {
 	return nil
 }
 
-func genCertUrl(cert *x509.Certificate) (*url.URL, error) {
-	urlPath := path.Join(certUrlPrefix, certName(cert))
-	// TODO(twifkak): Make this an absolute URL.
-	return url.Parse(urlPath)
-}
-
 type Packager struct {
 	// TODO(twifkak): Support multiple certs. This will require generating
 	// a signature for each one. Note that Chrome only supports 1 signature
@@ -214,19 +217,41 @@ type Packager struct {
 	// TODO(twifkak): Do we want to allow multiple keys?
 	key         crypto.PrivateKey
 	validityUrl *url.URL
+	baseUrl     *url.URL
 }
 
-func newPackager(cert *x509.Certificate, key crypto.PrivateKey) (*Packager, error) {
+func newPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string) (*Packager, error) {
+	baseUrl, err := url.Parse(packagerBase)
+	if err != nil {
+		return nil, err
+	}
+	if !baseUrl.IsAbs() {
+		return nil, fmt.Errorf("PackagerBase '%s' must be an absolute URL.", baseUrl)
+	}
+	if !acceptableSchemes[baseUrl.Scheme] {
+		return nil, fmt.Errorf("PackagerBase '%s' must be over http or https.", baseUrl)
+	}
 	validityUrl, err := url.Parse("https://cdn.ampproject.org/null-validity")
 	if err != nil {
 		return nil, err
 	}
-	return &Packager{cert, key, validityUrl}, nil
+	return &Packager{cert, key, validityUrl, baseUrl}, nil
+}
+
+func (this Packager) genCertUrl(cert *x509.Certificate) (*url.URL, error) {
+	urlPath := path.Join(certUrlPrefix, url.PathEscape(certName(cert)))
+	certUrl, err := url.Parse(urlPath)
+	if err != nil {
+		return nil, err
+	}
+	ret := this.baseUrl.ResolveReference(certUrl)
+	return ret, nil
 }
 
 func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// TODO(twifkak): See if there are any other validations or
 	// sanitizations that need adding.
+	// TODO(twifkak): Should we reject requests that include user:pass or other such authentication, just in case?
 
 	fetch := req.FormValue("fetch")
 	sign := req.FormValue("sign")
@@ -270,7 +295,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		newHttpError(http.StatusInternalServerError, "Error building exchange:", err).LogAndRespond(resp)
 		return
 	}
-	certUrl, err := genCertUrl(this.cert)
+	certUrl, err := this.genCertUrl(this.cert)
 	if err != nil {
 		newHttpError(http.StatusInternalServerError, "Error building cert URL:", err).LogAndRespond(resp)
 		return
@@ -302,8 +327,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// TODO(twifkak): Should there be a signed-exchange caching mechanism?
 
 	// TODO(twifkak): Set some other headers, like maybe cache ones.
-	// TODO(twifkak): Change this to application/signed-exchange;v=b0 after http://crrev.com/c/964024 is submitted.
-	resp.Header().Set("Content-Type", "application/http-exchange+cbor")
+	resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)
 		return
@@ -311,11 +335,15 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 type Config struct {
-	CertFile string // This must be the full certificate chain.
-	KeyFile  string // Just for the first cert, obviously.
+	Dev          bool
+	Port         int
+	PackagerBase string // The base URL under which /amppkg/ URLs will be served on the internet.
+	CertFile     string // This must be the full certificate chain.
+	KeyFile      string // Just for the first cert, obviously.
 }
 
 // Reads the config file specified at --config and validates it.
+// TODO(twifkak): Check in a documented example config.
 func readConfig() (*Config, error) {
 	if *flagConfig == "" {
 		return nil, errors.New("must specify --config")
@@ -328,7 +356,21 @@ func readConfig() (*Config, error) {
 	if err = tree.Unmarshal(&config); err != nil {
 		return nil, err
 	}
+	if config.Port == 0 {
+		config.Port = 8080
+	}
 	return &config, err
+}
+
+type LogIntercept struct {
+	handler http.Handler
+}
+
+func (this LogIntercept) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	// TODO(twifkak): Adopt whatever the standard format is nowadays.
+	log.Println("Serving", req.URL, "to", req.RemoteAddr)
+	this.handler.ServeHTTP(resp, req)
+	// TODO(twifkak): Get status code from resp. This requires making a ResponseWriter wrapper.
 }
 
 // Exposes an HTTP server. Don't run this on the open internet, for at least two reasons:
@@ -370,7 +412,7 @@ func main() {
 		panic(err)
 	}
 
-	packager, err := newPackager(cert, key)
+	packager, err := newPackager(cert, key, config.PackagerBase)
 	if err != nil {
 		panic(err)
 	}
@@ -384,14 +426,19 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(hello))
 	mux.Handle("/amppkg/doc", packager)
-	mux.Handle(certUrlPrefix, certCache)
+	mux.Handle(path.Join("/", certUrlPrefix)+"/", certCache)
+	addr := ""
+	if config.Dev {
+		addr = "localhost"
+	}
+	addr += fmt.Sprint(":", config.Port)
 	// TODO(twifkak): Add a basic logging intercept (or use a Go lib for this stuff).
 	server := http.Server{
 		// TODO(twifkak): Make this configurable.
-		Addr: ":8080",
+		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
-		Handler:           mux,
+		Handler:           LogIntercept{mux},
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		// If needing to stream the response, disable WriteTimeout and
@@ -404,6 +451,8 @@ func main() {
 	}
 
 	// TODO(twifkak): Add monitoring (e.g. per the above Cloudflare blog).
+
+	log.Println("Serving on port", config.Port)
 
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.

@@ -9,13 +9,13 @@
     "go/signedexchange/certurl",
     "go/signedexchange/mice"
   ]
-  revision = "6400cbc3f5f82d9d3f950ac7e37b5948050a8f54"
+  revision = "370a67e8ddf31fe6d1179012d12b7d1e2eb97c95"
 
 [[projects]]
   branch = "master"
   name = "github.com/nyaxt/webpackage"
   packages = ["go/signedexchange"]
-  revision = "76c6e6987c837c9828dc2903c55f858b23ebd14c"
+  revision = "d69fecde09a8aa7156886723a83f3b55bbd6fc65"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
