@@ -1,3 +1,5 @@
+// TODO(twifkak): Make a Makefile or whatever Go uses.
+// TODO(twifkak): Make or import some error-chaining facility, and replace every "return nil, err" or "panic(err)" with something that adds context.
 // TODO(twifkak): Test this.
 package main
 
@@ -8,6 +10,8 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,14 +21,16 @@ import (
 	"path"
 	"time"
 
-	"github.com/pquerna/cachecontrol"
-	// TODO(twifkak): github.com/pelletier/go-toml (chosen per https://github.com/golang/dep/issues/119)
-	"github.com/nyaxt/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
+	"github.com/nyaxt/webpackage/go/signedexchange"
+	"github.com/pelletier/go-toml"
+	"github.com/pquerna/cachecontrol"
 )
 
+var flagConfig = flag.String("config", "./amppkg.toml", "Path to the config toml file.")
+
 // Must end in a slash, for ServeMux's sake.
-const certUrlPrefix = "/amppkg/cert/";
+const certUrlPrefix = "/amppkg/cert/"
 
 // Advised against, per
 // https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#stateful-headers,
@@ -43,7 +49,7 @@ var statefulResponseHeaders = map[string]bool{
 }
 
 // TODO(twifkak): Remove this restriction by allowing streamed responses from the signedexchange library.
-const maxBodyLength = 1 << 10
+const maxBodyLength = 1 << 20
 
 // TODO(twifkak): What value should this be?
 const miRecordSize = 4096
@@ -101,7 +107,7 @@ func hello(resp http.ResponseWriter, req *http.Request) {
 
 type CertCache struct {
 	// TODO(twifkak): Support multiple certs.
-	certName string
+	certName    string
 	certMessage []byte
 }
 
@@ -119,8 +125,9 @@ func newCertCache(cert *x509.Certificate, pemContent []byte) (*CertCache, error)
 
 func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == path.Join(certUrlPrefix, this.certName) {
+		// https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cert-chain-format
 		resp.Header().Set("Content-Type", "application/tls-cert-chain")
-		resp.Header().Set("ETag", "\"" + this.certName + "\"")
+		resp.Header().Set("ETag", "\""+this.certName+"\"")
 		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.certMessage))
 	} else {
 		http.NotFound(resp, req)
@@ -161,6 +168,7 @@ func fetchUrl(fetch string) (*http.Request, *http.Response, *httpError) {
 		Timeout: 60 * time.Second,
 	}
 	req, err := http.NewRequest(http.MethodGet, fetch, nil)
+	// TODO(twifkak): Add Accept-Encoding: utf-8, and verify Content-Encoding matches.
 	if err != nil {
 		return nil, nil, newHttpError(http.StatusInternalServerError, "Error building request")
 	}
@@ -200,10 +208,11 @@ func genCertUrl(cert *x509.Certificate) (*url.URL, error) {
 
 type Packager struct {
 	// TODO(twifkak): Support multiple certs. This will require generating
-	// a signature for each one.
+	// a signature for each one. Note that Chrome only supports 1 signature
+	// at the moment.
 	cert *x509.Certificate
 	// TODO(twifkak): Do we want to allow multiple keys?
-	key crypto.PrivateKey
+	key         crypto.PrivateKey
 	validityUrl *url.URL
 }
 
@@ -290,22 +299,57 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		newHttpError(http.StatusInternalServerError, "Error serializing exchange:", err).LogAndRespond(resp)
 	}
 
+	// TODO(twifkak): Should there be a signed-exchange caching mechanism?
+
 	// TODO(twifkak): Set some other headers, like maybe cache ones.
-	resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
+	// TODO(twifkak): Change this to application/signed-exchange;v=b0 after http://crrev.com/c/964024 is submitted.
+	resp.Header().Set("Content-Type", "application/http-exchange+cbor")
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)
 		return
 	}
 }
 
+type Config struct {
+	CertFile string // This must be the full certificate chain.
+	KeyFile  string // Just for the first cert, obviously.
+}
+
+// Reads the config file specified at --config and validates it.
+func readConfig() (*Config, error) {
+	if *flagConfig == "" {
+		return nil, errors.New("must specify --config")
+	}
+	tree, err := toml.LoadFile(*flagConfig)
+	if err != nil {
+		return nil, err
+	}
+	config := Config{}
+	if err = tree.Unmarshal(&config); err != nil {
+		return nil, err
+	}
+	return &config, err
+}
+
 // Exposes an HTTP server. Don't run this on the open internet, for at least two reasons:
 //  - It exposes an API that allows people to sign any URL as any other URL.
 //  - It is in cleartext.
 func main() {
-	// TODO(twifkak): Specify paths to these as a config file.
+	flag.Parse()
+	config, err := readConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	// TODO(twifkak): Do we need to support other cert/key storage formats?
-	certPem := []byte{}
-	keyPem := []byte{}
+	certPem, err := ioutil.ReadFile(config.CertFile)
+	if err != nil {
+		panic(err)
+	}
+	keyPem, err := ioutil.ReadFile(config.KeyFile)
+	if err != nil {
+		panic(err)
+	}
 
 	certs, err := signedexchange.ParseCertificates(certPem)
 	if err != nil {
@@ -316,9 +360,14 @@ func main() {
 	}
 	cert := certs[0]
 
-	key, _ := pem.Decode(keyPem)
-	if key == nil {
+	keyBlock, _ := pem.Decode(keyPem)
+	if keyBlock == nil {
 		panic("no key found")
+	}
+
+	key, err := signedexchange.ParsePrivateKey(keyBlock.Bytes)
+	if err != nil {
+		panic(err)
 	}
 
 	packager, err := newPackager(cert, key)
@@ -353,6 +402,9 @@ func main() {
 		IdleTimeout: 120 * time.Second,
 		// TODO(twifkak): Specify ErrorLog?
 	}
+
+	// TODO(twifkak): Add monitoring (e.g. per the above Cloudflare blog).
+
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.
 	log.Fatal(server.ListenAndServe())

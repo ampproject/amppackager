@@ -18,6 +18,12 @@
   revision = "76c6e6987c837c9828dc2903c55f858b23ebd14c"
 
 [[projects]]
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/pquerna/cachecontrol"
   packages = [
@@ -29,6 +35,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1f0351b8115630a5b1c5bc23e7ff6a9f26428828f225eebc49b96d2a5f00c7cb"
+  inputs-digest = "23a7ce0713016a247b4f0065b83073b97be36e30e216961845e84e9194516e3d"
   solver-name = "gps-cdcl"
   solver-version = 1
