@@ -1,0 +1,106 @@
+# This is a TOML 0.4.0 file, as specified by https://github.com/toml-lang/toml.
+
+# Uncomment this line to serve only to localhost clients, e.g. for testing.
+# LocalOnly = true
+
+# This is the URL prefix under which the packager is being served on the open
+# internet. This is used to generate certUrls, by appending
+# "/amppkg/cert/blahblahblah". (In the future, it may have other uses.) This is
+# NOT the URL where the packager responds, which will instead be anchored to
+# the root path.
+#
+# For instance, if PackagerBase = "https://example.com/", then the frontend
+# server should reverse-proxy all URLs matching:
+#   https://example.com/amppkg/(.*)
+# to the packager.
+#
+# Alternatively, if PackagerBase = "https://example.com/packager/", then the
+# frontend server should reverse-proxy all URLs matching:
+#   https://example.com/packager/amppkg/(.*)
+# to the packager, removing the "/packager" prefix from the path.
+#
+# The frontend MUST NOT forward any requests for /amppkg-priv/.* to the
+# packager. Doing so would allow users to sign the wrong URL on documents. (See
+# URLPatterns below for some mitigation of this.)
+PackagerBase = 'https://example.com/'
+
+# The path to the PEM file containing the full certificate chain, ordered from
+# leaf to root. This will be served at /amppkg/cert/blahblahblah, where
+# "blahblahblah" is a stable unique identifier for the cert (currently, its
+# base64-encoded SHA-256).
+CertFile = './pems/cert.pem'
+
+# The path to the PEM file containing the private key that corresponds to the
+# leaf certificate in CertFile.
+KeyFile = './pems/privkey.pem'
+
+# This is a simple level of validation, to guard against accidental
+# misconfiguration of the reverse proxy that sits in front of the packager.
+#
+# You must specify at least one URLPatterns group; you may specify multiple.
+# Each one must specify a Fetch pattern and a Sign pattern. When the packager
+# receives a request for a package, it will first validate that the requested
+# fetch/sign URL pair matches at least one of the given URLPatterns.
+#
+# This config doesn't let you specify an exact URL-to-URL mapping between fetch
+# and sign. It is the responsibility of the frontend that sits in front of the
+# packager to properly rewrite requests for a package into the appropriate
+# fetch/sign pair.
+#
+# For instance, the frontend server may reverse-proxy all URLs matching:
+#   https://example.com/wpk/(.*)
+# to:
+#   http://packager.internal/priv-amppkg/doc?fetch=http://www.internal/\1&sign=https://example.com/\1
+# where \1 is the value of the regexp group matched above (modulo proper
+# URL escaping).
+[[URLPatterns]]
+  # Where to fetch the raw AMP HTML. The HTTP response from this fetch URL must
+  # be a 200, and must have Cache-Control: public; otherwise, the packager will
+  # respond with an error code.
+  [URLPatterns.Fetch]
+    # The set of allowed schemes. Default is ["http", "https"]. You may configure
+    # it to be ["http"] or ["https"] instead. (No other value is allowed.)
+    #
+    # If fetching over http, then the domain should be an internal one (not
+    # routed over the open internet), to avoid a potential for a MITM attack. If
+    # you're unsure of whether your request will be routed internally or not,
+    # consider changing Scheme to ["https"] only.
+    Scheme = ["https"]
+
+    # The `user:pass@` portion of the URL is disallowed. There is no way to configure this.
+
+    # The domain from where to fetch. An exact string match.
+    Domain = "www.corp.example.com"  # Exact string match on domain. Required.
+
+    # A full-match regexp on the path to fetch (not including the ?query).
+    # Defaults to ".*". The below example only allows paths starting with /world/.
+    # PathRE = "/world/.*"
+
+    # A list of full-match regexps, carving out exclusions to the above PathRE.
+    # Examples of paths you might want to exclude:
+    #   * Personalized content, such as user settings pages. Signed exchanges
+    #     are cached globally and served to all users. (Personalization that
+    #     happens at runtime via JS is fine.) This provides defense-in-depth,
+    #     in addition to the Cache-Control: public check.
+    #   * User-generated content, such as forums. For instance, if there's a
+    #     chance of an XSS vulnerability in your templating library, the impact
+    #     of such event is higher here: even after you've fixed the bug, caches
+    #     may serve your signed packages for up to 7 days.
+    PathExcludeRE = []
+
+    # A full-match regexp on the query portion of the URL, excluding the initial
+    # "?". Defaults to ".*". The below example disallows non-empty query strings
+    # (though a single "?" is allowed).
+    # QueryRE = ""
+
+    # The fragment portion of the URL (i.e. the '#' and everything after) must
+    # be empty. There is no way to configure this.
+
+  # What URLs will show up in the browser's URL bar, when served from the AMP Cache.
+  [URLPatterns.Sign]
+    # For Sign URLs, Scheme defaults to, and must be ["https"].
+    # All other fields behave the same.
+    # The domain must be one that the above CertFile/KeyFile can sign for.
+    Domain = "example.com"
+    # PathRE = "/world/.*"
+    # QueryRE = ""

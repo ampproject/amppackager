@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
@@ -32,7 +34,7 @@ import (
 var flagConfig = flag.String("config", "./amppkg.toml", "Path to the config toml file.")
 
 // Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
-var acceptableSchemes = map[string]bool{"http": true, "https": true}
+var acceptablePackagerSchemes = map[string]bool{"http": true, "https": true}
 
 // Must start without a slash, for PackagerBase's sake.
 const certUrlPrefix = "amppkg/cert"
@@ -142,25 +144,76 @@ func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// Iff there is an error, it logs, writes to resp, and returns an error.
-func parseUrls(fetch string, sign string, resp http.ResponseWriter) (*url.URL, *httpError) {
-	// TODO(twifkak): Validate fetch and sign against respective whitelists of hosts/URLs.
-	// TODO(twifkak): Validate that the fetch URL matches the sign URL.
-	// TODO(twifkak): Validate that the signed URL is https.
-	if fetch == "" {
-		return nil, newHttpError(http.StatusBadRequest, "fetch URL is unspecified")
+func parseUrl(rawUrl string, name string) (*url.URL, *httpError) {
+	if rawUrl == "" {
+		return nil, newHttpError(http.StatusBadRequest, name, " URL is unspecified")
 	}
-	if sign == "" {
-		return nil, newHttpError(http.StatusBadRequest, "sign URL is unspecified")
-	}
-	signUrl, err := url.Parse(sign)
+	ret, err := url.Parse(rawUrl)
 	if err != nil {
-		return nil, newHttpError(http.StatusBadRequest, "Error parsing sign url:", err)
+		return nil, newHttpError(http.StatusBadRequest, "Error parsing ", name, " url:", err)
 	}
-	if !signUrl.IsAbs() {
-		return nil, newHttpError(http.StatusBadRequest, "Sign url is relative")
+	if !ret.IsAbs() {
+		return nil, newHttpError(http.StatusBadRequest, name, " url is relative")
 	}
-	return signUrl, nil
+	return ret, nil
+}
+
+func regexpFullMatch(pattern string, test string) bool {
+	// This is how regexp/exec_test.go turns a partial pattern into a full pattern.
+	fullRe := `\A(?:` + pattern + `)\z`
+	matches, _ := regexp.MatchString(fullRe, test)
+	return matches
+}
+
+func urlMatches(url *url.URL, pattern URLPattern) bool {
+	schemeMatches := false
+	for _, scheme := range pattern.Scheme {
+		if url.Scheme == scheme {
+			schemeMatches = true
+		}
+	}
+	if !schemeMatches {
+		return false
+	}
+	if url.Opaque != "" {
+		return false
+	}
+	if url.User != nil {
+		return false
+	}
+	if url.Host != pattern.Domain {
+		return false
+	}
+	if !regexpFullMatch(*pattern.PathRE, url.EscapedPath()) {
+		return false
+	}
+	for _, re := range pattern.PathExcludeRE {
+		if regexpFullMatch(re, url.EscapedPath()) {
+			return false
+		}
+	}
+	if !regexpFullMatch(*pattern.QueryRE, url.RawQuery) {
+		return false
+	}
+	return true
+}
+
+// Returns parsed sign URL.
+func parseUrls(fetch string, sign string, urlPatterns []URLPatternPair) (*url.URL, *httpError) {
+	fetchUrl, err := parseUrl(fetch, "fetch")
+	if err != nil {
+		return nil, err
+	}
+	signUrl, err := parseUrl(sign, "sign")
+	if err != nil {
+		return nil, err
+	}
+	for _, pattern := range urlPatterns {
+		if urlMatches(fetchUrl, pattern.Fetch) && urlMatches(signUrl, pattern.Sign) {
+			return signUrl, nil
+		}
+	}
+	return nil, newHttpError(http.StatusBadRequest, "fetch/sign URLs do not match config")
 }
 
 func fetchUrl(fetch string) (*http.Request, *http.Response, *httpError) {
@@ -218,9 +271,10 @@ type Packager struct {
 	key         crypto.PrivateKey
 	validityUrl *url.URL
 	baseUrl     *url.URL
+	urlPatterns []URLPatternPair
 }
 
-func newPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string) (*Packager, error) {
+func newPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlPatterns []URLPatternPair) (*Packager, error) {
 	baseUrl, err := url.Parse(packagerBase)
 	if err != nil {
 		return nil, err
@@ -228,14 +282,14 @@ func newPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	if !baseUrl.IsAbs() {
 		return nil, fmt.Errorf("PackagerBase '%s' must be an absolute URL.", baseUrl)
 	}
-	if !acceptableSchemes[baseUrl.Scheme] {
+	if !acceptablePackagerSchemes[baseUrl.Scheme] {
 		return nil, fmt.Errorf("PackagerBase '%s' must be over http or https.", baseUrl)
 	}
 	validityUrl, err := url.Parse("https://cdn.ampproject.org/null-validity")
 	if err != nil {
 		return nil, err
 	}
-	return &Packager{cert, key, validityUrl, baseUrl}, nil
+	return &Packager{cert, key, validityUrl, baseUrl, urlPatterns}, nil
 }
 
 func (this Packager) genCertUrl(cert *x509.Certificate) (*url.URL, error) {
@@ -255,7 +309,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	fetch := req.FormValue("fetch")
 	sign := req.FormValue("sign")
-	signUrl, httpErr := parseUrls(fetch, sign, resp)
+	signUrl, httpErr := parseUrls(fetch, sign, this.urlPatterns)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
@@ -283,6 +337,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		fetchResp.Header.Del(header)
 	}
 	// TODO(twifkak): Consider rewriting cache control headers.
+	// TODO(twifkak): Add config: either ensure Expires is + 5 days, or reject. (Or at least do one and document it in the example toml.)
 	// TODO(twifkak): Add some link-rel-preloads.
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
@@ -335,12 +390,69 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 type Config struct {
-	Dev          bool
+	LocalOnly    bool
 	Port         int
 	PackagerBase string // The base URL under which /amppkg/ URLs will be served on the internet.
 	CertFile     string // This must be the full certificate chain.
 	KeyFile      string // Just for the first cert, obviously.
+	URLPatterns  []URLPatternPair
 }
+
+type URLPatternPair struct {
+	Fetch URLPattern
+	Sign  URLPattern
+}
+
+type URLPattern struct {
+	Scheme        []string
+	Domain        string
+	PathRE        *string
+	PathExcludeRE []string
+	QueryRE       *string
+}
+
+var dotStarRegexp = ".*"
+
+// Also sets defaults.
+func validateURLPattern(pattern *URLPattern, name string, allowedSchemes map[string]bool) error {
+	if len(pattern.Scheme) == 0 {
+		// Default Scheme to the list of keys in allowedSchemes.
+		pattern.Scheme = make([]string, len(allowedSchemes))
+		i := 0
+		for scheme := range allowedSchemes {
+			pattern.Scheme[i] = scheme
+			i++
+		}
+	} else {
+		for _, scheme := range pattern.Scheme {
+			if !allowedSchemes[scheme] {
+				return fmt.Errorf("URLPatterns.%s.Scheme contains invalid value %#v", name, scheme)
+			}
+		}
+	}
+	if pattern.Domain == "" {
+		return fmt.Errorf("URLPatterns.%s.Domain must be specified", name)
+	}
+	if pattern.PathRE == nil {
+		pattern.PathRE = &dotStarRegexp
+	} else if _, err := regexp.Compile(*pattern.PathRE); err != nil {
+		return fmt.Errorf("URLPatterns.%s.PathRE must be a valid regexp", name)
+	}
+	for _, exclude := range pattern.PathExcludeRE {
+		if _, err := regexp.Compile(exclude); err != nil {
+			return fmt.Errorf("URLPatterns.%s.PathExcludeRE contains be invalid regexp %#v", name, exclude)
+		}
+	}
+	if pattern.QueryRE == nil {
+		pattern.QueryRE = &dotStarRegexp
+	} else if _, err := regexp.Compile(*pattern.QueryRE); err != nil {
+		return fmt.Errorf("URLPatterns.%s.QueryRE must be a valid regexp", name)
+	}
+	return nil
+}
+
+var allowedFetchSchemes = map[string]bool{"http": true, "https": true}
+var allowedSignSchemes = map[string]bool{"https": true}
 
 // Reads the config file specified at --config and validates it.
 // TODO(twifkak): Check in a documented example config.
@@ -359,7 +471,22 @@ func readConfig() (*Config, error) {
 	if config.Port == 0 {
 		config.Port = 8080
 	}
-	return &config, err
+	if !strings.HasSuffix(config.PackagerBase, "/") {
+		// This ensures that the ResolveReference call doesn't replace the last path component.
+		config.PackagerBase += "/"
+	}
+	if len(config.URLPatterns) == 0 {
+		return nil, errors.New("must specify one or more [[URLPatterns]]")
+	}
+	for i := range config.URLPatterns {
+		if err := validateURLPattern(&config.URLPatterns[i].Fetch, fmt.Sprint(i, ".Fetch"), allowedFetchSchemes); err != nil {
+			return nil, err
+		}
+		if err := validateURLPattern(&config.URLPatterns[i].Sign, fmt.Sprint(i, ".Sign"), allowedSignSchemes); err != nil {
+			return nil, err
+		}
+	}
+	return &config, nil
 }
 
 type LogIntercept struct {
@@ -412,7 +539,7 @@ func main() {
 		panic(err)
 	}
 
-	packager, err := newPackager(cert, key, config.PackagerBase)
+	packager, err := newPackager(cert, key, config.PackagerBase, config.URLPatterns)
 	if err != nil {
 		panic(err)
 	}
@@ -425,10 +552,10 @@ func main() {
 	// TODO(twifkak): Replace with my own ServeMux.
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(hello))
-	mux.Handle("/amppkg/doc", packager)
+	mux.Handle("/priv-amppkg/doc", packager)
 	mux.Handle(path.Join("/", certUrlPrefix)+"/", certCache)
 	addr := ""
-	if config.Dev {
+	if config.LocalOnly {
 		addr = "localhost"
 	}
 	addr += fmt.Sprint(":", config.Port)
