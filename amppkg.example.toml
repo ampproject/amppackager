@@ -1,6 +1,7 @@
 # This is a TOML 0.4.0 file, as specified by https://github.com/toml-lang/toml.
 
-# Uncomment this line to serve only to localhost clients, e.g. for testing.
+# Uncomment this line to serve only to localhost clients, e.g. for testing, by
+# binding on the loopback interface.
 # LocalOnly = true
 
 # This is the URL prefix under which the packager is being served on the open
@@ -21,43 +22,60 @@
 #
 # The frontend MUST NOT forward any requests for /amppkg-priv/.* to the
 # packager. Doing so would allow users to sign the wrong URL on documents. (See
-# URLPatterns below for some mitigation of this.)
+# URLSet below for some mitigation of this.)
 PackagerBase = 'https://example.com/'
 
 # The path to the PEM file containing the full certificate chain, ordered from
 # leaf to root. This will be served at /amppkg/cert/blahblahblah, where
 # "blahblahblah" is a stable unique identifier for the cert (currently, its
 # base64-encoded SHA-256).
+#
+# This certificate must be one of: 2048-bit RSA, EC with the secp256r1 curve,
+# or EC with the secp384r1 curve. (See https://goo.gl/E3YNkq item 5.1.4.)
+#
+# To mitigate the risk of an attacker gaining access to your private key
+# through a vulnerability in this packager, you should generate a new
+# certificate/key pair for the domain(s) you wish to sign packages with. This
+# allows you to revoke that certificate without affecting your normal
+# web-serving traffic.
 CertFile = './pems/cert.pem'
 
 # The path to the PEM file containing the private key that corresponds to the
 # leaf certificate in CertFile.
 KeyFile = './pems/privkey.pem'
 
+# The API key obtained from https://console.cloud.google.com/ with access to
+# the AMP HTML Transformer API, per these instructions:
+# https://support.google.com/cloud/answer/6158862
+GoogleAPIKey = "asdfghjkl"
+
 # This is a simple level of validation, to guard against accidental
 # misconfiguration of the reverse proxy that sits in front of the packager.
 #
-# You must specify at least one URLPatterns group; you may specify multiple.
-# Each one must specify a Fetch pattern and a Sign pattern. When the packager
-# receives a request for a package, it will first validate that the requested
-# fetch/sign URL pair matches at least one of the given URLPatterns.
+# You must specify at least one URLSet; you may specify multiple. Each one must
+# specify a Fetch pattern and a Sign pattern. When the packager receives a
+# request for a package, it will first validate that the requested fetch/sign
+# URL pair matches at least one of the given URLSets.
 #
 # This config doesn't let you specify an exact URL-to-URL mapping between fetch
-# and sign. It is the responsibility of the frontend that sits in front of the
-# packager to properly rewrite requests for a package into the appropriate
-# fetch/sign pair.
+# and sign. If an attacker gains direct access to this packager, they could ask
+# it to fetch http://www.corp.example.com/foo.html and sign it as
+# https://example.com/bar.html.
 #
-# For instance, the frontend server may reverse-proxy all URLs matching:
+# Instead, it is the responsibility of the frontend that sits in front of the
+# packager to properly rewrite requests for a package into the appropriate
+# fetch/sign pair. For instance, the frontend server may reverse-proxy all URLs
+# matching:
 #   https://example.com/wpk/(.*)
 # to:
 #   http://packager.internal/priv-amppkg/doc?fetch=http://www.internal/\1&sign=https://example.com/\1
 # where \1 is the value of the regexp group matched above (modulo proper
 # URL escaping).
-[[URLPatterns]]
+[[URLSet]]
   # Where to fetch the raw AMP HTML. The HTTP response from this fetch URL must
   # be a 200, and must have Cache-Control: public; otherwise, the packager will
   # respond with an error code.
-  [URLPatterns.Fetch]
+  [URLSet.Fetch]
     # The set of allowed schemes. Default is ["http", "https"]. You may configure
     # it to be ["http"] or ["https"] instead. (No other value is allowed.)
     #
@@ -96,8 +114,13 @@ KeyFile = './pems/privkey.pem'
     # The fragment portion of the URL (i.e. the '#' and everything after) must
     # be empty. There is no way to configure this.
 
+    # By default, stateful headers (such as Set-Cookie and WWW-Authenticate)
+    # are stripped from the response before packaging. If instead you wish for
+    # this to cause packaging to fail, set ErrorOnStatefulHeaders = true.
+    # ErrorOnStatefulHeaders = true
+
   # What URLs will show up in the browser's URL bar, when served from the AMP Cache.
-  [URLPatterns.Sign]
+  [URLSet.Sign]
     # For Sign URLs, Scheme defaults to, and must be ["https"].
     # All other fields behave the same.
     # The domain must be one that the above CertFile/KeyFile can sign for.

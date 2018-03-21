@@ -1,3 +1,17 @@
+// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // TODO(twifkak): Make a Makefile or whatever Go uses.
 // TODO(twifkak): Make or import some error-chaining facility, and replace every "return nil, err" or "panic(err)" with something that adds context.
 // TODO(twifkak): Test this.
@@ -31,7 +45,7 @@ import (
 	"github.com/pquerna/cachecontrol"
 )
 
-var flagConfig = flag.String("config", "./amppkg.toml", "Path to the config toml file.")
+var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
 
 // Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
 var acceptablePackagerSchemes = map[string]bool{"http": true, "https": true}
@@ -56,7 +70,7 @@ var statefulResponseHeaders = map[string]bool{
 }
 
 // TODO(twifkak): Remove this restriction by allowing streamed responses from the signedexchange library.
-const maxBodyLength = 1 << 20
+const maxBodyLength = 4 * 1 << 20
 
 // TODO(twifkak): What value should this be?
 const miRecordSize = 4096
@@ -198,22 +212,22 @@ func urlMatches(url *url.URL, pattern URLPattern) bool {
 	return true
 }
 
-// Returns parsed sign URL.
-func parseUrls(fetch string, sign string, urlPatterns []URLPatternPair) (*url.URL, *httpError) {
+// Returns parsed sign URL and whether to fail on stateful headers.
+func parseUrls(fetch string, sign string, urlSets []URLSet) (*url.URL, bool, *httpError) {
 	fetchUrl, err := parseUrl(fetch, "fetch")
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	signUrl, err := parseUrl(sign, "sign")
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	for _, pattern := range urlPatterns {
+	for _, pattern := range urlSets {
 		if urlMatches(fetchUrl, pattern.Fetch) && urlMatches(signUrl, pattern.Sign) {
-			return signUrl, nil
+			return signUrl, pattern.Fetch.ErrorOnStatefulHeaders, nil
 		}
 	}
-	return nil, newHttpError(http.StatusBadRequest, "fetch/sign URLs do not match config")
+	return nil, false, newHttpError(http.StatusBadRequest, "fetch/sign URLs do not match config")
 }
 
 func fetchUrl(fetch string) (*http.Request, *http.Response, *httpError) {
@@ -271,10 +285,10 @@ type Packager struct {
 	key         crypto.PrivateKey
 	validityUrl *url.URL
 	baseUrl     *url.URL
-	urlPatterns []URLPatternPair
+	urlSets []URLSet
 }
 
-func newPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlPatterns []URLPatternPair) (*Packager, error) {
+func newPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet) (*Packager, error) {
 	baseUrl, err := url.Parse(packagerBase)
 	if err != nil {
 		return nil, err
@@ -289,7 +303,7 @@ func newPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	if err != nil {
 		return nil, err
 	}
-	return &Packager{cert, key, validityUrl, baseUrl, urlPatterns}, nil
+	return &Packager{cert, key, validityUrl, baseUrl, urlSets}, nil
 }
 
 func (this Packager) genCertUrl(cert *x509.Certificate) (*url.URL, error) {
@@ -309,7 +323,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	fetch := req.FormValue("fetch")
 	sign := req.FormValue("sign")
-	signUrl, httpErr := parseUrls(fetch, sign, this.urlPatterns)
+	signUrl, errorOnStatefulHeaders, httpErr := parseUrls(fetch, sign, this.urlSets)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
@@ -331,9 +345,14 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// TODO(twifkak): Validate that the fetch is cacheable public for at least 4 days or something.
 	// TODO(twifkak): Should I be more restrictive and just
 	// whitelist some response headers?
 	for header, _ := range statefulResponseHeaders {
+		if errorOnStatefulHeaders && fetchResp.Header.Get(header) != "" {
+			newHttpError(http.StatusBadGateway, "Fetch response contains stateful header: ", header).LogAndRespond(resp)
+			return
+		}
 		fetchResp.Header.Del(header)
 	}
 	// TODO(twifkak): Consider rewriting cache control headers.
@@ -381,6 +400,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// TODO(twifkak): Should there be a signed-exchange caching mechanism?
 
+	// TODO(twifkak): Add Cache-Control: public with expiry to match the signature.
 	// TODO(twifkak): Set some other headers, like maybe cache ones.
 	resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
 	if _, err := resp.Write(body.Bytes()); err != nil {
@@ -395,10 +415,11 @@ type Config struct {
 	PackagerBase string // The base URL under which /amppkg/ URLs will be served on the internet.
 	CertFile     string // This must be the full certificate chain.
 	KeyFile      string // Just for the first cert, obviously.
-	URLPatterns  []URLPatternPair
+	GoogleAPIKey string
+	URLSet  []URLSet
 }
 
-type URLPatternPair struct {
+type URLSet struct {
 	Fetch URLPattern
 	Sign  URLPattern
 }
@@ -409,6 +430,7 @@ type URLPattern struct {
 	PathRE        *string
 	PathExcludeRE []string
 	QueryRE       *string
+	ErrorOnStatefulHeaders bool
 }
 
 var dotStarRegexp = ".*"
@@ -426,27 +448,27 @@ func validateURLPattern(pattern *URLPattern, name string, allowedSchemes map[str
 	} else {
 		for _, scheme := range pattern.Scheme {
 			if !allowedSchemes[scheme] {
-				return fmt.Errorf("URLPatterns.%s.Scheme contains invalid value %#v", name, scheme)
+				return fmt.Errorf("URLSet.%s.Scheme contains invalid value %#v", name, scheme)
 			}
 		}
 	}
 	if pattern.Domain == "" {
-		return fmt.Errorf("URLPatterns.%s.Domain must be specified", name)
+		return fmt.Errorf("URLSet.%s.Domain must be specified", name)
 	}
 	if pattern.PathRE == nil {
 		pattern.PathRE = &dotStarRegexp
 	} else if _, err := regexp.Compile(*pattern.PathRE); err != nil {
-		return fmt.Errorf("URLPatterns.%s.PathRE must be a valid regexp", name)
+		return fmt.Errorf("URLSet.%s.PathRE must be a valid regexp", name)
 	}
 	for _, exclude := range pattern.PathExcludeRE {
 		if _, err := regexp.Compile(exclude); err != nil {
-			return fmt.Errorf("URLPatterns.%s.PathExcludeRE contains be invalid regexp %#v", name, exclude)
+			return fmt.Errorf("URLSet.%s.PathExcludeRE contains be invalid regexp %#v", name, exclude)
 		}
 	}
 	if pattern.QueryRE == nil {
 		pattern.QueryRE = &dotStarRegexp
 	} else if _, err := regexp.Compile(*pattern.QueryRE); err != nil {
-		return fmt.Errorf("URLPatterns.%s.QueryRE must be a valid regexp", name)
+		return fmt.Errorf("URLSet.%s.QueryRE must be a valid regexp", name)
 	}
 	return nil
 }
@@ -468,6 +490,8 @@ func readConfig() (*Config, error) {
 	if err = tree.Unmarshal(&config); err != nil {
 		return nil, err
 	}
+	// TODO(twifkak): Panic if the TOML includes any fields that aren't part of the Config struct.
+
 	if config.Port == 0 {
 		config.Port = 8080
 	}
@@ -475,15 +499,27 @@ func readConfig() (*Config, error) {
 		// This ensures that the ResolveReference call doesn't replace the last path component.
 		config.PackagerBase += "/"
 	}
-	if len(config.URLPatterns) == 0 {
-		return nil, errors.New("must specify one or more [[URLPatterns]]")
+	if config.CertFile == "" {
+		return nil, errors.New("must specify CertFile")
 	}
-	for i := range config.URLPatterns {
-		if err := validateURLPattern(&config.URLPatterns[i].Fetch, fmt.Sprint(i, ".Fetch"), allowedFetchSchemes); err != nil {
+	if config.KeyFile == "" {
+		return nil, errors.New("must specify KeyFile")
+	}
+	if config.GoogleAPIKey == "" {
+		return nil, errors.New("must specify GoogleAPIKey")
+	}
+	if len(config.URLSet) == 0 {
+		return nil, errors.New("must specify one or more [[URLSet]]")
+	}
+	for i := range config.URLSet {
+		if err := validateURLPattern(&config.URLSet[i].Fetch, fmt.Sprint(i, ".Fetch"), allowedFetchSchemes); err != nil {
 			return nil, err
 		}
-		if err := validateURLPattern(&config.URLPatterns[i].Sign, fmt.Sprint(i, ".Sign"), allowedSignSchemes); err != nil {
+		if err := validateURLPattern(&config.URLSet[i].Sign, fmt.Sprint(i, ".Sign"), allowedSignSchemes); err != nil {
 			return nil, err
+		}
+		if config.URLSet[i].Sign.ErrorOnStatefulHeaders {
+			return nil, fmt.Errorf("URLSet.%s.Sign.ErrorOnStatefulHeaders is not allowed; perhaps you meant to put this in the Fetch section?")
 		}
 	}
 	return &config, nil
@@ -528,6 +564,7 @@ func main() {
 		panic("no cert found")
 	}
 	cert := certs[0]
+	// TODO(twifkak): Verify that cert covers all the signing domains in the config.
 
 	keyBlock, _ := pem.Decode(keyPem)
 	if keyBlock == nil {
@@ -538,8 +575,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// TODO(twifkak): Verify that key matches cert.
 
-	packager, err := newPackager(cert, key, config.PackagerBase, config.URLPatterns)
+	packager, err := newPackager(cert, key, config.PackagerBase, config.URLSet)
 	if err != nil {
 		panic(err)
 	}
