@@ -125,10 +125,10 @@ frontend as specified above. In addition, it:
 Once you've chosen a setup that meets the above constraints, actual
 configuration is fairly straightforward:
 
-  1. `git clone http://github.com/ampproject/amp-packager && cd amp-packager && go build main.go`
-  2. Move/rename the built `main` wherever you like.
+  1. `git clone http://github.com/ampproject/amp-packager && cd amp-packager && go build main/amppkg.go`
+  2. Move the built `./amppkg` wherever you like.
   3. Create a packager config file; use `amppkg.example.toml` in this repo as a template.
-  4. Launch with `/path/to/amppkg --config=/path/to/amppkg.toml > /var/log/amppkg.log`.
+  4. Launch with `/path/to/amppkg --config=/path/to/amppkg.toml >>/path/to/amppkg.log`.
   5. Set up log rotation for `amppkg.log`.
 
 ### Test your config
@@ -141,9 +141,18 @@ configuration is fairly straightforward:
      `<link rel="amppackage">` for a given page).
   5. Watch the URL transmogrify!
 
-Optionally, you may pretend to be an AMP Cache, for example by using `wget` to
-download the package and viewing it from `file://`.
+Optionally, you may pretend to be an AMP Cache:
+
+  1. Use `wget` to download the package and save it as a `foo.wpk` file in an
+     empty directory.
+  2. Run the provided `test.py` in that directory.
+  3. Ensure the packager is still running; it's needed to serve the certificate.
+  4. Visit `http://localhost:8000/foo.wpk` in the experimental Chromium.
 
 ## Limitations
 
 Currently, the packager will refuse to sign any AMP documents larger than 4 MB.
+
+The Go http.Client implementation doesn't support redirect chains that rely on
+cookies being set and then read later in the chain; all requests are made
+cookielessly.
