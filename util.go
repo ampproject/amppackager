@@ -20,27 +20,13 @@ import (
 	"encoding/base64"
 )
 
-type URLSet struct {
-	Fetch URLPattern
-	Sign  URLPattern
-}
+// CertURLPrefix must start without a slash, for PackagerBase's sake.
+const CertURLPrefix = "amppkg/cert"
 
-type URLPattern struct {
-	Scheme                 []string
-	Domain                 string
-	PathRE                 *string
-	PathExcludeRE          []string
-	QueryRE                *string
-	ErrorOnStatefulHeaders bool
-}
-
-// Must start without a slash, for PackagerBase's sake.
-const CertUrlPrefix = "amppkg/cert"
-
-// The basename for the given cert, as served by this packager's cert cache.
-// Should be stable and unique (e.g. content-addressing). Clients should
-// url.PathEscape this, just in case its format changes to need escaping in the
-// future.
+// CertName returns the basename for the given cert, as served by this
+// packager's cert cache. Should be stable and unique (e.g.
+// content-addressing). Clients should url.PathEscape this, just in case its
+// format changes to need escaping in the future.
 func CertName(cert *x509.Certificate) string {
 	sum := sha256.Sum256(cert.Raw)
 	return base64.URLEncoding.EncodeToString(sum[:])

@@ -68,10 +68,17 @@ GoogleAPIKey = "asdfghjkl"
 # matching:
 #   https://example.com/wpk/(.*)
 # to:
-#   http://packager.internal/priv-amppkg/doc?fetch=http://www.internal/\1&sign=https://example.com/\1
-# where \1 is the value of the regexp group matched above (modulo proper
-# URL escaping).
+#   http://packager.internal/priv/doc?fetch=http%3A%2F%2Fwww.internal%2F\1&sign=https%3A%2F%2Fexample.com%2F\1
+# where \1 is the URL-escaped value of the regexp group matched above (modulo
+# proper URL escaping).
 [[URLSet]]
+  # If true, enforces that the path and query are the same between the fetch
+  # and sign URLs (e.g. respond in error if
+  # fetch=http%3A%2F%2Ffoo%2Fbar.html and
+  # sign=https%3A%2F%2Fbaz%2Fnot-bar.html).
+  # Default is false.
+  # SamePath = true
+
   # Where to fetch the raw AMP HTML. The HTTP response from this fetch URL must
   # be a 200, and must have Cache-Control: public; otherwise, the packager will
   # respond with an error code.

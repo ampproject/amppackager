@@ -50,7 +50,7 @@ For URLs that look like `https://example.com/wpk/url/to/amp.html`, the frontend
 server must internally reverse-proxy these requests to something like:
 
 ```
-http://packager.internal/priv-amppkg/doc?fetch=http://www.internal/url/to/amp.html&sign=https://example.com/url/to/amp.html
+http://packager.internal/priv-amppkg/doc?fetch=http%3A%2F%2Fwww.internal%2Furl%2Fto%2Famp.html&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html
 ```
 
 Let's break that down:
@@ -68,14 +68,14 @@ Let's break that down:
   `/priv-amppkg/doc` This is a fixed string. The frontend server must rewrite
   the URL to start with this.
 
-  `?fetch=http://www.internal/url/to/amp.html` The location of the AMP document
+  `?fetch=http%3A%2F%2Fwww.internal%2Furl%2Fto%2Famp.html` The location of the AMP document
   to package, URL-escaped for use in a query. The same URL transformation that
   you applied to the `<link>` tag should be reversed by the web server, and then
   the domain replaced with the domain of the internal server. The packager will
   fetch this URL anonymously (e.g. without a `Cookie` header). This URL can be
   HTTP or HTTPS. If HTTP, then the request should remain inside your network.
 
-  `&sign=https://example.com/url/to/amp.html` The location that should appear
+  `&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html` The location that should appear
   in the browser's URL bar, URL-escaped for use in a query. This must be HTTPS,
   and must be on a domain that the packager's certificate can sign for. If the
   user hits Refresh on their browser, it will fetch from this URL, so it must
@@ -145,9 +145,9 @@ Optionally, you may pretend to be an AMP Cache:
 
   1. Use `wget` to download the package and save it as a `foo.wpk` file in an
      empty directory.
-  2. Run the provided `test.py` in that directory.
+  2. Run the provided `tools/test_server.go` in that directory.
   3. Ensure the packager is still running; it's needed to serve the certificate.
-  4. Visit `http://localhost:8000/foo.wpk` in the experimental Chromium.
+  4. Visit `http://localhost:8000/` in the experimental Chromium.
 
 ## Limitations
 
