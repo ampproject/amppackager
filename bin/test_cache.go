@@ -30,5 +30,6 @@ func main() {
 		resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
 		http.ServeFile(resp, req, *flagPackage)
 	})
+	log.Println("Serving on port", *flagPort)
 	log.Fatal(http.ListenAndServe(fmt.Sprint("localhost:", *flagPort), nil))
 }

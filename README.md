@@ -50,7 +50,7 @@ For URLs that look like `https://example.com/wpk/url/to/amp.html`, the frontend
 server must internally reverse-proxy these requests to something like:
 
 ```
-http://packager.internal/priv-amppkg/doc?fetch=http%3A%2F%2Fwww.internal%2Furl%2Fto%2Famp.html&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html
+http://packager.internal/priv-amppkg/doc?fetch=https%3A%2F%2example.com%2Furl%2Fto%2Famp.html&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html
 ```
 
 Let's break that down:
@@ -68,19 +68,21 @@ Let's break that down:
   `/priv-amppkg/doc` This is a fixed string. The frontend server must rewrite
   the URL to start with this.
 
-  `?fetch=http%3A%2F%2Fwww.internal%2Furl%2Fto%2Famp.html` The location of the AMP document
-  to package, URL-escaped for use in a query. The same URL transformation that
-  you applied to the `<link>` tag should be reversed by the web server, and then
-  the domain replaced with the domain of the internal server. The packager will
-  fetch this URL anonymously (e.g. without a `Cookie` header). This URL can be
-  HTTP or HTTPS. If HTTP, then the request should remain inside your network.
+  `?fetch=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html` The location of the
+  AMP document to package, URL-escaped for use in a query. The same URL
+  transformation that you applied to the `<link>` tag should be reversed by the
+  web server. The packager will instruct the AMP CDN to fetch this URL
+  anonymously (e.g. without a `Cookie` header). This URL can be HTTP or HTTPS,
+  though the latter is strongly encouraged. The URL must be visible on the open
+  internet.
 
-  `&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html` The location that should appear
-  in the browser's URL bar, URL-escaped for use in a query. This must be HTTPS,
-  and must be on a domain that the packager's certificate can sign for. If the
-  user hits Refresh on their browser, it will fetch from this URL, so it must
-  contain the same content as the fetch URL. Like the fetch URL, the frontend
-  server will need to statically derive this URL from the amppackage URL.
+  `&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html` The location that
+  should appear in the browser's URL bar, URL-escaped for use in a query. This
+  must be HTTPS, and must be on a domain that the packager's certificate can
+  sign for. If the user hits Refresh on their browser, it will fetch from this
+  URL, so it must contain the same content as the fetch URL. Like the fetch URL,
+  the frontend server will need to statically derive this URL from the
+  amppackage URL.
 
 #### Certificates
 
@@ -111,16 +113,14 @@ frontend as specified above. In addition, it:
     different instances of the packager. We recommend using a different
     certificate/key pair from your normal web-serving traffic. See the example
     config file for details.
-  * Must be able to make outgoing connections to
-    `amphtmltransformer.googleapis.com` on port 443.
-  * Must be able to make outgoing connections to your internal AMP content
-    server.
-  * Must have an API key obtained from
-    [Google Cloud Console](https://console.cloud.google.com/) with access to the
-    AMP HTML Transformer API, per
-    [these instructions](https://support.google.com/cloud/answer/6158862).
+  * Must be able to make outgoing connections to `cdn.ampproject.org` on port
+    443.
   * Should have its stdout redirected to a log file somewhere, probably rotated.
   * Should not run as superuser.
+
+<!-- TODO(twifkak): Add instructions for getting an API key or service account,
+     after the Transformer API is in place. Maybe make a script that automates
+     it using gcloud. -->
 
 Once you've chosen a setup that meets the above constraints, actual
 configuration is fairly straightforward:
@@ -133,19 +133,19 @@ configuration is fairly straightforward:
 
 ### Test your config
 
-  1. Download a [nightly build of Chromium](https://www.chromium.org/getting-involved/download-chromium).
-  2. Launch Chromium with the flag `--enable-features=SignedHTTPExchange`.
-  3. Navigate to chrome://flags#enable-experimental-web-platform-features and
-     enable that feature.
-  4. Navigate to your AMP package URL (i.e. the `href` of your
+  1. Run a [nightly build of Chromium](https://www.chromium.org/getting-involved/download-chromium).
+  2. Navigate to chrome://flags#enable-signed-http-exchange and enable that
+     feature.
+  3. Navigate to your AMP package URL (i.e. the `href` of your
      `<link rel="amppackage">` for a given page).
-  5. Watch the URL transmogrify!
+  4. Watch the URL transmogrify!
 
 Optionally, you may pretend to be an AMP Cache:
 
   1. Use `wget` to download the package and save it as a `foo.wpk` file in an
      empty directory.
-  2. Run the provided `tools/test_server.go` in that directory.
+  2. Run the provided `tools/test_cache.go` in that directory, passing
+     `--package=foo.wpk`.
   3. Ensure the packager is still running; it's needed to serve the certificate.
   4. Visit `http://localhost:8000/` in the experimental Chromium.
 

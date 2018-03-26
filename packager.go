@@ -121,22 +121,22 @@ func urlsMatch(fetchURL *url.URL, signURL *url.URL, set URLSet) bool {
 		(!set.SamePath || fetchURL.RequestURI() == signURL.RequestURI())
 }
 
-// Returns parsed sign URL and whether to fail on stateful headers.
-func parseURLs(fetch string, sign string, urlSets []URLSet) (*url.URL, bool, *HTTPError) {
+// Returns parsed URLs and whether to fail on stateful headers.
+func parseURLs(fetch string, sign string, urlSets []URLSet) (*url.URL, *url.URL, bool, *HTTPError) {
 	fetchURL, err := parseURL(fetch, "fetch")
 	if err != nil {
-		return nil, false, err
+		return nil, nil, false, err
 	}
 	signURL, err := parseURL(sign, "sign")
 	if err != nil {
-		return nil, false, err
+		return nil, nil, false, err
 	}
 	for _, set := range urlSets {
 		if urlsMatch(fetchURL, signURL, set) {
-			return signURL, set.Fetch.ErrorOnStatefulHeaders, nil
+			return fetchURL, signURL, set.Fetch.ErrorOnStatefulHeaders, nil
 		}
 	}
-	return nil, false, NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config")
+	return nil, nil, false, NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config")
 }
 
 func validateFetch(req *http.Request, resp *http.Response) *HTTPError {
@@ -145,7 +145,10 @@ func validateFetch(req *http.Request, resp *http.Response) *HTTPError {
 	}
 	// Validate response is publicly-cacheable, per
 	// https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-03#section-6.1.
-	nonCachableReasons, _, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: false})
+	// TODO(twifkak): Set {PrivateCache: false} after we switch from
+	// fetching through the AMP CDN to fetching directly and using the
+	// transformer API.
+	nonCachableReasons, _, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: true})
 	if err != nil {
 		return NewHTTPError(http.StatusBadGateway, "Error parsing cache headers: ", err)
 	}
@@ -190,10 +193,15 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	return &Packager{cert, key, validityURL, &client, baseURL, urlSets}, nil
 }
 
-func (this Packager) fetchURL(fetch string) (*http.Request, *http.Response, *HTTPError) {
-	log.Printf("Fetching URL: %q\n", fetch)
+func (this Packager) fetchURL(url *url.URL) (*http.Request, *http.Response, *HTTPError) {
+	ampURL := "https://cdn.ampproject.org/c/"
+	if url.Scheme == "https" {
+		ampURL += "s/"
+	}
+	ampURL += url.Host + url.RequestURI()
+	log.Printf("Fetching URL: %q\n", ampURL)
 	// TODO(twifkak): Translate into AMP CDN URL, until transform API is available.
-	req, err := http.NewRequest(http.MethodGet, fetch, nil)
+	req, err := http.NewRequest(http.MethodGet, ampURL, nil)
 	req.Header.Set("User-Agent", userAgent)
 	// TODO(twifkak): Should we add 'Accept-Charset: utf-8'? The AMP Transformer API requires utf-8.
 	if err != nil {
@@ -220,13 +228,13 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// TODO(twifkak): See if there are any other validations or sanitizations that need adding.
 	fetch := req.FormValue("fetch")
 	sign := req.FormValue("sign")
-	signURL, errorOnStatefulHeaders, httpErr := parseURLs(fetch, sign, this.urlSets)
+	fetchURL, signURL, errorOnStatefulHeaders, httpErr := parseURLs(fetch, sign, this.urlSets)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
 	}
 
-	fetchReq, fetchResp, httpErr := this.fetchURL(fetch)
+	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
@@ -251,12 +259,13 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 		fetchResp.Header.Del(header)
 	}
+
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
-		log.Println("Error reading body:", err)
-		http.Error(resp, "502 bad gateway", http.StatusBadGateway)
+		NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
 		return
 	}
+
 	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, fetchBody, miRecordSize)
 	if err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)

@@ -59,7 +59,7 @@ GoogleAPIKey = "asdfghjkl"
 #
 # This config doesn't let you specify an exact URL-to-URL mapping between fetch
 # and sign. If an attacker gains direct access to this packager, they could ask
-# it to fetch http://www.corp.example.com/foo.html and sign it as
+# it to fetch https://www.example.com/foo.html and sign it as
 # https://example.com/bar.html.
 #
 # Instead, it is the responsibility of the frontend that sits in front of the
@@ -68,9 +68,8 @@ GoogleAPIKey = "asdfghjkl"
 # matching:
 #   https://example.com/wpk/(.*)
 # to:
-#   http://packager.internal/priv/doc?fetch=http%3A%2F%2Fwww.internal%2F\1&sign=https%3A%2F%2Fexample.com%2F\1
-# where \1 is the URL-escaped value of the regexp group matched above (modulo
-# proper URL escaping).
+#   http://packager.internal/priv/doc?fetch=https%3A%2F%2Fexample.com%2F\1&sign=https%3A%2F%2Fexample.com%2F\1
+# where \1 is the URL-escaped value of the regexp group matched above.
 [[URLSet]]
   # If true, enforces that the path and query are the same between the fetch
   # and sign URLs (e.g. respond in error if
@@ -83,13 +82,11 @@ GoogleAPIKey = "asdfghjkl"
   # be a 200, and must have Cache-Control: public; otherwise, the packager will
   # respond with an error code.
   [URLSet.Fetch]
-    # The set of allowed schemes. Default is ["http", "https"]. You may configure
-    # it to be ["http"] or ["https"] instead. (No other value is allowed.)
+    # The set of allowed schemes. Default is ["https"]. You may configure it to
+    # be ["http"] or ["http", "https"] instead. (No other value is allowed.)
     #
-    # If fetching over http, then the domain should be an internal one (not
-    # routed over the open internet), to avoid a potential for a MITM attack. If
-    # you're unsure of whether your request will be routed internally or not,
-    # consider changing Scheme to ["https"] only.
+    # The scheme is strongly encouraged to be https, to avoid a potential for a
+    # MITM attack.
     Scheme = ["https"]
 
     # The `user:pass@` portion of the URL is disallowed. There is no way to configure this.

@@ -34,6 +34,9 @@ import (
 
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
 
+// Prints errors returned by pkg/errors with stack traces.
+func die(err interface{}) { log.Fatalf("%+v", err) }
+
 type logIntercept struct {
 	handler http.Handler
 }
@@ -53,47 +56,47 @@ func main() {
 	flag.Parse()
 	config, err := amppkg.ReadConfig(*flagConfig)
 	if err != nil {
-		panic(errors.Wrap(err, "reading config"))
+		die(errors.Wrap(err, "reading config"))
 	}
 
 	// TODO(twifkak): Document what cert/key storage formats this accepts.
 	certPem, err := ioutil.ReadFile(config.CertFile)
 	if err != nil {
-		panic(errors.Wrapf(err, "reading %s", config.CertFile))
+		die(errors.Wrapf(err, "reading %s", config.CertFile))
 	}
 	keyPem, err := ioutil.ReadFile(config.KeyFile)
 	if err != nil {
-		panic(errors.Wrapf(err, "reading %s", config.KeyFile))
+		die(errors.Wrapf(err, "reading %s", config.KeyFile))
 	}
 
 	certs, err := signedexchange.ParseCertificates(certPem)
 	if err != nil {
-		panic(errors.Wrapf(err, "parsing %s", config.CertFile))
+		die(errors.Wrapf(err, "parsing %s", config.CertFile))
 	}
 	if certs == nil || len(certs) == 0 {
-		panic(fmt.Sprintf("no cert found in %s", config.CertFile))
+		die(fmt.Sprintf("no cert found in %s", config.CertFile))
 	}
 	cert := certs[0]
 	// TODO(twifkak): Verify that cert covers all the signing domains in the config.
 
 	keyBlock, _ := pem.Decode(keyPem)
 	if keyBlock == nil {
-		panic(fmt.Sprintf("no key found in %s", config.KeyFile))
+		die(fmt.Sprintf("no key found in %s", config.KeyFile))
 	}
 
 	key, err := signedexchange.ParsePrivateKey(keyBlock.Bytes)
 	if err != nil {
-		panic(errors.Wrapf(err, "parsing %s", config.KeyFile))
+		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
 	}
 	// TODO(twifkak): Verify that key matches cert.
 
 	packager, err := amppkg.NewPackager(cert, key, config.PackagerBase, config.URLSet)
 	if err != nil {
-		panic(errors.Wrap(err, "building packager"))
+		die(errors.Wrap(err, "building packager"))
 	}
 	certCache, err := amppkg.NewCertCache(cert, certPem)
 	if err != nil {
-		panic(errors.Wrap(err, "building cert cache"))
+		die(errors.Wrap(err, "building cert cache"))
 	}
 
 	// TODO(twifkak): Make log output configurable.
