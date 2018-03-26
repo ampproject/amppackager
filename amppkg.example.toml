@@ -74,8 +74,9 @@ GoogleAPIKey = "asdfghjkl"
   # If true, enforces that the path and query are the same between the fetch
   # and sign URLs (e.g. respond in error if
   # fetch=http%3A%2F%2Ffoo%2Fbar.html and
-  # sign=https%3A%2F%2Fbaz%2Fnot-bar.html).
-  # Default is false.
+  # sign=https%3A%2F%2Fbaz%2Fnot-bar.html). In most cases, SamePath should be
+  # true, and Fetch and Sign should have the same configuration. Default is
+  # false.
   # SamePath = true
 
   # Where to fetch the raw AMP HTML. The HTTP response from this fetch URL must
