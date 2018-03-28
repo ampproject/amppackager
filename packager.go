@@ -41,7 +41,7 @@ const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"Safari/537.36 (compatible; amppackager/0.0.0; +https://github.com/ampproject/amppackager)"
 
 // Advised against, per
-// https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#stateful-headers,
+// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#stateful-headers,
 // and blocked in http://crrev.com/c/958945.
 var statefulResponseHeaders = map[string]bool{
 	"Authentication-Control":    true,
@@ -144,10 +144,11 @@ func validateFetch(req *http.Request, resp *http.Response) *HTTPError {
 		return NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", resp.StatusCode)
 	}
 	// Validate response is publicly-cacheable, per
-	// https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-03#section-6.1.
+	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#security-considerations.
 	// TODO(twifkak): Set {PrivateCache: false} after we switch from
 	// fetching through the AMP CDN to fetching directly and using the
-	// transformer API.
+	// transformer API. For now, the AMP CDN validates that the origin
+	// response is publicly-cacheable.
 	nonCachableReasons, _, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: true})
 	if err != nil {
 		return NewHTTPError(http.StatusBadGateway, "Error parsing cache headers: ", err)
@@ -278,7 +279,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 	signer := signedexchange.Signer{
 		// Expires - Date must be <= 604800 seconds, per
-		// https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#signature-validity.
+		// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#signature-validity.
 		Date:        time.Now().Add(-24 * time.Hour),
 		Expires:     time.Now().Add(6 * 24 * time.Hour),
 		Certs:       []*x509.Certificate{this.cert},

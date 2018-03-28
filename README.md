@@ -4,7 +4,7 @@
 > to play around with it, but be cautious. Examine the code.
 
 The AMP Packager creates "AMP Packages" (implemented as [Signed HTTP
-Exchanges](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html))
+Exchanges](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html))
 containing your AMP documents. These packages are consumed by the [Google AMP
 Cache](https://www.ampproject.org/docs/fundamentals/how_cached), cached, and
 when available, linked to from Google Search instead of normal AMP page. The

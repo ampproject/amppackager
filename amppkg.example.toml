@@ -30,8 +30,8 @@ PackagerBase = 'https://example.com/'
 # "blahblahblah" is a stable unique identifier for the cert (currently, its
 # base64-encoded SHA-256).
 #
-# This certificate must be one of: 2048-bit RSA, EC with the secp256r1 curve,
-# or EC with the secp384r1 curve. (See https://goo.gl/E3YNkq item 5.1.4.)
+# This certificate must be 2048-bit RSA. (See https://goo.gl/pwK9EJ item
+# 4.1.5.)
 #
 # To mitigate the risk of an attacker gaining access to your private key
 # through a vulnerability in this packager, you should generate a new
