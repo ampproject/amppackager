@@ -1,5 +1,8 @@
 # AMP Packager
 
+> **WARNING**: This code is still brand new, and highly experimental. Feel free
+> to play around with it, but be cautious. Examine the code.
+
 The AMP Packager creates "AMP Packages" (implemented as [Signed HTTP
 Exchanges](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html))
 containing your AMP documents. These packages are consumed by the [Google AMP
@@ -60,10 +63,8 @@ Let's break that down:
   instance if the connection to the packager travels outside your network), you
   may place a TLS-terminating proxy in front of it.
 
-  `packager.internal` This is the location of the packager as known to the
-  frontend server. By default Go parses `/etc/resolv.conf` for name resolution,
-  but see [its documentation](https://golang.org/pkg/net/) for other options.
-  You may append `:8080` or the like for a different port.
+  `packager.internal` This is the host (and optionally port) of the packager as
+  known to the frontend server.
 
   `/priv-amppkg/doc` This is a fixed string. The frontend server must rewrite
   the URL to start with this.
@@ -125,7 +126,7 @@ frontend as specified above. In addition, it:
 Once you've chosen a setup that meets the above constraints, actual
 configuration is fairly straightforward:
 
-  1. `git clone http://github.com/ampproject/amp-packager && cd amp-packager && go build main/amppkg.go`
+  1. `git clone http://github.com/ampproject/amp-packager && cd amp-packager && go build bin/amppkg.go`
   2. Move the built `./amppkg` wherever you like.
   3. Create a packager config file; use `amppkg.example.toml` in this repo as a template.
   4. Launch with `/path/to/amppkg --config=/path/to/amppkg.toml >>/path/to/amppkg.log`.
@@ -144,7 +145,7 @@ Optionally, you may pretend to be an AMP Cache:
 
   1. Use `wget` to download the package and save it as a `foo.wpk` file in an
      empty directory.
-  2. Run the provided `tools/test_cache.go` in that directory, passing
+  2. Run the provided `bin/test_cache.go` in that directory, passing
      `--package=foo.wpk`.
   3. Ensure the packager is still running; it's needed to serve the certificate.
   4. Visit `http://localhost:8000/` in the experimental Chromium.
