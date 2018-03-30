@@ -4,18 +4,18 @@
 [[projects]]
   branch = "master"
   name = "github.com/WICG/webpackage"
-  packages = [
-    "go/signedexchange/cbor",
-    "go/signedexchange/certurl",
-    "go/signedexchange/mice"
-  ]
+  packages = ["go/signedexchange/certurl"]
   revision = "c986519564139f1fa7929c20d11b6a97ae6911fa"
 
 [[projects]]
   branch = "master"
   name = "github.com/nyaxt/webpackage"
-  packages = ["go/signedexchange"]
-  revision = "784b06f73ddc98bcff103973ffbf7893dffb51ce"
+  packages = [
+    "go/signedexchange",
+    "go/signedexchange/cbor",
+    "go/signedexchange/mice"
+  ]
+  revision = "b9642301142b418c389cae0c9b902d41f5fb12ef"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"

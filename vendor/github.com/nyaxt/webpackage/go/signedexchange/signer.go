@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/WICG/webpackage/go/signedexchange/cbor"
+	"github.com/nyaxt/webpackage/go/signedexchange/cbor"
 )
 
 type Signer struct {
