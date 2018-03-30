@@ -42,6 +42,7 @@ func main() {
 	})
 	http.HandleFunc("/test.wpk", func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
+		resp.Header().Set("Content-Disposition", "attachment")
 		http.ServeFile(resp, req, *flagPackage)
 	})
 	log.Println("Serving on port", *flagPort)
