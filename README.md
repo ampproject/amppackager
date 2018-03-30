@@ -54,7 +54,7 @@ For URLs that look like `https://example.com/htxg/url/to/amp.html`, the frontend
 server must internally reverse-proxy these requests to something like:
 
 ```
-http://packager.internal/priv/doc?fetch=https%3A%2F%2example.com%2Furl%2Fto%2Famp.html&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html
+http://packager.internal/priv/doc?fetch=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html
 ```
 
 Let's break that down:
@@ -127,8 +127,8 @@ frontend as specified above. In addition, it:
 Once you've chosen a setup that meets the above constraints, actual
 configuration is fairly straightforward:
 
-  1. `git clone http://github.com/ampproject/amp-packager && cd amp-packager && go build cmd/amppkg/main.go`
-  2. Move the built `./amppkg` wherever you like.
+  1. `go get github.com/ampproject/amppackager/cmd/amppkg`
+  2. Move the built `~/go/bin/amppkg` wherever you like.
   3. Create a packager config file; use `amppkg.example.toml` in this repo as a template.
   4. Launch with `/path/to/amppkg -config=/path/to/amppkg.toml >>/path/to/amppkg.log`.
   5. Set up log rotation for `amppkg.log`.

@@ -22,7 +22,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/WICG/webpackage/go/signedexchange/certurl"
+	"github.com/nyaxt/webpackage/go/signedexchange/certurl"
 	"github.com/pkg/errors"
 )
 
