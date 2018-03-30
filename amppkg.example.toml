@@ -44,11 +44,6 @@ CertFile = './pems/cert.pem'
 # leaf certificate in CertFile.
 KeyFile = './pems/privkey.pem'
 
-# The API key obtained from https://console.cloud.google.com/ with access to
-# the AMP HTML Transformer API, per these instructions:
-# https://support.google.com/cloud/answer/6158862
-GoogleAPIKey = "asdfghjkl"
-
 # This is a simple level of validation, to guard against accidental
 # misconfiguration of the reverse proxy that sits in front of the packager.
 #

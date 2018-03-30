@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/WICG/webpackage/go/signedexchange/cbor"
-	"github.com/WICG/webpackage/go/signedexchange/mice"
+	"github.com/nyaxt/webpackage/go/signedexchange/cbor"
+	"github.com/nyaxt/webpackage/go/signedexchange/mice"
 )
 
 type Exchange struct {

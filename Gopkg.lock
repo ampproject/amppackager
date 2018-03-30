@@ -3,19 +3,14 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/WICG/webpackage"
+  name = "github.com/nyaxt/webpackage"
   packages = [
+    "go/signedexchange",
     "go/signedexchange/cbor",
     "go/signedexchange/certurl",
     "go/signedexchange/mice"
   ]
-  revision = "c986519564139f1fa7929c20d11b6a97ae6911fa"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/nyaxt/webpackage"
-  packages = ["go/signedexchange"]
-  revision = "784b06f73ddc98bcff103973ffbf7893dffb51ce"
+  revision = "b9642301142b418c389cae0c9b902d41f5fb12ef"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -41,6 +36,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "452191d8656f5cebb3ee2f74a1dd83f3489a5208819e6b34846d269a6a528c07"
+  inputs-digest = "ba5ca118a4fe6e195549fb4ef086ca2db64e1706ba48bdbae16586ff1c66ebf0"
   solver-name = "gps-cdcl"
   solver-version = 1

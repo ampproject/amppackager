@@ -1,3 +1,2 @@
-amppkg.toml
-amppkg
-test_cache
+/amppkg.toml
+/main

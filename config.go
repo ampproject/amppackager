@@ -28,7 +28,6 @@ type Config struct {
 	PackagerBase string // The base URL under which /amppkg/ URLs will be served on the internet.
 	CertFile     string // This must be the full certificate chain.
 	KeyFile      string // Just for the first cert, obviously.
-	GoogleAPIKey string
 	URLSet       []URLSet
 }
 
@@ -117,9 +116,6 @@ func ReadConfig(configPath string) (*Config, error) {
 	}
 	if config.KeyFile == "" {
 		return nil, errors.New("must specify KeyFile")
-	}
-	if config.GoogleAPIKey == "" {
-		return nil, errors.New("must specify GoogleAPIKey")
 	}
 	if len(config.URLSet) == 0 {
 		return nil, errors.New("must specify one or more [[URLSet]]")

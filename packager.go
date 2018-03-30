@@ -260,6 +260,12 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 		fetchResp.Header.Del(header)
 	}
+	// TODO(twifkak): Are there any headers that AMP CDNs sets that publishers wouldn't want
+	// running on their origin? Are there any (such as CSP) that we absolutely need to run?
+	// TODO(twifkak): After the Transformer API, just add whatever headers are provided by the
+	// transformer plus a few extra (e.g. Content-Type).
+
+	// TODO(twifkak): Add Cache-Control: no-transform.
 
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
@@ -277,11 +283,12 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
 		return
 	}
+	now := time.Now()
 	signer := signedexchange.Signer{
 		// Expires - Date must be <= 604800 seconds, per
 		// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#signature-validity.
-		Date:        time.Now().Add(-24 * time.Hour),
-		Expires:     time.Now().Add(6 * 24 * time.Hour),
+		Date:        now.Add(-24 * time.Hour),
+		Expires:     now.Add(6 * 24 * time.Hour),
 		Certs:       []*x509.Certificate{this.cert},
 		CertUrl:     certURL,
 		ValidityUrl: this.validityURL,
@@ -300,7 +307,8 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
 	}
 
-	// TODO(twifkak): Add Cache-Control: public with expiry to match the signature.
+	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
+	// should fetch an update (half-way between signature date & expires).
 	// TODO(twifkak): Set some other headers?
 	resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
 	if _, err := resp.Write(body.Bytes()); err != nil {
