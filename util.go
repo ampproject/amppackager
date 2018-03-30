@@ -29,5 +29,5 @@ const CertURLPrefix = "amppkg/cert"
 // format changes to need escaping in the future.
 func CertName(cert *x509.Certificate) string {
 	sum := sha256.Sum256(cert.Raw)
-	return base64.URLEncoding.EncodeToString(sum[:])
+	return base64.RawURLEncoding.EncodeToString(sum[:])
 }
