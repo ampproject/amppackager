@@ -31,7 +31,7 @@ func newCertCache(t *testing.T) *CertCache {
 }
 
 func TestServesCertificate(t *testing.T) {
-	resp := get(t, newCertCache(t), "/amppkg/cert/sLtQsuGUOYdCsBVuMTUG_6QBAWFHu8rhEokEHQAWmto=")
+	resp := get(t, newCertCache(t), "/amppkg/cert/sLtQsuGUOYdCsBVuMTUG_6QBAWFHu8rhEokEHQAWmto")
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("invalid status: %#v", resp)
 	}

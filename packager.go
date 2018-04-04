@@ -32,6 +32,9 @@ import (
 	"github.com/pquerna/cachecontrol"
 )
 
+// The base URL for transformed fetch URLs.
+var ampCDNBase = "https://cdn.ampproject.org/c/"
+
 // Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
 var acceptablePackagerSchemes = map[string]bool{"http": true, "https": true}
 
