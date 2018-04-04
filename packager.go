@@ -32,6 +32,9 @@ import (
 	"github.com/pquerna/cachecontrol"
 )
 
+// The base URL for transformed fetch URLs.
+var ampCDNBase = "https://cdn.ampproject.org/c/"
+
 // Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
 var acceptablePackagerSchemes = map[string]bool{"http": true, "https": true}
 
@@ -309,7 +312,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
 	// should fetch an update (half-way between signature date & expires).
-	// TODO(twifkak): Set some other headers?
+	// TODO(twifkak): Add `X-Amppkg-Version: 0.0.0`.
 	resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)

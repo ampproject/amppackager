@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// TODO(twifkak): Improve error messages everywhere.
 // TODO(twifkak): Test this.
 // TODO(twifkak): Document code.
 package main
