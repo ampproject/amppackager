@@ -22,27 +22,6 @@ fetches and signs AMP documents as requested by the AMP Cache.
 
 ## How to use
 
-### Add <link> tags to your pages
-
-In order for Google Search to discover these web packages, you must link to them
-from the page that googlebot crawls (whether that page is AMP or non-AMP). Do so
-like:
-
-```html
-<link rel="amppackage" href="https://example.com/url/to/amp/package.html">
-```
-
-The URL must be HTTPS, and it should be absolute.
-
-Your frontend server must know how to convert these package URLs back into their
-corresponding AMP URLs, so make it a static transformation of such—for instance,
-prepending `/htxg/` or appending `.htxg` to the path:
-
-```html
-<link rel="amphtml"    href="https://example.com/url/to/amp.html">
-<link rel="amppackage" href="https://example.com/htxg/url/to/amp.html">
-```
-
 ### Configure your frontend server
 
 The frontend server needs to forward two types of requests to the packager:
@@ -50,8 +29,24 @@ packages and certificates.
 
 #### Packages
 
-For URLs that look like `https://example.com/htxg/url/to/amp.html`, the frontend
-server must internally reverse-proxy these requests to something like:
+The frontend needs to forward requests for web packages to the packager. The
+details of this are still being worked out, but for now, an easy way to do so is
+by URL. Come up with a simple URL mapping between an AMP package URL and its
+corresponding AMP HTML URL. For instance, you might append `.htxg` to the URL,
+so for an AMP URL:
+
+```
+https://example.com/url/to/amp.html
+```
+
+the corresponding AMP package URL would be:
+
+```
+https://example.com/url/to/amp.html.htxg
+```
+
+The frontend server should then internally reverse-proxy such a request to
+something like:
 
 ```
 http://packager.internal/priv/doc?fetch=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html
@@ -150,6 +145,11 @@ Optionally, you may pretend to be an AMP Cache:
   2. `go run cmd/amppkg_test_cache/main.go -package=path/to/foo.htxg`
   3. Ensure the packager is still running; it's needed to serve the certificate.
   4. Visit `http://localhost:8000/` in the experimental Chromium.
+
+### How will these web packages be discovered?
+
+The details of that are still being worked out. We have several alternatives in
+mind and want to come up with an answer that's best for the web.
 
 ## Limitations
 
