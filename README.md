@@ -149,7 +149,10 @@ Optionally, you may pretend to be an AMP Cache:
 ### How will these web packages be discovered?
 
 The details of that are still being worked out. We have several alternatives in
-mind and want to come up with an answer that's best for the web.
+mind and want to come up with an answer that's best for the web, including
+crawlers, sites serving packages, sites not serving packages, and package
+caches. If you have any constraints or suggestions, please comment on issue #5,
+or feel free to reach out in private if needed.
 
 ## Limitations
 
