@@ -198,11 +198,17 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 }
 
 func (this Packager) fetchURL(url *url.URL) (*http.Request, *http.Response, *HTTPError) {
+	// Add the query parameter to enable web package transforms.
+	query := url.Query()
+	query.Add("usqp", "mq331AQCSAE")
+	url.RawQuery = query.Encode()
+
 	ampURL := "https://cdn.ampproject.org/c/"
 	if url.Scheme == "https" {
 		ampURL += "s/"
 	}
 	ampURL += url.Host + url.RequestURI()
+
 	log.Printf("Fetching URL: %q\n", ampURL)
 	// TODO(twifkak): Translate into AMP CDN URL, until transform API is available.
 	req, err := http.NewRequest(http.MethodGet, ampURL, nil)
@@ -268,8 +274,6 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// TODO(twifkak): After the Transformer API, just add whatever headers are provided by the
 	// transformer plus a few extra (e.g. Content-Type).
 
-	// TODO(twifkak): Add Cache-Control: no-transform.
-
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
 		NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
@@ -314,6 +318,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// should fetch an update (half-way between signature date & expires).
 	// TODO(twifkak): Add `X-Amppkg-Version: 0.0.0`.
 	resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
+	resp.Header().Set("Cache-Control", "no-transform")
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)
 		return

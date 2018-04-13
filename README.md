@@ -69,9 +69,9 @@ Let's break that down:
   AMP document to package, URL-escaped for use in a query. The same URL
   transformation that you applied to the `<link>` tag should be reversed by the
   web server. The packager will instruct the AMP CDN to fetch this URL
-  anonymously (e.g. without a `Cookie` header). This URL can be HTTP or HTTPS,
-  though the latter is strongly encouraged. The URL must be visible on the open
-  internet.
+  anonymously (e.g. without a `Cookie` header). It may not contain a
+  `#fragment`. This URL can be HTTP or HTTPS, though the latter is strongly
+  encouraged. The URL must be visible on the open internet.
 
   `&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html` The location that
   should appear in the browser's URL bar, URL-escaped for use in a query. This
