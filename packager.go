@@ -44,7 +44,7 @@ const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"Safari/537.36 (compatible; amppackager/0.0.0; +https://github.com/ampproject/amppackager)"
 
 // Advised against, per
-// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#stateful-headers,
+// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-4.1
 // and blocked in http://crrev.com/c/958945.
 var statefulResponseHeaders = map[string]bool{
 	"Authentication-Control":    true,
@@ -147,7 +147,8 @@ func validateFetch(req *http.Request, resp *http.Response) *HTTPError {
 		return NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", resp.StatusCode)
 	}
 	// Validate response is publicly-cacheable, per
-	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#security-considerations.
+	// https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-03#section-6.1, as referenced by
+	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-6.
 	// TODO(twifkak): Set {PrivateCache: false} after we switch from
 	// fetching through the AMP CDN to fetching directly and using the
 	// transformer API. For now, the AMP CDN validates that the origin
@@ -293,7 +294,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	now := time.Now()
 	signer := signedexchange.Signer{
 		// Expires - Date must be <= 604800 seconds, per
-		// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#signature-validity.
+		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
 		Date:        now.Add(-24 * time.Hour),
 		Expires:     now.Add(6 * 24 * time.Hour),
 		Certs:       []*x509.Certificate{this.cert},
