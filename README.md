@@ -1,24 +1,27 @@
 # AMP Packager
 
-> **WARNING**: This code is still brand new, and highly experimental. Feel free
-> to play around with it, but be cautious. Examine the code.
+> **WARNING**: This code is still brand new, and highly experimental. The
+> specification is still changing, and this is an implementation of a snapshot
+> of it, as a proof of concept. Feel free to play around with it, but be
+> cautious. Examine the code.
 
 The AMP Packager creates "AMP Packages" (implemented as [Signed HTTP
-Exchanges](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html))
+Exchanges](https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00))
 containing AMP documents. These packages are consumed by the [Google AMP
-Cache](https://www.ampproject.org/docs/fundamentals/how_cached), cached, and
-when available, linked to from Google Search instead of normal AMP page. The
-packages are signed with a certificate, which means that Chrome users will see
-that certificate's domain in the URL bar instead of `google.com` or
-`ampproject.org`.
+Cache](https://www.ampproject.org/docs/fundamentals/how_cached) and cached.
+Eventually, a future variant of these packages will be linked to from Google
+Search instead of normal AMP page. The packages are signed with a certificate,
+which means that Chrome users will see that certificate's domain in the URL bar
+instead of `google.com` or `ampproject.org`, and that the web page will run on
+that origin.
 
 These packages have a maximum lifetime of 7 days, which minimizes the risk of
 another cache serving a stale copy of this signed content. In the future, the
 [AMP update-cache API](https://developers.google.com/amp/cache/update-cache)
 will support updating AMP Packages, though it doesn't yet.
 
-The packager is an HTTP server that sits behind your frontend server; it
-fetches and signs AMP documents as requested by the AMP Cache.
+The packager is an HTTP server that sits behind a frontend server; it fetches
+and signs AMP documents as requested by the AMP Cache.
 
 ## How to use
 

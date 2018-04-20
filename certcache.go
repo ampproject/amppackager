@@ -47,7 +47,7 @@ func NewCertCache(cert *x509.Certificate, pemContent []byte) (*CertCache, error)
 func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	println("path", req.URL.Path)
 	if req.URL.Path == path.Join("/", CertURLPrefix, url.PathEscape(this.certName)) {
-		// https://jyasskin.github.io/webpackage/implementation-draft/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cert-chain-format
+		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
 		resp.Header().Set("Content-Type", "application/octet-stream")
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
 		// TODO(twifkak): Add cache headers.
