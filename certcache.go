@@ -49,6 +49,7 @@ func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == path.Join("/", CertURLPrefix, url.PathEscape(this.certName)) {
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
 		resp.Header().Set("Content-Type", "application/octet-stream")
+		resp.Header().Set("Cache-Control", "public, max-age=604800")
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
 		// TODO(twifkak): Add cache headers.
 		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.certMessage))
