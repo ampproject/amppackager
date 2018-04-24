@@ -32,42 +32,25 @@ type Config struct {
 }
 
 type URLSet struct {
-	SamePath bool
-	Fetch    URLPattern
-	Sign     URLPattern
+	Fetch    *URLPattern
+	Sign     *URLPattern
 }
 
 type URLPattern struct {
 	Scheme                 []string
+	DomainRE               string
 	Domain                 string
 	PathRE                 *string
 	PathExcludeRE          []string
 	QueryRE                *string
 	ErrorOnStatefulHeaders bool
+	SamePath               *bool
 }
 
 var dotStarRegexp = ".*"
 
 // Also sets defaults.
-func validateURLPattern(pattern *URLPattern, allowedSchemes map[string]bool) error {
-	if len(pattern.Scheme) == 0 {
-		// Default Scheme to the list of keys in allowedSchemes.
-		pattern.Scheme = make([]string, len(allowedSchemes))
-		i := 0
-		for scheme := range allowedSchemes {
-			pattern.Scheme[i] = scheme
-			i++
-		}
-	} else {
-		for _, scheme := range pattern.Scheme {
-			if !allowedSchemes[scheme] {
-				return errors.Errorf("Scheme contains invalid value %q", scheme)
-			}
-		}
-	}
-	if pattern.Domain == "" {
-		return errors.New("Domain must be specified")
-	}
+func validateURLPattern(pattern *URLPattern) error {
 	if pattern.PathRE == nil {
 		pattern.PathRE = &dotStarRegexp
 	} else if _, err := regexp.Compile(*pattern.PathRE); err != nil {
@@ -86,8 +69,68 @@ func validateURLPattern(pattern *URLPattern, allowedSchemes map[string]bool) err
 	return nil
 }
 
+func validateSignURLPattern(pattern *URLPattern) error {
+	if pattern == nil {
+		return errors.New("This section must be specified")
+	}
+	if pattern.Scheme != nil {
+		return errors.New("Scheme not allowed here")
+	}
+	if pattern.Domain == "" {
+		return errors.New("Domain must be specified")
+	}
+	if pattern.DomainRE != "" {
+		return errors.New("DomainRE not allowed here")
+	}
+	if pattern.SamePath != nil {
+		return errors.New("SamePath not allowed here")
+	}
+	if err := validateURLPattern(pattern); err != nil {
+		return err
+	}
+	return nil
+}
+
 var allowedFetchSchemes = map[string]bool{"http": true, "https": true}
-var allowedSignSchemes = map[string]bool{"https": true}
+
+func validateFetchURLPattern(pattern *URLPattern) error {
+	if pattern == nil {
+		return nil
+	}
+	if len(pattern.Scheme) == 0 {
+		// Default Scheme to the list of keys in allowedFetchSchemes.
+		pattern.Scheme = make([]string, len(allowedFetchSchemes))
+		i := 0
+		for scheme := range allowedFetchSchemes {
+			pattern.Scheme[i] = scheme
+			i++
+		}
+	} else {
+		for _, scheme := range pattern.Scheme {
+			if !allowedFetchSchemes[scheme] {
+				return errors.Errorf("Scheme contains invalid value %q", scheme)
+			}
+		}
+	}
+	if pattern.Domain == "" && pattern.DomainRE == "" {
+		return errors.New("Domain or DomainRE must be specified")
+	}
+	if pattern.Domain != "" && pattern.DomainRE != "" {
+		return errors.New("Only one of Domain or DomainRE should be specified")
+	}
+	if pattern.SamePath == nil {
+		// Default SamePath to true.
+		pattern.SamePath = new(bool)
+		*pattern.SamePath = true
+	}
+	if pattern.ErrorOnStatefulHeaders {
+		return errors.New("ErrorOnStatefulHeaders not allowed here")
+	}
+	if err := validateURLPattern(pattern); err != nil {
+		return err
+	}
+	return nil
+}
 
 // ReadConfig reads the config file specified at --config and validates it.
 func ReadConfig(configPath string) (*Config, error) {
@@ -121,14 +164,13 @@ func ReadConfig(configPath string) (*Config, error) {
 		return nil, errors.New("must specify one or more [[URLSet]]")
 	}
 	for i := range config.URLSet {
-		if err := validateURLPattern(&config.URLSet[i].Fetch, allowedFetchSchemes); err != nil {
-			return nil, errors.Wrapf(err, "parsing URLSet.%d.Fetch", i)
+		if config.URLSet[i].Fetch != nil {
+			if err := validateFetchURLPattern(config.URLSet[i].Fetch); err != nil {
+				return nil, errors.Wrapf(err, "parsing URLSet.%d.Fetch", i)
+			}
 		}
-		if err := validateURLPattern(&config.URLSet[i].Sign, allowedSignSchemes); err != nil {
+		if err := validateSignURLPattern(config.URLSet[i].Sign); err != nil {
 			return nil, errors.Wrapf(err, "parsing URLSet.%d.Sign", i)
-		}
-		if config.URLSet[i].Sign.ErrorOnStatefulHeaders {
-			return nil, errors.Errorf("URLSet.%d.Sign.ErrorOnStatefulHeaders is not allowed; perhaps you meant to put this in the Fetch section?", i)
 		}
 	}
 	return &config, nil

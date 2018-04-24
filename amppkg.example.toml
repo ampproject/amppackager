@@ -48,50 +48,24 @@ KeyFile = './pems/privkey.pem'
 # misconfiguration of the reverse proxy that sits in front of the packager.
 #
 # You must specify at least one URLSet; you may specify multiple. Each one must
-# specify a Fetch pattern and a Sign pattern. When the packager receives a
-# request for a package, it will first validate that the requested fetch/sign
-# URL pair matches at least one of the given URLSets.
-#
-# This config doesn't let you specify an exact URL-to-URL mapping between fetch
-# and sign. If an attacker gains direct access to this packager, they could ask
-# it to fetch https://www.example.com/foo.html and sign it as
-# https://example.com/bar.html.
-#
-# Instead, it is the responsibility of the frontend that sits in front of the
-# packager to properly rewrite requests for a package into the appropriate
-# fetch/sign pair. For instance, the frontend server may reverse-proxy all URLs
-# matching:
-#   https://example.com/wpk/(.*)
-# to:
-#   http://packager.internal/priv/doc?fetch=https%3A%2F%2Fexample.com%2F\1&sign=https%3A%2F%2Fexample.com%2F\1
-# where \1 is the URL-escaped value of the regexp group matched above.
+# specify a Sign pattern and may specify a Fetch pattern. When the packager
+# receives a request for a package, it will first validate that the requested
+# fetch/sign URL pair matches at least one of the given URLSets.
 [[URLSet]]
-  # If true, enforces that the path and query are the same between the fetch
-  # and sign URLs (e.g. respond in error if
-  # fetch=http%3A%2F%2Ffoo%2Fbar.html and
-  # sign=https%3A%2F%2Fbaz%2Fnot-bar.html). In most cases, SamePath should be
-  # true, and Fetch and Sign should have the same configuration. Default is
-  # false.
-  # SamePath = true
+  # What URLs are allowed to show up in the browser's URL bar, when served from
+  # the AMP Cache. By default, the URL that the frontend requests to sign is
+  # also the URL where the packager fetches it. For extra flexibility, see
+  # URLSet.Fetch below.
+  [URLSet.Sign]
+    # The scheme of the URL must be https. There is no way to configure this.
+    # The `user:pass@` portion is disallowed. There is no way to configure this.
 
-  # Where to fetch the raw AMP HTML. The HTTP response from this fetch URL must
-  # be a 200, and must have Cache-Control: public; otherwise, the packager will
-  # respond with an error code.
-  [URLSet.Fetch]
-    # The set of allowed schemes. Default is ["https"]. You may configure it to
-    # be ["http"] or ["http", "https"] instead. (No other value is allowed.)
-    #
-    # The scheme is strongly encouraged to be https, to avoid a potential for a
-    # MITM attack.
-    Scheme = ["https"]
+    # The domain to limit signed URLs to. An exact string match. The
+    # certificate must cover this domain.
+    Domain = "example.com"
 
-    # The `user:pass@` portion of the URL is disallowed. There is no way to configure this.
-
-    # The domain from where to fetch. An exact string match.
-    Domain = "www.corp.example.com"  # Exact string match on domain. Required.
-
-    # A full-match regexp on the path to fetch (not including the ?query).
-    # Defaults to ".*". The below example only allows paths starting with /world/.
+    # A full-match regexp on the path (not including the ?query).
+    # Defaults to ".*". The below example allows paths starting with /world/.
     # PathRE = "/world/.*"
 
     # A list of full-match regexps, carving out exclusions to the above PathRE.
@@ -119,11 +93,35 @@ KeyFile = './pems/privkey.pem'
     # this to cause packaging to fail, set ErrorOnStatefulHeaders = true.
     # ErrorOnStatefulHeaders = true
 
-  # What URLs will show up in the browser's URL bar, when served from the AMP Cache.
-  [URLSet.Sign]
-    # For Sign URLs, Scheme defaults to, and must be ["https"].
-    # All other fields behave the same.
-    # The domain must be one that the above CertFile/KeyFile can sign for.
-    Domain = "example.com"
-    # PathRE = "/world/.*"
-    # QueryRE = ""
+  # By default, the packager only looks at the sign param, and fetches the
+  # content from the same location. If you'd like more flexibility (for
+  # instance, to fetch content from an edge node), uncomment this section. This
+  # allows the frontend to specify an additional `fetch` query parameter.
+  #
+  # Note that this reduces the defense-in-depth against the "signing oracle"
+  # attack. If an attacker can request custom URLs from the packager (or
+  # convince a frontend server to do so), it could convince the packager to
+  # fetch page A and sign it as page B. If enabling this, make sure there is no
+  # unauthorized access to the packager.
+  # [URLSet.Fetch]
+  # # The set of allowed schemes to fetch from is ["https"] by default, but may
+  # # be ["http"] or ["http", "https"].
+  # Scheme = ["http"]
+  #
+  # # By default, the packager enforces that the path and query are the same
+  # # between the fetch and sign URLs (e.g. respond in error if
+  # # fetch=http%3A%2F%2Ffoo%2Fbar.html and
+  # # sign=https%3A%2F%2Fbaz%2Fnot-bar.html). Change SamePath to false if this
+  # # requirement is too stringent.
+  # SamePath = false
+  #
+  # # A full-match regexp on the domain allowed. Only one of DomainRE and
+  # # Domain may be specified. Exercise caution; test the regexp thoroughly.
+  # # For instance, a DomainRE of "www.example.com" would allow fetches from
+  # # www-example.com.
+  # DomainRE = "www\\.corp\\d+\\.example\\.com"
+  #
+  # # All other fields behave the same.
+  # Domain = "www.corp.example.com"
+  # PathRE = "/world/.*"
+  # QueryRE = ""

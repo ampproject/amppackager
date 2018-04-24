@@ -87,22 +87,10 @@ func regexpFullMatch(pattern string, test string) bool {
 }
 
 func urlMatches(url *url.URL, pattern URLPattern) bool {
-	schemeMatches := false
-	for _, scheme := range pattern.Scheme {
-		if url.Scheme == scheme {
-			schemeMatches = true
-		}
-	}
-	if !schemeMatches {
-		return false
-	}
 	if url.Opaque != "" {
 		return false
 	}
 	if url.User != nil {
-		return false
-	}
-	if url.Host != pattern.Domain {
 		return false
 	}
 	if !regexpFullMatch(*pattern.PathRE, url.EscapedPath()) {
@@ -119,16 +107,53 @@ func urlMatches(url *url.URL, pattern URLPattern) bool {
 	return true
 }
 
+func fetchUrlMatches(url *url.URL, pattern *URLPattern) bool {
+	if pattern == nil {
+		// If URLSet.Fetch was unspecified, then so should ?fetch= be.
+		return url == nil
+	}
+	schemeMatches := false
+	for _, scheme := range pattern.Scheme {
+		if url.Scheme == scheme {
+			schemeMatches = true
+		}
+	}
+	if !schemeMatches {
+		return false
+	}
+	if pattern.Domain != "" && url.Host != pattern.Domain {
+		return false
+	}
+	if pattern.DomainRE != "" && !regexpFullMatch(pattern.DomainRE, url.Host) {
+		return false
+	}
+	return urlMatches(url, *pattern)
+}
+
+func signUrlMatches(url *url.URL, pattern *URLPattern) bool {
+	if url.Scheme != "https" {
+		return false
+	}
+	if url.Host != pattern.Domain {
+		return false
+	}
+	return urlMatches(url, *pattern)
+}
+
 func urlsMatch(fetchURL *url.URL, signURL *url.URL, set URLSet) bool {
-	return urlMatches(fetchURL, set.Fetch) && urlMatches(signURL, set.Sign) &&
-		(!set.SamePath || fetchURL.RequestURI() == signURL.RequestURI())
+	return fetchUrlMatches(fetchURL, set.Fetch) && signUrlMatches(signURL, set.Sign) &&
+		(set.Fetch == nil || !*set.Fetch.SamePath || fetchURL.RequestURI() == signURL.RequestURI())
 }
 
 // Returns parsed URLs and whether to fail on stateful headers.
 func parseURLs(fetch string, sign string, urlSets []URLSet) (*url.URL, *url.URL, bool, *HTTPError) {
-	fetchURL, err := parseURL(fetch, "fetch")
-	if err != nil {
-		return nil, nil, false, err
+	var fetchURL *url.URL
+	var err *HTTPError
+	if fetch != "" {
+		fetchURL, err = parseURL(fetch, "fetch")
+		if err != nil {
+			return nil, nil, false, err
+		}
 	}
 	signURL, err := parseURL(sign, "sign")
 	if err != nil {
@@ -136,7 +161,10 @@ func parseURLs(fetch string, sign string, urlSets []URLSet) (*url.URL, *url.URL,
 	}
 	for _, set := range urlSets {
 		if urlsMatch(fetchURL, signURL, set) {
-			return fetchURL, signURL, set.Fetch.ErrorOnStatefulHeaders, nil
+			if fetchURL == nil {
+				fetchURL = signURL
+			}
+			return fetchURL, signURL, set.Sign.ErrorOnStatefulHeaders, nil
 		}
 	}
 	return nil, nil, false, NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config")
