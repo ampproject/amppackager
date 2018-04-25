@@ -76,6 +76,9 @@ func parseURL(rawURL string, name string) (*url.URL, *HTTPError) {
 	if !ret.IsAbs() {
 		return nil, NewHTTPError(http.StatusBadRequest, name, " url is relative")
 	}
+	// Evaluate "/..", by resolving the URL as a reference from itself.
+	// This prevents malformed URLs from eluding the PathRE protections.
+	ret = ret.ResolveReference(ret)
 	return ret, nil
 }
 
@@ -237,8 +240,20 @@ func (this Packager) genCertURL(cert *x509.Certificate) (*url.URL, error) {
 
 func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// TODO(twifkak): See if there are any other validations or sanitizations that need adding.
-	fetch := req.FormValue("fetch")
-	sign := req.FormValue("sign")
+	if err := req.ParseForm(); err != nil {
+		NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)
+		return
+	}
+	if len(req.Form["fetch"]) != 1 {
+		NewHTTPError(http.StatusBadRequest, "Not exactly 1 fetch param").LogAndRespond(resp)
+		return
+	}
+	if len(req.Form["sign"]) != 1 {
+		NewHTTPError(http.StatusBadRequest, "Not exactly 1 sign param").LogAndRespond(resp)
+		return
+	}
+	fetch := req.Form["fetch"][0]
+	sign := req.Form["sign"][0]
 	fetchURL, signURL, errorOnStatefulHeaders, httpErr := parseURLs(fetch, sign, this.urlSets)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
