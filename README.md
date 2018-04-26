@@ -52,7 +52,7 @@ The frontend server should then internally reverse-proxy such a request to
 something like:
 
 ```
-http://packager.internal/priv/doc?fetch=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html
+http://packager.internal/priv/doc?sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html
 ```
 
 Let's break that down:
@@ -68,21 +68,12 @@ Let's break that down:
   `/priv/doc` This is a fixed string. The frontend server must rewrite
   the URL to start with this.
 
-  `?fetch=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html` The location of the
-  AMP document to package, URL-escaped for use in a query. The same URL
-  transformation that you applied to the `<link>` tag should be reversed by the
-  web server. The packager will instruct the AMP CDN to fetch this URL
-  anonymously (e.g. without a `Cookie` header). It may not contain a
-  `#fragment`. This URL can be HTTP or HTTPS, though the latter is strongly
-  encouraged. The URL must be visible on the open internet.
-
-  `&sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html` The location that
+  `?sign=https%3A%2F%2Fexample.com%2Furl%2Fto%2Famp.html` The location that
   should appear in the browser's URL bar, URL-escaped for use in a query. This
   must be HTTPS, and must be on a domain that the packager's certificate can
   sign for. If the user hits Refresh on their browser, it will fetch from this
-  URL, so it must contain the same content as the fetch URL. Like the fetch URL,
-  the frontend server will need to statically derive this URL from the
-  amppackage URL.
+  URL. By default, the content for the package is fetched from this same URL
+  anonymously (e.g. without a `Cookie` header). It may not contain a fragment.
 
 #### Certificates
 
@@ -105,9 +96,8 @@ The packager needs to be set up to receive reverse-proxied requests from the
 frontend as specified above. In addition, it:
 
   * Must not be accessible on the open internet (even by IP address). To do so
-    would allow external parties to fetch arbitrary documents and sign them with
-    different arbitrary URLs. (We provide some mitigation of this in the config
-    file, via `URLSet`s.)
+    removes defense-in-depth against allowing external parties to fetch
+    arbitrary documents and sign them with different arbitrary URLs.
   * Must have a certificate/key pair for all the domains you wish to sign. If
     you want to sign for multiple domains with different certificates, then run
     different instances of the packager. We recommend using a different
