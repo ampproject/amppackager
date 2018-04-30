@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/nyaxt/webpackage"
   packages = [
@@ -25,6 +31,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/pquerna/cachecontrol"
   packages = [
@@ -33,9 +45,25 @@
   ]
   revision = "525d0eb5f91d30e3b1548de401b7ef9ea6898520"
 
+[[projects]]
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/twifkak/webpackage"
+  packages = [
+    "go/signedexchange",
+    "go/signedexchange/cbor",
+    "go/signedexchange/mice"
+  ]
+  revision = "92b706dd62a698e8c594b70e3776bb4d2a6c894c"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ba5ca118a4fe6e195549fb4ef086ca2db64e1706ba48bdbae16586ff1c66ebf0"
+  inputs-digest = "5f42b0b9b737c6eff0766da516590fc802b569ec9d96b57265e92fba9890b8a3"
   solver-name = "gps-cdcl"
   solver-version = 1

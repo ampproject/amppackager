@@ -33,7 +33,7 @@ import (
 )
 
 // The base URL for transformed fetch URLs.
-var ampCDNBase = "https://cdn.ampproject.org/c/"
+var AmpCDNBase = "https://cdn.ampproject.org/c/"
 
 // Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
 var acceptablePackagerSchemes = map[string]bool{"http": true, "https": true}
@@ -235,7 +235,7 @@ func (this Packager) fetchURL(url *url.URL) (*http.Request, *http.Response, *HTT
 	query.Add("usqp", "mq331AQCSAE")
 	url.RawQuery = query.Encode()
 
-	ampURL := "https://cdn.ampproject.org/c/"
+	ampURL := AmpCDNBase
 	if url.Scheme == "https" {
 		ampURL += "s/"
 	}
@@ -244,11 +244,11 @@ func (this Packager) fetchURL(url *url.URL) (*http.Request, *http.Response, *HTT
 	log.Printf("Fetching URL: %q\n", ampURL)
 	// TODO(twifkak): Translate into AMP CDN URL, until transform API is available.
 	req, err := http.NewRequest(http.MethodGet, ampURL, nil)
-	req.Header.Set("User-Agent", userAgent)
 	// TODO(twifkak): Should we add 'Accept-Charset: utf-8'? The AMP Transformer API requires utf-8.
 	if err != nil {
 		return nil, nil, NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
+	req.Header.Set("User-Agent", userAgent)
 	resp, err := this.client.Do(req)
 	if err != nil {
 		return nil, nil, NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
@@ -272,16 +272,16 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)
 		return
 	}
-	if len(req.Form["fetch"]) != 1 {
-		NewHTTPError(http.StatusBadRequest, "Not exactly 1 fetch param").LogAndRespond(resp)
+	if len(req.Form["fetch"]) > 1 {
+		NewHTTPError(http.StatusBadRequest, "More than 1 fetch param").LogAndRespond(resp)
 		return
 	}
 	if len(req.Form["sign"]) != 1 {
 		NewHTTPError(http.StatusBadRequest, "Not exactly 1 sign param").LogAndRespond(resp)
 		return
 	}
-	fetch := req.Form["fetch"][0]
-	sign := req.Form["sign"][0]
+	fetch := req.FormValue("fetch")
+	sign := req.FormValue("sign")
 	fetchURL, signURL, errorOnStatefulHeaders, httpErr := parseURLs(fetch, sign, this.urlSets)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)

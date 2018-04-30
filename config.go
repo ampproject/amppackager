@@ -32,8 +32,8 @@ type Config struct {
 }
 
 type URLSet struct {
-	Fetch    *URLPattern
-	Sign     *URLPattern
+	Fetch *URLPattern
+	Sign  *URLPattern
 }
 
 type URLPattern struct {
