@@ -1,0 +1,7 @@
+HTTP/1.0 200 OK
+Date: Fri, 31 Dec 1999 23:59:59 GMT
+Cache-Control: public, max-age=604800
+Content-Type: text/html
+Content-Length: 30
+
+<html><body>Hi.</body></html>
