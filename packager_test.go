@@ -15,15 +15,22 @@
 package amppackager
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	// TODO(twifkak): Change this back to nyaxt/webpackage after PR #13 is merged.
+	"github.com/twifkak/webpackage/go/signedexchange"
 )
+
+var fakeBody = []byte("They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
+var lastRequestURL string
 
 func newPackager(t *testing.T, urlSets []URLSet) *Packager {
 	handler, err := NewPackager(cert, key, "https://example.com/", urlSets)
@@ -33,29 +40,51 @@ func newPackager(t *testing.T, urlSets []URLSet) *Packager {
 	return handler
 }
 
-func stringPtr(s string) *string { return &s }
+func boolPtr(x bool) *bool       { return &x }
+func stringPtr(x string) *string { return &x }
+
+func headerNames(headers http.Header) []string {
+	names := make([]string, len(headers))
+	i := 0
+	for name := range headers {
+		names[i] = strings.ToLower(name)
+		i++
+	}
+	sort.Strings(names)
+	return names
+}
 
 func TestSimple(t *testing.T) {
 	urlSets := []URLSet{URLSet{
-		SamePath: true,
-		Fetch:    URLPattern{[]string{"http"}, "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false},
-		Sign:     URLPattern{[]string{"https"}, "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false}}}
+		Sign:  &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+		Fetch: &URLPattern{[]string{"http"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
+	}}
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?fetch=http%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html&sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("incorrect status: %#v", resp)
 	}
-	_, _ = ioutil.ReadAll(resp.Body)
-	// TODO(twifkak): Test the body somehow.
+	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
+	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
+	assert.Equal(t, http.Header{}, exchange.RequestHeaders)
+	assert.Equal(t, 200, exchange.ResponseStatus)
+	assert.Equal(t, []string{"content-encoding", "content-length", "content-type", "date", "mi", "signature"}, headerNames(exchange.ResponseHeaders))
+	// The response header values are untested here, as that is covered by signedexchange tests.
+	assert.Equal(t, fakeBody, exchange.Payload)
 }
 
 func TestMain(m *testing.M) {
 	// Mock out AMP CDN endpoint.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Write([]byte("yum yum yum"))
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		lastRequestURL = req.URL.String()
+		w.Write(fakeBody)
 	}))
 	defer server.Close()
 	url, _ := url.Parse(server.URL)
-	ampCDNBase = url.Host
+	AmpCDNBase = "http://" + url.Host + "/"
 
 	os.Exit(m.Run())
 }
