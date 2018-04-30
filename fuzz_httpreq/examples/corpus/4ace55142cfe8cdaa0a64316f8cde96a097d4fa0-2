@@ -1,0 +1,3 @@
+GET /c?sign=https://example.com/ÿÿCr-Agent HTTP/1.1
+Host:
+

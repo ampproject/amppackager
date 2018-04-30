@@ -1,2 +1,3 @@
 /amppkg.toml
 /main
+/fuzz_httpreq/fuzz.zip
