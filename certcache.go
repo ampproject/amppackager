@@ -48,7 +48,9 @@ func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	println("path", req.URL.Path)
 	if req.URL.Path == path.Join("/", CertURLPrefix, url.PathEscape(this.certName)) {
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
-		resp.Header().Set("Content-Type", "application/octet-stream")
+		// This content-type is not standard, but included to reduce
+		// the chance that faulty user agents employ content sniffing.
+		resp.Header().Set("Content-Type", "application/tls-certificate-chain")
 		resp.Header().Set("Cache-Control", "public, max-age=604800")
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
 		// TODO(twifkak): Add cache headers.
