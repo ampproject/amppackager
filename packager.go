@@ -229,17 +229,19 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	return &Packager{cert, key, validityURL, &client, baseURL, urlSets}, nil
 }
 
-func (this Packager) fetchURL(url *url.URL) (*http.Request, *http.Response, *HTTPError) {
+func (this Packager) fetchURL(orig *url.URL) (*http.Request, *http.Response, *HTTPError) {
+	// Make a copy so destructive changes don't persist.
+	fetch := *orig
 	// Add the query parameter to enable web package transforms.
-	query := url.Query()
+	query := fetch.Query()
 	query.Add("usqp", "mq331AQCSAE")
-	url.RawQuery = query.Encode()
+	fetch.RawQuery = query.Encode()
 
 	ampURL := AmpCDNBase
-	if url.Scheme == "https" {
+	if fetch.Scheme == "https" {
 		ampURL += "s/"
 	}
-	ampURL += url.Host + url.RequestURI()
+	ampURL += fetch.Host + fetch.RequestURI()
 
 	log.Printf("Fetching URL: %q\n", ampURL)
 	// TODO(twifkak): Translate into AMP CDN URL, until transform API is available.

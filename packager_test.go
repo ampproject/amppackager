@@ -76,6 +76,22 @@ func TestSimple(t *testing.T) {
 	assert.Equal(t, fakeBody, exchange.Payload)
 }
 
+func TestNoFetchParam(t *testing.T) {
+	urlSets := []URLSet{URLSet{
+		Sign:  &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	}}
+	resp := get(t, newPackager(t, urlSets), `/priv/doc?sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("incorrect status: %#v", resp)
+	}
+	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "/s/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
+	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
+}
+
 func TestMain(m *testing.M) {
 	// Mock out AMP CDN endpoint.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
