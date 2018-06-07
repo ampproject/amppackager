@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -56,4 +57,34 @@ func Encode(w io.Writer, buf []byte, recordSize int) (string, error) {
 
 	mi := "mi-sha256=" + base64.RawURLEncoding.EncodeToString(proofs[0])
 	return mi, nil
+}
+
+func Decode(w io.Writer, r io.Reader, miHeaderValue string) error {
+	var recordSize uint64
+	if err := binary.Read(r, binary.BigEndian, &recordSize); err != nil {
+		return fmt.Errorf("mice: Failed to read recordSize: %v", err)
+	}
+
+	proof := make([]byte, sha256.Size)
+	record := make([]byte, recordSize)
+	readFirstRecord := false
+	for {
+		if readFirstRecord {
+			if _, err := io.ReadFull(r, proof); err != nil {
+				if err == io.EOF {
+					return nil
+				}
+				return fmt.Errorf("mice: Failed to read proof: %v", err)
+			}
+		}
+		readFirstRecord = true
+		n, err := io.ReadFull(r, record)
+		if err != nil && err != io.ErrUnexpectedEOF {
+			return fmt.Errorf("mice: Failed to read record: %v", err)
+		}
+		// TODO: verify integrity
+		if _, err = w.Write(record[:n]); err != nil {
+			return fmt.Errorf("mice: Failed to write record: %v", err)
+		}
+	}
 }

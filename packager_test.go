@@ -26,7 +26,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	// TODO(twifkak): Change this back to nyaxt/webpackage after PR #13 is merged.
-	"github.com/twifkak/webpackage/go/signedexchange"
+	"github.com/nyaxt/webpackage/go/signedexchange"
 )
 
 var fakeBody = []byte("They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
