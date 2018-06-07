@@ -16,7 +16,7 @@
     "go/signedexchange/certurl",
     "go/signedexchange/mice"
   ]
-  revision = "b9642301142b418c389cae0c9b902d41f5fb12ef"
+  revision = "59d4fb654d0755a6cda45a1d4e2819ce6b916560"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -51,19 +51,9 @@
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
-[[projects]]
-  branch = "master"
-  name = "github.com/twifkak/webpackage"
-  packages = [
-    "go/signedexchange",
-    "go/signedexchange/cbor",
-    "go/signedexchange/mice"
-  ]
-  revision = "92b706dd62a698e8c594b70e3776bb4d2a6c894c"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5f42b0b9b737c6eff0766da516590fc802b569ec9d96b57265e92fba9890b8a3"
+  inputs-digest = "417c1863a576c90f0bcab5237b2f93b81cd1b66477b78de864460b243692b75d"
   solver-name = "gps-cdcl"
   solver-version = 1
