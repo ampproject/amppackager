@@ -91,6 +91,10 @@ func main() {
 	}
 	// TODO(twifkak): Verify that key matches cert.
 
+	validityMap, err := amppkg.NewValidityMap()
+	if err != nil {
+		die(errors.Wrap(err, "building validity map"))
+	}
 	packager, err := amppkg.NewPackager(cert, key, config.PackagerBase, config.URLSet)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
@@ -102,6 +106,7 @@ func main() {
 
 	// TODO(twifkak): Make log output configurable.
 	mux := http.NewServeMux()
+	mux.Handle(amppkg.ValidityMapURL, validityMap)
 	mux.Handle("/priv/doc", packager)
 	mux.Handle(path.Join("/", amppkg.CertURLPrefix)+"/", certCache)
 	addr := ""

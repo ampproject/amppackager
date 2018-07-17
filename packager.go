@@ -218,10 +218,8 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	if !acceptablePackagerSchemes[baseURL.Scheme] {
 		return nil, errors.Errorf("PackagerBase %q must be over http or https.", packagerBase)
 	}
-	validityURL, err := url.Parse("https://cdn.ampproject.org/null-validity")
-	if err != nil {
-		return nil, errors.Wrap(err, "parsing null-validity URL")
-	}
+	validityURL := baseURL
+	validityURL.Path = ValidityMapURL
 	client := http.Client{
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,

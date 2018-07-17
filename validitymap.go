@@ -15,22 +15,27 @@
 package amppackager
 
 import (
-	"crypto/sha256"
-	"crypto/x509"
-	"encoding/base64"
+	"net/http"
 )
 
-// CertURLPrefix must start without a slash, for PackagerBase's sake.
-const CertURLPrefix = "amppkg/cert"
-
-// CertName returns the basename for the given cert, as served by this
-// packager's cert cache. Should be stable and unique (e.g.
-// content-addressing). Clients should url.PathEscape this, just in case its
-// format changes to need escaping in the future.
-func CertName(cert *x509.Certificate) string {
-	sum := sha256.Sum256(cert.Raw)
-	return base64.RawURLEncoding.EncodeToString(sum[:])
+type ValidityMap struct {
+	validityMap []byte
 }
 
-// ValidityMapURL
-const ValidityMapURL = "/amppkg/validity"
+func NewValidityMap() (*ValidityMap, error) {
+	this := new(ValidityMap)
+	this.validityMap = []byte("\xA0")
+	return this, nil
+}
+
+func (this ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	println("path", req.URL.Path)
+	if req.URL.Path == ValidityMapURL {
+		resp.Header().Set("Accept-Ranges", "bytes")
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Header().Set("Cache-Control", "public, max-age=604800")
+		resp.Write(this.validityMap)
+	} else {
+		http.NotFound(resp, req)
+	}
+}
