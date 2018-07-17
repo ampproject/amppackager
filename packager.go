@@ -218,7 +218,8 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	if !acceptablePackagerSchemes[baseURL.Scheme] {
 		return nil, errors.Errorf("PackagerBase %q must be over http or https.", packagerBase)
 	}
-	validityURL, err := url.Parse(path.Join(packagerBase, ValidityMapURL))
+	// packagerBase is always quaranteed to have a trailing slash due to config.go
+	validityURL, err := url.Parse(packagerBase + ValidityMapURL)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing PackagerBase %q with ValidityMapURL %q", packagerBase, ValidityMapURL)
 	}
