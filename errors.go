@@ -39,5 +39,6 @@ func (e HTTPError) ExternalMsg() string {
 
 func (e HTTPError) LogAndRespond(resp http.ResponseWriter) {
 	log.Println(e.InternalMsg)
+	resp.Header().Set("Cache-Control", "no-store")
 	http.Error(resp, e.ExternalMsg(), e.StatusCode)
 }
