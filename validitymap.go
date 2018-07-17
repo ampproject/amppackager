@@ -15,7 +15,10 @@
 package amppackager
 
 import (
+	"bytes"
 	"net/http"
+	"path"
+	"time"
 )
 
 type ValidityMap struct {
@@ -24,17 +27,18 @@ type ValidityMap struct {
 
 func NewValidityMap() (*ValidityMap, error) {
 	this := new(ValidityMap)
+	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.6
+	// This is an empty validity map `{}`.
 	this.validityMap = []byte("\xA0")
 	return this, nil
 }
 
 func (this ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	println("path", req.URL.Path)
-	if req.URL.Path == ValidityMapURL {
-		resp.Header().Set("Accept-Ranges", "bytes")
-		resp.Header().Set("Content-Type", "text/html")
+	if req.URL.Path == path.Join("/", ValidityMapURL) {
+		resp.Header().Set("Content-Type", "application/cbor")
 		resp.Header().Set("Cache-Control", "public, max-age=604800")
-		resp.Write(this.validityMap)
+		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.validityMap))
 	} else {
 		http.NotFound(resp, req)
 	}

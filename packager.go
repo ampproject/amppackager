@@ -218,8 +218,10 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	if !acceptablePackagerSchemes[baseURL.Scheme] {
 		return nil, errors.Errorf("PackagerBase %q must be over http or https.", packagerBase)
 	}
-	validityURL := baseURL
-	validityURL.Path = ValidityMapURL
+	validityURL, err := url.Parse(path.Join(packagerBase, ValidityMapURL))
+	if err != nil {
+		return nil, errors.Wrapf(err, "parsing PackagerBase %q with ValidityMapURL %q", packagerBase, ValidityMapURL)
+	}
 	client := http.Client{
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,

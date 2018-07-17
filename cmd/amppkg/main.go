@@ -106,7 +106,7 @@ func main() {
 
 	// TODO(twifkak): Make log output configurable.
 	mux := http.NewServeMux()
-	mux.Handle(amppkg.ValidityMapURL, validityMap)
+	mux.Handle(path.Join("/", amppkg.ValidityMapURL), validityMap)
 	mux.Handle("/priv/doc", packager)
 	mux.Handle(path.Join("/", amppkg.CertURLPrefix)+"/", certCache)
 	addr := ""
