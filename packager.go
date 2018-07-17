@@ -43,6 +43,16 @@ const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile " +
 	"Safari/537.36 (compatible; amppackager/0.0.0; +https://github.com/ampproject/amppackager)"
 
+// Conditional request headers that ServeHTTP may receive and need to be sent with fetchURL.
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests#Conditional_headers
+var conditionalRequestHeaders = map[string]string {
+	"If-Match":            "",
+	"If-None-Match":       "",
+	"If-Modified-Since":   "",
+	"If-Unmodified-Since": "",
+	"If-Range":            "",
+}
+
 // Advised against, per
 // https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-4.1
 // and blocked in http://crrev.com/c/958945.
@@ -252,6 +262,13 @@ func (this Packager) fetchURL(orig *url.URL) (*http.Request, *http.Response, *HT
 		return nil, nil, NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
+	// Set conditional headers that were included in ServeHTTP().
+	for header := range conditionalRequestHeaders {
+		if conditionalRequestHeaders[header] != "" {
+			req.Header.Set(header, conditionalRequestHeaders[header])
+		}
+	}
+	// map header : value
 	resp, err := this.client.Do(req)
 	if err != nil {
 		return nil, nil, NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
@@ -291,11 +308,23 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Set conditional request header values
+	for header := range conditionalRequestHeaders {
+		conditionalRequestHeaders[header] = req.Header.Get(header)
+	}
+
 	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
 	}
+
+	// If fetchURL returns a 304, then also return a 304.
+	if fetchResp.StatusCode == 304 {
+		resp.WriteHeader(http.StatusNotModified)
+		return
+	}
+
 	defer func() {
 		if err := fetchResp.Body.Close(); err != nil {
 			log.Println("Error closing fetchResp body:", err)
