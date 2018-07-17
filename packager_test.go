@@ -78,7 +78,7 @@ func TestSimple(t *testing.T) {
 
 func TestNoFetchParam(t *testing.T) {
 	urlSets := []URLSet{URLSet{
-		Sign:  &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+		Sign: &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
 	if resp.StatusCode != http.StatusOK {
@@ -90,6 +90,18 @@ func TestNoFetchParam(t *testing.T) {
 	}
 	assert.Equal(t, "/s/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
 	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
+}
+
+func TestErrorNoCache(t *testing.T) {
+	urlSets := []URLSet{URLSet{
+		Fetch: &URLPattern{[]string{"http"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
+	}}
+	// Missign sign param generates an error.
+	resp := get(t, newPackager(t, urlSets), `/priv/doc?fetch=http%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("incorrect status: %#v", resp)
+	}
+	assert.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
 }
 
 func TestMain(m *testing.M) {
