@@ -31,3 +31,6 @@ func CertName(cert *x509.Certificate) string {
 	sum := sha256.Sum256(cert.Raw)
 	return base64.RawURLEncoding.EncodeToString(sum[:])
 }
+
+// ValidityMapURL must start without a slash, for PackagerBase's sake.
+const ValidityMapURL = "amppkg/validity"
