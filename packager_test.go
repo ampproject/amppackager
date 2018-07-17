@@ -96,7 +96,7 @@ func TestErrorNoCache(t *testing.T) {
 	urlSets := []URLSet{URLSet{
 		Fetch: &URLPattern{[]string{"http"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
 	}}
-	// Missign sign param generates an error.
+	// Missing sign param generates an error.
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?fetch=http%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Errorf("incorrect status: %#v", resp)
