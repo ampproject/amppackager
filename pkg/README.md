@@ -22,6 +22,9 @@ layout
 printer
 : Emits the DOM tree
 
+transform
+: Convenient entrypoint to the local transformer library.
+
 transformer
 : The individual transformers
 
