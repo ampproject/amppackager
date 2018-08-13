@@ -2,58 +2,101 @@
 
 
 [[projects]]
+  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = "UT"
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:15042ad3498153684d09f393bbaec6b216c8eec6d61f63dff711de7d64ed8861"
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  pruneopts = "UT"
+  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
+  digest = "1:55f5c4ddba1796be86cb20cba33bc99d58617d5a8d5194bb438d442884e8d4cd"
   name = "github.com/nyaxt/webpackage"
   packages = [
     "go/signedexchange",
     "go/signedexchange/cbor",
     "go/signedexchange/certurl",
-    "go/signedexchange/mice"
+    "go/signedexchange/mice",
   ]
+  pruneopts = "UT"
   revision = "59d4fb654d0755a6cda45a1d4e2819ce6b916560"
 
 [[projects]]
+  digest = "1:7231124c9669dfb54b82ef8b89f2735cf5d5d2529a23c6ac93a8c4b8bbb28b28"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
+  pruneopts = "UT"
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = "UT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:0b67d006d8a1b8034c63c305a32beb7e4bca153f32221368c6942df00bbe5dbb"
   name = "github.com/pquerna/cachecontrol"
   packages = [
     ".",
-    "cacheobject"
+    "cacheobject",
   ]
+  pruneopts = "UT"
   revision = "525d0eb5f91d30e3b1548de401b7ef9ea6898520"
 
 [[projects]]
+  digest = "1:f85e109eda8f6080877185d1c39e98dd8795e1780c08beca28304b87fd855a1c"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
+  pruneopts = "UT"
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:cc9018972f0ec220424cadedf663d90048bafe045c5c82bbec23fa221cb8cf38"
+  name = "golang.org/x/net"
+  packages = [
+    "html",
+    "html/atom",
+  ]
+  pruneopts = "UT"
+  revision = "f9ce57c11b242f0f1599cf25c89d8cb02c45295a"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "417c1863a576c90f0bcab5237b2f93b81cd1b66477b78de864460b243692b75d"
+  input-imports = [
+    "github.com/golang/protobuf/proto",
+    "github.com/nyaxt/webpackage/go/signedexchange",
+    "github.com/nyaxt/webpackage/go/signedexchange/certurl",
+    "github.com/pelletier/go-toml",
+    "github.com/pkg/errors",
+    "github.com/pquerna/cachecontrol",
+    "github.com/stretchr/testify/assert",
+    "golang.org/x/net/html",
+    "golang.org/x/net/html/atom",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

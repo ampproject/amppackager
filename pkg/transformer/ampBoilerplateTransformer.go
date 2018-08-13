@@ -1,0 +1,78 @@
+package transformer
+
+import (
+	"github.com/ampproject/amppackager/internal/pkg/amphtml"
+	"github.com/ampproject/amppackager/internal/pkg/htmlnode"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
+)
+
+// AMPBoilerplateTransformer removes <style> and <noscript> tags in <head>,
+// keeping only the amp-custom style tag. It then inserts the amp-boilerplate.
+func AMPBoilerplateTransformer(e *Engine) {
+	dom, ok := amphtml.NewDOM(e.Doc)
+	if !ok {
+		return
+	}
+
+	strip(dom.HeadNode)
+	boilerplate, css := determineBoilerplateAndCSS(dom.HTMLNode)
+
+	styleNode := htmlnode.Element("style", html.Attribute{Key: boilerplate})
+	dom.HeadNode.AppendChild(styleNode)
+
+	cssNode := htmlnode.Text(css)
+	styleNode.AppendChild(cssNode)
+
+	if boilerplate != amphtml.AMPBoilerplate {
+		return
+	}
+
+	// Regular AMP boilerplate also includes a noscript.
+	noScriptNode := htmlnode.Element("noscript")
+	dom.HeadNode.AppendChild(noScriptNode)
+
+	noScriptStyle := htmlnode.Element("style", html.Attribute{Key: boilerplate})
+	noScriptNode.AppendChild(noScriptStyle)
+
+	noScriptCSS := htmlnode.Text(amphtml.AMPBoilerplateNoscriptCSS)
+	noScriptStyle.AppendChild(noScriptCSS)
+}
+
+// Removes <style> and <noscript> tags keeping only the amp-custom style tag.
+func strip(n *html.Node) {
+	switch n.DataAtom {
+	case atom.Style:
+		if _, ok := htmlnode.FindAttribute(n, "", amphtml.AMPCustom); !ok {
+			n.Parent.RemoveChild(n)
+			return
+		}
+	case atom.Noscript:
+		n.Parent.RemoveChild(n)
+		return
+	}
+
+	for c := n.FirstChild; c != nil; {
+		next := c.NextSibling
+		strip(c)
+		c = next
+	}
+}
+
+// Returns the boilerplate style and CSS for the flavor of AMP used.
+// ⚡ is \u26a1.
+func determineBoilerplateAndCSS(n *html.Node) (string, string) {
+	boilerplate := amphtml.AMPBoilerplate
+	css := amphtml.AMPBoilerplateCSS
+	for i := range n.Attr {
+		switch n.Attr[i].Key {
+		case "amp4ads", "⚡4ads":
+			boilerplate = amphtml.AMP4AdsBoilerplate
+			css = amphtml.AMP4AdsAndAMP4EMailBoilerplateCSS
+		case "amp4email", "⚡4email":
+			boilerplate = amphtml.AMP4EmailBoilerplate
+			css = amphtml.AMP4AdsAndAMP4EMailBoilerplateCSS
+		}
+	}
+	return boilerplate, css
+}
