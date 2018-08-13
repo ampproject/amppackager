@@ -23,14 +23,16 @@ will support updating AMP Packages, though it doesn't yet.
 The packager is an HTTP server that sits behind a frontend server; it fetches
 and signs AMP documents as requested by the AMP Cache.
 
-## How to use
+## Packager/Signer
 
-### Configure your frontend server
+### How to use
+
+#### Configure your frontend server
 
 The frontend server needs to forward two types of requests to the packager:
 packages and certificates.
 
-#### Packages
+##### Packages
 
 The frontend needs to forward requests for web packages to the packager. The
 details of this are still being worked out, but for now, an easy way to do so is
@@ -75,7 +77,7 @@ Let's break that down:
   URL. By default, the content for the package is fetched from this same URL
   anonymously (e.g. without a `Cookie` header). It may not contain a fragment.
 
-#### Certificates
+##### Certificates
 
 AMP Packages will contain a `certUrl` that indicates the certificate that can be
 used to validate the package. The `certUrl` may be on any domain, and it may be
@@ -90,7 +92,7 @@ You may optionally prefix such URLs' paths, via the config file. The frontend
 server must internally reverse-proxy these requests to the packager (without the
 custom prefix).
 
-### Configure the packager
+#### Configure the packager
 
 The packager needs to be set up to receive reverse-proxied requests from the
 frontend as specified above. In addition, it:
@@ -121,7 +123,7 @@ configuration is fairly straightforward:
   4. Launch with `/path/to/amppkg -config=/path/to/amppkg.toml >>/path/to/amppkg.log`.
   5. Set up log rotation for `amppkg.log`.
 
-### Test your config
+#### Test your config
 
   1. Run a [Chrome Canary](https://www.google.com/chrome/browser/canary.html),
      or if on Linux, a [nightly build of
@@ -139,7 +141,7 @@ Optionally, you may pretend to be an AMP Cache:
   3. Ensure the packager is still running; it's needed to serve the certificate.
   4. Visit `http://localhost:8000/` in the experimental Chromium.
 
-### How will these web packages be discovered?
+#### How will these web packages be discovered?
 
 The details of that are still being worked out. We have several alternatives in
 mind and want to come up with an answer that's best for the web, including
@@ -147,7 +149,7 @@ crawlers, sites serving packages, sites not serving packages, and package
 caches. If you have any constraints or suggestions, please comment on issue #5,
 or feel free to reach out in private if needed.
 
-## Limitations
+### Limitations
 
 Currently, the packager will refuse to sign any AMP documents larger than 4 MB.
 
@@ -165,3 +167,17 @@ temporary fork for the implementation snapshot of the spec, and should be seen
 as a reference implementation, and not a supported library. Proper usage
 requires following the status of browser implementations and updating callers to
 import the correct library snapshot.
+
+## Local Transformer
+
+The local transformer is a sub-library within the AMP Packager that transforms AMP HTML for security and performance improvements. These modifications are described in more detail [here](https://github.com/ampproject/amphtml/blob/master/spec/amp-cache-modifications.md).
+
+> **WARNING**: This local transformer library is still a work-in-progress and not all transformations described in the link above are implemented.
+
+### How to use
+The local transformer can be used separately from the packager/signer.
+
+1. `go get github.com/ampproject/amppackager/cmd/transform`
+1. `$GOPATH/bin/transform -url "documentURL" /path/to/html`
+
+For more help, `$GOPATH/bin/transform -h`
