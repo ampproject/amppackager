@@ -12,7 +12,7 @@ that not all have been implemented here yet!
 
 ## Packages
 
-amp_packaer
+amp_packager
 : This contains the compiled validator.proto from ampproject/amphtml. This is a
 temporary solution for the time being. TODO(alin04): Add github issue.
 
