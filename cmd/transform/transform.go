@@ -13,13 +13,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 
 	t "github.com/ampproject/amppackager/pkg/transform"
 )
 
-var transformersFlag = flag.String("transformers", "", "Comma-separated list of transformers to execute.")
-var documentURLFlag = flag.String("document URL", "", "The URL of the document being processed")
+var documentURLFlag = flag.String("url", "", "The URL of the document being processed, e.g. https://example.com/amphtml/article1234")
 
 func checkErr(e error) {
 	if e != nil {
@@ -36,21 +34,19 @@ func main() {
 Examples:
 
 # Execute with filename
-$GOPATH/bin/transform -transformers=URLTransformer,AMPBoilerplateTransformer \
-   /path/to/input.html
+$GOPATH/bin/transform /path/to/input.html
 
 # Execute with pipe
-cat /path/to/input.html | $GOPATH/bin/transform -transformers=URLTransformer,AMPBoilerplateTransformer
+cat /path/to/input.html | $GOPATH/bin/transform
 `)
 	}
 
 	flag.Parse()
-	var transformers []string
-	if *transformersFlag != "" {
-		transformers = strings.Split(*transformersFlag, ",")
-		for i := range transformers {
-			transformers[i] = strings.TrimSpace(transformers[i])
-		}
+	transformers := []string{
+		"URLTransformer",
+		"AMPBoilerplateTransformer",
+		"ServerSideRenderingTransformer",
+		"ReorderHeadTransformer",
 	}
 
 	var data []byte
