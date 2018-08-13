@@ -42,13 +42,6 @@ cat /path/to/input.html | $GOPATH/bin/transform
 	}
 
 	flag.Parse()
-	transformers := []string{
-		"URLTransformer",
-		"AMPBoilerplateTransformer",
-		"ServerSideRenderingTransformer",
-		"ReorderHeadTransformer",
-	}
-
 	var data []byte
 	var err error
 	switch flag.NArg() {
@@ -60,7 +53,7 @@ cat /path/to/input.html | $GOPATH/bin/transform
 		log.Fatal("Input must be from stdin or file.")
 	}
 	checkErr(err)
-	o, err := t.Process(string(data), *documentURLFlag, transformers)
+	o, err := t.Process(string(data), *documentURLFlag)
 	checkErr(err)
 	fmt.Print(o)
 }

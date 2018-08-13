@@ -1,5 +1,6 @@
-// Package transform invokes the golang HTML parser, executes any specified
-// transfomers, and prints the output to the provided string.
+// Package transform invokes the golang HTML parser, executes the
+// individual transfomers (unless overridden), and prints the output
+// to the provided string.
 package transform
 
 import (
@@ -13,7 +14,10 @@ import (
 )
 
 // Transformer functions must be added here in order to be passed in from
-// the command line. Please keep alphabetical.
+// the command line or invoked from other languages. Please keep alphabetical.
+//
+// NOTE: The string mapping is necessary as a cross-over to allow
+// invocation from C/C++.
 var transformerFunctionMap = map[string]func(*transformer.Engine){
 	"AMPBoilerplateTransformer":      transformer.AMPBoilerplateTransformer,
 	"ReorderHeadTransformer":         transformer.ReorderHeadTransformer,
@@ -21,10 +25,25 @@ var transformerFunctionMap = map[string]func(*transformer.Engine){
 	"URLTransformer":                 transformer.URLTransformer,
 }
 
+// The transformers to execute, in the order in which to execute them.
+var transformers = []string{
+	"URLTransformer",
+	"AMPBoilerplateTransformer",
+	"ServerSideRenderingTransformer",
+	"ReorderHeadTransformer",
+}
+
+// Process will parse the given HTML byte array, applying all the
+// transformers and return the transformed HTML, or an error.
+// TODO(b/112356610): Clean up these args into a proto.
+func Process(data, docURL string) (string, error) {
+	return ProcessSome(data, docURL, transformers)
+}
+
 // Process will parse the given HTML byte array, and execute the named
 // transformers, returning the transformed HTML, or an error.
 // TODO(b/112356610): Clean up these args into a proto.
-func Process(data, docURL string, transformers []string) (string, error) {
+func ProcessSome(data, docURL string, transformers []string) (string, error) {
 	doc, err := html.Parse(strings.NewReader(data))
 	if err != nil {
 		return "", err
