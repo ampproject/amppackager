@@ -253,7 +253,7 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	return &Packager{cert, key, validityURL, &client, baseURL, urlSets}, nil
 }
 
-func (this Packager) fetchURL(orig *url.URL, serveHTTPReq http.Request) (*http.Request, *http.Response, *HTTPError) {
+func (this Packager) fetchURL(orig *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
 	// Make a copy so destructive changes don't persist.
 	fetch := *orig
 	// Add the query parameter to enable web package transforms.
@@ -331,7 +331,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusNotModified)
 		for header := range statusNotModifiedHeaders {
 			if fetchResp.Header.Get(header) != "" {
-				resp.Header.Set(fetchResp.Header.Get(header))
+				resp.Header().Set(header, fetchResp.Header.Get(header))
 			}
 		}
 		return
