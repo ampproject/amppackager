@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"golang.org/x/net/html"
 )
 
 func TestIsAMPCustomElement(t *testing.T) {
