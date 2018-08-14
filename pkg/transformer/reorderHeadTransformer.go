@@ -14,6 +14,7 @@ type headNodes struct {
 	linkFavicon                   []*html.Node
 	linkResourceHint              []*html.Node
 	linkStylesheetBeforeAMPCustom []*html.Node
+	linkStylesheetRuntimeCSS      *html.Node
 	metaCharset                   *html.Node
 	metaOther                     []*html.Node
 	noscript                      *html.Node
@@ -79,6 +80,9 @@ func ReorderHeadTransformer(e *Engine) {
 	if hn.metaCharset != nil {
 		dom.HeadNode.AppendChild(hn.metaCharset)
 	}
+	if hn.linkStylesheetRuntimeCSS != nil {
+		dom.HeadNode.AppendChild(hn.linkStylesheetRuntimeCSS)
+	}
 	if hn.styleAMPRuntime != nil {
 		dom.HeadNode.AppendChild(hn.styleAMPRuntime)
 	}
@@ -114,6 +118,11 @@ func registerLink(n *html.Node, hn *headNodes) {
 			hn.linkFavicon = append(hn.linkFavicon, n)
 			return
 		case "stylesheet":
+			// The AmpRuntimeCssTransformer inserts a stylesheet for the AMP Runtime CSS. It must remain early in the head immediately before <style amp-custom>.
+			if v, ok := htmlnode.GetAttributeVal(n, "href"); ok && strings.HasPrefix(v, "https://cdn.ampproject.org/") && strings.HasSuffix(v, "/v0.css") {
+				hn.linkStylesheetRuntimeCSS = n
+				return
+			}
 			if hn.styleAMPCustom == nil {
 				hn.linkStylesheetBeforeAMPCustom = append(hn.linkStylesheetBeforeAMPCustom, n)
 				return
