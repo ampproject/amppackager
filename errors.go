@@ -28,7 +28,7 @@ type HTTPError struct {
 }
 
 func NewHTTPError(statusCode int, msg ...interface{}) *HTTPError {
-	return &HTTPError{fmt.Sprint(msg), statusCode}
+	return &HTTPError{fmt.Sprint(msg...), statusCode}
 }
 
 func (e HTTPError) Error() string { return e.InternalMsg }
