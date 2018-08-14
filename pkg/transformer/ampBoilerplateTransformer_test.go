@@ -4,10 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	tt "github.com/ampproject/amppackager/internal/pkg/testing"
 	"github.com/ampproject/amppackager/pkg/transformer"
 	"golang.org/x/net/html"
-
-	tt "github.com/ampproject/amppackager/internal/pkg/testing"
 )
 
 // These tests do NOT run through the custom transformations of the
