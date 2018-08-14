@@ -70,10 +70,10 @@ var statefulResponseHeaders = map[string]bool{
 }
 
 // The server generating a 304 response MUST generate any of the
-// following header fields that would ahve been sent in a 200 (OK) response
+// following header fields that would have been sent in a 200 (OK) response
 // to the same request.
 // https://tools.ietf.org/html/rfc7232#section-4.1
-statusNotModifiedHeaders = map[string]bool{
+var statusNotModifiedHeaders = map[string]bool{
 	"Cache-Control":    true,
 	"Content-Location": true,
 	"Date":             true,
@@ -253,7 +253,7 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	return &Packager{cert, key, validityURL, &client, baseURL, urlSets}, nil
 }
 
-func (this Packager) fetchURL(orig *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *HTTPError) {
+func (this Packager) fetchURL(orig *url.URL, serveHTTPReq http.Request) (*http.Request, *http.Response, *HTTPError) {
 	// Make a copy so destructive changes don't persist.
 	fetch := *orig
 	// Add the query parameter to enable web package transforms.
@@ -277,7 +277,9 @@ func (this Packager) fetchURL(orig *url.URL, serveHTTPReq *http.Request) (*http.
 	req.Header.Set("User-Agent", userAgent)
 	// Set conditional headers that were included in ServeHTTP's Request.
 	for header := range conditionalRequestHeaders {
-		req.Header.Set(header, serveHTTPReq.Get(header))
+		if serveHTTPReq.Get(header) != "" {
+			req.Header.Set(header, serveHTTPReq.Get(header))
+		}
 	}
 	resp, err := this.client.Do(req)
 	if err != nil {
@@ -329,7 +331,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusNotModified)
 		for header := range statusNotModifiedHeaders {
 			if fetchResp.Header.Get(header) != "" {
-				resp.WriteHeader(fetchResp.Header.Get(header))
+				resp.Header.Set(fetchResp.Header.Get(header))
 			}
 		}
 		return
