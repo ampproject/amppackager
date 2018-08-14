@@ -74,12 +74,12 @@ var statefulResponseHeaders = map[string]bool{
 // to the same request.
 // https://tools.ietf.org/html/rfc7232#section-4.1
 statusNotModifiedHeaders = map[string]bool{
-	"Cache-Control": true,
+	"Cache-Control":    true,
 	"Content-Location": true,
-	"Date": true,
-	"ETag": true,
-	"Expires": true,
-	"Vary": true,
+	"Date":             true,
+	"ETag":             true,
+	"Expires":          true,
+	"Vary":             true,
 }
 
 // TODO(twifkak): Remove this restriction by allowing streamed responses from the signedexchange library.
