@@ -25,7 +25,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	// TODO(twifkak): Change this back to nyaxt/webpackage after PR #13 is merged.
 	"github.com/nyaxt/webpackage/go/signedexchange"
 )
 
