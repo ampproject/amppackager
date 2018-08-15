@@ -11,8 +11,6 @@ import (
 )
 
 // Common AMP string constants.
-// TODO(b/112649787): Audit usage of "cdn.ammproject.org" literals and use
-// replace with a literal here.
 const (
 	AMPAudio = "amp-audio"
 
@@ -20,7 +18,13 @@ const (
 
 	AMPBoilerplateCSS = "body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}"
 
-	AMPBoilerplateNoscriptCSS = `body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}`
+	AMPBoilerplateNoscriptCSS = "body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}"
+
+	AMPCacheHostName = "cdn.ampproject.org"
+
+	AMPCacheSchemeAndHost = "https://cdn.ampproject.org"
+
+	AMPCacheRootURL = "https://cdn.ampproject.org/"
 
 	AMP4AdsBoilerplate = "amp4ads-boilerplate"
 
@@ -59,7 +63,7 @@ func IsScriptAMPRuntime(n *html.Node) bool {
 		return htmlnode.HasAttribute(n, "async") &&
 			!htmlnode.HasAttribute(n, AMPCustomElement) &&
 			!htmlnode.HasAttribute(n, AMPCustomTemplate) &&
-			strings.HasPrefix(v, "https://cdn.ampproject.org/") &&
+			strings.HasPrefix(v, AMPCacheRootURL) &&
 			(strings.HasSuffix(v, "/v0.js") ||
 				strings.HasSuffix(v, "/amp4ads-v0.js"))
 	}
@@ -75,7 +79,7 @@ func IsScriptAMPViewer(n *html.Node) bool {
 	return ok &&
 		!htmlnode.HasAttribute(n, AMPCustomTemplate) &&
 		strings.HasPrefix(a.Val,
-			"https://cdn.ampproject.org/v0/amp-viewer-integration-") &&
+			AMPCacheSchemeAndHost+"/v0/amp-viewer-integration-") &&
 		strings.HasSuffix(a.Val, ".js") &&
 		htmlnode.HasAttribute(n, "async") &&
 		!htmlnode.HasAttribute(n, AMPCustomElement)

@@ -123,7 +123,9 @@ func registerLink(n *html.Node, hn *headNodes) {
 			return
 		case "stylesheet":
 			// The AmpRuntimeCssTransformer inserts a stylesheet for the AMP Runtime CSS. It must remain early in the head immediately before <style amp-custom>.
-			if v, ok := htmlnode.GetAttributeVal(n, "href"); ok && strings.HasPrefix(v, "https://cdn.ampproject.org/") && strings.HasSuffix(v, "/v0.css") {
+			if v, ok := htmlnode.GetAttributeVal(n, "href"); ok &&
+				strings.HasPrefix(v, amphtml.AMPCacheRootURL) &&
+				strings.HasSuffix(v, "/v0.css") {
 				hn.linkStylesheetRuntimeCSS = n
 				return
 			}
