@@ -9,8 +9,8 @@ import (
 	"github.com/ampproject/amppackager/internal/pkg/amphtml"
 	"github.com/ampproject/amppackager/internal/pkg/htmlnode"
 	"github.com/ampproject/amppackager/pkg/printer"
-	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"golang.org/x/net/html"
 )
 
 // An Engine stores the root DOM Node, configurable transformers to

@@ -4,8 +4,8 @@ import (
 	"github.com/ampproject/amppackager/internal/pkg/amphtml"
 	"github.com/ampproject/amppackager/internal/pkg/htmlnode"
 	"github.com/ampproject/amppackager/pkg/layout"
-	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"golang.org/x/net/html"
 )
 
 // ServerSideRenderingTransformer implements server-side rendering,
