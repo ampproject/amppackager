@@ -11,6 +11,8 @@ import (
 )
 
 // Common AMP string constants.
+// TODO(b/112649787): Audit usage of "cdn.ammproject.org" literals and use
+// replace with a literal here.
 const (
 	AMPAudio = "amp-audio"
 
@@ -62,6 +64,21 @@ func IsScriptAMPRuntime(n *html.Node) bool {
 				strings.HasSuffix(v, "/amp4ads-v0.js"))
 	}
 	return false
+}
+
+// IsScriptAMPViewer returns true if the node is of the form <script async src=https://cdn.ampproject.org/v0/amp-viewer-integration-...js></script>
+func IsScriptAMPViewer(n *html.Node) bool {
+	if n.DataAtom != atom.Script {
+		return false
+	}
+	a, ok := htmlnode.FindAttribute(n, "", "src")
+	return ok &&
+		!htmlnode.HasAttribute(n, AMPCustomTemplate) &&
+		strings.HasPrefix(a.Val,
+			"https://cdn.ampproject.org/v0/amp-viewer-integration-") &&
+		strings.HasSuffix(a.Val, ".js") &&
+		htmlnode.HasAttribute(n, "async") &&
+		!htmlnode.HasAttribute(n, AMPCustomElement)
 }
 
 // IsScriptRenderDelaying returns true if the node has one of these values for attribute 'custom-element': amp-dynamic-css-classes, amp-experiment, amp-story.

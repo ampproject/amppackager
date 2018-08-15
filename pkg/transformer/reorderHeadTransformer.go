@@ -20,6 +20,7 @@ type headNodes struct {
 	noscript                      *html.Node
 	other                         []*html.Node
 	scriptAMPRuntime              *html.Node
+	scriptAMPViewer               *html.Node
 	scriptNonRenderDelaying       []*html.Node
 	scriptRenderDelaying          []*html.Node
 	styleAMPBoilerplate           *html.Node
@@ -90,6 +91,9 @@ func ReorderHeadTransformer(e *Engine) {
 	if hn.scriptAMPRuntime != nil {
 		dom.HeadNode.AppendChild(hn.scriptAMPRuntime)
 	}
+	if hn.scriptAMPViewer != nil {
+		dom.HeadNode.AppendChild(hn.scriptAMPViewer)
+	}
 	htmlnode.AppendChildren(dom.HeadNode, hn.scriptRenderDelaying...)
 	htmlnode.AppendChildren(dom.HeadNode, hn.scriptNonRenderDelaying...)
 	htmlnode.AppendChildren(dom.HeadNode, hn.linkFavicon...)
@@ -145,6 +149,10 @@ func registerMeta(n *html.Node, hn *headNodes) {
 func registerScript(n *html.Node, hn *headNodes) {
 	if amphtml.IsScriptAMPRuntime(n) {
 		hn.scriptAMPRuntime = n
+		return
+	}
+	if amphtml.IsScriptAMPViewer(n) {
+		hn.scriptAMPViewer = n
 		return
 	}
 	if htmlnode.HasAttribute(n, amphtml.AMPCustomElement) {
