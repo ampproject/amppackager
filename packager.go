@@ -43,6 +43,16 @@ const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile " +
 	"Safari/537.36 (compatible; amppackager/0.0.0; +https://github.com/ampproject/amppackager)"
 
+// Conditional request headers that ServeHTTP may receive and need to be sent with fetchURL.
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests#Conditional_headers
+var conditionalRequestHeaders = map[string]bool{
+	"If-Match":            true,
+	"If-None-Match":       true,
+	"If-Modified-Since":   true,
+	"If-Unmodified-Since": true,
+	"If-Range":            true,
+}
+
 // Advised against, per
 // https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-4.1
 // and blocked in http://crrev.com/c/958945.
@@ -57,6 +67,19 @@ var statefulResponseHeaders = map[string]bool{
 	"Set-Cookie2":               true,
 	"SetProfile":                true,
 	"WWW-Authenticate":          true,
+}
+
+// The server generating a 304 response MUST generate any of the
+// following header fields that would have been sent in a 200 (OK) response
+// to the same request.
+// https://tools.ietf.org/html/rfc7232#section-4.1
+var statusNotModifiedHeaders = map[string]bool{
+	"Cache-Control":    true,
+	"Content-Location": true,
+	"Date":             true,
+	"ETag":             true,
+	"Expires":          true,
+	"Vary":             true,
 }
 
 // TODO(twifkak): Remove this restriction by allowing streamed responses from the signedexchange library.
@@ -230,7 +253,7 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	return &Packager{cert, key, validityURL, &client, baseURL, urlSets}, nil
 }
 
-func (this Packager) fetchURL(orig *url.URL) (*http.Request, *http.Response, *HTTPError) {
+func (this Packager) fetchURL(orig *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
 	// Make a copy so destructive changes don't persist.
 	fetch := *orig
 	// Add the query parameter to enable web package transforms.
@@ -252,6 +275,12 @@ func (this Packager) fetchURL(orig *url.URL) (*http.Request, *http.Response, *HT
 		return nil, nil, NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
+	// Set conditional headers that were included in ServeHTTP's Request.
+	for header := range conditionalRequestHeaders {
+		if serveHTTPReq.Get(header) != "" {
+			req.Header.Set(header, serveHTTPReq.Get(header))
+		}
+	}
 	resp, err := this.client.Do(req)
 	if err != nil {
 		return nil, nil, NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
@@ -291,11 +320,24 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL)
+	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req.Header)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
 	}
+
+	// If fetchURL returns a 304, then also return a 304 with appropriate headers.
+	if fetchResp.StatusCode == 304 {
+		for header := range statusNotModifiedHeaders {
+			if fetchResp.Header.Get(header) != "" {
+				resp.Header().Set(header, fetchResp.Header.Get(header))
+			}
+		}
+		resp.WriteHeader(http.StatusNotModified)
+		resp.Write([]byte(""))
+		return
+	}
+
 	defer func() {
 		if err := fetchResp.Body.Close(); err != nil {
 			log.Println("Error closing fetchResp body:", err)
