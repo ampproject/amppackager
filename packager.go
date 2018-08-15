@@ -328,12 +328,13 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// If fetchURL returns a 304, then also return a 304 with appropriate headers.
 	if fetchResp.StatusCode == 304 {
-		resp.WriteHeader(http.StatusNotModified)
 		for header := range statusNotModifiedHeaders {
 			if fetchResp.Header.Get(header) != "" {
 				resp.Header().Set(header, fetchResp.Header.Get(header))
 			}
 		}
+		resp.WriteHeader(http.StatusNotModified)
+		resp.Write([]byte(""))
 		return
 	}
 
