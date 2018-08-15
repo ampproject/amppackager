@@ -45,33 +45,110 @@ func TestIsScriptAMPRuntime(t *testing.T) {
 	}{
 		{
 			"amp-img false",
-			&html.Node{Type: html.ElementNode, Data: "amp-img"},
+			&html.Node{Type: html.ElementNode,
+				Data: "amp-img"},
 			false,
 		},
 		{
 			"amp runtime with custom-element false",
-			&html.Node{Type: html.ElementNode, Data: "script", DataAtom: atom.Script, Attr: []html.Attribute{{Key: "async"}, {Key: "custom-element"}, {Key: "src", Val: "https://cdn.ampproject.org/v0.js"}}},
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "custom-element"},
+					{Key: "src",
+						Val: "https://cdn.ampproject.org/v0.js"}}},
 			false,
 		},
 		{
 			"amp runtime true",
-			&html.Node{Type: html.ElementNode, Data: "script", DataAtom: atom.Script, Attr: []html.Attribute{{Key: "async"}, {Key: "src", Val: "https://cdn.ampproject.org/v0.js"}}},
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script, Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "src",
+						Val: "https://cdn.ampproject.org/v0.js"}}},
 			true,
 		},
 		{
 			"amp4ads runtime with custom-element false",
-			&html.Node{Type: html.ElementNode, Data: "script", DataAtom: atom.Script, Attr: []html.Attribute{{Key: "async"}, {Key: "custom-element"}, {Key: "src", Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "custom-element"},
+					{Key: "src",
+						Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
 			false,
 		},
 		{
 			"amp4ads runtime true",
-			&html.Node{Type: html.ElementNode, Data: "script", DataAtom: atom.Script, Attr: []html.Attribute{{Key: "async"}, {Key: "src", Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "src",
+						Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
 			true,
+		},
+		{
+			"amp viewer script false",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "src",
+						Val: "https://cdn.ampproject.org/v0/amp-viewer-integration-4.2.js"}}},
+			false,
 		},
 	}
 	for _, tc := range tcs {
 		if ok := IsScriptAMPRuntime(tc.n); ok != tc.expected {
 			t.Errorf("%s: IsScriptAMPRuntime()=%t want=%t", tc.desc, ok, tc.expected)
+		}
+	}
+}
+
+func TestIsScriptAMPViewer(t *testing.T) {
+	tcs := []struct {
+		desc     string
+		n        *html.Node
+		expected bool
+	}{
+		{
+			"amp-img false",
+			&html.Node{Type: html.ElementNode,
+				Data: "amp-img"},
+			false,
+		},
+		{
+			"amp runtime false",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script, Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "src", Val: "https://cdn.ampproject.org/v0.js"}}},
+			false,
+		},
+		{
+			"amp viewer script true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "src",
+						Val: "https://cdn.ampproject.org/v0/amp-viewer-integration-4.2.js"}}},
+			true,
+		},
+	}
+	for _, tc := range tcs {
+		if ok := IsScriptAMPViewer(tc.n); ok != tc.expected {
+			t.Errorf("%s: IsScriptAMPViewer()=%t want=%t", tc.desc, ok, tc.expected)
 		}
 	}
 }
