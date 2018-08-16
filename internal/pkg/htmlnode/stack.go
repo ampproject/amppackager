@@ -7,7 +7,9 @@ type Stack []*html.Node
 
 // Push pushes a node onto the stack
 func (s *Stack) Push(n *html.Node) {
-	*s = append(*s, n)
+	(*s) = append(*s, nil)
+	copy((*s)[1:], (*s)[0:])
+	(*s)[0] = n
 }
 
 // Pop pops the stack. It will panic if s is empty.

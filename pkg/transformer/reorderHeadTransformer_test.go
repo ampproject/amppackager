@@ -4,9 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	tt "github.com/ampproject/amppackager/internal/pkg/testing"
 	"github.com/ampproject/amppackager/pkg/transformer"
 	"golang.org/x/net/html"
+
+	tt "github.com/ampproject/amppackager/internal/pkg/testing"
 )
 
 // These tests do NOT run through the custom transformations of the
@@ -27,7 +28,7 @@ func TestReorderHeadTransformer(t *testing.T) {
 				tt.ScriptAMPRuntime, tt.LinkStylesheetGoogleFont,
 				tt.LinkResourceHint, tt.MetaCharset,
 				tt.MetaViewport, tt.StyleAMPCustom,
-				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
+				tt.LinkFavicon,
 				"</head><body></body></html>"),
 			tt.Concat("<!doctype html><html ⚡><head>",
 				// (0) <meta charset> tag
@@ -38,24 +39,21 @@ func TestReorderHeadTransformer(t *testing.T) {
 				tt.MetaViewport,
 				// (3) AMP runtime .js <script> tag
 				tt.ScriptAMPRuntime,
-				// (4) AMP viewer runtime .js <script> tag
-				// (inserted by AmpViewerScriptTransformer)
-				tt.ScriptAMPViewerRuntime,
-				// (5) <script> tags that are render delaying
+				// (4) <script> tags that are render delaying
 				tt.ScriptAMPExperiment,
-				// (6) remaining <script> tags
+				// (5) remaining <script> tags
 				tt.ScriptAMPAudio,
-				// (7) <link> tag for favicons
+				// (6) <link> tag for favicons
 				tt.LinkFavicon,
-				// (8) <link> tag for resource hints
+				// (7) <link> tag for resource hints
 				tt.LinkResourceHint,
-				// (9) <link rel=stylesheet> tags before <style amp-custom>
+				// (8) <link rel=stylesheet> tags before <style amp-custom>
 				tt.LinkStylesheetGoogleFont,
-				// (10) <style amp-custom>
+				// (9) <style amp-custom>
 				tt.StyleAMPCustom,
-				// (11) any other tags allowed in <head>
+				// (10) any other tags allowed in <head>
 				tt.Title,
-				// (12) amp boilerplate (first style amp-boilerplate, then noscript)
+				// (11) amp boilerplate (first style amp-boilerplate, then noscript)
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
 		},

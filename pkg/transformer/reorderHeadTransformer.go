@@ -6,8 +6,8 @@ import (
 
 	"github.com/ampproject/amppackager/internal/pkg/amphtml"
 	"github.com/ampproject/amppackager/internal/pkg/htmlnode"
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 type headNodes struct {
@@ -20,7 +20,6 @@ type headNodes struct {
 	noscript                      *html.Node
 	other                         []*html.Node
 	scriptAMPRuntime              *html.Node
-	scriptAMPViewer               *html.Node
 	scriptNonRenderDelaying       []*html.Node
 	scriptRenderDelaying          []*html.Node
 	styleAMPBoilerplate           *html.Node
@@ -91,9 +90,6 @@ func ReorderHeadTransformer(e *Engine) {
 	if hn.scriptAMPRuntime != nil {
 		dom.HeadNode.AppendChild(hn.scriptAMPRuntime)
 	}
-	if hn.scriptAMPViewer != nil {
-		dom.HeadNode.AppendChild(hn.scriptAMPViewer)
-	}
 	htmlnode.AppendChildren(dom.HeadNode, hn.scriptRenderDelaying...)
 	htmlnode.AppendChildren(dom.HeadNode, hn.scriptNonRenderDelaying...)
 	htmlnode.AppendChildren(dom.HeadNode, hn.linkFavicon...)
@@ -123,9 +119,7 @@ func registerLink(n *html.Node, hn *headNodes) {
 			return
 		case "stylesheet":
 			// The AmpRuntimeCssTransformer inserts a stylesheet for the AMP Runtime CSS. It must remain early in the head immediately before <style amp-custom>.
-			if v, ok := htmlnode.GetAttributeVal(n, "href"); ok &&
-				strings.HasPrefix(v, amphtml.AMPCacheRootURL) &&
-				strings.HasSuffix(v, "/v0.css") {
+			if v, ok := htmlnode.GetAttributeVal(n, "href"); ok && strings.HasPrefix(v, "https://cdn.ampproject.org/") && strings.HasSuffix(v, "/v0.css") {
 				hn.linkStylesheetRuntimeCSS = n
 				return
 			}
@@ -151,10 +145,6 @@ func registerMeta(n *html.Node, hn *headNodes) {
 func registerScript(n *html.Node, hn *headNodes) {
 	if amphtml.IsScriptAMPRuntime(n) {
 		hn.scriptAMPRuntime = n
-		return
-	}
-	if amphtml.IsScriptAMPViewer(n) {
-		hn.scriptAMPViewer = n
 		return
 	}
 	if htmlnode.HasAttribute(n, amphtml.AMPCustomElement) {

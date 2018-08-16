@@ -4,9 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	tt "github.com/ampproject/amppackager/internal/pkg/testing"
 	"github.com/ampproject/amppackager/pkg/transformer"
 	"golang.org/x/net/html"
+
+	tt "github.com/ampproject/amppackager/internal/pkg/testing"
 )
 
 // testCase stores the input HTML, expected output HTML, and an optional

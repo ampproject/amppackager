@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"golang.org/x/net/html"
+
 	amppb "github.com/ampproject/amppackager/pkg/amp_validator"
 )
 
