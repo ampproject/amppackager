@@ -19,10 +19,11 @@ import (
 // NOTE: The string mapping is necessary as a cross-over to allow
 // invocation from C/C++.
 var transformerFunctionMap = map[string]func(*transformer.Engine){
-	"AMPBoilerplateTransformer":      transformer.AMPBoilerplateTransformer,
-	"ReorderHeadTransformer":         transformer.ReorderHeadTransformer,
-	"ServerSideRenderingTransformer": transformer.ServerSideRenderingTransformer,
-	"URLTransformer":                 transformer.URLTransformer,
+	"AMPBoilerplateTransformer":        transformer.AMPBoilerplateTransformer,
+	"ReorderHeadTransformer":           transformer.ReorderHeadTransformer,
+	"ServerSideRenderingTransformer":   transformer.ServerSideRenderingTransformer,
+	"TransformedIdentifierTransformer": transformer.TransformedIdentifierTransformer,
+	"URLTransformer":                   transformer.URLTransformer,
 }
 
 // The transformers to execute, in the order in which to execute them.
@@ -30,6 +31,7 @@ var transformers = []string{
 	"URLTransformer",
 	"AMPBoilerplateTransformer",
 	"ServerSideRenderingTransformer",
+	"TransformedIdentifierTransformer",
 	"ReorderHeadTransformer",
 }
 

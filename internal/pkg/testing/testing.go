@@ -49,6 +49,9 @@ const (
 	// ScriptAMPRuntime is the AMP script tag.
 	ScriptAMPRuntime = "<script async src=https://cdn.ampproject.org/v0.js></script>"
 
+	// ScriptAMPRuntime is the AMP script tag.
+	ScriptAMPViewerRuntime = "<script async src=https://cdn.ampproject.org/v0/amp-viewer-integration-0.1.js></script>"
+
 	// ScriptAMP4AdsRuntime is the AMP4Ads script tag.
 	ScriptAMP4AdsRuntime = "<script async src=https://cdn.ampproject.org/amp4ads-v0.js></script>"
 

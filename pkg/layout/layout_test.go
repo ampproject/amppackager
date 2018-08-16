@@ -6,7 +6,6 @@ import (
 
 	"github.com/ampproject/amppackager/internal/pkg/htmlnode"
 	"golang.org/x/net/html"
-
 	amppb "github.com/ampproject/amppackager/pkg/amp_validator"
 )
 
