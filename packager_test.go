@@ -113,11 +113,13 @@ func TestRedirectIsProxiedUnsigned(t *testing.T) {
 		Sign: &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("cookie", "yum yum yum")
 		w.Header().Set("location", "https://example.com/login")
 		w.WriteHeader(301)
 	}, func() {
 		resp := get(t, newPackager(t, urlSets), `/priv/doc?sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
 		assert.Equal(t, 301, resp.StatusCode)
+		assert.Equal(t, "", resp.Header.Get("cookie"))
 		assert.Equal(t, "https://example.com/login", resp.Header.Get("location"))
 	})
 }
