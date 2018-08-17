@@ -29,38 +29,38 @@ func TestAMPBoilerplate(t *testing.T) {
 
 	testCases := []tt.TestCase{
 		{
-			"Keeps boilerplate",
-			tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
+			Desc: "Keeps boilerplate",
+			Input: tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
-			canonicalExpected,
+			Expected: canonicalExpected,
 		},
 		{
-			"Adds boilerplate if missing",
-			tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
+			Desc: "Adds boilerplate if missing",
+			Input: tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
 				tt.LinkFavicon, "</head><body></body></html>"),
-			canonicalExpected,
+			Expected: canonicalExpected,
 		},
 		{
-			"Upgrades old boilerplate",
-			tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
+			Desc: "Upgrades old boilerplate",
+			Input: tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
 				tt.LinkFavicon,
 				"<style>body {opacity: 0}</style>",
 				"<noscript><style>body {opacity: 1}</style></noscript></head>",
 				"<body></body></html>"),
-			canonicalExpected,
+			Expected: canonicalExpected,
 		},
 		{
 			// The validator actually allows both old and new boilerplate to be present.
 			// This test ensures we always strip multiple instances and end up
 			// with just the new boilerplate.
-			"Strips old and new if both present",
-			tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
+			Desc: "Strips old and new if both present",
+			Input: tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
 				tt.NoscriptAMPBoilerplate, tt.LinkFavicon,
 				"<style>body {opacity: 0}</style>", tt.StyleAMPBoilerplate,
 				"<noscript><style>body {opacity: 1}</style></noscript></head>",
 				"</head><body></body></html>"),
-			canonicalExpected,
+			Expected: canonicalExpected,
 		},
 	}
 
@@ -77,26 +77,26 @@ func TestAMP4Ads(t *testing.T) {
 
 	testCases := []tt.TestCase{
 		{
-			"Keeps boilerplate",
-			expected("amp4ads"),
-			expected("amp4ads"),
+			Desc:     "Keeps boilerplate",
+			Input:    expected("amp4ads"),
+			Expected: expected("amp4ads"),
 		},
 		{
-			"Keeps boilerplate for ⚡4ads",
-			expected("⚡4ads"),
-			expected("⚡4ads"),
+			Desc:     "Keeps boilerplate for ⚡4ads",
+			Input:    expected("⚡4ads"),
+			Expected: expected("⚡4ads"),
 		},
 		{
-			"Adds boilerplate if missing",
-			tt.Concat("<!doctype html><html amp4ads><head>", tt.ScriptAMPRuntime,
+			Desc: "Adds boilerplate if missing",
+			Input: tt.Concat("<!doctype html><html amp4ads><head>", tt.ScriptAMPRuntime,
 				tt.LinkFavicon, "</head><body></body></html>"),
-			expected("amp4ads"),
+			Expected: expected("amp4ads"),
 		},
 		{
-			"Adds boilerplate for ⚡4ads if missing",
-			tt.Concat("<!doctype html><html ⚡4ads><head>", tt.ScriptAMPRuntime,
+			Desc: "Adds boilerplate for ⚡4ads if missing",
+			Input: tt.Concat("<!doctype html><html ⚡4ads><head>", tt.ScriptAMPRuntime,
 				tt.LinkFavicon, "</head><body></body></html>"),
-			expected("⚡4ads"),
+			Expected: expected("⚡4ads"),
 		},
 	}
 
@@ -113,26 +113,26 @@ func TestAMP4Email(t *testing.T) {
 
 	testCases := []tt.TestCase{
 		{
-			"Keeps boilerplate",
-			expected("amp4email"),
-			expected("amp4email"),
+			Desc:     "Keeps boilerplate",
+			Input:    expected("amp4email"),
+			Expected: expected("amp4email"),
 		},
 		{
-			"Keeps boilerplate for ⚡4email",
-			expected("⚡4email"),
-			expected("⚡4email"),
+			Desc:     "Keeps boilerplate for ⚡4email",
+			Input:    expected("⚡4email"),
+			Expected: expected("⚡4email"),
 		},
 		{
-			"Adds boilerplate if missing",
-			tt.Concat("<!doctype html><html amp4email><head>", tt.ScriptAMPRuntime,
+			Desc: "Adds boilerplate if missing",
+			Input: tt.Concat("<!doctype html><html amp4email><head>", tt.ScriptAMPRuntime,
 				tt.LinkFavicon, "</head><body></body></html>"),
-			expected("amp4email"),
+			Expected: expected("amp4email"),
 		},
 		{
-			"Adds boilerplate for ⚡4email if missing",
-			tt.Concat("<!doctype html><html ⚡4email><head>", tt.ScriptAMPRuntime,
+			Desc: "Adds boilerplate for ⚡4email if missing",
+			Input: tt.Concat("<!doctype html><html ⚡4email><head>", tt.ScriptAMPRuntime,
 				tt.LinkFavicon, "</head><body></body></html>"),
-			expected("⚡4email"),
+			Expected: expected("⚡4email"),
 		},
 	}
 

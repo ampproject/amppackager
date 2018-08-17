@@ -19,11 +19,11 @@ import (
 func TestTransformedIdentifierTransformer(t *testing.T) {
 	testCases := []tt.TestCase{
 		{
-			"Adds identifier to html tag",
-			tt.Concat("<!doctype html><html ⚡><head>",
+			Desc: "Adds identifier to html tag",
+			Input: tt.Concat("<!doctype html><html ⚡><head>",
 				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
 				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
-			tt.Concat("<!doctype html><html ⚡=\"\" transformed=google><head>",
+			Expected: tt.Concat("<!doctype html><html ⚡=\"\" transformed=google><head>",
 				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
 				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
 		},

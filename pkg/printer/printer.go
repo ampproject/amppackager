@@ -120,7 +120,7 @@ func renderElementNode(w writer, n *html.Node) error {
 	// Render any child nodes.
 	switch n.Data {
 	// The original golang renderer emits raw HTML for 8 tags (see
-	// http://golang.org/x/net/html/render.go).
+	// http://google3/third_party/golang/go_net/html/render.go).
 	//
 	// This printer only emits raw HTML for 4 tags, ignoring
 	// noembed, noframes, plaintext, and xmp, which are unsupported
