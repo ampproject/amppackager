@@ -20,6 +20,7 @@ import (
 // invocation from C/C++.
 var transformerFunctionMap = map[string]func(*transformer.Engine){
 	"AMPBoilerplateTransformer":        transformer.AMPBoilerplateTransformer,
+	"LinkTagTransformer":               transformer.LinkTagTransformer,
 	"ReorderHeadTransformer":           transformer.ReorderHeadTransformer,
 	"ServerSideRenderingTransformer":   transformer.ServerSideRenderingTransformer,
 	"TransformedIdentifierTransformer": transformer.TransformedIdentifierTransformer,
@@ -30,6 +31,7 @@ var transformerFunctionMap = map[string]func(*transformer.Engine){
 var transformers = []string{
 	"URLTransformer",
 	"AMPBoilerplateTransformer",
+	"LinkTagTransformer",
 	"ServerSideRenderingTransformer",
 	"TransformedIdentifierTransformer",
 	"ReorderHeadTransformer",
