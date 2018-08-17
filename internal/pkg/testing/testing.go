@@ -16,13 +16,16 @@ type TestCase struct {
 
 // AMPHTML constants.
 const (
-	// LinkFavicon is an example link tag
+	// LinkFavicon is an example link tag.
 	LinkFavicon = "<link href=https://example.com/favicon.ico rel=icon>"
 
-	// LinkResourceHint is an injected tag to preconnect certain domains.
-	LinkResourceHint = "<link crossorigin href=https://fonts.gstatic.com rel=\"dns-prefetch preconnect\">"
+	// LinkGoogleFont is a Google Font stylesheet.
+	LinkGoogleFont = "<link href=https://fonts.googleapis.com/css?family=Roboto rel=stylesheet>"
 
-	// LinkStylesheetGoogleFont is a link tag for a Google Font
+	// LinkGoogleFontPreconnect is a preconnect for Google Fonts.
+	LinkGoogleFontPreconnect = "<link crossorigin=\"\" href=https://fonts.gstatic.com rel=\"dns-prefetch preconnect\">"
+
+	// LinkStylesheetGoogleFont is a link tag for a Google Font.
 	LinkStylesheetGoogleFont = "<link href=https://fonts.googleapis.com/css?family=Roboto rel=stylesheet>"
 
 	// MetaCharset is a required tag for an AMP document.

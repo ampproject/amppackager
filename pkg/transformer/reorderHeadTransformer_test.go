@@ -25,7 +25,7 @@ func TestReorderHeadTransformer(t *testing.T) {
 				tt.ScriptAMPExperiment, tt.ScriptAMPAudio,
 				tt.NoscriptAMPBoilerplate, tt.StyleAMPRuntime,
 				tt.ScriptAMPRuntime, tt.LinkStylesheetGoogleFont,
-				tt.LinkResourceHint, tt.MetaCharset,
+				tt.LinkGoogleFontPreconnect, tt.MetaCharset,
 				tt.MetaViewport, tt.StyleAMPCustom,
 				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
 				"</head><body></body></html>"),
@@ -48,7 +48,7 @@ func TestReorderHeadTransformer(t *testing.T) {
 				// (7) <link> tag for favicons
 				tt.LinkFavicon,
 				// (8) <link> tag for resource hints
-				tt.LinkResourceHint,
+				tt.LinkGoogleFontPreconnect,
 				// (9) <link rel=stylesheet> tags before <style amp-custom>
 				tt.LinkStylesheetGoogleFont,
 				// (10) <style amp-custom>
@@ -64,7 +64,7 @@ func TestReorderHeadTransformer(t *testing.T) {
 			tt.Concat("<!doctype html><html ⚡4ads><head>",
 				tt.Title, tt.StyleAMP4AdsBoilerplate, tt.ScriptAMPAudio,
 				tt.ScriptAMP4AdsRuntime, tt.LinkStylesheetGoogleFont,
-				tt.LinkResourceHint, tt.MetaCharset, tt.MetaViewport, tt.StyleAMPCustom,
+				tt.LinkGoogleFontPreconnect, tt.MetaCharset, tt.MetaViewport, tt.StyleAMPCustom,
 				"</head><body></body></html>"),
 			tt.Concat("<!doctype html><html ⚡4ads><head>",
 				// (0) <meta charset> tag
@@ -82,7 +82,7 @@ func TestReorderHeadTransformer(t *testing.T) {
 				// (6) <link> tag for favicons
 				// n/a for AMP4Ads, no favicons allowed
 				// (7) <link> tag for resource hints
-				tt.LinkResourceHint,
+				tt.LinkGoogleFontPreconnect,
 				// (8) <link rel=stylesheet> tags before <style amp-custom>
 				tt.LinkStylesheetGoogleFont,
 				// (9) <style amp-custom>
