@@ -230,6 +230,10 @@ type Packager struct {
 	urlSets     []URLSet
 }
 
+func noRedirects(req *http.Request, via []*http.Request) error {
+	return http.ErrUseLastResponse
+}
+
 func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet) (*Packager, error) {
 	baseURL, err := url.Parse(packagerBase)
 	if err != nil {
@@ -247,6 +251,7 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 		return nil, errors.Wrapf(err, "parsing PackagerBase %q with ValidityMapURL %q", packagerBase, ValidityMapURL)
 	}
 	client := http.Client{
+		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
@@ -326,6 +331,23 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	defer func() {
+		if err := fetchResp.Body.Close(); err != nil {
+			log.Println("Error closing fetchResp body:", err)
+		}
+	}()
+
+	// If fetchURL returns a redirect, then forward that along; do not sign it and do not error out.
+	if fetchResp.StatusCode == 301 || fetchResp.StatusCode == 302 || fetchResp.StatusCode == 303 {
+		resp.Header().Set("location", fetchResp.Header.Get("location"))
+		resp.WriteHeader(fetchResp.StatusCode)
+		_, err := io.Copy(resp, fetchResp.Body)
+		if err != nil {
+			log.Println("Error writing redirect body:", err)
+		}
+		return
+	}
+
 	// If fetchURL returns a 304, then also return a 304 with appropriate headers.
 	if fetchResp.StatusCode == 304 {
 		for header := range statusNotModifiedHeaders {
@@ -334,15 +356,8 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			}
 		}
 		resp.WriteHeader(http.StatusNotModified)
-		resp.Write([]byte(""))
 		return
 	}
-
-	defer func() {
-		if err := fetchResp.Body.Close(); err != nil {
-			log.Println("Error closing fetchResp body:", err)
-		}
-	}()
 
 	if httpErr := validateFetch(fetchReq, fetchResp); httpErr != nil {
 		httpErr.LogAndRespond(resp)
