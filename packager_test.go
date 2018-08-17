@@ -23,13 +23,26 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nyaxt/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"github.com/nyaxt/webpackage/go/signedexchange"
 )
 
 var fakeBody = []byte("They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
 var lastRequestURL string
+
+// Don't override this manually; use replacingFakeHandler() instead.
+var fakeHandler = func(w http.ResponseWriter, req *http.Request) {
+	lastRequestURL = req.URL.String()
+	w.Write(fakeBody)
+}
+
+func replacingFakeHandler(newFake func(w http.ResponseWriter, req *http.Request), testCode func()) {
+	oldFake := fakeHandler
+	defer func() { fakeHandler = oldFake }()
+	fakeHandler = newFake
+	testCode()
+}
 
 func newPackager(t *testing.T, urlSets []URLSet) *Packager {
 	handler, err := NewPackager(cert, key, "https://example.com/", urlSets)
@@ -59,13 +72,10 @@ func TestSimple(t *testing.T) {
 		Fetch: &URLPattern{[]string{"http"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
 	}}
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?fetch=http%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html&sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("incorrect status: %#v", resp)
-	}
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
 	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	assert.Equal(t, "/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
 	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
 	assert.Equal(t, http.Header{}, exchange.RequestHeaders)
@@ -80,13 +90,10 @@ func TestNoFetchParam(t *testing.T) {
 		Sign: &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("incorrect status: %#v", resp)
-	}
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
 	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	assert.Equal(t, "/s/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
 	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
 }
@@ -97,17 +104,46 @@ func TestErrorNoCache(t *testing.T) {
 	}}
 	// Missing sign param generates an error.
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?fetch=http%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("incorrect status: %#v", resp)
-	}
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "incorrect status: %#v", resp)
 	assert.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
+}
+
+func TestRedirectIsProxiedUnsigned(t *testing.T) {
+	urlSets := []URLSet{URLSet{
+		Sign: &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	}}
+	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("location", "https://example.com/login")
+		w.WriteHeader(301)
+	}, func() {
+		resp := get(t, newPackager(t, urlSets), `/priv/doc?sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
+		assert.Equal(t, 301, resp.StatusCode)
+		assert.Equal(t, "https://example.com/login", resp.Header.Get("location"))
+	})
+}
+
+func TestNotModifiedIsProxiedUnsigned(t *testing.T) {
+	urlSets := []URLSet{URLSet{
+		Sign: &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	}}
+	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("cache-control", "private")
+		w.Header().Set("cookie", "yum yum yum")
+		w.Header().Set("etag", "superrad")
+		w.WriteHeader(304)
+	}, func() {
+		resp := get(t, newPackager(t, urlSets), `/priv/doc?sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
+		assert.Equal(t, 304, resp.StatusCode)
+		assert.Equal(t, "private", resp.Header.Get("cache-control"))
+		assert.Equal(t, "", resp.Header.Get("cookie"))
+		assert.Equal(t, "superrad", resp.Header.Get("etag"))
+	})
 }
 
 func TestMain(m *testing.M) {
 	// Mock out AMP CDN endpoint.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		lastRequestURL = req.URL.String()
-		w.Write(fakeBody)
+		fakeHandler(w, req)
 	}))
 	defer server.Close()
 	url, _ := url.Parse(server.URL)
