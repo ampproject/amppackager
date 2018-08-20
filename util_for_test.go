@@ -23,6 +23,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/nyaxt/webpackage/go/signedexchange"
 )
 
@@ -51,8 +52,17 @@ var key = func() crypto.PrivateKey {
 	return key
 }()
 
-func get(t *testing.T, handler http.Handler, target string) *http.Response {
+// A variant of http.Handler that's required by httprouter.
+type AlmostHandler interface {
+	ServeHTTP(http.ResponseWriter, *http.Request, httprouter.Params)
+}
+
+func get(t *testing.T, handler AlmostHandler, target string) *http.Response {
+	return getP(t, handler, target, httprouter.Params{})
+}
+
+func getP(t *testing.T, handler AlmostHandler, target string, params httprouter.Params) *http.Response {
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequest("", target, nil))
+	handler.ServeHTTP(rec, httptest.NewRequest("", target, nil), params)
 	return rec.Result()
 }

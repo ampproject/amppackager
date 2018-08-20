@@ -19,7 +19,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 )
 
 func newCertCache(t *testing.T) *CertCache {
@@ -31,23 +33,17 @@ func newCertCache(t *testing.T) *CertCache {
 }
 
 func TestServesCertificate(t *testing.T) {
-	resp := get(t, newCertCache(t), "/amppkg/cert/sLtQsuGUOYdCsBVuMTUG_6QBAWFHu8rhEokEHQAWmto")
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("invalid status: %#v", resp)
-	}
+	resp := getP(t, newCertCache(t), "/amppkg/cert/sLtQsuGUOYdCsBVuMTUG_6QBAWFHu8rhEokEHQAWmto", httprouter.Params{httprouter.Param{"certName", "sLtQsuGUOYdCsBVuMTUG_6QBAWFHu8rhEokEHQAWmto"}})
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	body, _ := ioutil.ReadAll(resp.Body)
-	if len(body) < 20 { // too small to fit a cert
-		t.Errorf("invalid body: %q", body)
-	}
+	// Large enough to fit a cert:
+	assert.Condition(t, func() bool { return len(body) >= 20 }, "body too small: %q", body)
 }
 
 func TestServes404OnMissingCertificate(t *testing.T) {
-	resp := get(t, newCertCache(t), "/amppkg/cert/lalala")
-	if resp.StatusCode != http.StatusNotFound {
-		t.Errorf("invalid status: %#v", resp)
-	}
+	resp := getP(t, newCertCache(t), "/amppkg/cert/lalala", httprouter.Params{httprouter.Param{"certName", "lalala"}})
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode, "incorrect status: %#v", resp)
 	body, _ := ioutil.ReadAll(resp.Body)
-	if len(body) > 20 { // bigger than expected, might be a cert or key
-		t.Errorf("invalid body: %q", body)
-	}
+	// Small enough not to fit a cert or key:
+	assert.Condition(t, func() bool { return len(body) <= 20 }, "body too large: %q", body)
 }
