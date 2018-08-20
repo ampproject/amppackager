@@ -242,8 +242,8 @@ func TestEscaping(t *testing.T) {
 		{
 			"Quote",
 			`<lemur koala='"'>`,
-			// Note that &quot; isn't used. See
-			// http://google3/third_party/golang/go_net/html/escape.go?l=216&rcl=193292544
+			// Note that &#34; is used over &quot;
+			// https://github.com/golang/net/blob/master/html/escape.go#L215
 			`<lemur koala=&#34;></lemur>`,
 		},
 		{
