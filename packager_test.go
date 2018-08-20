@@ -23,6 +23,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/nyaxt/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -90,6 +91,19 @@ func TestNoFetchParam(t *testing.T) {
 		Sign: &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, "/s/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
+	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
+}
+
+func TestSignAsPathParam(t *testing.T) {
+	urlSets := []URLSet{URLSet{
+		Sign: &URLPattern{[]string{"https"}, "", "example.com", stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	}}
+	resp := getP(t, newPackager(t, urlSets), `/priv/doc/`, httprouter.Params{httprouter.Param{"signURL", `/https://example.com/amp/secret-life-of-pine-trees.html`}})
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
