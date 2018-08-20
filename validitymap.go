@@ -17,8 +17,9 @@ package amppackager
 import (
 	"bytes"
 	"net/http"
-	"path"
 	"time"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type ValidityMap struct {
@@ -33,13 +34,8 @@ func NewValidityMap() (*ValidityMap, error) {
 	return this, nil
 }
 
-func (this ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	println("path", req.URL.Path)
-	if req.URL.Path == path.Join("/", ValidityMapURL) {
-		resp.Header().Set("Content-Type", "application/cbor")
-		resp.Header().Set("Cache-Control", "public, max-age=604800")
-		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.validityMap))
-	} else {
-		http.NotFound(resp, req)
-	}
+func (this ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	resp.Header().Set("Content-Type", "application/cbor")
+	resp.Header().Set("Cache-Control", "public, max-age=604800")
+	http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.validityMap))
 }

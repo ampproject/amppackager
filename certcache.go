@@ -18,10 +18,9 @@ import (
 	"bytes"
 	"crypto/x509"
 	"net/http"
-	"net/url"
-	"path"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/nyaxt/webpackage/go/signedexchange/certurl"
 	"github.com/pkg/errors"
 )
@@ -44,9 +43,8 @@ func NewCertCache(cert *x509.Certificate, pemContent []byte) (*CertCache, error)
 	return this, nil
 }
 
-func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	println("path", req.URL.Path)
-	if req.URL.Path == path.Join("/", CertURLPrefix, url.PathEscape(this.certName)) {
+func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+	if params.ByName("certName") == this.certName {
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
 		// This content-type is not standard, but included to reduce
 		// the chance that faulty user agents employ content sniffing.

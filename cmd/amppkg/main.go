@@ -27,6 +27,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/nyaxt/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 
@@ -105,10 +106,13 @@ func main() {
 	}
 
 	// TODO(twifkak): Make log output configurable.
-	mux := http.NewServeMux()
-	mux.Handle(path.Join("/", amppkg.ValidityMapURL), validityMap)
-	mux.Handle("/priv/doc", packager)
-	mux.Handle(path.Join("/", amppkg.CertURLPrefix)+"/", certCache)
+	mux := httprouter.New()
+	mux.RedirectTrailingSlash = false
+	mux.RedirectFixedPath = false
+	mux.GET(path.Join("/", amppkg.ValidityMapURL), validityMap.ServeHTTP)
+	mux.GET("/priv/doc", packager.ServeHTTP)
+	mux.GET("/priv/doc/*signURL", packager.ServeHTTP)
+	mux.GET(path.Join("/", amppkg.CertURLPrefix)+"/:certName", certCache.ServeHTTP)
 	addr := ""
 	if config.LocalOnly {
 		addr = "localhost"

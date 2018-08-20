@@ -27,6 +27,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/nyaxt/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 	"github.com/pquerna/cachecontrol"
@@ -303,22 +304,30 @@ func (this Packager) genCertURL(cert *x509.Certificate) (*url.URL, error) {
 	return ret, nil
 }
 
-func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	// TODO(twifkak): See if there are any other validations or sanitizations that need adding.
 	if err := req.ParseForm(); err != nil {
 		NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)
 		return
 	}
-	if len(req.Form["fetch"]) > 1 {
-		NewHTTPError(http.StatusBadRequest, "More than 1 fetch param").LogAndRespond(resp)
-		return
+	var fetch, sign string
+	if inPathSignURL := params.ByName("signURL"); inPathSignURL != "" {
+		sign = inPathSignURL[1:] // Strip leading "/" produced by httprouter.
+		if req.URL.RawQuery != "" {
+			sign += "?" + req.URL.RawQuery
+		}
+	} else {
+		if len(req.Form["fetch"]) > 1 {
+			NewHTTPError(http.StatusBadRequest, "More than 1 fetch param").LogAndRespond(resp)
+			return
+		}
+		if len(req.Form["sign"]) != 1 {
+			NewHTTPError(http.StatusBadRequest, "Not exactly 1 sign param").LogAndRespond(resp)
+			return
+		}
+		fetch = req.FormValue("fetch")
+		sign = req.FormValue("sign")
 	}
-	if len(req.Form["sign"]) != 1 {
-		NewHTTPError(http.StatusBadRequest, "Not exactly 1 sign param").LogAndRespond(resp)
-		return
-	}
-	fetch := req.FormValue("fetch")
-	sign := req.FormValue("sign")
 	fetchURL, signURL, errorOnStatefulHeaders, httpErr := parseURLs(fetch, sign, this.urlSets)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
