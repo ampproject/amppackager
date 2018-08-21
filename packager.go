@@ -27,14 +27,11 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/pquerna/cachecontrol"
 )
-
-// The base URL for transformed fetch URLs.
-var AmpCDNBase = "https://cdn.ampproject.org/c/"
 
 // Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
 var acceptablePackagerSchemes = map[string]bool{"http": true, "https": true}
@@ -168,8 +165,10 @@ func signUrlMatches(url *url.URL, pattern *URLPattern) bool {
 }
 
 func urlsMatch(fetchURL *url.URL, signURL *url.URL, set URLSet) bool {
-	return fetchUrlMatches(fetchURL, set.Fetch) && signUrlMatches(signURL, set.Sign) &&
-		(set.Fetch == nil || !*set.Fetch.SamePath || fetchURL.RequestURI() == signURL.RequestURI())
+	fetchOK := fetchUrlMatches(fetchURL, set.Fetch)
+	signOK := signUrlMatches(signURL, set.Sign)
+	theyMatch := set.Fetch == nil || !*set.Fetch.SamePath || fetchURL.RequestURI() == signURL.RequestURI()
+	return fetchOK && signOK && theyMatch
 }
 
 // Returns parsed URLs and whether to fail on stateful headers.
@@ -259,24 +258,12 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	return &Packager{cert, key, validityURL, &client, baseURL, urlSets}, nil
 }
 
-func (this Packager) fetchURL(orig *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
-	// Make a copy so destructive changes don't persist.
-	fetch := *orig
-	// Add the query parameter to enable web package transforms.
-	query := fetch.Query()
-	query.Add("usqp", "mq331AQCSAE")
-	fetch.RawQuery = query.Encode()
-
-	ampURL := AmpCDNBase
-	if fetch.Scheme == "https" {
-		ampURL += "s/"
-	}
-	ampURL += fetch.Host + fetch.RequestURI()
+func (this Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
+	ampURL := fetch.String()
 
 	log.Printf("Fetching URL: %q\n", ampURL)
-	// TODO(twifkak): Translate into AMP CDN URL, until transform API is available.
 	req, err := http.NewRequest(http.MethodGet, ampURL, nil)
-	// TODO(twifkak): Should we add 'Accept-Charset: utf-8'? The AMP Transformer API requires utf-8.
+	// TODO(twifkak): Should we add 'Accept-Charset: utf-8'? Do AMP Caches require it? Will it break more servers than it fixes?
 	if err != nil {
 		return nil, nil, NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
