@@ -2,6 +2,19 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/WICG/webpackage"
+  packages = [
+    "go/signedexchange",
+    "go/signedexchange/cbor",
+    "go/signedexchange/certurl",
+    "go/signedexchange/internal/bigendian",
+    "go/signedexchange/internal/signingalgorithm",
+    "go/signedexchange/mice"
+  ]
+  revision = "d8e933ea1991dfc236d0bb69ee886c9ee27d6d15"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -18,17 +31,6 @@
   packages = ["."]
   revision = "8c199fb6259ffc1af525cc3ad52ee60ba8359669"
   version = "v1.1"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/nyaxt/webpackage"
-  packages = [
-    "go/signedexchange",
-    "go/signedexchange/cbor",
-    "go/signedexchange/certurl",
-    "go/signedexchange/mice"
-  ]
-  revision = "59d4fb654d0755a6cda45a1d4e2819ce6b916560"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -65,6 +67,12 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ocsp"]
+  revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "html",
@@ -75,6 +83,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1ef6dda5fadcf3168c98dad94bb5a49854e06926d5d9a2fc2b481f4e7bc385f8"
+  inputs-digest = "b029dde0cc5005b7748f93459868b39c7a15fc39c8e0c20980f176f91266c352"
   solver-name = "gps-cdcl"
   solver-version = 1

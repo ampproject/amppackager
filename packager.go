@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/nyaxt/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 	"github.com/pquerna/cachecontrol"
 )
@@ -393,9 +393,13 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, para
 		return
 	}
 
-	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, fetchBody, miRecordSize)
+	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, fetchBody)
 	if err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
+		return
+	}
+	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
+		NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
 	certURL, err := this.genCertURL(this.cert)
@@ -423,7 +427,7 @@ func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, para
 	}
 	// TODO(twifkak): Make this a streaming response. How will we handle errors after part of the response has already been sent?
 	var body bytes.Buffer
-	if err := signedexchange.WriteExchangeFile(&body, exchange); err != nil {
+	if err := exchange.Write(&body); err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
 	}
 

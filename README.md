@@ -162,9 +162,8 @@ packages by 24h, which means they effectively last only 6 days for most users.
 
 This tool only packages AMP documents. To sign non-AMP documents, look at the
 commandline tools on which this was based, at
-https://github.com/nyaxt/webpackage/tree/master/go/signedexchange. This is a
-temporary fork for the implementation snapshot of the spec, and should be seen
-as a reference implementation, and not a supported library. Proper usage
+https://github.com/WICG/webpackage/tree/master/go/signedexchange. This should be
+seen as a reference implementation, and not a supported library. Proper usage
 requires following the status of browser implementations and updating callers to
 import the correct library snapshot.
 
