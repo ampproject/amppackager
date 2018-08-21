@@ -21,25 +21,19 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/nyaxt/webpackage/go/signedexchange/certurl"
-	"github.com/pkg/errors"
+	"github.com/WICG/webpackage/go/signedexchange/certurl"
 )
 
 type CertCache struct {
 	// TODO(twifkak): Support multiple certs.
 	certName    string
-	certMessage []byte
+	cert        *x509.Certificate
 }
 
 func NewCertCache(cert *x509.Certificate, pemContent []byte) (*CertCache, error) {
 	this := new(CertCache)
 	this.certName = CertName(cert)
-	// TODO(twifkak): Refactor CertificateMessageFromPEM to be based on the x509.Certificate instead.
-	var err error
-	this.certMessage, err = certurl.CertificateMessageFromPEM(pemContent)
-	if err != nil {
-		return nil, errors.Wrap(err, "extracting certificate from CertFile")
-	}
+	this.cert = cert
 	return this, nil
 }
 
@@ -51,8 +45,13 @@ func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		resp.Header().Set("Content-Type", "application/tls-certificate-chain")
 		resp.Header().Set("Cache-Control", "public, max-age=604800")
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
-		// TODO(twifkak): Add cache headers.
-		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.certMessage))
+		// TODO(twifkak): Specify real OCSP and SCT blobs.
+		cbor, err := certurl.CreateCertChainCBOR([]*x509.Certificate{this.cert}, []byte{}, []byte{})
+		if err != nil {
+			NewHTTPError(http.StatusInternalServerError, "Error build cert chain: ", err).LogAndRespond(resp)
+			return
+		}
+		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(cbor))
 	} else {
 		http.NotFound(resp, req)
 	}

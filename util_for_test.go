@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/nyaxt/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange"
 )
 
 // A self-signed cert for testing.

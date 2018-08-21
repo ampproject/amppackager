@@ -15,6 +15,8 @@
 package amppackager
 
 import (
+	"bytes"
+	"encoding/binary"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -24,7 +26,7 @@ import (
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/nyaxt/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -75,15 +77,19 @@ func TestSimple(t *testing.T) {
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?fetch=http%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html&sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
-	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
+	exchange, err := signedexchange.ReadExchange(resp.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, "/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
-	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
-	assert.Equal(t, http.Header{}, exchange.RequestHeaders)
+	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestURI.String())
+	assert.Equal(t, http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
 	assert.Equal(t, 200, exchange.ResponseStatus)
-	assert.Equal(t, []string{"content-encoding", "content-length", "content-type", "date", "mi", "signature"}, headerNames(exchange.ResponseHeaders))
+	assert.Equal(t, []string{"content-encoding", "content-length", "content-type", "date", "mi-draft2"}, headerNames(exchange.ResponseHeaders))
 	// The response header values are untested here, as that is covered by signedexchange tests.
-	assert.Equal(t, fakeBody, exchange.Payload)
+
+	// For small enough bodies, the only thing that MICE does is add a record size prefix.
+	var payloadPrefix bytes.Buffer
+	binary.Write(&payloadPrefix, binary.BigEndian, uint64(miRecordSize))
+	assert.Equal(t, append(payloadPrefix.Bytes(), fakeBody...), exchange.Payload)
 }
 
 func TestNoFetchParam(t *testing.T) {
@@ -93,10 +99,10 @@ func TestNoFetchParam(t *testing.T) {
 	resp := get(t, newPackager(t, urlSets), `/priv/doc?sign=https%3A%2F%2Fexample.com%2Famp%2Fsecret-life-of-pine-trees.html`)
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
-	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
+	exchange, err := signedexchange.ReadExchange(resp.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, "/s/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
-	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
+	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestURI.String())
 }
 
 func TestSignAsPathParam(t *testing.T) {
@@ -106,10 +112,10 @@ func TestSignAsPathParam(t *testing.T) {
 	resp := getP(t, newPackager(t, urlSets), `/priv/doc/`, httprouter.Params{httprouter.Param{"signURL", `/https://example.com/amp/secret-life-of-pine-trees.html`}})
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
-	exchange, err := signedexchange.ReadExchangeFile(resp.Body)
+	exchange, err := signedexchange.ReadExchange(resp.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, "/s/example.com/amp/secret-life-of-pine-trees.html?usqp=mq331AQCSAE", lastRequestURL)
-	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestUri.String())
+	assert.Equal(t, "https://example.com/amp/secret-life-of-pine-trees.html", exchange.RequestURI.String())
 }
 
 func TestErrorNoCache(t *testing.T) {

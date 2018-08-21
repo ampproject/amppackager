@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/nyaxt/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 
 	amppkg "github.com/ampproject/amppackager"
@@ -100,7 +100,7 @@ func main() {
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
 	}
-	certCache, err := amppkg.NewCertCache(cert, certPem)
+	certCache, err := amppkg.NewCertCache(cert)
 	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}

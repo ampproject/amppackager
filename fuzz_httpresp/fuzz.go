@@ -20,7 +20,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 
-	"github.com/nyaxt/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 
 	amppkg "github.com/ampproject/amppackager"
