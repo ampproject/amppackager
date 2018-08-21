@@ -165,8 +165,10 @@ func signUrlMatches(url *url.URL, pattern *URLPattern) bool {
 }
 
 func urlsMatch(fetchURL *url.URL, signURL *url.URL, set URLSet) bool {
-	return fetchUrlMatches(fetchURL, set.Fetch) && signUrlMatches(signURL, set.Sign) &&
-		(set.Fetch == nil || !*set.Fetch.SamePath || fetchURL.RequestURI() == signURL.RequestURI())
+	fetchOK := fetchUrlMatches(fetchURL, set.Fetch)
+	signOK := signUrlMatches(signURL, set.Sign)
+	theyMatch := set.Fetch == nil || !*set.Fetch.SamePath || fetchURL.RequestURI() == signURL.RequestURI()
+	return fetchOK && signOK && theyMatch
 }
 
 // Returns parsed URLs and whether to fail on stateful headers.
