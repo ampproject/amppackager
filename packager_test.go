@@ -26,8 +26,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )

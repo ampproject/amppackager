@@ -20,14 +20,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
+	"github.com/julienschmidt/httprouter"
 )
 
 type CertCache struct {
 	// TODO(twifkak): Support multiple certs.
-	certName    string
-	cert        *x509.Certificate
+	certName string
+	cert     *x509.Certificate
 }
 
 func NewCertCache(cert *x509.Certificate, pemContent []byte) (*CertCache, error) {

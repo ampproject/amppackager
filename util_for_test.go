@@ -23,8 +23,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/julienschmidt/httprouter"
 )
 
 // A self-signed cert for testing.
