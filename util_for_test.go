@@ -28,25 +28,15 @@ import (
 )
 
 // A self-signed cert for testing.
-var certPem = func() []byte {
-	ret, _ := ioutil.ReadFile("testdata/cert.pem")
-	return ret
-}()
-
-// The same cert, parsed.
 var cert = func() *x509.Certificate {
+	certPem, _ := ioutil.ReadFile("testdata/cert.pem")
 	certs, _ := signedexchange.ParseCertificates(certPem)
 	return certs[0]
 }()
 
 // Its corresponding private key.
-var keyPem = func() []byte {
-	ret, _ := ioutil.ReadFile("testdata/privkey.pem")
-	return ret
-}()
-
-// The same key, parsed.
 var key = func() crypto.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("testdata/privkey.pem")
 	keyBlock, _ := pem.Decode(keyPem)
 	key, _ := signedexchange.ParsePrivateKey(keyBlock.Bytes)
 	return key

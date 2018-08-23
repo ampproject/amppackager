@@ -25,7 +25,7 @@ import (
 )
 
 func newCertCache(t *testing.T) *CertCache {
-	handler, err := NewCertCache(cert, certPem)
+	handler, err := NewCertCache(cert)
 	if err != nil {
 		t.Fatal(errors.WithStack(err))
 	}
