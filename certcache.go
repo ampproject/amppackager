@@ -30,7 +30,7 @@ type CertCache struct {
 	cert     *x509.Certificate
 }
 
-func NewCertCache(cert *x509.Certificate, pemContent []byte) (*CertCache, error) {
+func NewCertCache(cert *x509.Certificate) (*CertCache, error) {
 	this := new(CertCache)
 	this.certName = CertName(cert)
 	this.cert = cert
