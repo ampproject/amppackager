@@ -9,7 +9,7 @@ import (
 	"github.com/robfig/cron"
 )
 
-// log alias, which can be overridden for testing purposes.
+// die is an alias for log.Fatalf, which can be overridden for testing purposes.
 var die = log.Fatalf
 
 // not a const solely for testing purposes (be able to override this value).

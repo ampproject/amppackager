@@ -22,9 +22,9 @@ func TestRTVPoll(t *testing.T) {
 
 	assert.Equal(t, "", RTVCache.RTV)
 	assert.Equal(t, "", RTVCache.CSS)
-	//	rtvPoll()
-	//	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	//	assert.Equal(t, css, RTVCache.CSS)
+	rtvPoll()
+	assert.Equal(t, paddedRtv, RTVCache.RTV)
+	assert.Equal(t, css, RTVCache.CSS)
 }
 
 func TestRTVPollDieOnInit(t *testing.T) {
