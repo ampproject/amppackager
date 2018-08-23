@@ -136,11 +136,6 @@ func TestURLTansformer(t *testing.T) {
 			docURL:   barBaseURL,
 		},
 	}
-	runURLTransformerTestCases(t, tcs)
-}
-
-func runURLTransformerTestCases(t *testing.T, tcs []urlTransformerTestCase) {
-
 	for _, tc := range tcs {
 		rawInput := tt.Concat("<html><head>", tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 			"</head><body>", tc.input, "</body></html>")
@@ -171,8 +166,7 @@ func runURLTransformerTestCases(t *testing.T, tcs []urlTransformerTestCase) {
 			continue
 		}
 		var expected strings.Builder
-		err = html.Render(&expected, expectedDoc)
-		if err != nil {
+		if err := html.Render(&expected, expectedDoc); err != nil {
 			t.Errorf("%s\nhtml.Render for %s failed %q", tc.desc, rawExpected, err)
 			continue
 		}
