@@ -15,8 +15,17 @@ const css = "css contents"
 
 func TestRTVPoll(t *testing.T) {
 	// Reset the cache
-	RTVCache = new(RTVCacheStruct)
-	ts := httptest.NewServer(fakeRTVServer())
+	RTVCache = new(rtvCacheStruct)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v0/version.txt" {
+			fmt.Fprint(w, rtv)
+			return
+		}
+		if r.URL.Path == "/rtv/"+paddedRtv+"/v0.css" {
+			fmt.Fprint(w, css)
+			return
+		}
+	}))
 	defer ts.Close()
 	rtvHost = ts.URL
 
@@ -29,7 +38,7 @@ func TestRTVPoll(t *testing.T) {
 
 func TestRTVPollDieOnInit(t *testing.T) {
 	// Reset the cache
-	RTVCache = new(RTVCacheStruct)
+	RTVCache = new(rtvCacheStruct)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	}))
@@ -70,15 +79,58 @@ func TestRTVPollWarn(t *testing.T) {
 	assert.Equal(t, css, RTVCache.CSS)
 }
 
-func fakeRTVServer() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func TestRTVPollSkipsCSSOnError(t *testing.T) {
+	// Initialize the cache to some values
+	RTVCache.RTV = paddedRtv
+	RTVCache.CSS = css
+	var rtvCalled, cssCalled bool
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/v0/version.txt" {
-			fmt.Fprint(w, rtv)
-			return
+			rtvCalled = true
+			w.WriteHeader(500)
 		}
 		if r.URL.Path == "/rtv/"+paddedRtv+"/v0.css" {
+			cssCalled = true
 			fmt.Fprint(w, css)
 			return
 		}
-	})
+	}))
+
+	defer ts.Close()
+	rtvHost = ts.URL
+
+	assert.Equal(t, paddedRtv, RTVCache.RTV)
+	assert.Equal(t, css, RTVCache.CSS)
+	rtvPoll()
+	// Values should not change, despite HTTP error.
+	assert.Equal(t, paddedRtv, RTVCache.RTV)
+	assert.Equal(t, css, RTVCache.CSS)
+	// Verify css was not called
+	assert.True(t, rtvCalled)
+	assert.False(t, cssCalled, "css was fetched when it shouldn't have been!")
+}
+
+func TestRTVPollRollback(t *testing.T) {
+	// Initialize the cache to some values
+	RTVCache.RTV = paddedRtv
+	RTVCache.CSS = css
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v0/version.txt" {
+			fmt.Fprint(w, "9999") // a new rtv value
+		}
+		if r.URL.Path == "/rtv/000000000009999/v0.css" {
+			w.WriteHeader(500)
+			return
+		}
+	}))
+
+	defer ts.Close()
+	rtvHost = ts.URL
+
+	assert.Equal(t, paddedRtv, RTVCache.RTV)
+	assert.Equal(t, css, RTVCache.CSS)
+	rtvPoll()
+	// Values should not change, despite HTTP error.
+	assert.Equal(t, paddedRtv, RTVCache.RTV)
+	assert.Equal(t, css, RTVCache.CSS)
 }
