@@ -21,6 +21,7 @@ import (
 var transformerFunctionMap = map[string]func(*transformer.Engine){
 	"AMPBoilerplateTransformer":        transformer.AMPBoilerplateTransformer,
 	"LinkTagTransformer":               transformer.LinkTagTransformer,
+	"MetaTagTransformer":               transformer.MetaTagTransformer,
 	"ReorderHeadTransformer":           transformer.ReorderHeadTransformer,
 	"ServerSideRenderingTransformer":   transformer.ServerSideRenderingTransformer,
 	"TransformedIdentifierTransformer": transformer.TransformedIdentifierTransformer,
@@ -32,6 +33,7 @@ var transformers = []string{
 	"URLTransformer",
 	"AMPBoilerplateTransformer",
 	"LinkTagTransformer",
+	"MetaTagTransformer",
 	"ServerSideRenderingTransformer",
 	"TransformedIdentifierTransformer",
 	"ReorderHeadTransformer",
