@@ -16,7 +16,7 @@ import (
 // the expected normalized output from transformer.go, nor from any other
 // transformers.
 
-func TestLinkTagAddLinkGoogleFontPreconnect(t *testing.T) {
+func TestLinkTagTransformer(t *testing.T) {
 	testCases := []tt.TestCase{
 		{
 			Desc: "Adds link for Google Font Preconnect",
@@ -26,7 +26,7 @@ func TestLinkTagAddLinkGoogleFontPreconnect(t *testing.T) {
 				"</head><body></body></html>"),
 			Expected: tt.Concat("<!doctype html><html ⚡=\"\"><head>",
 				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFont, tt.LinkGoogleFontPreconnect,
+				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
 				"</head><body></body></html>"),
 		},
 		{
@@ -37,15 +37,9 @@ func TestLinkTagAddLinkGoogleFontPreconnect(t *testing.T) {
 				"</head><body></body></html>"),
 			Expected: tt.Concat("<!doctype html><html ⚡=\"\"><head>",
 				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFont, tt.LinkGoogleFont,
-				tt.LinkGoogleFontPreconnect, "</head><body></body></html>"),
+				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
+				tt.LinkGoogleFont, "</head><body></body></html>"),
 		},
-	}
-	runLinkTagTransformerTestcases(t, testCases)
-}
-
-func TestLinkTagRenameAuthorSuppliedResourceHints(t *testing.T) {
-	testCases := []tt.TestCase{
 		{
 			Desc: "Renames author supplied resource hints",
 			Input: tt.Concat("<!doctype html><html ⚡><head>",
@@ -58,10 +52,6 @@ func TestLinkTagRenameAuthorSuppliedResourceHints(t *testing.T) {
 				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
 		},
 	}
-	runLinkTagTransformerTestcases(t, testCases)
-}
-
-func runLinkTagTransformerTestcases(t *testing.T, testCases []tt.TestCase) {
 	for _, tc := range testCases {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {

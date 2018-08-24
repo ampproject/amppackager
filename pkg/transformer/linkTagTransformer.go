@@ -14,7 +14,7 @@ import (
 // * It will rename author supplied resource hints from rel= to disabled-rel=.
 // * It will add a preconnect link tag for Google Font resources.
 func LinkTagTransformer(e *Engine) {
-	dom, ok := amphtml.NewDOM(e.Doc)
+	_, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return
 	}
@@ -33,17 +33,17 @@ func LinkTagTransformer(e *Engine) {
 		for c := top.LastChild; c != nil; c = c.PrevSibling {
 			stk.Push(c)
 		}
-		linkTagTransform(top, dom.HeadNode, &preconnectAdded)
+		linkTagTransform(top, &preconnectAdded)
 	}
 }
 
 // linkTagTransform does the actual work on each node.
-func linkTagTransform(n, h *html.Node, preconnectAdded *bool) {
+func linkTagTransform(n *html.Node, preconnectAdded *bool) {
 	if htmlnode.HasAttribute(n, "rel") {
 		renameAuthorSuppliedResourceHints(n)
 	}
 	if !*preconnectAdded && isLinkGoogleFont(n) {
-		addLinkGoogleFontPreconnect(n, h)
+		addLinkGoogleFontPreconnect(n)
 		*preconnectAdded = true
 	}
 }
@@ -66,12 +66,12 @@ func isLinkGoogleFont(n *html.Node) bool {
 }
 
 // addLinkGoogleFontPreconnect adds a preconnect link tag for Google Font resources.
-func addLinkGoogleFontPreconnect(n, h *html.Node) {
+func addLinkGoogleFontPreconnect(n *html.Node) {
 	if n.DataAtom != atom.Link {
 		return
 	}
 	preconnect := htmlnode.Element("link", html.Attribute{Key: "crossorigin"}, html.Attribute{Key: "href", Val: "https://fonts.gstatic.com"}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
-	h.AppendChild(preconnect)
+	n.Parent.InsertBefore(preconnect, n)
 }
 
 // renameAuthorSuppliedResourceHints renames author supplied resource hints from
