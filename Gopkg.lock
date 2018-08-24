@@ -76,6 +76,12 @@
   version = "v1.2.1"
 
 [[projects]]
+  name = "github.com/theckman/go-flock"
+  packages = ["."]
+  revision = "dd99ba217509348e899885ee977b6e2acb18179c"
+  version = "v0.5.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ocsp"]
@@ -93,6 +99,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e8af09283fdf4f1a6a78728fcfb75c1a9980fa06de63b78ef8fb2839555d0e7a"
+  inputs-digest = "8b5eb27f460888eb15f88bcdd1cf35086f6bee495db247adb37c149f36987f2c"
   solver-name = "gps-cdcl"
   solver-version = 1
