@@ -86,9 +86,7 @@ func TestRTVPollDieOnInit(t *testing.T) {
 	assert.Equal(t, "", RTVCache.RTV)
 	assert.Equal(t, "", RTVCache.CSS)
 	rtvPoll()
-	if errors == "" {
-		t.Errorf("Expected die to be called, but wasn't!")
-	}
+	assert.NotEmpty(t, errors, "Expected die to be called, but wasn't!")
 }
 
 func TestRTVPollWarn(t *testing.T) {
@@ -185,7 +183,5 @@ func TestStartCronDieOnInit(t *testing.T) {
 	assert.Equal(t, "", RTVCache.RTV)
 	assert.Equal(t, "", RTVCache.CSS)
 	StartCron()
-	if errors == "" {
-		t.Errorf("Expected die to be called, but wasn't!")
-	}
+	assert.NotEmpty(t, errors, "Expected die to be called, but wasn't!")
 }
