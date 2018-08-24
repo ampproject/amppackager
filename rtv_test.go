@@ -165,3 +165,27 @@ func TestRTVPollRollback(t *testing.T) {
 	assert.Equal(t, paddedRtv, RTVCache.RTV)
 	assert.Equal(t, css, RTVCache.CSS)
 }
+
+func TestStartCronDieOnInit(t *testing.T) {
+	// Reset the cache
+	RTVCache = new(rtvCacheStruct)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+
+	defer ts.Close()
+	rtvHost = ts.URL
+	// Remember the original die function and reinstate after this test.
+	origDie := die
+	defer func() { die = origDie }()
+	var errors string
+	die = func(format string, args ...interface{}) {
+		errors = fmt.Sprintf(format, args)
+	}
+	assert.Equal(t, "", RTVCache.RTV)
+	assert.Equal(t, "", RTVCache.CSS)
+	StartCron()
+	if errors == "" {
+		t.Errorf("Expected die to be called, but wasn't!")
+	}
+}
