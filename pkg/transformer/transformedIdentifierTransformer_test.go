@@ -28,10 +28,6 @@ func TestTransformedIdentifierTransformer(t *testing.T) {
 				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
 		},
 	}
-	runTransformedIdentifierTransformerTestcases(t, testCases)
-}
-
-func runTransformedIdentifierTransformerTestcases(t *testing.T, testCases []tt.TestCase) {
 	for _, tc := range testCases {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
@@ -52,8 +48,7 @@ func runTransformedIdentifierTransformerTestcases(t *testing.T, testCases []tt.T
 			continue
 		}
 		var expected strings.Builder
-		err = html.Render(&expected, expectedDoc)
-		if err != nil {
+		if err := html.Render(&expected, expectedDoc); err != nil {
 			t.Errorf("%s: html.Render for %s failed %q", tc.Desc, tc.Expected, err)
 			continue
 		}

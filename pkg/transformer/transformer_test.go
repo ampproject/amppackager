@@ -9,51 +9,37 @@ import (
 	"golang.org/x/net/html"
 )
 
-// testCase stores the input HTML, expected output HTML, and an optional
-// transformer to execute.
-type transformerTestCase struct {
-	desc        string
-	input       string
-	expected    string
-	transformer func(*transformer.Engine)
-}
-
 func TestStrip(t *testing.T) {
-	tcs := []transformerTestCase{
+	tcs := []tt.TestCase{
 		{
-			"strips comments",
-			tt.Concat("<!-- comment -->",
+			Desc: "strips comments",
+			Input: tt.Concat("<!-- comment -->",
 				tt.BuildHTML("<foo><!-- comment --></foo>")),
-			tt.BuildHTML("<foo></foo>"),
-			nil,
+			Expected: tt.BuildHTML("<foo></foo>"),
 		},
 		{
-			"strip duplicate attributes",
-			tt.BuildHTML("<a class=foo class=foo></a>"),
-			tt.BuildHTML("<a class=foo></a>"),
-			nil,
+			Desc:     "strip duplicate attributes",
+			Input:    tt.BuildHTML("<a class=foo class=foo></a>"),
+			Expected: tt.BuildHTML("<a class=foo></a>"),
 		},
 		{
-			"verify first attr is kept",
-			tt.BuildHTML("<a class=bar href='#' class=foo></a>"),
-			tt.BuildHTML("<a class=bar href='#'></a>"),
-			nil,
+			Desc:     "verify first attr is kept",
+			Input:    tt.BuildHTML("<a class=bar href='#' class=foo></a>"),
+			Expected: tt.BuildHTML("<a class=bar href='#'></a>"),
 		},
 		{
-			"dedupe attr, case-insensitive",
-			tt.BuildHTML("<a CLASS=foo class=foo></a>"),
-			tt.BuildHTML("<a class=foo></a>"),
-			nil,
+			Desc:     "dedupe attr, case-insensitive",
+			Input:    tt.BuildHTML("<a CLASS=foo class=foo></a>"),
+			Expected: tt.BuildHTML("<a class=foo></a>"),
 		},
 		{
-			"dedupe attr, case-insensitive, order irrelevant",
-			tt.BuildHTML("<a class=foo CLASS=bar></a>"),
-			tt.BuildHTML("<a class=foo></a>"),
-			nil,
+			Desc:     "dedupe attr, case-insensitive, order irrelevant",
+			Input:    tt.BuildHTML("<a class=foo CLASS=bar></a>"),
+			Expected: tt.BuildHTML("<a class=foo></a>"),
 		},
 		{
-			"Strips child whitespace nodes from <html> and <head>",
-			tt.Concat(
+			Desc: "Strips child whitespace nodes from <html> and <head>",
+			Input: tt.Concat(
 				"<!doctype html><html ⚡>  <head>\n",
 				"\t\t",
 				tt.ScriptAMPRuntime,
@@ -62,15 +48,14 @@ func TestStrip(t *testing.T) {
 				"</head>\n<body>\n",
 				"    foo<b> </b>bar\n\n",
 				"</body></html>"),
-			tt.BuildHTML("\n    foo<b> </b>bar\n\n"),
-			nil,
+			Expected: tt.BuildHTML("\n    foo<b> </b>bar\n\n"),
 		},
 		{
 			// Stray text in head will automatically start a body tag, (and will
 			// NOT be stripped because it's not all whitespace). Note also that
 			// all subsequent tags after the stray text are moved to body too.
-			"strip stray text in head",
-			`<!doctype html>
+			Desc: "strip stray text in head",
+			Input: `<!doctype html>
 <html ⚡>
   <head>
     <meta charset="utf-8">
@@ -80,186 +65,165 @@ func TestStrip(t *testing.T) {
   <body class="foo">
 </body>
 </html>`,
-			tt.Concat(`<!DOCTYPE html><html ⚡=""><head><meta charset="utf-8"/><link ref="canonical" href="http://www.example.com"/></head><body class="foo">stray text
+			Expected: tt.Concat(`<!DOCTYPE html><html ⚡=""><head><meta charset="utf-8"/><link ref="canonical" href="http://www.example.com"/></head><body class="foo">stray text
 `,
 				`    <script async="" src="https://cdn.ampproject.org/v0.js"></script>`,
 				"\n  ",
 				"\n  ",
 				"\n\n</body></html>"),
-			nil,
 		},
 		{
-			"Strip empty amp-custom style",
-			"<style amp-custom></style>",
-			"",
-			nil,
+			Desc:     "Strip empty amp-custom style",
+			Input:    "<style amp-custom></style>",
+			Expected: "",
 		},
 		{
-			"No-op (not empty amp-custom style)",
-			"<style amp-custom>amp-gist { color: red; }</style>",
-			"<style amp-custom>amp-gist { color: red; }</style>",
-			nil,
+			Desc:     "No-op (not empty amp-custom style)",
+			Input:    "<style amp-custom>amp-gist { color: red; }</style>",
+			Expected: "<style amp-custom>amp-gist { color: red; }</style>",
 		},
 		{
-			"strip extra attrs from style amp-custom",
-			"<style amp-custom=amp-custom type=text/css>amp-gist { color: red; }</style>",
-			"<style amp-custom>amp-gist { color: red; }</style>",
-			nil,
+			Desc:     "strip extra attrs from style amp-custom",
+			Input:    "<style amp-custom=amp-custom type=text/css>amp-gist { color: red; }</style>",
+			Expected: "<style amp-custom>amp-gist { color: red; }</style>",
 		},
 		{
-			"Sanitize URIs in src",
+			Desc: "Sanitize URIs in src",
 			// (src has space, space, and tab)
-			`<img src="  	">`,
-			`<img src="  "/>`,
-			nil,
+			Input: `<img src="  	">`,
+			Expected: `<img src="  "/>`,
 		},
 		{
-			"Sanitize URIs in href",
+			Desc: "Sanitize URIs in href",
 			// (href has space, space, and tab)
-			`<a href="  	">`,
-			`<a href="  "/>`,
-			nil,
+			Input: `<a href="  	">`,
+			Expected: `<a href="  "/>`,
 		},
 		{
-			"untouched URI",
-			`<lemur uri="  	">`,
-			`<lemur uri="  	">`,
-			nil,
+			Desc: "untouched URI",
+			Input: `<lemur uri="  	">`,
+			Expected: `<lemur uri="  	">`,
 		},
 		{
-			"Strip extra <title> elements",
-			`<!doctype html><html ⚡>  <head><title>a</title><title>b</title></head>`,
-			`<!doctype html><html ⚡>  <head><title>a</title></head>`,
-			nil,
+			Desc:     "Strip extra <title> elements",
+			Input:    `<!doctype html><html ⚡>  <head><title>a</title><title>b</title></head>`,
+			Expected: `<!doctype html><html ⚡>  <head><title>a</title></head>`,
 		},
 		{
-			"Strip all <title> elements in body",
-			`<!doctype html><html ⚡><body><title>a</title><title>b</title></body>`,
-			`<!doctype html><html ⚡><body></body>`,
-			nil,
+			Desc:     "Strip all <title> elements in body",
+			Input:    `<!doctype html><html ⚡><body><title>a</title><title>b</title></body>`,
+			Expected: `<!doctype html><html ⚡><body></body>`,
 		},
 		{
-			"Preserve svg <title> elements",
-			tt.Concat("<!doctype html><html ⚡><body>",
+			Desc: "Preserve svg <title> elements",
+			Input: tt.Concat("<!doctype html><html ⚡><body>",
 				"<svg><title>a</title></svg>",
 				"<svg><symbol><title>b</title></symbol></svg>",
 				"</body>"),
-			tt.Concat("<!doctype html><html ⚡><body>",
+			Expected: tt.Concat("<!doctype html><html ⚡><body>",
 				"<svg><title>a</title></svg>",
 				"<svg><symbol><title>b</title></symbol></svg>",
 				"</body>"),
-			nil,
 		},
 	}
 	runAllTestCases(t, tcs)
 }
 
 func TestDoctype(t *testing.T) {
-	tcs := []transformerTestCase{
+	tcs := []tt.TestCase{
 		{
-			"doctype no-op",
-			"<!doctype html>",
-			"<!doctype html>",
-			nil,
+			Desc:     "doctype no-op",
+			Input:    "<!doctype html>",
+			Expected: "<!doctype html>",
 		},
 		{
-			"doctype add html",
-			"<!doctype>",
-			"<!doctype html>",
-			nil,
+			Desc:     "doctype add html",
+			Input:    "<!doctype>",
+			Expected: "<!doctype html>",
 		},
 		{
-			"doctype strip all",
-			`<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">`,
-			"<!doctype html>",
-			nil,
+			Desc:     "doctype strip all",
+			Input:    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">`,
+			Expected: "<!doctype html>",
 		},
 		{
-			"doctype strip bogus",
-			`<!DOCTYPE HTML PUBLIC "bogus" "notreal">`,
-			"<!doctype html>",
-			nil,
+			Desc:     "doctype strip bogus",
+			Input:    `<!DOCTYPE HTML PUBLIC "bogus" "notreal">`,
+			Expected: "<!doctype html>",
 		},
 		{
-			"doctype ignore non-html",
-			`<!DOCTYPE document SYSTEM "subjects.dtd">`,
-			"<!doctype html>",
-			nil,
+			Desc:     "doctype ignore non-html",
+			Input:    `<!DOCTYPE document SYSTEM "subjects.dtd">`,
+			Expected: "<!doctype html>",
 		},
 	}
 	runAllTestCases(t, tcs)
 }
 
 func TestWellFormedHtml(t *testing.T) {
-	tcs := []transformerTestCase{
+	tcs := []tt.TestCase{
 		{
-			"wellformed",
-			tt.Concat("<!doctype html><html ⚡>",
+			Desc: "wellformed",
+			Input: tt.Concat("<!doctype html><html ⚡>",
 				tt.ScriptAMPRuntime,
 				tt.LinkFavicon,
 				"<foo>"),
-			`<!DOCTYPE html><html ⚡=""><head><script async="" src="https://cdn.ampproject.org/v0.js"></script><link href="https://example.com/favicon.ico" rel="icon"/></head><body><foo></foo></body></html>`,
-			nil,
+			Expected: `<!DOCTYPE html><html ⚡=""><head><script async="" src="https://cdn.ampproject.org/v0.js"></script><link href="https://example.com/favicon.ico" rel="icon"/></head><body><foo></foo></body></html>`,
 		},
 	}
 	runAllTestCases(t, tcs)
 }
 
 func TestNonceRemoved(t *testing.T) {
-	tcs := []transformerTestCase{
+	tcs := []tt.TestCase{
 		{
-			"remove nonce",
-			"<script nonce async>",
-			"<script async>",
-			nil,
+			Desc:     "remove nonce",
+			Input:    "<script nonce async>",
+			Expected: "<script async>",
 		},
 	}
 	runAllTestCases(t, tcs)
 }
 
 func TestNoScriptParsed(t *testing.T) {
-	tcs := []transformerTestCase{
+	tcs := []tt.TestCase{
 		{
-			"parse noscript",
-			"<body><noscript><lemur z b y></noscript></body>",
-			`<body><noscript><lemur z="" b="" y=""></lemur></noscript></body>`,
-			nil,
+			Desc:     "parse noscript",
+			Input:    "<body><noscript><lemur z b y></noscript></body>",
+			Expected: `<body><noscript><lemur z="" b="" y=""></lemur></noscript></body>`,
 		},
 	}
 	runAllTestCases(t, tcs)
 }
 
-func runAllTestCases(t *testing.T, tcs []transformerTestCase) {
+func runAllTestCases(t *testing.T, tcs []tt.TestCase) {
 	for _, tc := range tcs {
-		inputDoc, err := html.Parse(strings.NewReader(tc.input))
+		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
-			t.Errorf("%s: html.Parse failed %q", tc.input, err)
+			t.Errorf("%s: html.Parse failed %q", tc.Input, err)
 			continue
 		}
 		engine := transformer.Engine{Doc: inputDoc}
-		if tc.transformer != nil {
-			engine.Transformers = append(engine.Transformers, tc.transformer)
-		}
 		engine.Transform()
 		var input strings.Builder
 		if err := html.Render(&input, engine.Doc); err != nil {
-			t.Errorf("%s: html.Render failed %q", tc.input, err)
+			t.Errorf("%s: html.Render failed %q", tc.Input, err)
 			continue
 		}
 
-		expectedDoc, err := html.Parse(strings.NewReader(tc.expected))
+		expectedDoc, err := html.Parse(strings.NewReader(tc.Expected))
 		if err != nil {
-			t.Errorf("%s: html.Parse failed %q", tc.expected, err)
+			t.Errorf("%s: html.Parse failed %q", tc.Expected, err)
 			continue
 		}
 		var expected strings.Builder
 		err = html.Render(&expected, expectedDoc)
 		if err != nil {
-			t.Errorf("%s: html.Render failed %q", tc.expected, err)
+			t.Errorf("%s: html.Render failed %q", tc.Expected, err)
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: Transform=\n%q\nwant=\n%q", tc.desc, &input, &expected)
+			t.Errorf("%s: Transform=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }
