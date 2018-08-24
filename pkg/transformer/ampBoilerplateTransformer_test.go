@@ -160,8 +160,7 @@ func runAMPBoilerplateTransformerTestcases(t *testing.T, testCases []tt.TestCase
 			continue
 		}
 		var expected strings.Builder
-		err = html.Render(&expected, expectedDoc)
-		if err != nil {
+		if err := html.Render(&expected, expectedDoc); err != nil {
 			t.Errorf("%s\nhtml.Render for %s failed %q", tc.Desc, tc.Expected, err)
 			continue
 		}
