@@ -1,17 +1,3 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package transformer
 
 import (
@@ -28,7 +14,8 @@ import (
 // * It will rename author supplied resource hints from rel= to disabled-rel=.
 // * It will add a preconnect link tag for Google Font resources.
 func LinkTagTransformer(e *Engine) {
-	if _, ok := amphtml.NewDOM(e.Doc); !ok {
+	_, ok := amphtml.NewDOM(e.Doc)
+	if !ok {
 		return
 	}
 
@@ -94,9 +81,9 @@ func renameAuthorSuppliedResourceHints(n *html.Node) {
 	if !ok {
 		return
 	}
-	s := strings.Split(strings.ToLower(r.Val), " ")
+	s := strings.Split(r.Val, " ")
 	for _, h := range s {
-		switch h {
+		switch strings.ToLower(h) {
 		case "dns-prefetch", "preconnect", "prefetch", "preload", "prerender":
 			htmlnode.SetAttribute(n, "", "disabled-rel", r.Val)
 			htmlnode.RemoveAttribute(n, r)

@@ -1,17 +1,3 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 /*
 Transform invokes the transformer library on a given input doc to
 generate and output transformed AMP HTML. This does not validate the
@@ -28,7 +14,6 @@ import (
 	"log"
 	"os"
 
-	rpb "github.com/ampproject/amppackager/pkg/transform/request
 	t "github.com/ampproject/amppackager/pkg/transform"
 )
 
@@ -68,8 +53,7 @@ cat /path/to/input.html | $GOPATH/bin/transform
 		log.Fatal("Input must be from stdin or file.")
 	}
 	checkErr(err)
-	r := &rpb.Request{Html: string(data), DocumentUrl: *documentURLFlag}
-	o, err := t.Process(r)
+	o, err := t.Process(string(data), *documentURLFlag)
 	checkErr(err)
 	fmt.Print(o)
 }

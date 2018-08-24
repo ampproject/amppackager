@@ -1,17 +1,3 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 // Package transform invokes the golang HTML parser, executes the
 // individual transfomers (unless overridden), and prints the output
 // to the provided string.
@@ -23,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/ampproject/amppackager/pkg/printer"
-	rpb "github.com/ampproject/amppackager/pkg/transform/request
 	"github.com/ampproject/amppackager/pkg/transformer"
 	"golang.org/x/net/html"
 )
@@ -35,7 +20,6 @@ import (
 // invocation from C/C++.
 var transformerFunctionMap = map[string]func(*transformer.Engine){
 	"AMPBoilerplateTransformer":        transformer.AMPBoilerplateTransformer,
-	"AMPRuntimeCSSTransformer":         transformer.AMPRuntimeCSSTransformer,
 	"LinkTagTransformer":               transformer.LinkTagTransformer,
 	"MetaTagTransformer":               transformer.MetaTagTransformer,
 	"ReorderHeadTransformer":           transformer.ReorderHeadTransformer,
@@ -44,36 +28,33 @@ var transformerFunctionMap = map[string]func(*transformer.Engine){
 	"URLTransformer":                   transformer.URLTransformer,
 }
 
-// The default set of transformers to execute, in the order in which
-// to execute them.
-var defaultTransformers = []string{
-	"MetaTagTransformer",
-	"LinkTagTransformer",
+// The transformers to execute, in the order in which to execute them.
+var transformers = []string{
 	"URLTransformer",
 	"AMPBoilerplateTransformer",
+	"LinkTagTransformer",
+	"MetaTagTransformer",
 	"ServerSideRenderingTransformer",
-	// AmpRuntimeCssTransformer must run after ServerSideRenderingTransformer
-	"AMPRuntimeCSSTransformer",
 	"TransformedIdentifierTransformer",
-	// ReorderHeadTransformer should run after all transformers that modify the
-	// <head>, as they may do so without preserving the proper order.
 	"ReorderHeadTransformer",
 }
 
-// Process will parse the given request, which contains the HTML to
-// transform, applying the requested list of transformers, and return the
-// transformed HTML, or an error.
-// If the requested list of transformers is empty, apply the default.
-func Process(r *rpb.Request) (string, error) {
-	doc, err := html.Parse(strings.NewReader(r.Html))
+// Process will parse the given HTML byte array, applying all the
+// transformers and return the transformed HTML, or an error.
+// TODO(b/112356610): Clean up these args into a proto.
+func Process(data, docURL string) (string, error) {
+	return ProcessSome(data, docURL, transformers)
+}
+
+// Process will parse the given HTML byte array, and execute the named
+// transformers, returning the transformed HTML, or an error.
+// TODO(b/112356610): Clean up these args into a proto.
+func ProcessSome(data, docURL string, transformers []string) (string, error) {
+	doc, err := html.Parse(strings.NewReader(data))
 	if err != nil {
 		return "", err
 	}
 
-	transformers := r.Transformers
-	if len(transformers) == 0 {
-		transformers = defaultTransformers
-	}
 	fns := []func(*transformer.Engine){}
 	for _, val := range transformers {
 		fn, ok := transformerFunctionMap[val]
@@ -82,11 +63,11 @@ func Process(r *rpb.Request) (string, error) {
 		}
 		fns = append(fns, fn)
 	}
-	u, err := url.Parse(r.DocumentUrl)
+	u, err := url.Parse(docURL)
 	if err != nil {
 		return "", err
 	}
-	e := transformer.Engine{doc, u, fns, r}
+	e := transformer.Engine{doc, u, fns}
 	e.Transform()
 	var o strings.Builder
 	err = printer.Print(&o, e.Doc)

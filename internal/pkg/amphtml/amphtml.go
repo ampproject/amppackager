@@ -1,21 +1,5 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-/*
-Package amphtml contains common constants and utilies for working
-with AMP HTML.
-*/
+// Package amphtml contains common constants and utilies for working
+// with AMP HTML.
 package amphtml
 
 import (
@@ -127,14 +111,17 @@ type DOM struct {
 func NewDOM(n *html.Node) (*DOM, bool) {
 	var ok bool
 	d := new(DOM)
-	if d.HTMLNode, ok = htmlnode.FindNode(n, atom.Html); !ok {
-		return d, ok
+	d.HTMLNode, ok = htmlnode.FindNode(n, atom.Html)
+	if !ok {
+		return d, false
 	}
-	if d.HeadNode, ok = htmlnode.FindNode(d.HTMLNode, atom.Head); !ok {
-		return d, ok
+	d.HeadNode, ok = htmlnode.FindNode(n, atom.Head)
+	if !ok {
+		return d, false
 	}
-	if d.BodyNode, ok = htmlnode.FindNode(d.HTMLNode, atom.Body); !ok {
-		return d, ok
+	d.BodyNode, ok = htmlnode.FindNode(n, atom.Body)
+	if !ok {
+		return d, false
 	}
 	return d, true
 }
