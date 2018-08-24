@@ -31,6 +31,8 @@ func StartCron() error {
 	if err := c.AddFunc("@every 1h", rtvPoll); err != nil {
 		return err
 	}
+	// Initialize the cache. Then cron will trigger after every interval.
+	rtvPoll()
 	c.Start()
 	return nil
 }
@@ -67,6 +69,11 @@ func rtvPoll() {
 	}
 	// Pad to width of 15
 	newCache.RTV = fmt.Sprintf("%015s", newCache.RTV)
+
+	// If the value is the same, skip CSS call
+	if newCache.RTV == RTVCache.RTV {
+		return
+	}
 
 	// Fetch the CSS payload
 	if newCache.CSS, err = getRTVBody(rtvHost + "/rtv/" + newCache.RTV + "/v0.css"); err != nil {

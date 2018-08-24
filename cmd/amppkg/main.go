@@ -27,8 +27,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 
 	amppkg "github.com/ampproject/amppackager"
@@ -104,6 +104,10 @@ func main() {
 	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
+
+	// Start the RTV polling cron
+	amppkg.StartCron()
+	defer amppkg.StopCron()
 
 	// TODO(twifkak): Make log output configurable.
 	mux := httprouter.New()
