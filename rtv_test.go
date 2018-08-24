@@ -36,6 +36,37 @@ func TestRTVPoll(t *testing.T) {
 	assert.Equal(t, css, RTVCache.CSS)
 }
 
+func TestRTVPollSameValue(t *testing.T) {
+	// Reset the cache
+	RTVCache = new(rtvCacheStruct)
+	var rtvCalls, cssCalls int
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v0/version.txt" {
+			rtvCalls++
+			fmt.Fprint(w, rtv)
+			return
+		}
+		if r.URL.Path == "/rtv/"+paddedRtv+"/v0.css" {
+			cssCalls++
+			fmt.Fprint(w, css)
+			return
+		}
+	}))
+	defer ts.Close()
+	rtvHost = ts.URL
+
+	assert.Equal(t, "", RTVCache.RTV)
+	assert.Equal(t, "", RTVCache.CSS)
+	rtvPoll()
+	assert.Equal(t, paddedRtv, RTVCache.RTV)
+	assert.Equal(t, css, RTVCache.CSS)
+	rtvPoll()
+	assert.Equal(t, paddedRtv, RTVCache.RTV)
+	assert.Equal(t, css, RTVCache.CSS)
+	assert.Equal(t, 2, rtvCalls)
+	assert.Equal(t, 1, cssCalls) // css should only be requested once since rtv value didn't change.
+}
+
 func TestRTVPollDieOnInit(t *testing.T) {
 	// Reset the cache
 	RTVCache = new(rtvCacheStruct)
