@@ -31,13 +31,13 @@ func NewHTTPError(statusCode int, msg ...interface{}) *HTTPError {
 	return &HTTPError{fmt.Sprint(msg...), statusCode}
 }
 
-func (e HTTPError) Error() string { return e.InternalMsg }
+func (e *HTTPError) Error() string { return e.InternalMsg }
 
-func (e HTTPError) ExternalMsg() string {
+func (e *HTTPError) ExternalMsg() string {
 	return http.StatusText(e.StatusCode)
 }
 
-func (e HTTPError) LogAndRespond(resp http.ResponseWriter) {
+func (e *HTTPError) LogAndRespond(resp http.ResponseWriter) {
 	log.Println(e.InternalMsg)
 	resp.Header().Set("Cache-Control", "no-store")
 	http.Error(resp, e.ExternalMsg(), e.StatusCode)

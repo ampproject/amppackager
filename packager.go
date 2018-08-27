@@ -258,7 +258,7 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	return &Packager{cert, key, validityURL, &client, baseURL, urlSets}, nil
 }
 
-func (this Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
+func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
 	ampURL := fetch.String()
 
 	log.Printf("Fetching URL: %q\n", ampURL)
@@ -281,7 +281,7 @@ func (this Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.R
 	return req, resp, nil
 }
 
-func (this Packager) genCertURL(cert *x509.Certificate) (*url.URL, error) {
+func (this *Packager) genCertURL(cert *x509.Certificate) (*url.URL, error) {
 	urlPath := path.Join(CertURLPrefix, url.PathEscape(CertName(cert)))
 	certURL, err := url.Parse(urlPath)
 	if err != nil {
@@ -291,7 +291,7 @@ func (this Packager) genCertURL(cert *x509.Certificate) (*url.URL, error) {
 	return ret, nil
 }
 
-func (this Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	// TODO(twifkak): See if there are any other validations or sanitizations that need adding.
 	if err := req.ParseForm(); err != nil {
 		NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)

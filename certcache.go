@@ -37,7 +37,7 @@ func NewCertCache(cert *x509.Certificate) (*CertCache, error) {
 	return this, nil
 }
 
-func (this CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	if params.ByName("certName") == this.certName {
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
 		// This content-type is not standard, but included to reduce
