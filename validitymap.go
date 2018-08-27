@@ -34,7 +34,7 @@ func NewValidityMap() (*ValidityMap, error) {
 	return this, nil
 }
 
-func (this ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func (this *ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	resp.Header().Set("Content-Type", "application/cbor")
 	resp.Header().Set("Cache-Control", "public, max-age=604800")
 	http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.validityMap))
