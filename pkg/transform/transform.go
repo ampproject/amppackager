@@ -30,10 +30,10 @@ var transformerFunctionMap = map[string]func(*transformer.Engine){
 
 // The transformers to execute, in the order in which to execute them.
 var transformers = []string{
+	"MetaTagTransformer",
+	"LinkTagTransformer",
 	"URLTransformer",
 	"AMPBoilerplateTransformer",
-	"LinkTagTransformer",
-	"MetaTagTransformer",
 	"ServerSideRenderingTransformer",
 	"TransformedIdentifierTransformer",
 	"ReorderHeadTransformer",
