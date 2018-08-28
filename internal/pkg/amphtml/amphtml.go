@@ -111,17 +111,14 @@ type DOM struct {
 func NewDOM(n *html.Node) (*DOM, bool) {
 	var ok bool
 	d := new(DOM)
-	d.HTMLNode, ok = htmlnode.FindNode(n, atom.Html)
-	if !ok {
-		return d, false
+	if d.HTMLNode, ok = htmlnode.FindNode(n, atom.Html); !ok {
+		return d, ok
 	}
-	d.HeadNode, ok = htmlnode.FindNode(n, atom.Head)
-	if !ok {
-		return d, false
+	if d.HeadNode, ok = htmlnode.FindNode(d.HTMLNode, atom.Head); !ok {
+		return d, ok
 	}
-	d.BodyNode, ok = htmlnode.FindNode(n, atom.Body)
-	if !ok {
-		return d, false
+	if d.BodyNode, ok = htmlnode.FindNode(d.HTMLNode, atom.Body); !ok {
+		return d, ok
 	}
 	return d, true
 }
