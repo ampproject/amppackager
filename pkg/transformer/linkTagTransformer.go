@@ -14,8 +14,7 @@ import (
 // * It will rename author supplied resource hints from rel= to disabled-rel=.
 // * It will add a preconnect link tag for Google Font resources.
 func LinkTagTransformer(e *Engine) {
-	_, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
+	if _, ok := amphtml.NewDOM(e.Doc); !ok {
 		return
 	}
 
@@ -81,9 +80,9 @@ func renameAuthorSuppliedResourceHints(n *html.Node) {
 	if !ok {
 		return
 	}
-	s := strings.Split(r.Val, " ")
+	s := strings.Split(strings.ToLower(r.Val), " ")
 	for _, h := range s {
-		switch strings.ToLower(h) {
+		switch h {
 		case "dns-prefetch", "preconnect", "prefetch", "preload", "prerender":
 			htmlnode.SetAttribute(n, "", "disabled-rel", r.Val)
 			htmlnode.RemoveAttribute(n, r)
