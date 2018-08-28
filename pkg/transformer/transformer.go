@@ -9,6 +9,7 @@ import (
 	"github.com/ampproject/amppackager/internal/pkg/amphtml"
 	"github.com/ampproject/amppackager/internal/pkg/htmlnode"
 	"github.com/ampproject/amppackager/pkg/printer"
+	rpb "github.com/ampproject/amppackager/pkg/transform
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
@@ -19,6 +20,7 @@ type Engine struct {
 	Doc          *html.Node
 	DocumentURL  *url.URL
 	Transformers []func(*Engine)
+	Request      *rpb.Request
 }
 
 // Transform executes required transformations on the Engine's Node and

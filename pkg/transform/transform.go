@@ -21,6 +21,7 @@ import (
 // invocation from C/C++.
 var transformerFunctionMap = map[string]func(*transformer.Engine){
 	"AMPBoilerplateTransformer":        transformer.AMPBoilerplateTransformer,
+	"AMPRuntimeCSSTransformer":         transformer.AMPRuntimeCSSTransformer,
 	"LinkTagTransformer":               transformer.LinkTagTransformer,
 	"MetaTagTransformer":               transformer.MetaTagTransformer,
 	"ReorderHeadTransformer":           transformer.ReorderHeadTransformer,
@@ -37,7 +38,11 @@ var defaultTransformers = []string{
 	"URLTransformer",
 	"AMPBoilerplateTransformer",
 	"ServerSideRenderingTransformer",
+	// AmpRuntimeCssTransformer must run after ServerSideRenderingTransformer
+	"AMPRuntimeCSSTransformer",
 	"TransformedIdentifierTransformer",
+	// ReorderHeadTransformer should run after all transformers that modify the
+	// <head>, as they may do so without preserving the proper order.
 	"ReorderHeadTransformer",
 }
 
@@ -67,7 +72,7 @@ func Process(r *rpb.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	e := transformer.Engine{doc, u, fns}
+	e := transformer.Engine{doc, u, fns, r}
 	e.Transform()
 	var o strings.Builder
 	err = printer.Print(&o, e.Doc)
