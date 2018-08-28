@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package amp.transform;
+
+message Request {
+  // The AMP HTML document to transform.
+  string html = 1;
+  // The URL of the document.
+  string document_url = 2;
+
+  // The list of transformers to execute. Leave empty to run the default set.
+  //
+  // WARNING. THIS IS FOR TESTING PURPOSES.
+  // This allows explicit invocation of transformers. Use of this field in a
+  // production run environment could produce invalid transformed AMP when
+  // ingested by AMP caches.
+  repeated string transformers = 3;
+}

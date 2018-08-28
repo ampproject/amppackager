@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ampproject/amppackager/pkg/printer"
+	rpb "github.com/ampproject/amppackager/pkg/transform
 	"github.com/ampproject/amppackager/pkg/transformer"
 	"golang.org/x/net/html"
 )
@@ -28,8 +29,9 @@ var transformerFunctionMap = map[string]func(*transformer.Engine){
 	"URLTransformer":                   transformer.URLTransformer,
 }
 
-// The transformers to execute, in the order in which to execute them.
-var transformers = []string{
+// The default set of transformers to execute, in the order in which
+// to execute them.
+var defaultTransformers = []string{
 	"MetaTagTransformer",
 	"LinkTagTransformer",
 	"URLTransformer",
@@ -39,22 +41,20 @@ var transformers = []string{
 	"ReorderHeadTransformer",
 }
 
-// Process will parse the given HTML byte array, applying all the
-// transformers and return the transformed HTML, or an error.
-// TODO(b/112356610): Clean up these args into a proto.
-func Process(data, docURL string) (string, error) {
-	return ProcessSome(data, docURL, transformers)
-}
-
-// Process will parse the given HTML byte array, and execute the named
-// transformers, returning the transformed HTML, or an error.
-// TODO(b/112356610): Clean up these args into a proto.
-func ProcessSome(data, docURL string, transformers []string) (string, error) {
-	doc, err := html.Parse(strings.NewReader(data))
+// Process will parse the given request, which contains the HTML to
+// transform, applying the requested list of transformers, and return the
+// transformed HTML, or an error.
+// If the requested list of transformers is empty, apply the default.
+func Process(r *rpb.Request) (string, error) {
+	doc, err := html.Parse(strings.NewReader(r.Html))
 	if err != nil {
 		return "", err
 	}
 
+	transformers := r.Transformers
+	if len(transformers) == 0 {
+		transformers = defaultTransformers
+	}
 	fns := []func(*transformer.Engine){}
 	for _, val := range transformers {
 		fn, ok := transformerFunctionMap[val]
@@ -63,7 +63,7 @@ func ProcessSome(data, docURL string, transformers []string) (string, error) {
 		}
 		fns = append(fns, fn)
 	}
-	u, err := url.Parse(docURL)
+	u, err := url.Parse(r.DocumentUrl)
 	if err != nil {
 		return "", err
 	}

@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 
+	rpb "github.com/ampproject/amppackager/pkg/transform
 	t "github.com/ampproject/amppackager/pkg/transform"
 )
 
@@ -53,7 +54,8 @@ cat /path/to/input.html | $GOPATH/bin/transform
 		log.Fatal("Input must be from stdin or file.")
 	}
 	checkErr(err)
-	o, err := t.Process(string(data), *documentURLFlag)
+	r := &rpb.Request{Html: string(data), DocumentUrl: *documentURLFlag}
+	o, err := t.Process(r)
 	checkErr(err)
 	fmt.Print(o)
 }
