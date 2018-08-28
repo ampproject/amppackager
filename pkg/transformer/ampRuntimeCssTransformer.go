@@ -1,6 +1,8 @@
 package transformer
 
 import (
+	"strings"
+
 	"github.com/ampproject/amppackager/internal/pkg/amphtml"
 	"github.com/ampproject/amppackager/internal/pkg/htmlnode"
 	"golang.org/x/net/html/atom"
@@ -34,7 +36,7 @@ func AMPRuntimeCSSTransformer(e *Engine) {
 
 	// The contents of the runtime css are available, so inline it.
 	if e.Request.GetCss() != "" {
-		n.AppendChild(htmlnode.Text(e.Request.GetCss()))
+		n.AppendChild(htmlnode.Text(strings.TrimSpace(e.Request.GetCss())))
 		return
 	}
 
