@@ -1,3 +1,17 @@
+// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package transformer
 
 import (
@@ -14,8 +28,7 @@ import (
 // * It will rename author supplied resource hints from rel= to disabled-rel=.
 // * It will add a preconnect link tag for Google Font resources.
 func LinkTagTransformer(e *Engine) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
+	if _, ok := amphtml.NewDOM(e.Doc); !ok {
 		return
 	}
 
@@ -33,17 +46,17 @@ func LinkTagTransformer(e *Engine) {
 		for c := top.LastChild; c != nil; c = c.PrevSibling {
 			stk.Push(c)
 		}
-		linkTagTransform(top, dom.HeadNode, &preconnectAdded)
+		linkTagTransform(top, &preconnectAdded)
 	}
 }
 
 // linkTagTransform does the actual work on each node.
-func linkTagTransform(n, h *html.Node, preconnectAdded *bool) {
+func linkTagTransform(n *html.Node, preconnectAdded *bool) {
 	if htmlnode.HasAttribute(n, "rel") {
 		renameAuthorSuppliedResourceHints(n)
 	}
 	if !*preconnectAdded && isLinkGoogleFont(n) {
-		addLinkGoogleFontPreconnect(n, h)
+		addLinkGoogleFontPreconnect(n)
 		*preconnectAdded = true
 	}
 }
@@ -66,12 +79,12 @@ func isLinkGoogleFont(n *html.Node) bool {
 }
 
 // addLinkGoogleFontPreconnect adds a preconnect link tag for Google Font resources.
-func addLinkGoogleFontPreconnect(n, h *html.Node) {
+func addLinkGoogleFontPreconnect(n *html.Node) {
 	if n.DataAtom != atom.Link {
 		return
 	}
 	preconnect := htmlnode.Element("link", html.Attribute{Key: "crossorigin"}, html.Attribute{Key: "href", Val: "https://fonts.gstatic.com"}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
-	h.AppendChild(preconnect)
+	n.Parent.InsertBefore(preconnect, n)
 }
 
 // renameAuthorSuppliedResourceHints renames author supplied resource hints from
@@ -81,9 +94,9 @@ func renameAuthorSuppliedResourceHints(n *html.Node) {
 	if !ok {
 		return
 	}
-	s := strings.Split(r.Val, " ")
+	s := strings.Split(strings.ToLower(r.Val), " ")
 	for _, h := range s {
-		switch strings.ToLower(h) {
+		switch h {
 		case "dns-prefetch", "preconnect", "prefetch", "preload", "prerender":
 			htmlnode.SetAttribute(n, "", "disabled-rel", r.Val)
 			htmlnode.RemoveAttribute(n, r)

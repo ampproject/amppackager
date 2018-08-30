@@ -1,3 +1,17 @@
+// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package transformer
 
 import (
@@ -72,9 +86,8 @@ func shouldStripMetaTag(n *html.Node) bool {
 
 	// Keep <meta> tags that have attribute http-equiv except if
 	// value=x-dns-prefetch-control
-	httpEquiv, ok := htmlnode.GetAttributeVal(n, "http-equiv")
-	if ok && strings.EqualFold(httpEquiv, "x-dns-prefetch-control") {
-		return true
+	if v, ok := htmlnode.GetAttributeVal(n, "http-equiv"); ok {
+		return strings.EqualFold(v, "x-dns-prefetch-control")
 	}
 
 	// Keep <meta> tags that don't have attributes content, itemprop, name,
@@ -93,30 +106,32 @@ func shouldStripMetaTag(n *html.Node) bool {
 	//   - Is "copyright"
 	//   - Is "referrer"
 	//   - Is "viewport"
-	name, ok := htmlnode.GetAttributeVal(n, "name")
-	name = strings.ToLower(name)
-	if ok && (strings.HasPrefix(name, "amp-") ||
-		strings.HasPrefix(name, "amp4ads-") ||
-		strings.HasPrefix(name, "dc.") ||
-		strings.HasPrefix(name, "i-amphtml-") ||
-		strings.HasPrefix(name, "twitter:") ||
-		name == "apple-itunes-app" ||
-		name == "copyright" ||
-		name == "referrer" ||
-		name == "viewport") {
-		return false
+	if v, ok := htmlnode.GetAttributeVal(n, "name"); ok {
+		v = strings.ToLower(v)
+		if strings.HasPrefix(v, "amp-") ||
+			strings.HasPrefix(v, "amp4ads-") ||
+			strings.HasPrefix(v, "dc.") ||
+			strings.HasPrefix(v, "i-amphtml-") ||
+			strings.HasPrefix(v, "twitter:") ||
+			v == "apple-itunes-app" ||
+			v == "copyright" ||
+			v == "referrer" ||
+			v == "viewport" {
+			return false
+		}
 	}
 
 	// Keep <meta property=...> tags if property:
 	//   (1) Has prefix "al:"
 	//   (2) Has prefix "fb:"
 	//   (3) Has prefix "og:"
-	property, ok := htmlnode.GetAttributeVal(n, "property")
-	property = strings.ToLower(property)
-	if ok && (strings.HasPrefix(property, "al:") ||
-		strings.HasPrefix(property, "fb:") ||
-		strings.HasPrefix(property, "og:")) {
-		return false
+	if v, ok := htmlnode.GetAttributeVal(n, "property"); ok {
+		v = strings.ToLower(v)
+		if strings.HasPrefix(v, "al:") ||
+			strings.HasPrefix(v, "fb:") ||
+			strings.HasPrefix(v, "og:") {
+			return false
+		}
 	}
 
 	// Keep <meta itemprop> when name attribute is not present.
