@@ -28,7 +28,7 @@ import (
 	"log"
 	"os"
 
-	rpb "github.com/ampproject/amppackager/pkg/transform
+	rpb "github.com/ampproject/amppackager/pkg/transform/request
 	t "github.com/ampproject/amppackager/pkg/transform"
 )
 

@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/ampproject/amppackager/pkg/printer"
-	rpb "github.com/ampproject/amppackager/pkg/transform
+	rpb "github.com/ampproject/amppackager/pkg/transform/request
 	"github.com/ampproject/amppackager/pkg/transformer"
 	"golang.org/x/net/html"
 )
