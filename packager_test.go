@@ -17,6 +17,7 @@ package amppackager
 import (
 	"bytes"
 	"encoding/binary"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -30,6 +31,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -70,7 +72,11 @@ func replacingFakeHandler(newFake func(w http.ResponseWriter, req *http.Request)
 }
 
 func newPackager(t *testing.T, urlSets []URLSet) *Packager {
-	handler, err := NewPackager(cert, key, "https://example.com/", urlSets)
+	return newPackagerShouldPackage(t, urlSets, true)
+}
+
+func newPackagerShouldPackage(t *testing.T, urlSets []URLSet, shouldPackage bool) *Packager {
+	handler, err := NewPackager(certs[0], key, "https://example.com/", urlSets, func() bool { return shouldPackage })
 	if err != nil {
 		t.Fatal(errors.WithStack(err))
 	}
@@ -108,19 +114,18 @@ func (this *PackagerTestSuite) TestSimple() {
 	assert.Equal(this.T(), http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
-	if assert.NoError(this.T(), err) {
-		assert.Equal(this.T(), "/amp/secret-life-of-pine-trees.html", lastRequestURL)
-		assert.Equal(this.T(), signURL(httpURL).String(), exchange.RequestURI.String())
-		assert.Equal(this.T(), http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
-		assert.Equal(this.T(), 200, exchange.ResponseStatus)
-		assert.Equal(this.T(), []string{"content-encoding", "content-length", "content-type", "date", "mi-draft2"}, headerNames(exchange.ResponseHeaders))
-		// The response header values are untested here, as that is covered by signedexchange tests.
+	require.NoError(this.T(), err)
+	assert.Equal(this.T(), "/amp/secret-life-of-pine-trees.html", lastRequestURL)
+	assert.Equal(this.T(), signURL(httpURL).String(), exchange.RequestURI.String())
+	assert.Equal(this.T(), http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
+	assert.Equal(this.T(), 200, exchange.ResponseStatus)
+	assert.Equal(this.T(), []string{"content-encoding", "content-length", "content-type", "date", "mi-draft2"}, headerNames(exchange.ResponseHeaders))
+	// The response header values are untested here, as that is covered by signedexchange tests.
 
-		// For small enough bodies, the only thing that MICE does is add a record size prefix.
-		var payloadPrefix bytes.Buffer
-		binary.Write(&payloadPrefix, binary.BigEndian, uint64(miRecordSize))
-		assert.Equal(this.T(), append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)
-	}
+	// For small enough bodies, the only thing that MICE does is add a record size prefix.
+	var payloadPrefix bytes.Buffer
+	binary.Write(&payloadPrefix, binary.BigEndian, uint64(miRecordSize))
+	assert.Equal(this.T(), append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)
 }
 
 func (this *PackagerTestSuite) TestNoFetchParam() {
@@ -131,10 +136,9 @@ func (this *PackagerTestSuite) TestNoFetchParam() {
 	assert.Equal(this.T(), http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
-	if assert.NoError(this.T(), err) {
-		assert.Equal(this.T(), "/amp/secret-life-of-pine-trees.html", lastRequestURL)
-		assert.Equal(this.T(), signURL(httpsURL).String(), exchange.RequestURI.String())
-	}
+	require.NoError(this.T(), err)
+	assert.Equal(this.T(), "/amp/secret-life-of-pine-trees.html", lastRequestURL)
+	assert.Equal(this.T(), signURL(httpsURL).String(), exchange.RequestURI.String())
 }
 
 func (this *PackagerTestSuite) TestSignAsPathParam() {
@@ -145,7 +149,7 @@ func (this *PackagerTestSuite) TestSignAsPathParam() {
 	assert.Equal(this.T(), http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
-	assert.NoError(this.T(), err)
+	require.NoError(this.T(), err)
 	assert.Equal(this.T(), "/amp/secret-life-of-pine-trees.html", lastRequestURL)
 	assert.Equal(this.T(), signURL(httpsURL).String(), exchange.RequestURI.String())
 }
@@ -194,6 +198,17 @@ func (this *PackagerTestSuite) TestNotModifiedIsProxiedUnsigned() {
 	})
 }
 
+func (this *PackagerTestSuite) TestProxyUnsignedIfShouldntPackage() {
+	urlSets := []URLSet{URLSet{
+		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	}}
+	resp := get(this.T(), newPackagerShouldPackage(this.T(), urlSets, false), "/priv/doc?sign="+signURL(httpsURL).String())
+	assert.Equal(this.T(), http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(this.T(), err)
+	assert.Equal(this.T(), fakeBody, body, "incorrect body: %#v", resp)
+}
+
 func (this *PackagerTestSuite) SetupSuite() {
 	// Mock out example.com endpoint.
 	this.httpServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -220,7 +235,7 @@ func (this *PackagerTestSuite) TearDownSuite() {
 	this.tlsServer.Close()
 }
 
-func TestSuite(t *testing.T) {
+func TestPackagerSuite(t *testing.T) {
 	suite.Run(t, new(PackagerTestSuite))
 }
 

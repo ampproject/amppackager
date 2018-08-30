@@ -15,6 +15,8 @@
 package amppackager
 
 import (
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -28,6 +30,7 @@ type Config struct {
 	PackagerBase string // The base URL under which /amppkg/ URLs will be served on the internet.
 	CertFile     string // This must be the full certificate chain.
 	KeyFile      string // Just for the first cert, obviously.
+	OCSPCache    string
 	URLSet       []URLSet
 }
 
@@ -160,6 +163,13 @@ func ReadConfig(configPath string) (*Config, error) {
 	if config.KeyFile == "" {
 		return nil, errors.New("must specify KeyFile")
 	}
+	if config.OCSPCache == "" {
+		return nil, errors.New("must specify OCSPCache")
+	}
+	if stat, err := os.Stat(filepath.Base(config.OCSPCache)); os.IsNotExist(err) || !stat.Mode().IsDir() {
+		return nil, errors.New("OCSPCache parent directory must exist")
+	}
+	// TODO(twifkak): Verify OCSPCache is writable by the current user.
 	if len(config.URLSet) == 0 {
 		return nil, errors.New("must specify one or more [[URLSet]]")
 	}

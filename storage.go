@@ -9,16 +9,14 @@ import (
 )
 
 // This is an abstraction over a single file on a remote storage mechanism. It
-// is meant for use-cases where there will be mostly reads. The occasional
-// write will be associated with an expensive computation, and thus it should
-// be coordinated among all replicas and only done once.
-//
-// Therefore, the semantics is that TODO Finish this sentence. atomic write, something about locking
+// is meant for use-cases where there will be mostly reads. The update callback
+// is assumed to be expensive, and thus it should be coordinated among all
+// replicas and only done once.
 type Updateable interface {
 	// Reads the contents of the file. Calls isExpired(contents); if true,
 	// then it calls update() and writes the returned contents back to the
 	// file.
-	Read(ctx context.Context, isExpired func([]byte) bool, update func() []byte) ([]byte, error)
+	Read(ctx context.Context, isExpired func([]byte) bool, update func([]byte) []byte) ([]byte, error)
 }
 
 // Uses the OS's file locking mechanisms to obtain shared/exclusive locks to
@@ -41,11 +39,6 @@ type LocalFile struct {
 	path string
 }
 
-func isDone(ctx context.Context) bool {
-	_, ok := <-ctx.Done()
-	return !ok
-}
-
 func (this LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, update func([]byte) []byte) ([]byte, error) {
 	lock := flock.NewFlock(this.path)
 	locked, err := lock.TryRLock()
@@ -59,26 +52,29 @@ func (this LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, upd
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading %s", this.path)
 	}
-	if isDone(ctx) {
+	select {
+	case <-ctx.Done():
 		return nil, errors.Wrapf(ctx.Err(), "while reading %s", this.path)
-	}
-	if !isExpired(contents) {
+	default:
+		if !isExpired(contents) {
+			return contents, nil
+		}
+		// Upgrade to a write-lock. It seems this may or may not be atomic, depending on the system.
+		locked, err = lock.TryLock()
+		if !locked {
+			return nil, errors.Errorf("unable to obtain exclusive lock for %s", this.path)
+		}
+		if err != nil {
+			return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", this.path)
+		}
+		contents = update(contents)
+		// TODO(twifkak): Should I write to a tempfile in the same dir and move into place, instead?
+		if err = ioutil.WriteFile(this.path, contents, 0700); err != nil {
+			return nil, errors.Wrapf(err, "writing %s", this.path)
+		}
+		if err = lock.Unlock(); err != nil {
+			return nil, errors.Wrapf(err, "unlocking %s", this.path)
+		}
 		return contents, nil
 	}
-	locked, err = lock.TryLock()
-	if !locked {
-		return nil, errors.Errorf("unable to obtain exclusive lock for %s", this.path)
-	}
-	if err != nil {
-		return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", this.path)
-	}
-	contents = update(contents)
-	err = ioutil.WriteFile(this.path, contents, 0700)
-	if err != nil {
-		return nil, errors.Wrapf(err, "writing %s", this.path)
-	}
-	if err = lock.Unlock(); err != nil {
-		return nil, errors.Wrapf(err, "unlocking %s", this.path)
-	}
-	return contents, nil
 }
