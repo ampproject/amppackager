@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package amp.transform;
 
+option go_package = "github.com/ampproject/amppackager/pkg/transform/request";
+
 // A Request encapsulates input and contextual parameters for use by the
 // local transformation library.
 message Request {

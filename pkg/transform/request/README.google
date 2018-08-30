@@ -1,0 +1,11 @@
+Opensource Go dependency management does not automatically compile
+proto dependencies during 'go install', so providing the pre-compiled
+proto is a convenience.
+
+TODO(b/113581454): Copybara does not support a protoc hook.
+
+Therefore, the compiled proto is checked into Piper for the sole
+purpose of syncing out to GitHub.
+
+For google3 users, DO NOT IMPORT/RELY on this compiled proto! Use the
+standard blaze dependency management.
