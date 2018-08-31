@@ -50,15 +50,15 @@ const maxOCSPResponseBytes = 1024 * 1024
 const ocspCheckInterval = 1 * time.Hour
 
 var fakeOCSPServer string
+var fakeOCSPExpiry *time.Time
 
 type CertCache struct {
 	// TODO(twifkak): Support multiple cert chains (for different domains, for different roots).
 	certName string
 	certs    []*x509.Certificate
-	// Lock for upgrading a read-lock to a write-lock atomically, to ensure
-	// transactional semantics. (This isn't strictly necessary currently,
-	// given the updater runs in a single goroutine.)
-	// TODO(twifkak): Does this really work?
+	// Lock for upgrading a read-lock to a write-lock atomically. This ensures
+	// in-process transactional semantics. (This isn't strictly necessary
+	// currently, given the updater runs in a single goroutine.)
 	// TODO(twifkak): Extract an ocsp struct and a transactional in-memory thingie.
 	ocspMuMu        sync.Mutex
 	ocspMu          sync.RWMutex // Lock over ocsp and ocspUpdateAfter.
@@ -77,6 +77,7 @@ func NewCertCache(certs []*x509.Certificate, ocspCache string, stop chan struct{
 	this.ocspFile = LocalFile{path: ocspCache}
 	this.client = http.Client{Timeout: 60 * time.Second}
 	// Prime the OCSP disk and memory cache, so we can start serving immediately.
+	this.ocspUpdateAfter = infiniteFuture // Default, in case initial maybeUpdateOCSP successfully loads from disk.
 	err := this.maybeUpdateOCSP()
 	if err != nil {
 		return nil, errors.Wrap(err, "initializing CertCache")
@@ -96,8 +97,8 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
 		// TODO(twifkak): Specify real SCT blob.
 		this.ocspMu.RLock()
-		defer this.ocspMu.RUnlock()
 		cbor, err := certurl.CreateCertChainCBOR(this.certs, this.ocsp, []byte{})
+		this.ocspMu.RUnlock()
 		if err != nil {
 			NewHTTPError(http.StatusInternalServerError, "Error build cert chain: ", err).LogAndRespond(resp)
 			return
@@ -162,7 +163,11 @@ func (this *CertCache) maybeUpdateOCSP() error {
 	this.ocspMu.Lock()
 	this.ocspMuMu.Unlock()
 	this.ocsp = ocsp
-	this.ocspUpdateAfter = ocspUpdateAfter
+	if !ocspUpdateAfter.Equal(time.Time{}) {
+		// updateOCSP was called, and therefore a new HTTP cache expiry was set.
+		// TODO(twifkak): Write this to disk, so any replica can pick it up.
+		this.ocspUpdateAfter = ocspUpdateAfter
+	}
 	this.ocspMu.Unlock()
 	return nil
 }
@@ -190,7 +195,8 @@ func (this *CertCache) maintainOCSP(stop chan struct{}) {
 
 func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 	if len(bytes) == 0 {
-		// No OCSP exists yet.
+		// TODO(twifkak): Use a logging framework with support for debug-only statements.
+		log.Println("Updating OCSP; none cached yet.")
 		return true
 	}
 	issuer := this.findIssuer()
@@ -207,6 +213,8 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 	// sleevi #3:
 	midpoint := resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate)/2)
 	if time.Now().After(midpoint) {
+		// TODO(twifkak): Use a logging framework with support for debug-only statements.
+		log.Println("Updating OCSP; after midpoint: ", midpoint)
 		return true
 	}
 	// Allow cache-control headers to indicate an earlier update time, per
@@ -214,6 +222,8 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 	this.ocspMu.RLock()
 	defer this.ocspMu.RUnlock()
 	if time.Now().After(this.ocspUpdateAfter) {
+		// TODO(twifkak): Use a logging framework with support for debug-only statements.
+		log.Println("Updating OCSP; expired by HTTP cache headers: ", this.ocspUpdateAfter)
 		return true
 	}
 	return false
@@ -304,11 +314,15 @@ func (this *CertCache) updateOCSP(orig []byte, ocspUpdateAfter *time.Time) []byt
 	// If cache-control headers indicate a response that is not ever
 	// cacheable, then ignore them. Otherwise, allow them to indicate an
 	// expiry earlier than we'd usually follow.
-	reasons, expiry, err := cachecontrol.CachableResponse(httpReq, httpResp, cachecontrol.Options{PrivateCache: true})
-	if len(reasons) > 0 || err != nil {
-		*ocspUpdateAfter = infiniteFuture
+	if fakeOCSPExpiry != nil {
+		*ocspUpdateAfter = *fakeOCSPExpiry
 	} else {
-		*ocspUpdateAfter = expiry
+		reasons, expiry, err := cachecontrol.CachableResponse(httpReq, httpResp, cachecontrol.Options{PrivateCache: true})
+		if len(reasons) > 0 || err != nil {
+			*ocspUpdateAfter = infiniteFuture
+		} else {
+			*ocspUpdateAfter = expiry
+		}
 	}
 
 	respBytes, err := ioutil.ReadAll(io.LimitReader(httpResp.Body, 1024*1024))

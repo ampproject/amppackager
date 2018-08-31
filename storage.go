@@ -60,6 +60,7 @@ func (this LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, upd
 			return contents, nil
 		}
 		// Upgrade to a write-lock. It seems this may or may not be atomic, depending on the system.
+		// TODO(twifkak): Consider locking over a ".write" sentinel file to assure atomicity, the same as CertCache.ocspMuMu.
 		locked, err = lock.TryLock()
 		if !locked {
 			return nil, errors.Errorf("unable to obtain exclusive lock for %s", this.path)

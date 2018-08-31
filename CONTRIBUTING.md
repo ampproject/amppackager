@@ -32,4 +32,6 @@ Guidelines](https://opensource.google.com/conduct/).
 ## Running a development server
 
 Copy `amppkg.example.toml` to `amppkg.toml` and modify it to suit your needs.
-You may use `testdata/b1/server.{cert,privkey}` to get started.
+You may use `testdata/b1/server.{cert,privkey}` to get started. However, you are
+at your own risk if you instruct your browser to trust `server.cert`. *NEVER*
+instruct your browser to trust `ca.cert`.
