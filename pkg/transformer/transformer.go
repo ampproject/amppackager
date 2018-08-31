@@ -23,7 +23,7 @@ import (
 	"github.com/ampproject/amppackager/internal/pkg/amphtml"
 	"github.com/ampproject/amppackager/internal/pkg/htmlnode"
 	"github.com/ampproject/amppackager/pkg/printer"
-	rpb "github.com/ampproject/amppackager/pkg/transform/request
+	rpb "github.com/ampproject/amppackager/pkg/transform/request"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )

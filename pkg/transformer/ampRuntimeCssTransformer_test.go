@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	tt "github.com/ampproject/amppackager/internal/pkg/testing"
-	rpb "github.com/ampproject/amppackager/pkg/transform/request
+	rpb "github.com/ampproject/amppackager/pkg/transform/request"
 	"github.com/ampproject/amppackager/pkg/transformer"
 	"golang.org/x/net/html"
 )

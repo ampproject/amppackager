@@ -23,54 +23,41 @@ import (
 	"strings"
 
 	"github.com/ampproject/amppackager/pkg/printer"
-	rpb "github.com/ampproject/amppackager/pkg/transform/request
+	rpb "github.com/ampproject/amppackager/pkg/transform/request"
 	"github.com/ampproject/amppackager/pkg/transformer"
 	"golang.org/x/net/html"
 )
 
 // Transformer functions must be added here in order to be passed in from
 // the command line or invoked from other languages. Please keep alphabetical.
-// Case-insensitive lookup.
 //
-// NOTE: The string mapping is necessary as a language cross-over to
-// allow explicit transformer invocation (via the CUSTOM config).
+// NOTE: The string mapping is necessary as a cross-over to allow
+// invocation from C/C++.
 var transformerFunctionMap = map[string]func(*transformer.Engine){
-	"ampboilerplate":        transformer.AMPBoilerplateTransformer,
-	"ampruntimecss":         transformer.AMPRuntimeCSSTransformer,
-	"linktag":               transformer.LinkTagTransformer,
-	"metatag":               transformer.MetaTagTransformer,
-	"reorderhead":           transformer.ReorderHeadTransformer,
-	"serversiderendering":   transformer.ServerSideRenderingTransformer,
-	"transformedidentifier": transformer.TransformedIdentifierTransformer,
-	"url":                   transformer.URLTransformer,
+	"AMPBoilerplateTransformer":        transformer.AMPBoilerplateTransformer,
+	"AMPRuntimeCSSTransformer":         transformer.AMPRuntimeCSSTransformer,
+	"LinkTagTransformer":               transformer.LinkTagTransformer,
+	"MetaTagTransformer":               transformer.MetaTagTransformer,
+	"ReorderHeadTransformer":           transformer.ReorderHeadTransformer,
+	"ServerSideRenderingTransformer":   transformer.ServerSideRenderingTransformer,
+	"TransformedIdentifierTransformer": transformer.TransformedIdentifierTransformer,
+	"URLTransformer":                   transformer.URLTransformer,
 }
 
-// The map of config to the list of transformers, in the order in
-// which they should be executed.
-var configMap = map[rpb.Request_TransformersConfig][]func(*transformer.Engine){
-	rpb.Request_DEFAULT: {
-		transformer.MetaTagTransformer,
-		transformer.LinkTagTransformer,
-		transformer.URLTransformer,
-		transformer.AMPBoilerplateTransformer,
-		transformer.ServerSideRenderingTransformer,
-		// AmpRuntimeCssTransformer must run after ServerSideRenderingTransformer
-		transformer.AMPRuntimeCSSTransformer,
-		transformer.TransformedIdentifierTransformer,
-		// ReorderHeadTransformer should run after all transformers that modify the
-		// <head>, as they may do so without preserving the proper order.
-		transformer.ReorderHeadTransformer,
-	},
-	rpb.Request_NONE: {},
-	rpb.Request_VALIDATION: {
-		transformer.ReorderHeadTransformer,
-	},
-	rpb.Request_CUSTOM: {},
-}
-
-// Override for tests.
-var runTransform = func(e *transformer.Engine) {
-	e.Transform()
+// The default set of transformers to execute, in the order in which
+// to execute them.
+var defaultTransformers = []string{
+	"MetaTagTransformer",
+	"LinkTagTransformer",
+	"URLTransformer",
+	"AMPBoilerplateTransformer",
+	"ServerSideRenderingTransformer",
+	// AmpRuntimeCssTransformer must run after ServerSideRenderingTransformer
+	"AMPRuntimeCSSTransformer",
+	"TransformedIdentifierTransformer",
+	// ReorderHeadTransformer should run after all transformers that modify the
+	// <head>, as they may do so without preserving the proper order.
+	"ReorderHeadTransformer",
 }
 
 // Process will parse the given request, which contains the HTML to
@@ -83,22 +70,24 @@ func Process(r *rpb.Request) (string, error) {
 		return "", err
 	}
 
-	fns := configMap[r.Config]
-	if r.Config == rpb.Request_CUSTOM {
-		for _, val := range r.Transformers {
-			fn, ok := transformerFunctionMap[strings.ToLower(val)]
-			if !ok {
-				return "", fmt.Errorf("transformer doesn't exist: %s", val)
-			}
-			fns = append(fns, fn)
+	transformers := r.Transformers
+	if len(transformers) == 0 {
+		transformers = defaultTransformers
+	}
+	fns := []func(*transformer.Engine){}
+	for _, val := range transformers {
+		fn, ok := transformerFunctionMap[val]
+		if !ok {
+			return "", fmt.Errorf("transformer doesn't exist: %s", val)
 		}
+		fns = append(fns, fn)
 	}
 	u, err := url.Parse(r.DocumentUrl)
 	if err != nil {
 		return "", err
 	}
 	e := transformer.Engine{doc, u, fns, r}
-	runTransform(&e)
+	e.Transform()
 	var o strings.Builder
 	err = printer.Print(&o, e.Doc)
 	if err != nil {
