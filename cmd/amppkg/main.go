@@ -90,9 +90,8 @@ func main() {
 		die(errors.Wrap(err, "building validity map"))
 	}
 
-
-	certCache, err := amppkg.NewCertCache(certs, config.OCSPCache, nil)
-	if err != nil {
+	certCache := amppkg.NewCertCache(certs, config.OCSPCache)
+	if err = certCache.Init(nil); err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
 	packager, err := amppkg.NewPackager(certs[0], key, config.PackagerBase, config.URLSet, certCache.IsHealthy)

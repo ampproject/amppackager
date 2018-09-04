@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	// TODO(twifkak): Replace this with time.NewTicker.
 	"github.com/robfig/cron"
 )
 

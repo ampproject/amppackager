@@ -3,6 +3,7 @@ package amppackager
 import (
 	"context"
 	"io/ioutil"
+	"log"
 
 	"github.com/pkg/errors"
 	"github.com/theckman/go-flock"
@@ -39,15 +40,20 @@ type LocalFile struct {
 	path string
 }
 
-func (this LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, update func([]byte) []byte) ([]byte, error) {
+func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, update func([]byte) []byte) ([]byte, error) {
 	lock := flock.NewFlock(this.path)
 	locked, err := lock.TryRLock()
-	if !locked {
-		return nil, errors.Errorf("unable to obtain shared lock for %s", this.path)
-	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "obtaining shared lock for %s", this.path)
 	}
+	if !locked {
+		return nil, errors.Errorf("unable to obtain shared lock for %s", this.path)
+	}
+	defer func() {
+		if err = lock.Unlock(); err != nil {
+			log.Printf("Error unlocking %s; %+v", this.path, err)
+		}
+	}()
 	contents, err := ioutil.ReadFile(this.path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading %s", this.path)
@@ -60,21 +66,17 @@ func (this LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, upd
 			return contents, nil
 		}
 		// Upgrade to a write-lock. It seems this may or may not be atomic, depending on the system.
-		// TODO(twifkak): Consider locking over a ".write" sentinel file to assure atomicity, the same as CertCache.ocspMuMu.
 		locked, err = lock.TryLock()
-		if !locked {
-			return nil, errors.Errorf("unable to obtain exclusive lock for %s", this.path)
-		}
 		if err != nil {
 			return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", this.path)
+		}
+		if !locked {
+			return nil, errors.Errorf("unable to obtain exclusive lock for %s", this.path)
 		}
 		contents = update(contents)
 		// TODO(twifkak): Should I write to a tempfile in the same dir and move into place, instead?
 		if err = ioutil.WriteFile(this.path, contents, 0700); err != nil {
 			return nil, errors.Wrapf(err, "writing %s", this.path)
-		}
-		if err = lock.Unlock(); err != nil {
-			return nil, errors.Wrapf(err, "unlocking %s", this.path)
 		}
 		return contents, nil
 	}

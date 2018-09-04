@@ -49,17 +49,6 @@ var caKey = func() *rsa.PrivateKey {
 }()
 
 
-type CertCacheSuite struct {
-	suite.Suite
-	fakeOCSP   []byte
-	ocspServer *httptest.Server
-	ocspServerWasCalled bool
-	ocspHandler func(w http.ResponseWriter, req *http.Request)
-	tempDir string
-	stop    chan struct{}
-	handler *CertCache
-}
-
 func FakeOCSPResponse(thisUpdate time.Time) ([]byte, error) {
 	template := ocsp.Response{
 		Status: ocsp.Good,
@@ -72,17 +61,34 @@ func FakeOCSPResponse(thisUpdate time.Time) ([]byte, error) {
 	return ocsp.CreateResponse(caCert, caCert, template, caKey)
 }
 
+type CertCacheSuite struct {
+	suite.Suite
+	fakeOCSP   []byte
+	fakeOCSPExpiry *time.Time
+	ocspServer *httptest.Server  // "const", do not set
+	ocspServerWasCalled bool
+	ocspHandler func(w http.ResponseWriter, req *http.Request)
+	tempDir string
+	stop    chan struct{}
+	handler *CertCache
+}
+
+func (this *CertCacheSuite) NewCertCache() (*CertCache, error) {
+	// TODO(twifkak): Stop the old CertCache's goroutine.
+	certCache := NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"))
+	certCache.fakeOCSPServer = this.ocspServer.URL
+	certCache.fakeOCSPExpiry = this.fakeOCSPExpiry
+	err := certCache.Init(this.stop)
+	return certCache, err
+}
+
 func (this *CertCacheSuite) SetupSuite() {
 	this.ocspServer = httptest.NewServer(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		this.ocspHandler(resp, req)
 	}))
-
-	// Inject into certcache.go.
-	fakeOCSPServer = this.ocspServer.URL
 }
 
 func (this *CertCacheSuite) TearDownSuite() {
-	fakeOCSPServer = ""
 	this.ocspServer.Close()
 }
 
@@ -102,11 +108,15 @@ func (this *CertCacheSuite) SetupTest() {
 
 	this.stop = make(chan struct{})
 
-	this.handler, err = NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"), this.stop)
+	this.handler, err = this.NewCertCache()
 	this.Require().NoError(err, "instantiating CertCache")
 }
 
 func (this *CertCacheSuite) TearDownTest() {
+	// Reset any variables that may have been overridden in test and won't be rewritten in SetupTest.
+	this.fakeOCSPExpiry = nil
+
+	// Reverse SetupTest.
 	this.stop <- struct{}{}
 
 	err := os.RemoveAll(this.tempDir)
@@ -184,7 +194,7 @@ func (this *CertCacheSuite) TestOCSPCached() {
 
 	// Create a new handler, to see it populates the memory cache from disk, not network:
 	this.Assert().False(this.ocspServerCalled(func() {
-		_, err := NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"), this.stop)
+		_, err := this.NewCertCache()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
 }
@@ -196,7 +206,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
 	this.Require().NoError(err, "creating expired OCSP response")
 	this.Require().True(this.ocspServerCalled(func() {
-		this.handler, err = NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"), this.stop)
+		this.handler, err = this.NewCertCache()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
 
@@ -214,7 +224,7 @@ func (this *CertCacheSuite) TestOCSPUpdateFromDisk() {
 	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
 	this.Require().NoError(err, "creating stale OCSP response")
 	this.Require().True(this.ocspServerCalled(func() {
-		this.handler, err = NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"), this.stop)
+		this.handler, err = this.NewCertCache()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
 
@@ -235,12 +245,11 @@ func (this *CertCacheSuite) TestOCSPExpiredViaHTTPHeaders() {
 	// Prime memory and disk cache with a fresh OCSP but soon-to-expire HTTP headers:
 	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
 	this.Require().NoError(err, "deleting OCSP tempfile")
-	defer func() { fakeOCSPExpiry = nil }()
-	fakeOCSPExpiry = new(time.Time)
-	*fakeOCSPExpiry = time.Unix(0, 1)  // Infinite past. time.Time{} is used as a sentinel value to mean no update.
+	this.fakeOCSPExpiry = new(time.Time)
+	*this.fakeOCSPExpiry = time.Unix(0, 1)  // Infinite past. time.Time{} is used as a sentinel value to mean no update.
 	this.Require().True(this.ocspServerCalled(func() {
-		this.handler, err = NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"), this.stop)
-		this.Require().NoError(err, "reinstantiating CertCache")
+		this.handler, err = this.NewCertCache()
+		this.Require().NoError(err, "reinitializing CertCache")
 	}))
 	this.Require().Equal(time.Unix(0, 1), this.handler.ocspUpdateAfter)
 
@@ -259,7 +268,7 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 	this.Require().NoError(err, "creating stale OCSP response")
 	this.fakeOCSP = staleOCSP
 	this.Require().True(this.ocspServerCalled(func() {
-		this.handler, err = NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"), this.stop)
+		this.handler, err = this.NewCertCache()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
 
