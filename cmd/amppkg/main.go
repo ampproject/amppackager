@@ -106,7 +106,7 @@ func main() {
 	}
 
 	// Start the RTV polling cron
-	err := amppkg.StartCron()
+	err = amppkg.StartCron()
 	if err != nil {
 		die(errors.Wrap(err, "starting cron"))
 	}
