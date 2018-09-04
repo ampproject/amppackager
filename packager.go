@@ -91,7 +91,8 @@ const miRecordSize = 4096
 
 // Overrideable for testing.
 var getTransformerRequest = func(s, u string) *rpb.Request {
-	return &rpb.Request{Html: string(s), DocumentUrl: u}
+	r := &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: RTVCache.RTV, Css: RTVCache.CSS}
+	return r
 }
 
 func parseURL(rawURL string, name string) (*url.URL, *HTTPError) {

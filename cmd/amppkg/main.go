@@ -106,7 +106,10 @@ func main() {
 	}
 
 	// Start the RTV polling cron
-	amppkg.StartCron()
+	err := amppkg.StartCron()
+	if err != nil {
+		die(errors.Wrap(err, "starting cron"))
+	}
 	defer amppkg.StopCron()
 
 	// TODO(twifkak): Make log output configurable.
