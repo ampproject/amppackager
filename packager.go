@@ -388,7 +388,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		return
 	}
 
-	// transform
+	// Perform local transformations.
 	r := getTransformerRequest(string(fetchBody), signURL.String())
 	transformed, err := transform.Process(r)
 	if err != nil {
