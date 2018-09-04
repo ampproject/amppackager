@@ -3,7 +3,7 @@ package transform
 import (
 	"testing"
 
-	rpb "github.com/ampproject/amppackager/pkg/transform/request
+	rpb "github.com/ampproject/amppackager/pkg/transform/request"
 	"github.com/ampproject/amppackager/pkg/transformer"
 )
 
