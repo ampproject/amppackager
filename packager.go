@@ -25,9 +25,12 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/ampproject/amppackager/pkg/transform"
+	rpb "github.com/ampproject/amppackager/pkg/transform/request"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/pquerna/cachecontrol"
@@ -85,6 +88,11 @@ const maxBodyLength = 4 * 1 << 20
 
 // TODO(twifkak): What value should this be?
 const miRecordSize = 4096
+
+// Overrideable for testing.
+var getTransformerRequest = func(s, u string) *rpb.Request {
+	return &rpb.Request{Html: string(s), DocumentUrl: u}
+}
 
 func parseURL(rawURL string, name string) (*url.URL, *HTTPError) {
 	if rawURL == "" {
@@ -380,7 +388,16 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		return
 	}
 
-	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, fetchBody)
+	// transform
+	r := getTransformerRequest(string(fetchBody), signURL.String())
+	transformed, err := transform.Process(r)
+	if err != nil {
+		NewHTTPError(http.StatusInternalServerError, "Error transforming: ", err).LogAndRespond(resp)
+		return
+	}
+	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
+
+	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
 		return

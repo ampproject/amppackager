@@ -26,6 +26,7 @@ import (
 	"testing"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	rpb "github.com/ampproject/amppackager/pkg/transform/request"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -36,6 +37,7 @@ var httpURL, httpsURL string
 var httpsClient *http.Client
 
 var fakeBody = []byte("They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
+var transformedBody = []byte("<html><head></head><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)</body></html>")
 var lastRequestURL string
 
 // Don't override this manually; use replacingFakeHandler() instead.
@@ -117,7 +119,7 @@ func (this *PackagerTestSuite) TestSimple() {
 		// For small enough bodies, the only thing that MICE does is add a record size prefix.
 		var payloadPrefix bytes.Buffer
 		binary.Write(&payloadPrefix, binary.BigEndian, uint64(miRecordSize))
-		assert.Equal(this.T(), append(payloadPrefix.Bytes(), fakeBody...), exchange.Payload)
+		assert.Equal(this.T(), append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)
 	}
 }
 
@@ -206,6 +208,11 @@ func (this *PackagerTestSuite) SetupSuite() {
 	httpsClient = this.tlsServer.Client()
 	// Configure the test httpsClient to have the same redirect policy as production.
 	httpsClient.CheckRedirect = noRedirects
+
+	// Don't actually do any transforms. Only parse & print.
+	getTransformerRequest = func(s, u string) *rpb.Request {
+		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_NONE}
+	}
 }
 
 func (this *PackagerTestSuite) TearDownSuite() {
