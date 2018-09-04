@@ -71,5 +71,5 @@ cat /path/to/input.html | $GOPATH/bin/transform
 	r := &rpb.Request{Html: string(data), DocumentUrl: *documentURLFlag}
 	o, err := t.Process(r)
 	checkErr(err)
-	fmt.Print(o)
+	fmt.Println(o)
 }
