@@ -170,15 +170,8 @@ func renderElementNode(w writer, n *html.Node) error {
 	if _, err := w.WriteString(strings.ToLower(n.Data)); err != nil {
 		return err
 	}
-	if err := w.WriteByte('>'); err != nil {
-		return err
-	}
-
-	// If this is the closing </html> tag, output a final newline.
-	if n.Data == "html" {
-		return w.WriteByte('\n')
-	}
-	return nil
+	err := w.WriteByte('>')
+	return err
 }
 
 func renderElementAttr(w writer, a html.Attribute) error {
