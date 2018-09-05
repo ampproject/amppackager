@@ -76,8 +76,17 @@ type CertCacheSuite struct {
 func (this *CertCacheSuite) NewCertCache() (*CertCache, error) {
 	// TODO(twifkak): Stop the old CertCache's goroutine.
 	certCache := NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"))
-	certCache.fakeOCSPServer = this.ocspServer.URL
-	certCache.fakeOCSPExpiry = this.fakeOCSPExpiry
+	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
+		return this.ocspServer.URL, nil
+	}
+	defaultHttpExpiry := certCache.httpExpiry
+	certCache.httpExpiry = func(req *http.Request, resp *http.Response) time.Time {
+		if this.fakeOCSPExpiry != nil {
+			return *this.fakeOCSPExpiry
+		} else {
+			return defaultHttpExpiry(req, resp)
+		}
+	}
 	err := certCache.Init(this.stop)
 	return certCache, err
 }

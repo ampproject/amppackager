@@ -59,31 +59,46 @@ type CertCache struct {
 	ocspFile Updateable
 	client   http.Client
 
-	// Fakes exposed for testing. Should be zero in production.
-	fakeOCSPServer string
-	fakeOCSPExpiry *time.Time
+	// "Virtual methods", exposed for testing.
+	// Given a certificate, returns the OCSP responder URL for that cert.
+	extractOCSPServer func(*x509.Certificate) (string, error)
+	// Given an HTTP request/response, returns its cache expiry.
+	httpExpiry func(*http.Request, *http.Response) time.Time
 }
 
 // Must call Init() on the returned CertCache before you can use it.
 func NewCertCache(certs []*x509.Certificate, ocspCache string) *CertCache {
-	this := new(CertCache)
-	this.certName = CertName(certs[0])
-	this.certs = certs
-	this.ocspUpdateAfterMu.Lock()
-	defer this.ocspUpdateAfterMu.Unlock()
-	this.ocspUpdateAfter = infiniteFuture // Default, in case initial readOCSP successfully loads from disk.
-	// Distributed OCSP cache to support the following sleevi requirements:
-	// 1. Support for keeping a long-lived (disk) cache of OCSP responses.
-	//    This should be fairly simple. Any restarting of the service
-	//    shouldn't blow away previous responses that were obtained.
-	// 6. Distributed or proxiable fetching
-	//    ... there may be thousands of FE servers, all with the same
-	//    certificate, all needing to staple an OCSP response. You don't
-	//    want to have all of them hammering the OCSP server - ideally,
-	//    you'd have one request, in the backend, and updating them all.
-	this.ocspFile = &Chained{first:&InMemory{}, second:&LocalFile{path: ocspCache}}
-	this.client = http.Client{Timeout: 60 * time.Second}
-	return this
+	return &CertCache{
+		certName: CertName(certs[0]),
+		certs: certs,
+		ocspUpdateAfter: infiniteFuture, // Default, in case initial readOCSP successfully loads from disk.
+		// Distributed OCSP cache to support the following sleevi requirements:
+		// 1. Support for keeping a long-lived (disk) cache of OCSP responses.
+		//    This should be fairly simple. Any restarting of the service
+		//    shouldn't blow away previous responses that were obtained.
+		// 6. Distributed or proxiable fetching
+		//    ... there may be thousands of FE servers, all with the same
+		//    certificate, all needing to staple an OCSP response. You don't
+		//    want to have all of them hammering the OCSP server - ideally,
+		//    you'd have one request, in the backend, and updating them all.
+		ocspFile: &Chained{first:&InMemory{}, second:&LocalFile{path: ocspCache}},
+		client: http.Client{Timeout: 60 * time.Second},
+		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
+			if len(cert.OCSPServer) < 1 {
+				return "", errors.New("Cert missing OCSPServer.")
+			}
+			// This is a URI, per https://tools.ietf.org/html/rfc5280#section-4.2.2.1.
+			return cert.OCSPServer[0], nil
+		},
+		httpExpiry: func(req *http.Request, resp *http.Response) time.Time {
+			reasons, expiry, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: true})
+			if len(reasons) > 0 || err != nil {
+				return infiniteFuture
+			} else {
+				return expiry
+			}
+		},
+	}
 }
 
 func (this *CertCache) Init(stop chan struct{}) error {
@@ -301,16 +316,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 		return orig
 	}
 
-	var ocspServer string
-	if this.fakeOCSPServer != "" {
-		ocspServer = this.fakeOCSPServer
-	} else if len(this.certs[0].OCSPServer) < 1 {
-		log.Println("Cert missing OCSPServer.")
-		return orig
-	} else {
-		// This is a URI, per https://tools.ietf.org/html/rfc5280#section-4.2.2.1.
-		ocspServer = this.certs[0].OCSPServer[0]
-	}
+	ocspServer, err := this.extractOCSPServer(this.certs[0])
 
 	// Conform to the Lightweight OCSP Profile, by preferring GET over POST
 	// if the request is small enough (sleevi #4, see above).
@@ -348,16 +354,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// If cache-control headers indicate a response that is not ever
 	// cacheable, then ignore them. Otherwise, allow them to indicate an
 	// expiry earlier than we'd usually follow.
-	if this.fakeOCSPExpiry != nil {
-		*ocspUpdateAfter = *this.fakeOCSPExpiry
-	} else {
-		reasons, expiry, err := cachecontrol.CachableResponse(httpReq, httpResp, cachecontrol.Options{PrivateCache: true})
-		if len(reasons) > 0 || err != nil {
-			*ocspUpdateAfter = infiniteFuture
-		} else {
-			*ocspUpdateAfter = expiry
-		}
-	}
+	*ocspUpdateAfter = this.httpExpiry(httpReq, httpResp)
 
 	respBytes, err := ioutil.ReadAll(io.LimitReader(httpResp.Body, 1024*1024))
 	if err != nil {
