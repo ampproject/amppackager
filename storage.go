@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/theckman/go-flock"
@@ -54,6 +55,10 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 			log.Printf("Error unlocking %s; %+v", this.path, err)
 		}
 	}()
+	// At first glance, this looks like "broken" double-checked locking, as in
+	// http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html.
+	// However, the difference is that a read lock is established first, so
+	// that this shouldn't be looking at a partially-written file.
 	contents, err := ioutil.ReadFile(this.path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading %s", this.path)
@@ -73,6 +78,16 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 		if !locked {
 			return nil, errors.Errorf("unable to obtain exclusive lock for %s", this.path)
 		}
+		// Reread the file while in write-lock, to make the
+		// read-modify-write atomic, and thus reduce the chance of
+		// multiple calls to update() in parallel.
+		contents, err := ioutil.ReadFile(this.path)
+		if err != nil {
+			return nil, errors.Wrapf(err, "rereading %s", this.path)
+		}
+		if !isExpired(contents) {
+			return contents, nil
+		}
 		contents = update(contents)
 		// TODO(twifkak): Should I write to a tempfile in the same dir and move into place, instead?
 		if err = ioutil.WriteFile(this.path, contents, 0700); err != nil {
@@ -80,4 +95,48 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 		}
 		return contents, nil
 	}
+}
+
+// Represents an in-memory copy of a file.
+type InMemory struct {
+	mu sync.RWMutex
+	contents []byte
+}
+
+func (this *InMemory) read() []byte {
+	this.mu.RLock()
+	defer this.mu.RUnlock()
+	return this.contents
+}
+
+func (this *InMemory) Read(ctx context.Context, isExpired func([]byte) bool, update func([]byte) []byte) ([]byte, error) {
+	contents := this.read()
+	// The note above about double-checked locking applies here.
+	if !isExpired(contents) {
+		return contents, nil
+	}
+	this.mu.Lock()
+	defer this.mu.Unlock()
+	if !isExpired(this.contents) {
+		return this.contents, nil
+	}
+	this.contents = update(this.contents)
+	return this.contents, nil
+}
+
+// Represents a file backed by two updateables. If the first is expired, then
+// the second is consulted, and only if both are expired is update() run (and
+// the contents of both updateables updated).
+type Chained struct {
+	first, second Updateable
+}
+
+func (this *Chained) Read(ctx context.Context, isExpired func([]byte) bool, update func([]byte) []byte) ([]byte, error) {
+	return this.first.Read(ctx, isExpired, func([]byte) []byte {
+		contents, err := this.second.Read(ctx, isExpired, update)
+		if err != nil {
+			return nil
+		}
+		return contents
+	})
 }

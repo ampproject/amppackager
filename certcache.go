@@ -53,13 +53,7 @@ type CertCache struct {
 	// TODO(twifkak): Support multiple cert chains (for different domains, for different roots).
 	certName string
 	certs    []*x509.Certificate
-	// TODO(twifkak): Extract an ocsp struct and a transactional in-memory thingie.
-	// A lock over ocsp and ocspUpdateAfter. This is not technically
-	// transactional (since the upgrade from read lock to write lock is
-	// non-atomic), but good enough, given that the write only happens once
-	// an hour at most.
-	ocspMu          sync.RWMutex
-	ocsp            []byte
+	ocspUpdateAfterMu sync.RWMutex
 	ocspUpdateAfter time.Time
 	// TODO(twifkak): Implement a registry of Updateable instances which can be configured in the toml.
 	ocspFile Updateable
@@ -75,6 +69,9 @@ func NewCertCache(certs []*x509.Certificate, ocspCache string) *CertCache {
 	this := new(CertCache)
 	this.certName = CertName(certs[0])
 	this.certs = certs
+	this.ocspUpdateAfterMu.Lock()
+	defer this.ocspUpdateAfterMu.Unlock()
+	this.ocspUpdateAfter = infiniteFuture // Default, in case initial readOCSP successfully loads from disk.
 	// Distributed OCSP cache to support the following sleevi requirements:
 	// 1. Support for keeping a long-lived (disk) cache of OCSP responses.
 	//    This should be fairly simple. Any restarting of the service
@@ -84,15 +81,14 @@ func NewCertCache(certs []*x509.Certificate, ocspCache string) *CertCache {
 	//    certificate, all needing to staple an OCSP response. You don't
 	//    want to have all of them hammering the OCSP server - ideally,
 	//    you'd have one request, in the backend, and updating them all.
-	this.ocspFile = &LocalFile{path: ocspCache}
+	this.ocspFile = &Chained{first:&InMemory{}, second:&LocalFile{path: ocspCache}}
 	this.client = http.Client{Timeout: 60 * time.Second}
 	return this
 }
 
 func (this *CertCache) Init(stop chan struct{}) error {
 	// Prime the OCSP disk and memory cache, so we can start serving immediately.
-	this.ocspUpdateAfter = infiniteFuture // Default, in case initial maybeUpdateOCSP successfully loads from disk.
-	err := this.maybeUpdateOCSP()
+	_, _, err := this.readOCSP()
 	if err != nil {
 		return errors.Wrap(err, "initializing CertCache")
 	}
@@ -109,9 +105,12 @@ func (this *CertCache) Init(stop chan struct{}) error {
 }
 
 func (this *CertCache) CreateCertChainCBOR() ([]byte, error) {
-	this.ocspMu.RLock()
-	defer this.ocspMu.RUnlock()
-	return certurl.CreateCertChainCBOR(this.certs, this.ocsp, []byte{})
+	ocsp, _, err := this.readOCSP()
+	if err != nil {
+		return nil, errors.Wrap(err, "creating cert-chain+cbor")
+	}
+	// TODO(twifkak): Specify real SCT blob.
+	return certurl.CreateCertChainCBOR(this.certs, ocsp, []byte{})
 }
 
 func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
@@ -122,7 +121,6 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 		resp.Header().Set("Content-Type", "application/tls-certificate-chain")
 		resp.Header().Set("Cache-Control", "public, max-age=604800")
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
-		// TODO(twifkak): Specify real SCT blob.
 		cbor, err := this.CreateCertChainCBOR()
 		if err != nil {
 			NewHTTPError(http.StatusInternalServerError, "Error build cert chain: ", err).LogAndRespond(resp)
@@ -143,9 +141,8 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 //    What happens when it's been 7 days, no new OCSP response can be obtained,
 //    and the current response is about to expire?
 func (this *CertCache) IsHealthy() bool {
-	this.ocspMu.RLock()
-	defer this.ocspMu.RUnlock()
-	return this.isHealthy(this.ocsp)
+	ocsp, _, err := this.readOCSP()
+	return err != nil || this.isHealthy(ocsp)
 }
 
 func (this *CertCache) isHealthy(ocspResp []byte) bool {
@@ -170,12 +167,11 @@ func (this *CertCache) isHealthy(ocspResp []byte) bool {
 	return true
 }
 
+// Returns the OCSP response and expiry, refreshing if necessary.
 func (this *CertCache) readOCSP() ([]byte, time.Time, error) {
-	this.ocspMu.RLock()
-	defer this.ocspMu.RUnlock()
 	var ocspUpdateAfter time.Time
 	ocsp, err := this.ocspFile.Read(context.Background(), this.shouldUpdateOCSP, func(orig []byte) []byte {
-		return this.updateOCSP(orig, &ocspUpdateAfter)
+		return this.fetchOCSP(orig, &ocspUpdateAfter)
 	})
 	if err != nil {
 		return nil, time.Time{}, errors.Wrap(err, "Updating OCSP cache")
@@ -186,24 +182,14 @@ func (this *CertCache) readOCSP() ([]byte, time.Time, error) {
 	if !this.isHealthy(ocsp) {
 		return nil, time.Time{}, errors.New("OCSP failed health check.")
 	}
-	return ocsp, ocspUpdateAfter, nil
-}
-
-func (this *CertCache) maybeUpdateOCSP() error {
-	ocsp, ocspUpdateAfter, err := this.readOCSP()
-	if err != nil {
-		return errors.Wrap(err, "Reading OCSP.")
-	}
-	// Acquire write lock before updating ocsp and ocspUpdateAfter.
-	this.ocspMu.Lock()
-	defer this.ocspMu.Unlock()
-	this.ocsp = ocsp
+	this.ocspUpdateAfterMu.Lock()
+	defer this.ocspUpdateAfterMu.Unlock()
 	if !ocspUpdateAfter.Equal(time.Time{}) {
-		// updateOCSP was called, and therefore a new HTTP cache expiry was set.
+		// fetchOCSP was called, and therefore a new HTTP cache expiry was set.
 		// TODO(twifkak): Write this to disk, so any replica can pick it up.
 		this.ocspUpdateAfter = ocspUpdateAfter
 	}
-	return nil
+	return ocsp, ocspUpdateAfter, nil
 }
 
 // Checks for OCSP updates every hour. Never terminates.
@@ -221,7 +207,7 @@ func (this *CertCache) maintainOCSP(stop chan struct{}) {
 	for {
 		select {
 		case <-ticker.C:
-			err := this.maybeUpdateOCSP()
+			_, _, err := this.readOCSP()
 			if err != nil {
 				log.Println("Warning: OCSP update failed. Cached response may expire:", err)
 			}
@@ -232,7 +218,7 @@ func (this *CertCache) maintainOCSP(stop chan struct{}) {
 	}
 }
 
-
+// Returns true if OCSP is expired (or near enough).
 func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 	if len(bytes) == 0 {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
@@ -262,8 +248,8 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 	// 4. ... such a system should observe the Lightweight OCSP Profile of
 	//    RFC 5019. This more or less boils down to "Use GET requests whenever
 	//    possible, and observe HTTP cache semantics."
-	this.ocspMu.RLock()
-	defer this.ocspMu.RUnlock()
+	this.ocspUpdateAfterMu.RLock()
+	defer this.ocspUpdateAfterMu.RUnlock()
 	if time.Now().After(this.ocspUpdateAfter) {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; expired by HTTP cache headers: ", this.ocspUpdateAfter)
@@ -274,6 +260,8 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 	return false
 }
 
+// Finds the issuer of this cert (i.e. the second from the bottom of the
+// chain).
 func (this *CertCache) findIssuer() *x509.Certificate {
 	issuerName := this.certs[0].Issuer
 	for _, cert := range this.certs {
@@ -297,7 +285,8 @@ func (this *CertCache) findIssuer() *x509.Certificate {
 	return nil
 }
 
-func (this *CertCache) updateOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte {
+// Queries the OCSP responder for this cert and return the OCSP response.
+func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte {
 	issuer := this.findIssuer()
 	if issuer == nil {
 		log.Println("Cannot find issuer certificate in CertFile.")

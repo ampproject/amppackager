@@ -188,7 +188,7 @@ func (this *CertCacheSuite) TestOCSP() {
 func (this *CertCacheSuite) TestOCSPCached() {
 	// Verify it is in the memory cache:
 	this.Assert().False(this.ocspServerCalled(func() {
-		err := this.handler.maybeUpdateOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Assert().NoError(err)
 	}))
 
@@ -212,7 +212,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 
 	// On update, verify network is called:
 	this.Assert().True(this.ocspServerCalled(func() {
-		err := this.handler.maybeUpdateOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Assert().NoError(err)
 	}))
 }
@@ -236,7 +236,7 @@ func (this *CertCacheSuite) TestOCSPUpdateFromDisk() {
 
 	// On update, verify network is not called (fresh OCSP from disk is used):
 	this.Assert().False(this.ocspServerCalled(func() {
-		err := this.handler.maybeUpdateOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Assert().NoError(err)
 	}))
 }
@@ -255,7 +255,7 @@ func (this *CertCacheSuite) TestOCSPExpiredViaHTTPHeaders() {
 
 	// Verify that, 2 seconds later, a new fetch is attempted.
 	this.Assert().True(this.ocspServerCalled(func() {
-		err := this.handler.maybeUpdateOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Require().NoError(err, "updating OCSP")
 	}))
 }
@@ -276,12 +276,14 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-8 * 24 * time.Hour))
 	this.Require().NoError(err, "creating expired OCSP response")
 	this.Assert().True(this.ocspServerCalled(func() {
-		err := this.handler.maybeUpdateOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Require().NoError(err, "updating OCSP")
 	}))
 
 	// Verify that the invalid update doesn't squash the valid cache entry.
-	this.Assert().Equal(staleOCSP, this.handler.ocsp)
+	ocsp, _, err := this.handler.readOCSP()
+	this.Require().NoError(err, "reading OCSP")
+	this.Assert().Equal(staleOCSP, ocsp)
 }
 
 func TestCertCacheSuite(t *testing.T) {
