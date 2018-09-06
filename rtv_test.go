@@ -19,7 +19,6 @@ const (
 
 type fakeServer struct {
 	rtvCalls, cssCalls     int
-	errors                 string
 	rtvHandler, cssHandler func(*fakeServer, http.ResponseWriter, *http.Request)
 }
 
