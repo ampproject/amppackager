@@ -96,6 +96,7 @@ func main() {
 	if err != nil {
 		die(errors.Wrap(err, "building validity map"))
 	}
+
 	packager, err := amppkg.NewPackager(cert, key, config.PackagerBase, config.URLSet)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
@@ -104,10 +105,6 @@ func main() {
 	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
-
-	// Start the RTV polling cron
-	amppkg.StartCron()
-	defer amppkg.StopCron()
 
 	// TODO(twifkak): Make log output configurable.
 	mux := httprouter.New()
