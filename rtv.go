@@ -28,7 +28,7 @@ type RTVCache struct {
 	d  *rtvData
 	c  http.Client
 	lk sync.Mutex
-	// TODO(angielin): Switch to NewTicker
+	// TODO(alin04): Switch to NewTicker
 	cr *cron.Cron
 }
 
@@ -78,7 +78,7 @@ func (r *RTVCache) poll() error {
 	d := *r.d
 
 	// Fetch the runtime version number
-	// TODO(angielin): This is a temporary endpoint. Migrate to metadata
+	// TODO(alin04): This is a temporary endpoint. Migrate to metadata
 	// endpoint when ready.
 	var err error
 	if d.rtv, err = r.getRTVBody(rtvHost + "/v0/version.txt"); err != nil {
