@@ -274,7 +274,6 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	if err != nil {
 		return nil, errors.Wrap(err, "starting rtv cron")
 	}
-	defer r.StopCron()
 
 	return &Packager{cert, key, validityURL, &client, baseURL, urlSets, r}, nil
 }
