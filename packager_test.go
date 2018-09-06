@@ -210,7 +210,7 @@ func (this *PackagerTestSuite) SetupSuite() {
 	httpsClient.CheckRedirect = noRedirects
 
 	// Don't actually do any transforms. Only parse & print.
-	getTransformerRequest = func(s, u string) *rpb.Request {
+	getTransformerRequest = func(r *RTVCache, s, u string) *rpb.Request {
 		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_NONE}
 	}
 }

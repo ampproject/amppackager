@@ -90,9 +90,8 @@ const maxBodyLength = 4 * 1 << 20
 const miRecordSize = 4096
 
 // Overrideable for testing.
-var getTransformerRequest = func(s, u string) *rpb.Request {
-	r := &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: RTVCache.RTV, Css: RTVCache.CSS}
-	return r
+var getTransformerRequest = func(r *RTVCache, s, u string) *rpb.Request {
+	return &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: r.GetRTV(), Css: r.GetCSS()}
 }
 
 func parseURL(rawURL string, name string) (*url.URL, *HTTPError) {
@@ -237,6 +236,7 @@ type Packager struct {
 	client      *http.Client
 	baseURL     *url.URL
 	urlSets     []URLSet
+	rtvCache    *RTVCache
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
@@ -264,7 +264,19 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
-	return &Packager{cert, key, validityURL, &client, baseURL, urlSets}, nil
+
+	// Start the RTV polling cron
+	r, err := NewRTV()
+	if err != nil {
+		return nil, errors.Wrap(err, "initializing rtv cache")
+	}
+	err = r.StartCron()
+	if err != nil {
+		return nil, errors.Wrap(err, "starting rtv cron")
+	}
+	defer r.StopCron()
+
+	return &Packager{cert, key, validityURL, &client, baseURL, urlSets, r}, nil
 }
 
 func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
@@ -390,7 +402,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 	}
 
 	// Perform local transformations.
-	r := getTransformerRequest(string(fetchBody), signURL.String())
+	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
 	transformed, err := transform.Process(r)
 	if err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error transforming: ", err).LogAndRespond(resp)

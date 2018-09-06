@@ -5,89 +5,111 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/robfig/cron"
 )
 
-// die is an alias for log.Fatalf, which can be overridden for testing purposes.
-var die = log.Fatalf
+const (
+	defaultHTTPTimeout = 1 * time.Minute
+)
 
-// not a const solely for testing purposes (be able to override this value).
+// not a const for testing purposes
 var rtvHost = "https://cdn.ampproject.org"
 
-// rtvCacheStruct stores the AMP runtime version number and the CSS for that version
-type rtvCacheStruct struct {
-	RTV, CSS string
+// rtvData stores the AMP runtime version number and the CSS for that version
+type rtvData struct {
+	rtv, css string
 }
 
-var RTVCache = new(rtvCacheStruct)
-var c = cron.New()
-var rtvClient = http.Client{Timeout: 60 * time.Second}
+type RTVCache struct {
+	d  *rtvData
+	c  http.Client
+	lk sync.Mutex
+	// TODO(angielin): Switch to NewTicker
+	cr *cron.Cron
+}
+
+// NewRTV returns a new cache for storing AMP runtime values, or an
+// error if there was a problem initializing. To have it auto-refresh,
+// call StartCron().
+func NewRTV() (*RTVCache, error) {
+	r := &RTVCache{c: http.Client{Timeout: defaultHTTPTimeout}, d: &rtvData{}, cr: cron.New()}
+	if err := r.poll(); err != nil {
+		return nil, err
+	}
+	return r, nil
+}
 
 // StartCron starts an hourly cron job to periodically re-fill the RTVCache.
-func StartCron() error {
-	if err := c.AddFunc("@every 1h", rtvPoll); err != nil {
+func (r *RTVCache) StartCron() error {
+	if err := r.cr.AddFunc("@every 1h", func() { r.poll() }); err != nil {
 		return err
 	}
-	// Initialize the cache. Then cron will trigger after every interval.
-	rtvPoll()
-	c.Start()
+	r.cr.Start()
 	return nil
 }
 
 // StopCron stops the cron job.
-func StopCron() {
-	c.Stop()
+func (r *RTVCache) StopCron() {
+	r.cr.Stop()
 }
 
-// rtvPoll attempts to re-populate the RTVCache. If this is the very first time,
-// and there are any errors, this will die fatally.
-func rtvPoll() {
-	// Make a copy for transactional state.
-	newCache := *RTVCache
+// GetRTV returns the cached value for the runtime version.
+func (r *RTVCache) GetRTV() string {
+	r.lk.Lock()
+	defer r.lk.Unlock()
+	return r.d.rtv
+}
 
-	// Decide to die if this is the very first time initializing the value.
-	shouldDie := RTVCache.RTV == ""
-	maybeDie := func(err interface{}) {
-		if shouldDie {
-			die("%+v", err)
-		}
-		log.Print(err)
-	}
+// GetCSS returns the cached value for the inline CSS.
+func (r *RTVCache) GetCSS() string {
+	r.lk.Lock()
+	defer r.lk.Unlock()
+	return r.d.css
+}
+
+// poll attempts to re-populate the RTVCache, returning an error if there
+// were any problems.
+func (r *RTVCache) poll() error {
+	// Make a copy for atomicity.
+	d := *r.d
 
 	// Fetch the runtime version number
 	// TODO(angielin): This is a temporary endpoint. Migrate to metadata
 	// endpoint when ready.
 	var err error
-	if newCache.RTV, err = getRTVBody(rtvHost + "/v0/version.txt"); err != nil {
-		// If there is a problem getting the RTV value, there is no need to
-		// get the CSS
-		maybeDie(err)
-		return
+	if d.rtv, err = r.getRTVBody(rtvHost + "/v0/version.txt"); err != nil {
+		// If there is a problem getting the RTV value, skip getting CSS.
+		return err
 	}
 	// Pad to width of 15
-	newCache.RTV = fmt.Sprintf("%015s", newCache.RTV)
+	d.rtv = fmt.Sprintf("%015s", d.rtv)
 
-	// If the value is the same, skip CSS call
-	if newCache.RTV == RTVCache.RTV {
-		return
+	// If the value is unchanged, skip CSS call
+	if d.rtv == r.GetRTV() {
+		return nil
 	}
 
 	// Fetch the CSS payload
-	if newCache.CSS, err = getRTVBody(rtvHost + "/rtv/" + newCache.RTV + "/v0.css"); err != nil {
-		// If there was a problem getting CSS, abort and don't write new cache value.
-		maybeDie(err)
-		return
+	if d.css, err = r.getRTVBody(rtvHost + "/rtv/" + d.rtv + "/v0.css"); err != nil {
+		// If there was a problem getting CSS, abort and don't write
+		// new cache value.
+		return err
 	}
-	RTVCache = &newCache
+	r.lk.Lock()
+	defer r.lk.Unlock()
+	r.d = &d
+	return nil
 }
 
-// getRTVBody returns the body contents of the given url, or an error if there was problem.
-func getRTVBody(url string) (string, error) {
+// getRTVBody returns the body contents of the given url, or an error
+// if there was problem.
+func (r *RTVCache) getRTVBody(url string) (string, error) {
 	log.Printf("Fetching URL: %q\n", url)
-	resp, err := rtvClient.Get(url)
+	resp, err := r.c.Get(url)
 	if err != nil {
 		return "", err
 	}

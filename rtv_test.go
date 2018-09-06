@@ -4,184 +4,138 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-const rtv = "1234"
-const paddedRtv = "000000000001234"
-const css = "css contents"
+const (
+	rtv       = "1234"
+	paddedRtv = "000000000001234"
+	css       = "css contents"
+)
 
-func TestRTVPoll(t *testing.T) {
-	// Reset the cache
-	RTVCache = new(rtvCacheStruct)
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/v0/version.txt" {
-			fmt.Fprint(w, rtv)
-			return
-		}
-		if r.URL.Path == "/rtv/"+paddedRtv+"/v0.css" {
-			fmt.Fprint(w, css)
-			return
-		}
-	}))
-	defer ts.Close()
-	rtvHost = ts.URL
-
-	assert.Equal(t, "", RTVCache.RTV)
-	assert.Equal(t, "", RTVCache.CSS)
-	rtvPoll()
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
+type fakeServer struct {
+	rtvCalls, cssCalls     int
+	errors                 string
+	rtvHandler, cssHandler func(*fakeServer, http.ResponseWriter, *http.Request)
 }
 
-func TestRTVPollSameValue(t *testing.T) {
-	// Reset the cache
-	RTVCache = new(rtvCacheStruct)
-	var rtvCalls, cssCalls int
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/v0/version.txt" {
-			rtvCalls++
-			fmt.Fprint(w, rtv)
-			return
-		}
-		if r.URL.Path == "/rtv/"+paddedRtv+"/v0.css" {
-			cssCalls++
-			fmt.Fprint(w, css)
-			return
-		}
-	}))
-	defer ts.Close()
-	rtvHost = ts.URL
-
-	assert.Equal(t, "", RTVCache.RTV)
-	assert.Equal(t, "", RTVCache.CSS)
-	rtvPoll()
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
-	rtvPoll()
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
-	assert.Equal(t, 2, rtvCalls)
-	assert.Equal(t, 1, cssCalls) // css should only be requested once since rtv value didn't change.
+type RTVTestSuite struct {
+	suite.Suite
+	f  *fakeServer
+	ts *httptest.Server
 }
 
-func TestRTVPollDieOnInit(t *testing.T) {
-	// Reset the cache
-	RTVCache = new(rtvCacheStruct)
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(500)
-	}))
+func defaultRTVHandler(f *fakeServer, w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, rtv)
+}
 
-	defer ts.Close()
-	rtvHost = ts.URL
-	// Remember the original die function and reinstate after this test.
-	origDie := die
-	defer func() { die = origDie }()
-	var errors string
-	die = func(format string, args ...interface{}) {
-		errors = fmt.Sprintf(format, args)
+func defaultCSSHandler(f *fakeServer, w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, css)
+}
+
+func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/v0/version.txt" {
+		f.rtvCalls++
+		f.rtvHandler(f, w, r)
+		return
 	}
-	assert.Equal(t, "", RTVCache.RTV)
-	assert.Equal(t, "", RTVCache.CSS)
-	rtvPoll()
-	assert.NotEmpty(t, errors, "Expected die to be called, but wasn't!")
+	if strings.HasPrefix(r.URL.Path, "/rtv/") {
+		f.cssCalls++
+		f.cssHandler(f, w, r)
+	}
 }
 
-func TestRTVPollWarn(t *testing.T) {
-	// Initialize the cache to some values
-	RTVCache.RTV = paddedRtv
-	RTVCache.CSS = css
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// Before the entire suite, start the test server
+func (t *RTVTestSuite) SetupSuite() {
+	t.f = &fakeServer{}
+	t.ts = httptest.NewServer(t.f)
+	rtvHost = t.ts.URL
+}
+
+// Before every test, reset counters and reset default handlers.
+func (t *RTVTestSuite) SetupTest() {
+	t.f.cssCalls = 0
+	t.f.cssHandler = defaultCSSHandler
+	t.f.rtvCalls = 0
+	t.f.rtvHandler = defaultRTVHandler
+}
+
+// After the suite, tear down test server.
+func (t *RTVTestSuite) TearDownSuite() {
+	t.ts.Close()
+}
+
+func TestRTVTestSuite(t *testing.T) {
+	suite.Run(t, new(RTVTestSuite))
+}
+
+func (t *RTVTestSuite) TestNewRTV() {
+	r, err := NewRTV()
+	assert.NoError(t.T(), err)
+	assert.Equal(t.T(), paddedRtv, r.GetRTV())
+	assert.Equal(t.T(), css, r.GetCSS())
+}
+
+func (t *RTVTestSuite) TestRTVPollSameValue() {
+	r, err := NewRTV()
+	assert.NoError(t.T(), err)
+
+	err = r.poll()
+	assert.NoError(t.T(), err)
+	assert.Equal(t.T(), paddedRtv, r.GetRTV())
+	assert.Equal(t.T(), css, r.GetCSS())
+	assert.Equal(t.T(), 2, t.f.rtvCalls)
+	assert.Equal(t.T(), 1, t.f.cssCalls) // css should only be requested once since rtv value didn't change.
+}
+
+func (t *RTVTestSuite) TestRTVPollErrorOnInit() {
+	t.f.rtvHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
-	}))
+	}
 
-	defer ts.Close()
-	rtvHost = ts.URL
-
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
-	rtvPoll()
-	// Values should not change, despite HTTP error.
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
+	_, err := NewRTV()
+	assert.Error(t.T(), err)
 }
 
-func TestRTVPollSkipsCSSOnError(t *testing.T) {
-	// Initialize the cache to some values
-	RTVCache.RTV = paddedRtv
-	RTVCache.CSS = css
-	var rtvCalled, cssCalled bool
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/v0/version.txt" {
-			rtvCalled = true
-			w.WriteHeader(500)
-		}
-		if r.URL.Path == "/rtv/"+paddedRtv+"/v0.css" {
-			cssCalled = true
-			fmt.Fprint(w, css)
-			return
-		}
-	}))
+func (t *RTVTestSuite) TestRTVPollSkipsCSSOnError() {
+	r, err := NewRTV()
+	assert.NoError(t.T(), err)
 
-	defer ts.Close()
-	rtvHost = ts.URL
+	// Set up the next call to error out.
+	t.f.rtvHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}
 
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
-	rtvPoll()
+	err = r.poll()
+	assert.Error(t.T(), err)
 	// Values should not change, despite HTTP error.
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
+	assert.Equal(t.T(), paddedRtv, r.GetRTV())
+	assert.Equal(t.T(), css, r.GetCSS())
 	// Verify css was not called
-	assert.True(t, rtvCalled)
-	assert.False(t, cssCalled, "css was fetched when it shouldn't have been!")
+	assert.Equal(t.T(), 2, t.f.rtvCalls)
+	assert.Equal(t.T(), 1, t.f.cssCalls, "css was fetched when it shouldn't have been!")
 }
 
-func TestRTVPollRollback(t *testing.T) {
-	// Initialize the cache to some values
-	RTVCache.RTV = paddedRtv
-	RTVCache.CSS = css
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/v0/version.txt" {
-			fmt.Fprint(w, "9999") // a new rtv value
-		}
-		if r.URL.Path == "/rtv/000000000009999/v0.css" {
-			w.WriteHeader(500)
-			return
-		}
-	}))
+func (t *RTVTestSuite) TestRTVPollRollback() {
+	r, err := NewRTV()
+	assert.NoError(t.T(), err)
 
-	defer ts.Close()
-	rtvHost = ts.URL
-
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
-	rtvPoll()
-	// Values should not change, despite HTTP error.
-	assert.Equal(t, paddedRtv, RTVCache.RTV)
-	assert.Equal(t, css, RTVCache.CSS)
-}
-
-func TestStartCronDieOnInit(t *testing.T) {
-	// Reset the cache
-	RTVCache = new(rtvCacheStruct)
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(500)
-	}))
-
-	defer ts.Close()
-	rtvHost = ts.URL
-	// Remember the original die function and reinstate after this test.
-	origDie := die
-	defer func() { die = origDie }()
-	var errors string
-	die = func(format string, args ...interface{}) {
-		errors = fmt.Sprintf(format, args)
+	t.f.rtvHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "9999") // a new rtv value
 	}
-	assert.Equal(t, "", RTVCache.RTV)
-	assert.Equal(t, "", RTVCache.CSS)
-	StartCron()
-	assert.NotEmpty(t, errors, "Expected die to be called, but wasn't!")
+	t.f.cssHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}
+
+	err = r.poll()
+	assert.Error(t.T(), err)
+	// Values should not change, despite HTTP error.
+	assert.Equal(t.T(), paddedRtv, r.GetRTV())
+	assert.Equal(t.T(), css, r.GetCSS())
+	assert.Equal(t.T(), 2, t.f.rtvCalls)
+	assert.Equal(t.T(), 2, t.f.cssCalls)
 }
