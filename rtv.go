@@ -57,25 +57,28 @@ func (r *RTVCache) StopCron() {
 	r.cr.Stop()
 }
 
-// GetRTV returns the cached value for the runtime version.
-func (r *RTVCache) GetRTV() string {
+// getRTVData returns the cached rtvData.
+func (r *RTVCache) getRTVData() *rtvData {
 	r.lk.Lock()
 	defer r.lk.Unlock()
 	return r.d.rtv
 }
 
+// GetRTV returns the cached value for the runtime version.
+func (r *RTVCache) GetRTV() string {
+	return getRTVData().rtv
+}
+
 // GetCSS returns the cached value for the inline CSS.
 func (r *RTVCache) GetCSS() string {
-	r.lk.Lock()
-	defer r.lk.Unlock()
-	return r.d.css
+	return getRTVData().css
 }
 
 // poll attempts to re-populate the RTVCache, returning an error if there
 // were any problems.
 func (r *RTVCache) poll() error {
 	// Make a copy for atomicity.
-	d := *r.d
+	d := *getRTVData()
 
 	// Fetch the runtime version number
 	// TODO(alin04): This is a temporary endpoint. Migrate to metadata
