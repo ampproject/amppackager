@@ -44,6 +44,11 @@ CertFile = './pems/cert.pem'
 # leaf certificate in CertFile.
 KeyFile = './pems/privkey.pem'
 
+# The path to a file where the OCSP response will be cached. The parent
+# directory should exist, but the file need not. If this is a network-mounted
+# file, it should support shared/exclusive locking.
+OCSPCache = '/tmp/amppkg/ocsp'
+
 # This is a simple level of validation, to guard against accidental
 # misconfiguration of the reverse proxy that sits in front of the packager.
 #

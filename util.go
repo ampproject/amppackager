@@ -15,9 +15,14 @@
 package amppackager
 
 import (
+	"crypto"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
+
+	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/pkg/errors"
 )
 
 // CertURLPrefix must start without a slash, for PackagerBase's sake.
@@ -34,3 +39,24 @@ func CertName(cert *x509.Certificate) string {
 
 // ValidityMapURL must start without a slash, for PackagerBase's sake.
 const ValidityMapURL = "amppkg/validity"
+
+// ParsePrivateKey returns the first PEM block that looks like a private key.
+func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
+	var privkey crypto.PrivateKey
+	for {
+		var pemBlock *pem.Block
+		pemBlock, keyPem = pem.Decode(keyPem)
+		if pemBlock == nil {
+			return nil, errors.New("invalid PEM block in private key file")
+		}
+
+		var err error
+		privkey, err = signedexchange.ParsePrivateKey(pemBlock.Bytes)
+		if err == nil || len(keyPem) == 0 {
+			return privkey, nil
+		}
+		// Else try next PEM block.
+	}
+	return nil, errors.New("failed to parse private key file")
+}
+

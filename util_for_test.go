@@ -17,7 +17,6 @@ package amppackager
 import (
 	"crypto"
 	"crypto/x509"
-	"encoding/pem"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -27,18 +26,17 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// A self-signed cert for testing.
-var cert = func() *x509.Certificate {
-	certPem, _ := ioutil.ReadFile("testdata/cert.pem")
+// A cert (with its issuer chain) for testing.
+var certs = func() []*x509.Certificate {
+	certPem, _ := ioutil.ReadFile("testdata/b1/fullchain.cert")
 	certs, _ := signedexchange.ParseCertificates(certPem)
-	return certs[0]
+	return certs
 }()
 
 // Its corresponding private key.
 var key = func() crypto.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("testdata/privkey.pem")
-	keyBlock, _ := pem.Decode(keyPem)
-	key, _ := signedexchange.ParsePrivateKey(keyBlock.Bytes)
+	keyPem, _ := ioutil.ReadFile("testdata/b1/server.privkey")
+	key, _ := ParsePrivateKey(keyPem)
 	return key
 }()
 

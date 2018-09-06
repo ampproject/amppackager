@@ -18,7 +18,6 @@
 package main
 
 import (
-	"encoding/pem"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -78,32 +77,26 @@ func main() {
 	if certs == nil || len(certs) == 0 {
 		die(fmt.Sprintf("no cert found in %s", config.CertFile))
 	}
-	cert := certs[0]
-	// TODO(twifkak): Verify that cert covers all the signing domains in the config.
+	// TODO(twifkak): Verify that certs[0] covers all the signing domains in the config.
 
-	keyBlock, _ := pem.Decode(keyPem)
-	if keyBlock == nil {
-		die(fmt.Sprintf("no key found in %s", config.KeyFile))
-	}
-
-	key, err := signedexchange.ParsePrivateKey(keyBlock.Bytes)
+	key, err := amppkg.ParsePrivateKey(keyPem)
 	if err != nil {
 		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
 	}
-	// TODO(twifkak): Verify that key matches cert.
+	// TODO(twifkak): Verify that key matches certs[0].
 
 	validityMap, err := amppkg.NewValidityMap()
 	if err != nil {
 		die(errors.Wrap(err, "building validity map"))
 	}
 
-	packager, err := amppkg.NewPackager(cert, key, config.PackagerBase, config.URLSet)
+	certCache := amppkg.NewCertCache(certs, config.OCSPCache)
+	if err = certCache.Init(nil); err != nil {
+		die(errors.Wrap(err, "building cert cache"))
+	}
+	packager, err := amppkg.NewPackager(certs[0], key, config.PackagerBase, config.URLSet, certCache.IsHealthy)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
-	}
-	certCache, err := amppkg.NewCertCache(cert)
-	if err != nil {
-		die(errors.Wrap(err, "building cert cache"))
 	}
 
 	// TODO(twifkak): Make log output configurable.

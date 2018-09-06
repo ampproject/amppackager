@@ -237,13 +237,14 @@ type Packager struct {
 	baseURL     *url.URL
 	urlSets     []URLSet
 	rtvCache    *RTVCache
+	shouldPackage func() bool
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
-func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet) (*Packager, error) {
+func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet, shouldPackage func() bool) (*Packager, error) {
 	baseURL, err := url.Parse(packagerBase)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing PackagerBase %q", packagerBase)
@@ -275,7 +276,7 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 		return nil, errors.Wrap(err, "starting rtv cron")
 	}
 
-	return &Packager{cert, key, validityURL, &client, baseURL, urlSets, r}, nil
+	return &Packager{cert, key, validityURL, &client, baseURL, urlSets, r, shouldPackage}, nil
 }
 
 func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
@@ -352,6 +353,22 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 			log.Println("Error closing fetchResp body:", err)
 		}
 	}()
+
+	if !this.shouldPackage() {
+		// Proxy the content unsigned.
+		for k, v := range fetchResp.Header {
+			resp.Header()[k] = v
+		}
+		bytesCopied, err := io.Copy(resp, fetchResp.Body)
+		if err != nil {
+			if bytesCopied == 0 {
+				NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
+			} else {
+				log.Printf("Error copying response body, %d bytes into stream\n", bytesCopied)
+			}
+		}
+		return
+	}
 
 	// If fetchURL returns a redirect, then forward that along; do not sign it and do not error out.
 	if fetchResp.StatusCode == 301 || fetchResp.StatusCode == 302 || fetchResp.StatusCode == 303 {
