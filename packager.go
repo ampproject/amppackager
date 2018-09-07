@@ -232,7 +232,6 @@ type Packager struct {
 	cert *x509.Certificate
 	// TODO(twifkak): Do we want to allow multiple keys?
 	key         crypto.PrivateKey
-	validityURL *url.URL
 	client      *http.Client
 	baseURL     *url.URL
 	urlSets     []URLSet
@@ -255,11 +254,6 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 	if !acceptablePackagerSchemes[baseURL.Scheme] {
 		return nil, errors.Errorf("PackagerBase %q must be over http or https.", packagerBase)
 	}
-	// packagerBase is always guaranteed to have a trailing slash due to config.go
-	validityURL, err := url.Parse(packagerBase + ValidityMapURL)
-	if err != nil {
-		return nil, errors.Wrapf(err, "parsing PackagerBase %q with ValidityMapURL %q", packagerBase, ValidityMapURL)
-	}
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
@@ -276,7 +270,7 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 		return nil, errors.Wrap(err, "starting rtv cron")
 	}
 
-	return &Packager{cert, key, validityURL, &client, baseURL, urlSets, r, shouldPackage}, nil
+	return &Packager{cert, key, &client, baseURL, urlSets, r, shouldPackage}, nil
 }
 
 func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
@@ -308,6 +302,7 @@ func (this *Packager) genCertURL(cert *x509.Certificate) (*url.URL, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing cert URL %q", urlPath)
 	}
+	// baseURL is always guaranteed to have a trailing slash due to config.go
 	ret := this.baseURL.ResolveReference(certURL)
 	return ret, nil
 }
@@ -406,6 +401,17 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		}
 		fetchResp.Header.Del(header)
 	}
+
+	// Override the content-type of the fetch response to ensure browsers
+	// interpret the contents as HTML. The AMP Cache will validate that the
+	// payload is valid AMPHTML. Alternatively, we could reject responses
+	// with the wrong content-type, but:
+	//  1. Some existing AMP servers may not be setting the proper content
+	//     type, and may be relying on the AMP cache to rewrite it.
+	//  2. This would require a media-type parser plus some logic for
+	//     determining equivalence.
+	fetchResp.Header.Set("Content-Type", "text/html")
+
 	// TODO(twifkak): Are there any headers that AMP CDNs sets that publishers wouldn't want
 	// running on their origin? Are there any (such as CSP) that we absolutely need to run?
 	// TODO(twifkak): After the Transformer API, just add whatever headers are provided by the
@@ -441,6 +447,10 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		return
 	}
 	now := time.Now()
+	validityHRef, err := url.Parse("/" + ValidityMapURL)
+	if err != nil {
+		NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
+	}
 	signer := signedexchange.Signer{
 		// Expires - Date must be <= 604800 seconds, per
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
@@ -448,7 +458,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		Expires:     now.Add(6 * 24 * time.Hour),
 		Certs:       []*x509.Certificate{this.cert},
 		CertUrl:     certURL,
-		ValidityUrl: this.validityURL,
+		ValidityUrl: signURL.ResolveReference(validityHRef),
 		PrivKey:     this.key,
 		// TODO(twifkak): Should we make Rand user-configurable? The
 		// default is to use getrandom(2) if available, else
@@ -467,7 +477,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
 	// should fetch an update (half-way between signature date & expires).
 	// TODO(twifkak): Add `X-Amppkg-Version: 0.0.0`.
-	resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
+	resp.Header().Set("Content-Type", "application/signed-exchange;v=b1")
 	resp.Header().Set("Cache-Control", "no-transform")
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)

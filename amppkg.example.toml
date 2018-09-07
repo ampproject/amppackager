@@ -5,7 +5,7 @@
 # LocalOnly = true
 
 # This is the URL prefix under which the packager is being served on the open
-# internet. This is used to generate certUrls, by appending
+# internet. This is used to generate cert-urls, by appending
 # "/amppkg/cert/blahblahblah". (In the future, it may have other uses.) This is
 # NOT the URL where the packager responds, which will instead be anchored to
 # the root path.
@@ -30,8 +30,10 @@ PackagerBase = 'https://example.com/'
 # "blahblahblah" is a stable unique identifier for the cert (currently, its
 # base64-encoded SHA-256).
 #
-# This certificate must be 2048-bit RSA using the SHA-256 signing algorithm.
-# (See https://goo.gl/pwK9EJ item 4.1.5.)
+# This certificate must use an EC P-256 key. (See https://goo.gl/pwK9EJ item
+# 3.1.5.) It must have at least one SCT, either as an X.509 extension or as an
+# extension to the OCSP responses from the URI mentioned in its Authority
+# Information Access extension. (See https://goo.gl/JQiyNs item 7.4.)
 #
 # To mitigate the risk of an attacker gaining access to your private key
 # through a vulnerability in this packager, you should generate a new

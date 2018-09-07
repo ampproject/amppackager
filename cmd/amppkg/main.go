@@ -135,4 +135,7 @@ func main() {
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.
 	log.Fatal(server.ListenAndServe())
+
+	// To test this, place a TLS-terminating proxy in front of it, or
+	// change ListenAndServe() above to ListenAndServeTLS(certFile, keyFile).
 }
