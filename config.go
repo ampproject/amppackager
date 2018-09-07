@@ -166,8 +166,9 @@ func ReadConfig(configPath string) (*Config, error) {
 	if config.OCSPCache == "" {
 		return nil, errors.New("must specify OCSPCache")
 	}
-	if stat, err := os.Stat(filepath.Base(config.OCSPCache)); os.IsNotExist(err) || !stat.Mode().IsDir() {
-		return nil, errors.New("OCSPCache parent directory must exist")
+	ocspDir := filepath.Dir(config.OCSPCache)
+	if stat, err := os.Stat(ocspDir); os.IsNotExist(err) || !stat.Mode().IsDir() {
+		return nil, errors.Errorf("OCSPCache parent directory must exist: %s", ocspDir)
 	}
 	// TODO(twifkak): Verify OCSPCache is writable by the current user.
 	if len(config.URLSet) == 0 {

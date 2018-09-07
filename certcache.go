@@ -124,8 +124,7 @@ func (this *CertCache) CreateCertChainCBOR() ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "creating cert-chain+cbor")
 	}
-	// TODO(twifkak): Specify real SCT blob.
-	return certurl.CreateCertChainCBOR(this.certs, ocsp, []byte{})
+	return certurl.CreateCertChainCBOR(this.certs, ocsp, nil)
 }
 
 func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
@@ -133,7 +132,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
 		// This content-type is not standard, but included to reduce
 		// the chance that faulty user agents employ content sniffing.
-		resp.Header().Set("Content-Type", "application/tls-certificate-chain")
+		resp.Header().Set("Content-Type", "application/cert-chain+cbor")
 		resp.Header().Set("Cache-Control", "public, max-age=604800")
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
 		cbor, err := this.CreateCertChainCBOR()

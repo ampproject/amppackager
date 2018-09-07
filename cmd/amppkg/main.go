@@ -103,7 +103,7 @@ func main() {
 	mux := httprouter.New()
 	mux.RedirectTrailingSlash = false
 	mux.RedirectFixedPath = false
-	mux.GET(path.Join("/", amppkg.ValidityMapURL), validityMap.ServeHTTP)
+	mux.GET(path.Join("/", amppkg.ValidityMapPath), validityMap.ServeHTTP)
 	mux.GET("/priv/doc", packager.ServeHTTP)
 	mux.GET("/priv/doc/*signURL", packager.ServeHTTP)
 	mux.GET(path.Join("/", amppkg.CertURLPrefix)+"/:certName", certCache.ServeHTTP)
@@ -135,4 +135,7 @@ func main() {
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.
 	log.Fatal(server.ListenAndServe())
+
+	// To test this, place a TLS-terminating proxy in front of it, or
+	// change ListenAndServe() above to ListenAndServeTLS(certFile, keyFile).
 }

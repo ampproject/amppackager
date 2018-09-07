@@ -155,10 +155,10 @@ func (this *CertCacheSuite) DecodeCBOR(r io.Reader) map[string][]byte {
 	// Decode and return the first one.
 	numKeys, err := decoder.DecodeMapHeader()
 	this.Require().NoError(err, "decoding map header")
-	this.Require().EqualValues(3, numKeys)
+	this.Require().EqualValues(2, numKeys)
 
 	ret := map[string][]byte{}
-	for i := 0; i < 3; i++ {
+	for i := 0; uint64(i) < numKeys; i++ {
 		key, err := decoder.DecodeTextString()
 		this.Require().NoError(err, "decoding key")
 		value, err := decoder.DecodeByteString()
@@ -174,7 +174,7 @@ func (this *CertCacheSuite) TestServesCertificate() {
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Contains(cbor, "cert")
 	this.Assert().Contains(cbor, "ocsp")
-	this.Assert().Contains(cbor, "sct")
+	this.Assert().NotContains(cbor, "sct")
 }
 
 func (this *CertCacheSuite) TestServes404OnMissingCertificate() {

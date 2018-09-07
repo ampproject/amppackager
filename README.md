@@ -29,8 +29,8 @@ and signs AMP documents as requested by the AMP Cache.
 
 #### Configure your frontend server
 
-The frontend server needs to forward two types of requests to the packager:
-packages and certificates.
+The frontend server needs to forward three types of requests to the packager:
+packages, certificates, and validity maps.
 
 ##### Packages
 
@@ -79,9 +79,9 @@ Let's break that down:
 
 ##### Certificates
 
-AMP Packages will contain a `certUrl` that indicates the certificate that can be
-used to validate the package. The `certUrl` may be on any domain, and it may be
-HTTP or HTTPS, but it will have a path of the form:
+AMP Packages will contain a `cert-url` that indicates the certificate that can
+be used to validate the package. The `cert-url` may be on any domain, and it may
+be HTTP or HTTPS, but it will have a path of the form:
 
 ```
 /amppkg/cert/blahblahblah
@@ -91,6 +91,15 @@ where `blahblahblah` is a base64 encoding of a hash of the public certificate.
 You may optionally prefix such URLs' paths, via the config file. The frontend
 server must internally reverse-proxy these requests to the packager (without the
 custom prefix).
+
+##### Validity maps
+
+AMP Packages will also contain a `validity-url`. This must be on the same domain
+as the signed URL. It will have a path of the form:
+
+```
+/amppkg/validity
+```
 
 #### Configure the packager
 
