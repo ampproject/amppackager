@@ -94,7 +94,17 @@ func main() {
 	if err = certCache.Init(nil); err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
-	packager, err := amppkg.NewPackager(certs[0], key, config.PackagerBase, config.URLSet, certCache.IsHealthy)
+	rtvCache, err := amppkg.NewRTV()
+	if err != nil {
+		die(errors.Wrap(err, "initializing rtv cache"))
+	}
+	err = rtvCache.StartCron()
+	if err != nil {
+		die(errors.Wrap(err, "starting rtv cron"))
+	}
+	defer rtvCache.StopCron()
+
+	packager, err := amppkg.NewPackager(certs[0], key, config.PackagerBase, config.URLSet, rtvCache, certCache.IsHealthy)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
 	}

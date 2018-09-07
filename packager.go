@@ -231,11 +231,11 @@ type Packager struct {
 	// at the moment.
 	cert *x509.Certificate
 	// TODO(twifkak): Do we want to allow multiple keys?
-	key         crypto.PrivateKey
-	client      *http.Client
-	baseURL     *url.URL
-	urlSets     []URLSet
-	rtvCache    *RTVCache
+	key           crypto.PrivateKey
+	client        *http.Client
+	baseURL       *url.URL
+	urlSets       []URLSet
+	rtvCache      *RTVCache
 	shouldPackage func() bool
 }
 
@@ -243,7 +243,7 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
-func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet, shouldPackage func() bool) (*Packager, error) {
+func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet, rtvCache *RTVCache, shouldPackage func() bool) (*Packager, error) {
 	baseURL, err := url.Parse(packagerBase)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing PackagerBase %q", packagerBase)
@@ -260,17 +260,7 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase str
 		Timeout: 60 * time.Second,
 	}
 
-	// Start the RTV polling cron
-	r, err := NewRTV()
-	if err != nil {
-		return nil, errors.Wrap(err, "initializing rtv cache")
-	}
-	err = r.StartCron()
-	if err != nil {
-		return nil, errors.Wrap(err, "starting rtv cron")
-	}
-
-	return &Packager{cert, key, &client, baseURL, urlSets, r, shouldPackage}, nil
+	return &Packager{cert, key, &client, baseURL, urlSets, rtvCache, shouldPackage}, nil
 }
 
 func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
