@@ -149,7 +149,7 @@ func getNormalizedLayout(layout amppb.AmpLayout_Layout, dimensions cssDimensions
 		result = layout
 	} else if !dimensions.width.isSet && !dimensions.height.isSet {
 		result = amppb.AmpLayout_CONTAINER
-	} else if dimensions.height.isFluid {
+	} else if (dimensions.height.isSet && dimensions.height.isFluid) || (dimensions.width.isSet && dimensions.width.isFluid) {
 		result = amppb.AmpLayout_FLUID
 	} else if dimensions.height.isSet && (!dimensions.width.isSet || dimensions.width.isAuto) {
 		result = amppb.AmpLayout_FIXED_HEIGHT
