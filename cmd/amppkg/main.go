@@ -103,7 +103,7 @@ func main() {
 	mux := httprouter.New()
 	mux.RedirectTrailingSlash = false
 	mux.RedirectFixedPath = false
-	mux.GET(path.Join("/", amppkg.ValidityMapURL), validityMap.ServeHTTP)
+	mux.GET(path.Join("/", amppkg.ValidityMapPath), validityMap.ServeHTTP)
 	mux.GET("/priv/doc", packager.ServeHTTP)
 	mux.GET("/priv/doc/*signURL", packager.ServeHTTP)
 	mux.GET(path.Join("/", amppkg.CertURLPrefix)+"/:certName", certCache.ServeHTTP)

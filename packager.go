@@ -447,7 +447,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		return
 	}
 	now := time.Now()
-	validityHRef, err := url.Parse("/" + ValidityMapURL)
+	validityHRef, err := url.Parse("/" + ValidityMapPath)
 	if err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
 	}

@@ -37,8 +37,8 @@ func CertName(cert *x509.Certificate) string {
 	return base64.RawURLEncoding.EncodeToString(sum[:])
 }
 
-// ValidityMapURL must start without a slash, for PackagerBase's sake.
-const ValidityMapURL = "amppkg/validity"
+// ValidityMapPath must start without a slash.
+const ValidityMapPath = "amppkg/validity"
 
 // ParsePrivateKey returns the first PEM block that looks like a private key.
 func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
