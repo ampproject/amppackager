@@ -102,6 +102,7 @@ func main() {
 	if err != nil {
 		die(errors.Wrap(err, "starting rtv cron"))
 	}
+	defer rtvCache.StopCron()
 
 	packager, err := amppkg.NewPackager(certs[0], key, config.PackagerBase, config.URLSet, rtvCache, certCache.IsHealthy)
 	if err != nil {
