@@ -12,9 +12,8 @@ import (
 )
 
 const (
-	rtv       = "1234"
-	paddedRtv = "000000000001234"
-	css       = "css contents"
+	rtv = "1234"
+	css = "css contents"
 )
 
 type fakeServer struct {
@@ -29,7 +28,8 @@ type RTVTestSuite struct {
 }
 
 func defaultRTVHandler(f *fakeServer, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, rtv)
+	json := `{"amp_runtime_version" : "1234", "amp_css_url": "` + rtvHost + `/1234/v0.css", "canary_percentage": "0.1"}`
+	fmt.Fprint(w, json)
 }
 
 func defaultCSSHandler(f *fakeServer, w http.ResponseWriter, r *http.Request) {
@@ -37,12 +37,12 @@ func defaultCSSHandler(f *fakeServer, w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *fakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/v0/version.txt" {
+	if r.URL.Path == "/rtv/metadata" {
 		f.rtvCalls++
 		f.rtvHandler(f, w, r)
 		return
 	}
-	if strings.HasPrefix(r.URL.Path, "/rtv/") {
+	if strings.HasSuffix(r.URL.Path, "v0.css") {
 		f.cssCalls++
 		f.cssHandler(f, w, r)
 	}
@@ -75,7 +75,7 @@ func TestRTVTestSuite(t *testing.T) {
 func (t *RTVTestSuite) TestNewRTV() {
 	r, err := NewRTV()
 	assert.NoError(t.T(), err)
-	assert.Equal(t.T(), paddedRtv, r.GetRTV())
+	assert.Equal(t.T(), rtv, r.GetRTV())
 	assert.Equal(t.T(), css, r.GetCSS())
 }
 
@@ -85,7 +85,7 @@ func (t *RTVTestSuite) TestRTVPollSameValue() {
 
 	err = r.poll()
 	assert.NoError(t.T(), err)
-	assert.Equal(t.T(), paddedRtv, r.GetRTV())
+	assert.Equal(t.T(), rtv, r.GetRTV())
 	assert.Equal(t.T(), css, r.GetCSS())
 	assert.Equal(t.T(), 2, t.f.rtvCalls)
 	assert.Equal(t.T(), 1, t.f.cssCalls) // css should only be requested once since rtv value didn't change.
@@ -112,7 +112,7 @@ func (t *RTVTestSuite) TestRTVPollSkipsCSSOnError() {
 	err = r.poll()
 	assert.Error(t.T(), err)
 	// Values should not change, despite HTTP error.
-	assert.Equal(t.T(), paddedRtv, r.GetRTV())
+	assert.Equal(t.T(), rtv, r.GetRTV())
 	assert.Equal(t.T(), css, r.GetCSS())
 	// Verify css was not called
 	assert.Equal(t.T(), 2, t.f.rtvCalls)
@@ -124,7 +124,9 @@ func (t *RTVTestSuite) TestRTVPollRollback() {
 	assert.NoError(t.T(), err)
 
 	t.f.rtvHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "9999") // a new rtv value
+		// return a different rtv value
+		json := `{"amp_runtime_version" : "9999", "amp_css_url": "` + rtvHost + `/9999/v0.css", "canary_percentage": "0.1"}`
+		fmt.Fprint(w, json)
 	}
 	t.f.cssHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
@@ -133,8 +135,15 @@ func (t *RTVTestSuite) TestRTVPollRollback() {
 	err = r.poll()
 	assert.Error(t.T(), err)
 	// Values should not change, despite HTTP error.
-	assert.Equal(t.T(), paddedRtv, r.GetRTV())
+	assert.Equal(t.T(), rtv, r.GetRTV())
 	assert.Equal(t.T(), css, r.GetCSS())
 	assert.Equal(t.T(), 2, t.f.rtvCalls)
 	assert.Equal(t.T(), 2, t.f.cssCalls)
+}
+
+func (t *RTVTestSuite) TestBadCronSpec() {
+	r, err := NewRTV()
+	assert.NoError(t.T(), err)
+	err = r.StartCron("unparseable")
+	assert.Error(t.T(), err)
 }
