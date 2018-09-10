@@ -28,7 +28,7 @@ type RTVTestSuite struct {
 }
 
 func defaultRTVHandler(f *fakeServer, w http.ResponseWriter, r *http.Request) {
-	json := `{"amp_runtime_version" : "1234", "amp_css_url": "` + rtvHost + `/1234/v0.css", "canary_percentage": "0.1"}`
+	json := `{"ampRuntimeVersion" : "1234", "ampCssUrl": "` + rtvHost + `/1234/v0.css", "canaryPercentage": "0.1"}`
 	fmt.Fprint(w, json)
 }
 
@@ -125,7 +125,7 @@ func (t *RTVTestSuite) TestRTVPollRollback() {
 
 	t.f.rtvHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
 		// return a different rtv value
-		json := `{"amp_runtime_version" : "9999", "amp_css_url": "` + rtvHost + `/9999/v0.css", "canary_percentage": "0.1"}`
+		json := `{"ampRuntimeVersion" : "9999", "ampCssUrl": "` + rtvHost + `/9999/v0.css", "canaryPercentage": "0.1"}`
 		fmt.Fprint(w, json)
 	}
 	t.f.cssHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
