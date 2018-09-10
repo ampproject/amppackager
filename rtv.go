@@ -24,10 +24,9 @@ var rtvHost = "https://cdn.ampproject.org"
 // rtvData stores the AMP runtime version number and the CSS for that version
 // Note: fields must be exported for json unmarshaling.
 type rtvData struct {
-	RTV              string `json:"ampRuntimeVersion"`
-	CSSURL           string `json:"ampCssUrl"`
-	CanaryPercentage string `json:"canaryPercentage"`
-	CSS              string
+	RTV                   string `json:"ampRuntimeVersion"`
+	CSSURL                string `json:"ampCssUrl"`
+	CanaryPercentage, CSS string
 }
 
 type RTVCache struct {
