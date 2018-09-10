@@ -1,7 +1,7 @@
 package amppackager
 
 import (
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,22 +14,25 @@ import (
 )
 
 const (
-	defaultHTTPTimeout = 1 * time.Minute
+	defaultHTTPTimeout  = 1 * time.Minute
+	defaultPollInterval = "@every 1h"
 )
 
 // not a const for testing purposes
 var rtvHost = "https://cdn.ampproject.org"
 
 // rtvData stores the AMP runtime version number and the CSS for that version
+// Note: fields must be exported for json unmarshaling.
 type rtvData struct {
-	rtv, css string
+	RTV                   string `json:"ampRuntimeVersion"`
+	CSSURL                string `json:"ampCssUrl"`
+	CanaryPercentage, CSS string
 }
 
 type RTVCache struct {
 	d  *rtvData
 	c  http.Client
 	lk sync.Mutex
-	// TODO(alin04): Switch to NewTicker
 	cr *cron.Cron
 }
 
@@ -44,9 +47,13 @@ func NewRTV() (*RTVCache, error) {
 	return r, nil
 }
 
-// StartCron starts an hourly cron job to periodically re-fill the RTVCache.
-func (r *RTVCache) StartCron() error {
-	if err := r.cr.AddFunc("@every 1h", func() { r.poll() }); err != nil {
+// StartCron starts a cron job to periodically re-fill the RTVCache,
+// based on the given cron expression format. If empty, defaults to hourly.
+func (r *RTVCache) StartCron(spec string) error {
+	if spec == "" {
+		spec = defaultPollInterval
+	}
+	if err := r.cr.AddFunc(spec, func() { r.poll() }); err != nil {
 		return err
 	}
 	r.cr.Start()
@@ -67,65 +74,76 @@ func (r *RTVCache) getRTVData() *rtvData {
 
 // GetRTV returns the cached value for the runtime version.
 func (r *RTVCache) GetRTV() string {
-	return r.getRTVData().rtv
+	return r.getRTVData().RTV
 }
 
 // GetCSS returns the cached value for the inline CSS.
 func (r *RTVCache) GetCSS() string {
-	return r.getRTVData().css
+	return r.getRTVData().CSS
 }
 
 // poll attempts to re-populate the RTVCache, returning an error if there
 // were any problems.
 func (r *RTVCache) poll() error {
-	// Make a copy for atomicity.
-	d := *r.getRTVData()
-
-	// Fetch the runtime version number
-	// TODO(alin04): This is a temporary endpoint. Migrate to metadata
-	// endpoint when ready.
-	var err error
-	if d.rtv, err = r.getRTVBody(rtvHost + "/v0/version.txt"); err != nil {
-		// If there is a problem getting the RTV value, skip getting CSS.
+	// Fetch the runtime metadata
+	d, err := getMetadata(r)
+	if err != nil {
 		return err
 	}
-	// Pad to width of 15
-	d.rtv = fmt.Sprintf("%015s", d.rtv)
 
 	// If the value is unchanged, skip CSS call
-	if d.rtv == r.GetRTV() {
+	if d.RTV == r.GetRTV() {
 		return nil
 	}
 
 	// Fetch the CSS payload
-	if d.css, err = r.getRTVBody(rtvHost + "/rtv/" + d.rtv + "/v0.css"); err != nil {
-		// If there was a problem getting CSS, abort and don't write
-		// new cache value.
+	var b []byte
+	b, err = getRTVBody(r.c, d.CSSURL)
+	if err != nil {
 		return err
 	}
+	d.CSS = string(b)
+
+	// No errors, update cache.
 	r.lk.Lock()
 	defer r.lk.Unlock()
-	r.d = &d
+	r.d = d
 	return nil
+}
+
+// getMetadata fetches the JSON from the metadata endpoint and returns the
+// data parsed as a struct.
+func getMetadata(r *RTVCache) (*rtvData, error) {
+	// Fetch the runtime metadata json
+	b, err := getRTVBody(r.c, rtvHost+"/rtv/metadata")
+	if err != nil {
+		return nil, err
+	}
+	var d rtvData
+	err = json.Unmarshal(b, &d)
+	if err != nil {
+		return nil, err
+	}
+	return &d, nil
 }
 
 // getRTVBody returns the body contents of the given url, or an error
 // if there was problem.
-func (r *RTVCache) getRTVBody(url string) (string, error) {
+func getRTVBody(c http.Client, url string) ([]byte, error) {
 	log.Printf("Fetching URL: %q\n", url)
-	resp, err := r.c.Get(url)
+	resp, err := c.Get(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return "", errors.Errorf("Non-200 response fetching %s, %+v", url, resp)
+		return nil, errors.Errorf("Non-200 response fetching %s, %+v", url, resp)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(body), nil
+	return body, nil
 }
