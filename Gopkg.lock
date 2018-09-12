@@ -15,6 +15,12 @@
   revision = "d8e933ea1991dfc236d0bb69ee886c9ee27d6d15"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/ampproject/amphtml"
+  packages = ["validator"]
+  revision = "d3df64d07ae9e9e21a94d8339f3c2d0a9b7d4261"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -99,6 +105,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8b5eb27f460888eb15f88bcdd1cf35086f6bee495db247adb37c149f36987f2c"
+  inputs-digest = "c6827885b226e4bccdd64d930e5f3adc9b420f9984069268ee8a793e9db5a4cd"
   solver-name = "gps-cdcl"
   solver-version = 1
