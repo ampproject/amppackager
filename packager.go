@@ -29,8 +29,8 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	"github.com/ampproject/amppackager/pkg/transform"
-	rpb "github.com/ampproject/amppackager/pkg/transform/request"
+	"github.com/ampproject/amppackager/transformer"
+	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/pquerna/cachecontrol"
@@ -415,7 +415,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 
 	// Perform local transformations.
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
-	transformed, err := transform.Process(r)
+	transformed, err := transformer.Process(r)
 	if err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error transforming: ", err).LogAndRespond(resp)
 		return
