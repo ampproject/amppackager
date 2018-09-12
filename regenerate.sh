@@ -11,4 +11,4 @@
 
 set -e
 
-protoc --go_out=paths=source_relative:. pkg/transform/request/request.proto
+protoc --go_out=paths=source_relative:. transformer/request/request.proto
