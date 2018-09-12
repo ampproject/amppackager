@@ -1,0 +1,74 @@
+// Copyright 2018 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package amp.transform;
+
+option go_package = "github.com/ampproject/amppackager/transformer/request";
+
+// A Request encapsulates input and contextual parameters for use by the
+// local transformation library.
+message Request {
+  // The AMP HTML document to transform.
+  string html = 1;
+
+  // The public URL of the document, i.e. the location that should appear in
+  // the browser URL bar.
+  string document_url = 2;
+
+  // The AMP runtime version.
+  string rtv = 4;
+
+  // The CSS contents to inline into the transformed HTML
+  string css = 5;
+
+  enum TransformersConfig {
+    // Execute the default list of transformers. For packager production
+    // environments, this should be the config used.
+    DEFAULT = 0;
+
+    // Execute none, and simply parse and re-emit. Some normalization will be
+    // performed regardless, including, but not limited to:
+    // - HTML normalization (e.g. closing all non-void tags).
+    // - removal of all comments
+    // - lowercase-ing of attribute keys
+    // - lexical sort of attribute keys
+    // - text is escaped
+    //
+    // WARNING. THIS IS FOR TESTING PURPOSES ONLY.
+    // Use of this setting in a packager production environment could produce
+    // invalid transformed AMP when ingested by AMP caches.
+    NONE = 1;
+
+    // Execute the minimum needed for verification/validation.
+    //
+    // WARNING. FOR AMP CACHE USE ONLY.
+    // Use of this setting in a packager production environment could produce
+    // invalid transformed AMP when ingested by AMP caches.
+    VALIDATION = 2;
+
+    // Execute a custom set of transformers.
+    //
+    // WARNING. THIS IS FOR TESTING PURPOSES ONLY.
+    // Use of this setting in a packager production environment could produce
+    // invalid transformed AMP when ingested by AMP caches.
+    CUSTOM = 3;
+  }
+  TransformersConfig config = 6;
+
+  // If config == CUSTOM, this is the list of custom transformers to execute,
+  // in the order provided here. Otherwise, this is ignored.
+  repeated string transformers = 3;
+}
