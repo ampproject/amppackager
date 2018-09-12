@@ -27,7 +27,7 @@ import (
 	"testing"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	rpb "github.com/ampproject/amppackager/pkg/transform/request"
+	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/suite"
