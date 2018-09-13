@@ -374,7 +374,6 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		proxy(resp, fetchResp)
 		return
 	}
-
 	// TODO(twifkak): Add config: either ensure Expires is + 5 days, or reject. (Or at least do one and document it in the README.)
 	// TODO(twifkak): Should I be more restrictive and just whitelist some response headers?
 	for header := range statefulResponseHeaders {
@@ -386,6 +385,11 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		fetchResp.Header.Del(header)
 	}
 
+	this.serveSignedExchange(resp, fetchResp, signURL)
+}
+
+// serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
+func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL) {
 	// Override the content-type of the fetch response to ensure browsers
 	// interpret the contents as HTML. The AMP Cache will validate that the
 	// payload is valid AMPHTML. Alternatively, we could reject responses
