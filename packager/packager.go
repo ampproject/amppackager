@@ -205,10 +205,7 @@ func parseURLs(fetch string, sign string, urlSets []URLSet) (*url.URL, *url.URL,
 	return nil, nil, false, NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config")
 }
 
-func validateFetch(req *http.Request, resp *http.Response) *HTTPError {
-	if resp.StatusCode != http.StatusOK {
-		return NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", resp.StatusCode)
-	}
+func validateFetch(req *http.Request, resp *http.Response) error {
 	// Validate response is publicly-cacheable, per
 	// https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-03#section-6.1, as referenced by
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-6.
@@ -217,11 +214,12 @@ func validateFetch(req *http.Request, resp *http.Response) *HTTPError {
 	// transformer API. For now, the AMP CDN validates that the origin
 	// response is publicly-cacheable.
 	nonCachableReasons, _, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: true})
+
 	if err != nil {
-		return NewHTTPError(http.StatusBadGateway, "Error parsing cache headers: ", err)
+		return errors.Wrap(err, "Error parsing cache headers.")
 	}
 	if len(nonCachableReasons) > 0 {
-		return NewHTTPError(http.StatusBadGateway, "Non-cacheable response: ", nonCachableReasons)
+		return errors.Errorf("Non-cacheable response: %s", nonCachableReasons)
 	}
 	return nil
 }
@@ -341,34 +339,22 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 	}()
 
 	if !this.shouldPackage() {
-		// Proxy the content unsigned.
-		for k, v := range fetchResp.Header {
-			resp.Header()[k] = v
-		}
-		bytesCopied, err := io.Copy(resp, fetchResp.Body)
-		if err != nil {
-			if bytesCopied == 0 {
-				NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
-			} else {
-				log.Printf("Error copying response body, %d bytes into stream\n", bytesCopied)
-			}
-		}
+		proxy(resp, fetchResp)
 		return
 	}
 
-	// If fetchURL returns a redirect, then forward that along; do not sign it and do not error out.
-	if fetchResp.StatusCode == 301 || fetchResp.StatusCode == 302 || fetchResp.StatusCode == 303 {
+	switch fetchResp.StatusCode {
+	case 301, 302, 303:
+		// If fetchURL returns a redirect, then forward that along; do not sign it and do not error out.
 		resp.Header().Set("location", fetchResp.Header.Get("location"))
 		resp.WriteHeader(fetchResp.StatusCode)
-		_, err := io.Copy(resp, fetchResp.Body)
-		if err != nil {
+		if _, err := io.Copy(resp, fetchResp.Body); err != nil {
 			log.Println("Error writing redirect body:", err)
 		}
 		return
-	}
 
-	// If fetchURL returns a 304, then also return a 304 with appropriate headers.
-	if fetchResp.StatusCode == 304 {
+	case 304:
+		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
 		for header := range statusNotModifiedHeaders {
 			if fetchResp.Header.Get(header) != "" {
 				resp.Header().Set(header, fetchResp.Header.Get(header))
@@ -376,10 +362,16 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		}
 		resp.WriteHeader(http.StatusNotModified)
 		return
+	default:
+		if fetchResp.StatusCode != http.StatusOK {
+			NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", fetchResp.StatusCode).LogAndRespond(resp)
+			return
+		}
 	}
 
-	if httpErr := validateFetch(fetchReq, fetchResp); httpErr != nil {
-		httpErr.LogAndRespond(resp)
+	if err := validateFetch(fetchReq, fetchResp); err != nil {
+		log.Println("Invalid fetch: ", err)
+		proxy(resp, fetchResp)
 		return
 	}
 
@@ -387,7 +379,8 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 	// TODO(twifkak): Should I be more restrictive and just whitelist some response headers?
 	for header := range statefulResponseHeaders {
 		if errorOnStatefulHeaders && fetchResp.Header.Get(header) != "" {
-			NewHTTPError(http.StatusBadGateway, "Fetch response contains stateful header: ", header).LogAndRespond(resp)
+			log.Println("Fetch response contains stateful header: ", header)
+			proxy(resp, fetchResp)
 			return
 		}
 		fetchResp.Header.Del(header)
@@ -473,5 +466,20 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)
 		return
+	}
+}
+
+// Proxy the content unsigned.
+func proxy(resp http.ResponseWriter, fetchResp *http.Response) {
+	for k, v := range fetchResp.Header {
+		resp.Header()[k] = v
+	}
+	bytesCopied, err := io.Copy(resp, fetchResp.Body)
+	if err != nil {
+		if bytesCopied == 0 {
+			NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
+		} else {
+			log.Printf("Error copying response body, %d bytes into stream\n", bytesCopied)
+		}
 	}
 }

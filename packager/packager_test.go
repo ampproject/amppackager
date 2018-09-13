@@ -210,6 +210,38 @@ func (this *PackagerSuite) TestProxyUnsignedIfShouldntPackage() {
 	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
 }
 
+func (this *PackagerSuite) TestProxyUnsignedErrOnStatefulHeader() {
+	urlSets := []URLSet{URLSet{
+		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), true, nil},
+	}}
+	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Set-Cookie", "chocolate chip")
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(200)
+	}, func() {
+		resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
+		this.Assert().Equal(200, resp.StatusCode)
+		this.Assert().Equal("chocolate chip", resp.Header.Get("Set-Cookie"))
+		this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
+	})
+}
+
+func (this *PackagerSuite) TestProxyUnsignedNonCachable() {
+	urlSets := []URLSet{URLSet{
+		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	}}
+	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(200)
+	}, func() {
+		resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
+		this.Assert().Equal(200, resp.StatusCode)
+		this.Assert().Equal("no-store", resp.Header.Get("Cache-Control"))
+		this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
+	})
+}
+
 func (this *PackagerSuite) SetupSuite() {
 	// Mock out example.com endpoint.
 	this.httpServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
