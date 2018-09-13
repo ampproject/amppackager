@@ -187,9 +187,10 @@ func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 
 func (this *CertCacheSuite) TestOCSP() {
 	// Verify it gets included in the cert-chain+cbor payload.
-	var resp *http.Response
-	resp = getP(this.T(), this.handler, "/amppkg/cert/" + certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := getP(this.T(), this.handler, "/amppkg/cert/" + certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
+	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -218,6 +219,10 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 		this.handler, err = this.NewCertCache()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
+
+	// Verify HTTP response expires immediately:
+	resp := getP(this.T(), this.handler, "/amppkg/cert/" + certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	this.Assert().Equal("public, max-age=0", resp.Header.Get("Cache-Control"))
 
 	// On update, verify network is called:
 	this.Assert().True(this.ocspServerCalled(func() {
