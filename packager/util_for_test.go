@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package amppackager
+package packager
 
 import (
 	"crypto"
@@ -28,14 +28,14 @@ import (
 
 // A cert (with its issuer chain) for testing.
 var certs = func() []*x509.Certificate {
-	certPem, _ := ioutil.ReadFile("testdata/b1/fullchain.cert")
+	certPem, _ := ioutil.ReadFile("../testdata/b1/fullchain.cert")
 	certs, _ := signedexchange.ParseCertificates(certPem)
 	return certs
 }()
 
 // Its corresponding private key.
 var key = func() crypto.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("testdata/b1/server.privkey")
+	keyPem, _ := ioutil.ReadFile("../testdata/b1/server.privkey")
 	key, _ := ParsePrivateKey(keyPem)
 	return key
 }()

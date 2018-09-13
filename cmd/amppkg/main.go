@@ -30,7 +30,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 
-	amppkg "github.com/ampproject/amppackager"
+	amppkg "github.com/ampproject/amppackager/packager"
 )
 
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
@@ -98,7 +98,7 @@ func main() {
 	if err != nil {
 		die(errors.Wrap(err, "initializing rtv cache"))
 	}
-	err = rtvCache.StartCron()
+	err = rtvCache.StartCron("")
 	if err != nil {
 		die(errors.Wrap(err, "starting rtv cron"))
 	}

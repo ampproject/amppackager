@@ -1,4 +1,4 @@
-package amppackager
+package packager
 
 import (
 	"fmt"
