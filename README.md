@@ -5,7 +5,7 @@
 > of it, as a proof of concept. Feel free to play around with it, but be
 > cautious. Examine the code.
 
-The AMP Packager creates "AMP Packages" (implemented as [Signed HTTP
+AMP Packager creates "AMP Packages" (implemented as [Signed HTTP
 Exchanges](https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00))
 containing AMP documents. These packages are consumed by the [Google AMP
 Cache](https://www.ampproject.org/docs/fundamentals/how_cached) and cached.
