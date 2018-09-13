@@ -24,6 +24,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -119,12 +120,16 @@ func (this *CertCache) Init(stop chan struct{}) error {
 	return nil
 }
 
-func (this *CertCache) CreateCertChainCBOR() ([]byte, error) {
-	ocsp, _, err := this.readOCSP()
-	if err != nil {
-		return nil, errors.Wrap(err, "creating cert-chain+cbor")
-	}
+func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
 	return certurl.CreateCertChainCBOR(this.certs, ocsp, nil)
+}
+
+func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (time.Time, error) {
+	resp, err := ocsp.ParseResponseForCert(bytes, this.certs[0], issuer)
+	if err != nil {
+		return time.Time{}, errors.Wrap(err, "Parsing OCSP")
+	}
+	return resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate)/2), nil
 }
 
 func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
@@ -133,11 +138,28 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 		// This content-type is not standard, but included to reduce
 		// the chance that faulty user agents employ content sniffing.
 		resp.Header().Set("Content-Type", "application/cert-chain+cbor")
-		resp.Header().Set("Cache-Control", "public, max-age=604800")
-		resp.Header().Set("ETag", "\""+this.certName+"\"")
-		cbor, err := this.CreateCertChainCBOR()
+		// Instruct the intermediary to reload this cert-chain at the
+		// OCSP midpoint, in case it cannot parse it.
+		ocsp, _, err := this.readOCSP()
 		if err != nil {
-			NewHTTPError(http.StatusInternalServerError, "Error build cert chain: ", err).LogAndRespond(resp)
+			NewHTTPError(http.StatusInternalServerError, "Error reading OCSP: ", err).LogAndRespond(resp)
+			return
+		}
+		midpoint, err := this.ocspMidpoint(ocsp, this.findIssuer())
+		if err != nil {
+			NewHTTPError(http.StatusInternalServerError, "Error computing OCSP midpoint: ", err).LogAndRespond(resp)
+			return
+		}
+		// int is large enough to represent 24855 days in seconds.
+		expiry := int(midpoint.Sub(time.Now()).Seconds())
+		if expiry < 0 {
+			expiry = 0
+		}
+		resp.Header().Set("Cache-Control", "public, max-age=" + strconv.Itoa(expiry))
+		resp.Header().Set("ETag", "\""+this.certName+"\"")
+		cbor, err := this.createCertChainCBOR(ocsp)
+		if err != nil {
+			NewHTTPError(http.StatusInternalServerError, "Error building cert chain: ", err).LogAndRespond(resp)
 			return
 		}
 		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(cbor))
@@ -245,13 +267,12 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 		// This is a permanent error; do not attempt OCSP update.
 		return false
 	}
-	resp, err := ocsp.ParseResponseForCert(bytes, this.certs[0], issuer)
+	// Compute the midpoint per sleevi #3 (see above).
+	midpoint, err := this.ocspMidpoint(bytes, issuer)
 	if err != nil {
-		log.Println("Error parsing OCSP:", err)
+		log.Println("Error computing OCSP midpoint:", err)
 		return true
 	}
-	// Compute the midpoint per sleevi #3 (see above).
-	midpoint := resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate)/2)
 	if time.Now().After(midpoint) {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; after midpoint: ", midpoint)
