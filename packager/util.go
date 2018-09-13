@@ -52,11 +52,13 @@ func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
 
 		var err error
 		privkey, err = signedexchange.ParsePrivateKey(pemBlock.Bytes)
-		if err == nil || len(keyPem) == 0 {
+		if err == nil {
 			return privkey, nil
+		}
+		if len(keyPem) == 0 {
+			// No more PEM blocks to try.
+			return nil, errors.New("failed to parse private key file")
 		}
 		// Else try next PEM block.
 	}
-	return nil, errors.New("failed to parse private key file")
 }
-
