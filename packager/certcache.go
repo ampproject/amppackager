@@ -316,6 +316,10 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	}
 
 	ocspServer, err := this.extractOCSPServer(this.certs[0])
+	if err != nil {
+		log.Println("Error extracting OCSP server:", err)
+		return orig
+	}
 
 	// Conform to the Lightweight OCSP Profile, by preferring GET over POST
 	// if the request is small enough (sleevi #4, see above).
