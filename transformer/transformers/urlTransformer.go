@@ -88,10 +88,10 @@ func URLTransformer(e *Engine) {
 	stk.Push(e.Doc)
 	for len(stk) > 0 {
 		top := stk.Pop()
-		// Traverse the childen in reverse order so the iteration of
+		// Traverse the children in reverse order so the iteration of
 		// the DOM tree traversal is in the proper sequence.
 		// E.g. Given <a><b/><c/></a>, we will visit a, b, c.
-		// An alternative is to traverse childen in forward order and
+		// An alternative is to traverse children in forward order and
 		// utilize a queue instead.
 		for c := top.LastChild; c != nil; c = c.PrevSibling {
 			stk.Push(c)

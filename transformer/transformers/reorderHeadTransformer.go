@@ -83,7 +83,7 @@ func ReorderHeadTransformer(e *Engine) {
 	}
 
 	// Uniquifies custom-element and custom-template scripts such that only one
-	// of each is included, prefering the first one encountered and sorting by
+	// of each is included, preferring the first one encountered and sorting by
 	// custom-element or custom-template attribute's value.
 	hn.scriptRenderDelaying = uniquifyAndSortCustomScripts(hn.scriptRenderDelaying)
 	hn.scriptNonRenderDelaying = uniquifyAndSortCustomScripts(hn.scriptNonRenderDelaying)
