@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package amppackager
+package packager
 
 import (
 	"crypto/rsa"
@@ -37,13 +37,13 @@ import (
 const certName = "k9GCZZIDzAt2X0b2czRv0c2omW5vgYNh6ZaIz_UNTRQ"
 
 var caCert = func() *x509.Certificate {
-	certPem, _ := ioutil.ReadFile("testdata/b1/ca.cert")
+	certPem, _ := ioutil.ReadFile("../testdata/b1/ca.cert")
 	certs, _ := signedexchange.ParseCertificates(certPem)
 	return certs[0]
 }()
 
 var caKey = func() *rsa.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("testdata/b1/ca.privkey")
+	keyPem, _ := ioutil.ReadFile("../testdata/b1/ca.privkey")
 	key, _ := ParsePrivateKey(keyPem)
 	return key.(*rsa.PrivateKey)
 }()
