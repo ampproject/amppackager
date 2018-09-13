@@ -325,6 +325,17 @@ func TestLowerCaseTagsAndAttrs(t *testing.T) {
 	runAllTestCases(t, testCases)
 }
 
+func TestEOFNewline(t *testing.T) {
+	testCases := []tt.TestCase{
+		{
+			"newline added",
+			"hello world",
+			"<html><head></head><body>hello world</body></html>\n",
+		},
+	}
+	runAllTestCases(t, testCases)
+}
+
 func runAllTestCases(t *testing.T, testCases []tt.TestCase) {
 	for _, tc := range testCases {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
