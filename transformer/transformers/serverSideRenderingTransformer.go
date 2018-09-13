@@ -71,7 +71,7 @@ func transform(n *html.Node, remove *bool) {
 			*remove = canRemoveBoilerplate(n)
 		}
 
-		// TODO(sedano): remove when SSR overwrites declarations.
+		// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
 		if _, ok := htmlnode.FindAttribute(n, "", "style"); ok {
 			return
 		}
@@ -117,7 +117,7 @@ func canRemoveBoilerplate(n *html.Node) bool {
 		if _, ok := htmlnode.FindAttribute(n, "", "sizes"); ok {
 			return false
 		}
-		// TODO(sedano): remove when SSR overwrites declarations.
+		// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
 		if _, ok := htmlnode.FindAttribute(n, "", "style"); ok {
 			return false
 		}

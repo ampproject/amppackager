@@ -23,7 +23,7 @@ import (
 
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html"
-	amppb "github.com/ampproject/amppackager/pkg/amp_validator"
+	amppb "github.com/ampproject/amphtml/validator"
 )
 
 // cssLength encapsulates a CSS length. See
