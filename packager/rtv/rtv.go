@@ -1,10 +1,11 @@
-package packager
+package rtv
 
 import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -36,10 +37,10 @@ type RTVCache struct {
 	cr *cron.Cron
 }
 
-// NewRTV returns a new cache for storing AMP runtime values, or an
+// New returns a new cache for storing AMP runtime values, or an
 // error if there was a problem initializing. To have it auto-refresh,
 // call StartCron().
-func NewRTV() (*RTVCache, error) {
+func New() (*RTVCache, error) {
 	r := &RTVCache{c: http.Client{Timeout: defaultHTTPTimeout}, d: &rtvData{}, cr: cron.New()}
 	if err := r.poll(); err != nil {
 		return nil, err
@@ -123,6 +124,16 @@ func getMetadata(r *RTVCache) (*rtvData, error) {
 	err = json.Unmarshal(b, &d)
 	if err != nil {
 		return nil, err
+	}
+	// Minimal validation of expected values.
+	if d.RTV == "" {
+		return nil, errors.Errorf("Could not unmarshal RTV value from %s", b)
+	}
+	if d.CSSURL == "" {
+		return nil, errors.Errorf("Could not unmarshal CSS URL value from %s", b)
+	}
+	if _, err := url.Parse(d.CSSURL); err != nil {
+		return nil, errors.Wrapf(err, "Error parsing CSS URL %s", d.CSSURL)
 	}
 	return &d, nil
 }

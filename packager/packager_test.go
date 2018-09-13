@@ -27,6 +27,7 @@ import (
 	"testing"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/ampproject/amppackager/packager/rtv"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
@@ -76,7 +77,7 @@ func newPackager(t *testing.T, urlSets []URLSet) *Packager {
 }
 
 func newPackagerShouldPackage(t *testing.T, urlSets []URLSet, shouldPackage bool) *Packager {
-	handler, err := NewPackager(certs[0], key, "https://example.com/", urlSets, &RTVCache{}, func() bool { return shouldPackage })
+	handler, err := NewPackager(certs[0], key, "https://example.com/", urlSets, &rtv.RTVCache{}, func() bool { return shouldPackage })
 	if err != nil {
 		t.Fatal(errors.WithStack(err))
 	}
@@ -225,7 +226,7 @@ func (this *PackagerSuite) SetupSuite() {
 	httpsClient.CheckRedirect = noRedirects
 
 	// Don't actually do any transforms. Only parse & print.
-	getTransformerRequest = func(r *RTVCache, s, u string) *rpb.Request {
+	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_NONE}
 	}
 }

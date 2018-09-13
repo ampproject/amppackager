@@ -1,4 +1,4 @@
-package packager
+package rtv
 
 import (
 	"fmt"
@@ -72,15 +72,15 @@ func TestRTVTestSuite(t *testing.T) {
 	suite.Run(t, new(RTVTestSuite))
 }
 
-func (t *RTVTestSuite) TestNewRTV() {
-	r, err := NewRTV()
+func (t *RTVTestSuite) TestNew() {
+	r, err := New()
 	assert.NoError(t.T(), err)
 	assert.Equal(t.T(), rtv, r.GetRTV())
 	assert.Equal(t.T(), css, r.GetCSS())
 }
 
 func (t *RTVTestSuite) TestRTVPollSameValue() {
-	r, err := NewRTV()
+	r, err := New()
 	assert.NoError(t.T(), err)
 
 	err = r.poll()
@@ -96,12 +96,12 @@ func (t *RTVTestSuite) TestRTVPollErrorOnInit() {
 		w.WriteHeader(500)
 	}
 
-	_, err := NewRTV()
+	_, err := New()
 	assert.Error(t.T(), err)
 }
 
 func (t *RTVTestSuite) TestRTVPollSkipsCSSOnError() {
-	r, err := NewRTV()
+	r, err := New()
 	assert.NoError(t.T(), err)
 
 	// Set up the next call to error out.
@@ -120,7 +120,7 @@ func (t *RTVTestSuite) TestRTVPollSkipsCSSOnError() {
 }
 
 func (t *RTVTestSuite) TestRTVPollRollback() {
-	r, err := NewRTV()
+	r, err := New()
 	assert.NoError(t.T(), err)
 
 	t.f.rtvHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
@@ -141,8 +141,31 @@ func (t *RTVTestSuite) TestRTVPollRollback() {
 	assert.Equal(t.T(), 2, t.f.cssCalls)
 }
 
+func (t *RTVTestSuite) TestBadJSON() {
+	r, err := New()
+	assert.NoError(t.T(), err)
+
+	tests := []struct {
+		desc, json, expectedErr string
+	}{
+		{"empty json", "{}", "unmarshal RTV value"},
+		{"missing css url", `{"ampRuntimeVersion" : "9999", "ampCssUrl": ""}`, "unmarshal CSS URL value"},
+		{"bad css url", `{"ampRuntimeVersion" : "9999", "ampCssUrl": "not a url"}`, "unsupported protocol scheme"},
+	}
+
+	for _, tc := range tests {
+		t.f.rtvHandler = func(f *fakeServer, w http.ResponseWriter, r *http.Request) {
+			json := tc.json
+			fmt.Fprint(w, json)
+		}
+		err = r.poll()
+		assert.Error(t.T(), err)
+		assert.Contains(t.T(), err.Error(), tc.expectedErr)
+	}
+}
+
 func (t *RTVTestSuite) TestBadCronSpec() {
-	r, err := NewRTV()
+	r, err := New()
 	assert.NoError(t.T(), err)
 	err = r.StartCron("unparseable")
 	assert.Error(t.T(), err)
