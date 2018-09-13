@@ -31,6 +31,7 @@ import (
 	"github.com/pkg/errors"
 
 	amppkg "github.com/ampproject/amppackager/packager"
+	"github.com/ampproject/amppackager/packager/rtv"
 )
 
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
@@ -94,7 +95,7 @@ func main() {
 	if err = certCache.Init(nil); err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
-	rtvCache, err := amppkg.NewRTV()
+	rtvCache, err := rtv.New()
 	if err != nil {
 		die(errors.Wrap(err, "initializing rtv cache"))
 	}

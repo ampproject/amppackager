@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
@@ -90,7 +91,7 @@ const maxBodyLength = 4 * 1 << 20
 const miRecordSize = 4096
 
 // Overrideable for testing.
-var getTransformerRequest = func(r *RTVCache, s, u string) *rpb.Request {
+var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 	return &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: r.GetRTV(), Css: r.GetCSS()}
 }
 
@@ -235,7 +236,7 @@ type Packager struct {
 	client        *http.Client
 	baseURL       *url.URL
 	urlSets       []URLSet
-	rtvCache      *RTVCache
+	rtvCache      *rtv.RTVCache
 	shouldPackage func() bool
 }
 
@@ -243,7 +244,7 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
-func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet, rtvCache *RTVCache, shouldPackage func() bool) (*Packager, error) {
+func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet, rtvCache *rtv.RTVCache, shouldPackage func() bool) (*Packager, error) {
 	baseURL, err := url.Parse(packagerBase)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing PackagerBase %q", packagerBase)
