@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"golang.org/x/net/html"
-	amppb "github.com/ampproject/amppackager/pkg/amp_validator"
+	amppb "github.com/ampproject/amphtml/validator"
 )
 
 func TestValidCSSLength(t *testing.T) {

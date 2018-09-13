@@ -16,7 +16,7 @@ func TestProcess(t *testing.T) {
 		engine = e
 	}
 
-	// TODO(angielin): Test for func identity equality.
+	// TODO(alin04): Test for func identity equality.
 	tests := []struct {
 		config      rpb.Request_TransformersConfig
 		expectedLen int

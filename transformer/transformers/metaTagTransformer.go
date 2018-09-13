@@ -28,7 +28,7 @@ import (
 // * It will relocate all meta tags found inside the body into the head.
 //
 // It does *not* sort the meta tags. This is done by ReorderHeadTransformer.
-// TODO(sedano): The naming is repetitive with the package name as this is
+// TODO(honeybadgerdontcare): The naming is repetitive with the package name as this is
 // transformer.MetaTagTransformer. Consider when porting is done to remove the
 // duplicative Transformer (e.g. this becomes transformer.MetaTag).
 func MetaTagTransformer(e *Engine) {
