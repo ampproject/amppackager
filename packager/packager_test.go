@@ -106,7 +106,7 @@ type PackagerSuite struct {
 }
 
 func (this *PackagerSuite) TestSimple() {
-	urlSets := []URLSet{URLSet{
+	urlSets := []URLSet{{
 		Sign:  &URLPattern{[]string{"https"}, "", signURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 		Fetch: &URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
 	}}
@@ -130,7 +130,7 @@ func (this *PackagerSuite) TestSimple() {
 }
 
 func (this *PackagerSuite) TestNoFetchParam() {
-	urlSets := []URLSet{URLSet{
+	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
@@ -143,7 +143,7 @@ func (this *PackagerSuite) TestNoFetchParam() {
 }
 
 func (this *PackagerSuite) TestSignAsPathParam() {
-	urlSets := []URLSet{URLSet{
+	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	resp := getP(this.T(), newPackager(this.T(), urlSets), `/priv/doc/`, httprouter.Params{httprouter.Param{"signURL", "/" + signURL(httpsURL).String()}})
@@ -156,7 +156,7 @@ func (this *PackagerSuite) TestSignAsPathParam() {
 }
 
 func (this *PackagerSuite) TestErrorNoCache() {
-	urlSets := []URLSet{URLSet{
+	urlSets := []URLSet{{
 		Fetch: &URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
 	}}
 	// Missing sign param generates an error.
@@ -166,7 +166,7 @@ func (this *PackagerSuite) TestErrorNoCache() {
 }
 
 func (this *PackagerSuite) TestRedirectIsProxiedUnsigned() {
-	urlSets := []URLSet{URLSet{
+	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
@@ -182,7 +182,7 @@ func (this *PackagerSuite) TestRedirectIsProxiedUnsigned() {
 }
 
 func (this *PackagerSuite) TestNotModifiedIsProxiedUnsigned() {
-	urlSets := []URLSet{URLSet{
+	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
@@ -200,7 +200,7 @@ func (this *PackagerSuite) TestNotModifiedIsProxiedUnsigned() {
 }
 
 func (this *PackagerSuite) TestProxyUnsignedIfShouldntPackage() {
-	urlSets := []URLSet{URLSet{
+	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	resp := get(this.T(), newPackagerShouldPackage(this.T(), urlSets, false), "/priv/doc?sign="+signURL(httpsURL).String())

@@ -58,9 +58,9 @@ var packager = newPackager()
 func stringPtr(x string) *string { return &x }
 
 func newPackager() *amppkg.Packager {
-	urlSets := []amppkg.URLSet{amppkg.URLSet{
-		Sign:     &amppkg.URLPattern{[]string{"https"}, "", "example.com", stringPtr(".*"), []string{}, stringPtr(""), false, nil},
-		Fetch:    nil,
+	urlSets := []amppkg.URLSet{{
+		Sign:  &amppkg.URLPattern{[]string{"https"}, "", "example.com", stringPtr(".*"), []string{}, stringPtr(""), false, nil},
+		Fetch: nil,
 	}}
 	handler, err := amppkg.NewPackager(cert, key, "https://example.com/", urlSets)
 	if err != nil {

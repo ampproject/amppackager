@@ -52,10 +52,10 @@ const ocspCheckInterval = 1 * time.Hour
 
 type CertCache struct {
 	// TODO(twifkak): Support multiple cert chains (for different domains, for different roots).
-	certName string
-	certs    []*x509.Certificate
+	certName          string
+	certs             []*x509.Certificate
 	ocspUpdateAfterMu sync.RWMutex
-	ocspUpdateAfter time.Time
+	ocspUpdateAfter   time.Time
 	// TODO(twifkak): Implement a registry of Updateable instances which can be configured in the toml.
 	ocspFile Updateable
 	client   http.Client
@@ -70,8 +70,8 @@ type CertCache struct {
 // Must call Init() on the returned CertCache before you can use it.
 func NewCertCache(certs []*x509.Certificate, ocspCache string) *CertCache {
 	return &CertCache{
-		certName: CertName(certs[0]),
-		certs: certs,
+		certName:        CertName(certs[0]),
+		certs:           certs,
 		ocspUpdateAfter: infiniteFuture, // Default, in case initial readOCSP successfully loads from disk.
 		// Distributed OCSP cache to support the following sleevi requirements:
 		// 1. Support for keeping a long-lived (disk) cache of OCSP responses.
@@ -82,8 +82,8 @@ func NewCertCache(certs []*x509.Certificate, ocspCache string) *CertCache {
 		//    certificate, all needing to staple an OCSP response. You don't
 		//    want to have all of them hammering the OCSP server - ideally,
 		//    you'd have one request, in the backend, and updating them all.
-		ocspFile: &Chained{first:&InMemory{}, second:&LocalFile{path: ocspCache}},
-		client: http.Client{Timeout: 60 * time.Second},
+		ocspFile: &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
+		client:   http.Client{Timeout: 60 * time.Second},
 		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
 			if len(cert.OCSPServer) < 1 {
 				return "", errors.New("Cert missing OCSPServer.")
@@ -129,7 +129,7 @@ func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (tim
 	if err != nil {
 		return time.Time{}, errors.Wrap(err, "Parsing OCSP")
 	}
-	return resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate)/2), nil
+	return resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate) / 2), nil
 }
 
 func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
@@ -155,7 +155,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 		if expiry < 0 {
 			expiry = 0
 		}
-		resp.Header().Set("Cache-Control", "public, max-age=" + strconv.Itoa(expiry))
+		resp.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(expiry))
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
 		cbor, err := this.createCertChainCBOR(ocsp)
 		if err != nil {

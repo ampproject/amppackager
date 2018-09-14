@@ -99,7 +99,7 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 
 // Represents an in-memory copy of a file.
 type InMemory struct {
-	mu sync.RWMutex
+	mu       sync.RWMutex
 	contents []byte
 }
 
