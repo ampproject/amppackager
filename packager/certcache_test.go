@@ -48,14 +48,13 @@ var caKey = func() *rsa.PrivateKey {
 	return key.(*rsa.PrivateKey)
 }()
 
-
 func FakeOCSPResponse(thisUpdate time.Time) ([]byte, error) {
 	template := ocsp.Response{
-		Status: ocsp.Good,
-		SerialNumber: certs[0].SerialNumber,
-		ThisUpdate: thisUpdate,
-		NextUpdate: thisUpdate.Add(7 * 24 * time.Hour),
-		RevokedAt: thisUpdate.AddDate(/*years=*/0, /*months=*/0, /*days=*/365),
+		Status:           ocsp.Good,
+		SerialNumber:     certs[0].SerialNumber,
+		ThisUpdate:       thisUpdate,
+		NextUpdate:       thisUpdate.Add(7 * 24 * time.Hour),
+		RevokedAt:        thisUpdate.AddDate( /*years=*/ 0 /*months=*/, 0 /*days=*/, 365),
 		RevocationReason: ocsp.Unspecified,
 	}
 	return ocsp.CreateResponse(caCert, caCert, template, caKey)
@@ -63,14 +62,14 @@ func FakeOCSPResponse(thisUpdate time.Time) ([]byte, error) {
 
 type CertCacheSuite struct {
 	suite.Suite
-	fakeOCSP   []byte
-	fakeOCSPExpiry *time.Time
-	ocspServer *httptest.Server  // "const", do not set
+	fakeOCSP            []byte
+	fakeOCSPExpiry      *time.Time
+	ocspServer          *httptest.Server // "const", do not set
 	ocspServerWasCalled bool
-	ocspHandler func(w http.ResponseWriter, req *http.Request)
-	tempDir string
-	stop    chan struct{}
-	handler *CertCache
+	ocspHandler         func(w http.ResponseWriter, req *http.Request)
+	tempDir             string
+	stop                chan struct{}
+	handler             *CertCache
 }
 
 func (this *CertCacheSuite) NewCertCache() (*CertCache, error) {
@@ -169,7 +168,7 @@ func (this *CertCacheSuite) DecodeCBOR(r io.Reader) map[string][]byte {
 }
 
 func (this *CertCacheSuite) TestServesCertificate() {
-	resp := getP(this.T(), this.handler, "/amppkg/cert/" + certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := getP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Contains(cbor, "cert")
@@ -187,7 +186,7 @@ func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 
 func (this *CertCacheSuite) TestOCSP() {
 	// Verify it gets included in the cert-chain+cbor payload.
-	resp := getP(this.T(), this.handler, "/amppkg/cert/" + certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := getP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
@@ -221,7 +220,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 	}))
 
 	// Verify HTTP response expires immediately:
-	resp := getP(this.T(), this.handler, "/amppkg/cert/" + certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := getP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal("public, max-age=0", resp.Header.Get("Cache-Control"))
 
 	// On update, verify network is called:
@@ -260,7 +259,7 @@ func (this *CertCacheSuite) TestOCSPExpiredViaHTTPHeaders() {
 	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
 	this.Require().NoError(err, "deleting OCSP tempfile")
 	this.fakeOCSPExpiry = new(time.Time)
-	*this.fakeOCSPExpiry = time.Unix(0, 1)  // Infinite past. time.Time{} is used as a sentinel value to mean no update.
+	*this.fakeOCSPExpiry = time.Unix(0, 1) // Infinite past. time.Time{} is used as a sentinel value to mean no update.
 	this.Require().True(this.ocspServerCalled(func() {
 		this.handler, err = this.NewCertCache()
 		this.Require().NoError(err, "reinitializing CertCache")
