@@ -49,8 +49,22 @@ func get(t *testing.T, handler AlmostHandler, target string) *http.Response {
 	return getP(t, handler, target, httprouter.Params{})
 }
 
+func getH(t *testing.T, handler AlmostHandler, target string, headers http.Header) *http.Response {
+	return getHP(t, handler, target, headers, httprouter.Params{})
+}
+
 func getP(t *testing.T, handler AlmostHandler, target string, params httprouter.Params) *http.Response {
+	return getHP(t, handler, target, http.Header{}, params)
+}
+
+func getHP(t *testing.T, handler AlmostHandler, target string, headers http.Header, params httprouter.Params) *http.Response {
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequest("", target, nil), params)
+	req := httptest.NewRequest("", target, nil)
+	for name, values := range headers {
+		for _, value := range values {
+			req.Header.Add(name, value)
+		}
+	}
+	handler.ServeHTTP(rec, req, params)
 	return rec.Result()
 }
