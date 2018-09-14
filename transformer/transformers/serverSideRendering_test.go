@@ -30,7 +30,7 @@ import (
 // the expected normalized output from transformer.go, nor from any other
 // transformers.
 
-func TestServerSideRenderingTransformer(t *testing.T) {
+func TestServerSideRendering(t *testing.T) {
 	testCases := []tt.TestCase{
 		{
 			Desc: "Modifies document only once",
@@ -105,7 +105,7 @@ func TestServerSideRenderingTransformer(t *testing.T) {
 				"</body></html>"),
 		},
 	}
-	runServerSideRenderingTransformerTestcases(t, testCases)
+	runServerSideRenderingTestcases(t, testCases)
 }
 
 func TestBoilerplatePreserved(t *testing.T) {
@@ -165,17 +165,17 @@ func TestBoilerplatePreserved(t *testing.T) {
 			Expected: expected("", `<amp-img height=300 layout=fixed src=https://acme.org/image1.png style=position:relative width=400></amp-img>`),
 		},
 	}
-	runServerSideRenderingTransformerTestcases(t, testCases)
+	runServerSideRenderingTestcases(t, testCases)
 }
 
-func runServerSideRenderingTransformerTestcases(t *testing.T, testCases []tt.TestCase) {
+func runServerSideRenderingTestcases(t *testing.T, testCases []tt.TestCase) {
 	for _, tc := range testCases {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.ServerSideRenderingTransformer(&transformers.Engine{Doc: inputDoc})
+		transformers.ServerSideRendering(&transformers.Engine{Doc: inputDoc})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
@@ -194,7 +194,7 @@ func runServerSideRenderingTransformerTestcases(t *testing.T, testCases []tt.Tes
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: ServerSideRenderingTransformer=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
+			t.Errorf("%s: ServerSideRendering=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }

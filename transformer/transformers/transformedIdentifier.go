@@ -19,9 +19,9 @@ import (
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 )
 
-// TransformedIdentifierTransformer identifies that transformations
+// TransformedIdentifier identifies that transformations
 // were made for a specific platform on this document.
-func TransformedIdentifierTransformer(e *Engine) {
+func TransformedIdentifier(e *Engine) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

@@ -24,7 +24,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func TestAMPRuntimeCSSTransformer(t *testing.T) {
+func TestAMPRuntimeCSS(t *testing.T) {
 	tcs := []struct{ desc, input, expected, css string }{
 		{
 			desc:     "Empty doc",
@@ -73,7 +73,7 @@ func TestAMPRuntimeCSSTransformer(t *testing.T) {
 			t.Errorf("%s: html.Parse on %s failed %q", tc.desc, tc.input, err)
 			continue
 		}
-		transformers.AMPRuntimeCSSTransformer(&transformers.Engine{Doc: inputDoc, Request: &rpb.Request{Rtv: "42", Css: tc.css}})
+		transformers.AMPRuntimeCSS(&transformers.Engine{Doc: inputDoc, Request: &rpb.Request{Rtv: "42", Css: tc.css}})
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
 			t.Errorf("%s: html.Render on %s failed %q", tc.desc, tc.input, err)
@@ -81,7 +81,7 @@ func TestAMPRuntimeCSSTransformer(t *testing.T) {
 		}
 
 		if input.String() != tc.expected {
-			t.Errorf("%s: AMPRuntimeCSSTransformer=\n%q\nwant=\n%q", tc.desc, &input, tc.expected)
+			t.Errorf("%s: AMPRuntimeCSS=\n%q\nwant=\n%q", tc.desc, &input, tc.expected)
 		}
 	}
 }

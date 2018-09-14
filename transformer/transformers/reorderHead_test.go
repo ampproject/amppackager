@@ -30,7 +30,7 @@ import (
 // the expected normalized output from transformer.go, nor from any other
 // transformers.
 
-func TestReorderHeadTransformer(t *testing.T) {
+func TestReorderHead(t *testing.T) {
 	testCases := []tt.TestCase{
 		{
 			Desc: "Reorders head children for AMP document",
@@ -46,14 +46,14 @@ func TestReorderHeadTransformer(t *testing.T) {
 			Expected: tt.Concat("<!doctype html><html ⚡><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
-				// (1) <style amp-runtime> (inserted by ServerSideRenderingTransformer)
+				// (1) <style amp-runtime> (inserted by ServerSideRendering)
 				tt.StyleAMPRuntime,
 				// (2) remaining <meta> tags
 				tt.MetaViewport,
 				// (3) AMP runtime .js <script> tag
 				tt.ScriptAMPRuntime,
 				// (4) AMP viewer runtime .js <script> tag
-				// (inserted by AmpViewerScriptTransformer)
+				// (inserted by AmpViewerScript)
 				tt.ScriptAMPViewerRuntime,
 				// (5) <script> tags that are render delaying
 				tt.ScriptAMPExperiment,
@@ -83,8 +83,8 @@ func TestReorderHeadTransformer(t *testing.T) {
 			Expected: tt.Concat("<!doctype html><html ⚡4ads><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
-				// (1) <style amp-runtime> (inserted by ServerSideRenderingTransformer)
-				// n/a for AMP4Ads, no ServerSideRenderingTransformer
+				// (1) <style amp-runtime> (inserted by ServerSideRendering)
+				// n/a for AMP4Ads, no ServerSideRendering
 				// (2) remaining <meta> tags
 				tt.MetaViewport,
 				// (3) AMP runtime .js <script> tag
@@ -210,17 +210,17 @@ func TestReorderHeadTransformer(t *testing.T) {
 				"</head><body></body></html>"),
 		},
 	}
-	runReorderHeadTransformerTestcases(t, testCases)
+	runReorderHeadTestcases(t, testCases)
 }
 
-func runReorderHeadTransformerTestcases(t *testing.T, testCases []tt.TestCase) {
+func runReorderHeadTestcases(t *testing.T, testCases []tt.TestCase) {
 	for _, tc := range testCases {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.ReorderHeadTransformer(&transformers.Engine{Doc: inputDoc})
+		transformers.ReorderHead(&transformers.Engine{Doc: inputDoc})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
@@ -239,7 +239,7 @@ func runReorderHeadTransformerTestcases(t *testing.T, testCases []tt.TestCase) {
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: ReorderHeadTransformer=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
+			t.Errorf("%s: ReorderHead=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }

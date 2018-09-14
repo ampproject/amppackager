@@ -23,16 +23,16 @@ import (
 	"golang.org/x/net/html"
 )
 
-// AMPRuntimeCSSTransformer inlines the contents of the AMP HTML CSS RTV, or
+// AMPRuntimeCSS inlines the contents of the AMP HTML CSS RTV, or
 // inserts a link into the appropriately revisioned v0.css (e.g. 102992221).
-func AMPRuntimeCSSTransformer(e *Engine) {
+func AMPRuntimeCSS(e *Engine) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return
 	}
 
 	// If server side rendering is active, then look for the
-	// <style amp-runtime> added by ServerSideRenderingTransformer into
+	// <style amp-runtime> added by ServerSideRendering into
 	// <head>.
 	n, ok := findStyleAMPRuntime(dom.HeadNode)
 	if !ok {

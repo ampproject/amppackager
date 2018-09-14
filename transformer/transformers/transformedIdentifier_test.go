@@ -30,7 +30,7 @@ import (
 // the expected normalized output from transformer.go, nor from any other
 // transformers.
 
-func TestTransformedIdentifierTransformer(t *testing.T) {
+func TestTransformedIdentifier(t *testing.T) {
 	testCases := []tt.TestCase{
 		{
 			Desc: "Adds identifier to html tag",
@@ -48,7 +48,7 @@ func TestTransformedIdentifierTransformer(t *testing.T) {
 			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.TransformedIdentifierTransformer(&transformers.Engine{Doc: inputDoc})
+		transformers.TransformedIdentifier(&transformers.Engine{Doc: inputDoc})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
@@ -67,7 +67,7 @@ func TestTransformedIdentifierTransformer(t *testing.T) {
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: TransformedIdentifierTransformer=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
+			t.Errorf("%s: TransformedIdentifier=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }

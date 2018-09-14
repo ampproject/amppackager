@@ -22,11 +22,11 @@ import (
 	"golang.org/x/net/html"
 )
 
-// ServerSideRenderingTransformer implements server-side rendering,
+// ServerSideRendering implements server-side rendering,
 // described in http://go/amp-ssr. In short, it calculates the AMP layout
 // server-side and expresses it by annotating the document with style
 // attributes etc. And if possible, it removes the boilerplate.
-func ServerSideRenderingTransformer(e *Engine) {
+func ServerSideRendering(e *Engine) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

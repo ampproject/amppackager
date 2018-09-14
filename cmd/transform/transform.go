@@ -28,8 +28,8 @@ import (
 	"log"
 	"os"
 
-	t "github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
+	t "github.com/ampproject/amppackager/transformer"
 )
 
 var documentURLFlag = flag.String("url", "", "The URL of the document being processed, e.g. https://example.com/amphtml/article1234")
