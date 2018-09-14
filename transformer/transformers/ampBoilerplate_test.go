@@ -78,7 +78,7 @@ func TestAMPBoilerplate(t *testing.T) {
 		},
 	}
 
-	runAMPBoilerplateTransformerTestcases(t, testCases)
+	runAMPBoilerplateTestcases(t, testCases)
 }
 
 func TestAMP4Ads(t *testing.T) {
@@ -114,7 +114,7 @@ func TestAMP4Ads(t *testing.T) {
 		},
 	}
 
-	runAMPBoilerplateTransformerTestcases(t, testCases)
+	runAMPBoilerplateTestcases(t, testCases)
 }
 
 func TestAMP4Email(t *testing.T) {
@@ -150,17 +150,17 @@ func TestAMP4Email(t *testing.T) {
 		},
 	}
 
-	runAMPBoilerplateTransformerTestcases(t, testCases)
+	runAMPBoilerplateTestcases(t, testCases)
 }
 
-func runAMPBoilerplateTransformerTestcases(t *testing.T, testCases []tt.TestCase) {
+func runAMPBoilerplateTestcases(t *testing.T, testCases []tt.TestCase) {
 	for _, tc := range testCases {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s\nhtml.Parse for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.AMPBoilerplateTransformer(&transformers.Engine{Doc: inputDoc})
+		transformers.AMPBoilerplate(&transformers.Engine{Doc: inputDoc})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
@@ -179,7 +179,7 @@ func runAMPBoilerplateTransformerTestcases(t *testing.T, testCases []tt.TestCase
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: AMPBoilerplateTransformer=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
+			t.Errorf("%s: AMPBoilerplate=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }

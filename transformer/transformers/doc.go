@@ -13,6 +13,6 @@
 // limitations under the License.
 
 /*
-Package transformers performs AMP transformations on the DOM tree.
+Package transformers performs AMP transformations/optimizations on the DOM tree.
 */
 package transformers

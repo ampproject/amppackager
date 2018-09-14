@@ -23,15 +23,12 @@ import (
 	"golang.org/x/net/html"
 )
 
-// MetaTagTransformer operates on the <meta> tag.
+// MetaTag operates on the <meta> tag.
 // * It will strip some meta tags.
 // * It will relocate all meta tags found inside the body into the head.
 //
-// It does *not* sort the meta tags. This is done by ReorderHeadTransformer.
-// TODO(honeybadgerdontcare): The naming is repetitive with the package name as this is
-// transformer.MetaTagTransformer. Consider when porting is done to remove the
-// duplicative Transformer (e.g. this becomes transformer.MetaTag).
-func MetaTagTransformer(e *Engine) {
+// It does *not* sort the meta tags. This is done by ReorderHead.
+func MetaTag(e *Engine) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

@@ -42,10 +42,10 @@ type headNodes struct {
 	styleAMPRuntime               *html.Node
 }
 
-// ReorderHeadTransformer reorders the children of <head>. Specifically, it
+// ReorderHead reorders the children of <head>. Specifically, it
 // orders the <head> like so:
 // (0) <meta charset> tag
-// (1) <style amp-runtime> (inserted by ServerSideRenderingTransformer)
+// (1) <style amp-runtime> (inserted by ServerSideRendering)
 // (2) remaining <meta> tags
 // (3) AMP runtime .js <script> tag
 // (4) <script> tags that are render delaying
@@ -56,7 +56,7 @@ type headNodes struct {
 // (9) <style amp-custom>
 // (10) any other tags allowed in <head>
 // (11) AMP boilerplate (first <style amp-boilerplate>, then <noscript>)
-func ReorderHeadTransformer(e *Engine) {
+func ReorderHead(e *Engine) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return
@@ -136,7 +136,7 @@ func registerLink(n *html.Node, hn *headNodes) {
 			hn.linkFavicon = append(hn.linkFavicon, n)
 			return
 		case "stylesheet":
-			// The AmpRuntimeCssTransformer inserts a stylesheet for the AMP Runtime CSS. It must remain early in the head immediately before <style amp-custom>.
+			// The AmpRuntimeCss inserts a stylesheet for the AMP Runtime CSS. It must remain early in the head immediately before <style amp-custom>.
 			if v, ok := htmlnode.GetAttributeVal(n, "href"); ok &&
 				strings.HasPrefix(v, amphtml.AMPCacheRootURL) &&
 				strings.HasSuffix(v, "/v0.css") {

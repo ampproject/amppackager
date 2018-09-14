@@ -30,40 +30,50 @@ import (
 // the expected normalized output from transformer.go, nor from any other
 // transformers.
 
-func TestLinkTagTransformer(t *testing.T) {
+func TestMetaTag(t *testing.T) {
 	testCases := []tt.TestCase{
 		{
-			Desc: "Adds link for Google Font Preconnect",
+			Desc: "Strips some meta tags",
 			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFont,
+				tt.ScriptAMPRuntime, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				tt.MetaCharset, tt.MetaViewport,
+				"<meta http-equiv=x-dns-prefetch-control>", // gets stripped
+				"<meta content=com.nytimes.com:basic itemprop=productID>",
+				"<meta itemprop=productID name=nytimes>", // gets stripped
+				"<meta name=Author content=lorem>",       // gets stripped
+				"<meta content=experiment-a name=amp-experiments-opt-in>",
+				"<meta name=robots content=index>", // gets stripped
+				"<meta property=rendition:spread>", // gets stripped
+				"<meta as=script href=v0.js rel=preload>",
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡=\"\"><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
+			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+				tt.ScriptAMPRuntime, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				tt.MetaCharset, tt.MetaViewport,
+				"<meta content=com.nytimes.com:basic itemprop=productID>",
+				"<meta content=experiment-a name=amp-experiments-opt-in>",
+				"<meta as=script href=v0.js rel=preload>",
 				"</head><body></body></html>"),
 		},
 		{
-			Desc: "Adds link for Google Font Preconnect only once",
+			Desc: "Strips and moves some meta tags",
 			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFont, tt.LinkGoogleFont,
+				tt.ScriptAMPRuntime, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				tt.MetaCharset, tt.MetaViewport,
+				"<meta name=author content=lorem>", // gets stripped
+				"<meta content=experiment-a name=amp-experiments-opt-in>",
+				"<meta content=experiment-b name=amp-experiments-opt-in>",
+				"<meta property=rendition:spread>", // gets stripped
+				"</head><body>",
+				"<meta name=author content=ipsum>",                        // gets stripped
+				"<meta content=experiment-c name=amp-experiments-opt-in>", // moves to head
+				"</body></html>"),
+			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+				tt.ScriptAMPRuntime, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				tt.MetaCharset, tt.MetaViewport,
+				"<meta content=experiment-a name=amp-experiments-opt-in>",
+				"<meta content=experiment-b name=amp-experiments-opt-in>",
+				"<meta content=experiment-c name=amp-experiments-opt-in>",
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡=\"\"><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
-				tt.LinkGoogleFont, "</head><body></body></html>"),
-		},
-		{
-			Desc: "Renames author supplied resource hints",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				"<link href=https://cdn.ampproject.org/ rel=preconnect>",
-				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡=\"\"><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				"<link href=https://cdn.ampproject.org/ disabled-rel=preconnect>",
-				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
 		},
 	}
 	for _, tc := range testCases {
@@ -72,7 +82,7 @@ func TestLinkTagTransformer(t *testing.T) {
 			t.Errorf("%s: html.Parse on %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.LinkTagTransformer(&transformers.Engine{Doc: inputDoc})
+		transformers.MetaTag(&transformers.Engine{Doc: inputDoc})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
@@ -91,7 +101,7 @@ func TestLinkTagTransformer(t *testing.T) {
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: LinkTagTransformer=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
+			t.Errorf("%s: MetaTag=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }

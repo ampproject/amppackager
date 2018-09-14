@@ -35,35 +35,35 @@ import (
 // NOTE: The string mapping is necessary as a language cross-over to
 // allow explicit transformer invocation (via the CUSTOM config).
 var transformerFunctionMap = map[string]func(*transformers.Engine){
-	"ampboilerplate":        transformers.AMPBoilerplateTransformer,
-	"ampruntimecss":         transformers.AMPRuntimeCSSTransformer,
-	"linktag":               transformers.LinkTagTransformer,
-	"metatag":               transformers.MetaTagTransformer,
-	"reorderhead":           transformers.ReorderHeadTransformer,
-	"serversiderendering":   transformers.ServerSideRenderingTransformer,
-	"transformedidentifier": transformers.TransformedIdentifierTransformer,
-	"url":                   transformers.URLTransformer,
+	"ampboilerplate":        transformers.AMPBoilerplate,
+	"ampruntimecss":         transformers.AMPRuntimeCSS,
+	"linktag":               transformers.LinkTag,
+	"metatag":               transformers.MetaTag,
+	"reorderhead":           transformers.ReorderHead,
+	"serversiderendering":   transformers.ServerSideRendering,
+	"transformedidentifier": transformers.TransformedIdentifier,
+	"url":                   transformers.URL,
 }
 
 // The map of config to the list of transformers, in the order in
 // which they should be executed.
 var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Engine){
 	rpb.Request_DEFAULT: {
-		transformers.MetaTagTransformer,
-		transformers.LinkTagTransformer,
-		transformers.URLTransformer,
-		transformers.AMPBoilerplateTransformer,
-		transformers.ServerSideRenderingTransformer,
-		// AmpRuntimeCssTransformer must run after ServerSideRenderingTransformer
-		transformers.AMPRuntimeCSSTransformer,
-		transformers.TransformedIdentifierTransformer,
-		// ReorderHeadTransformer should run after all transformers that modify the
+		transformers.MetaTag,
+		transformers.LinkTag,
+		transformers.URL,
+		transformers.AMPBoilerplate,
+		transformers.ServerSideRendering,
+		// AmpRuntimeCss must run after ServerSideRendering
+		transformers.AMPRuntimeCSS,
+		transformers.TransformedIdentifier,
+		// ReorderHead should run after all transformers that modify the
 		// <head>, as they may do so without preserving the proper order.
-		transformers.ReorderHeadTransformer,
+		transformers.ReorderHead,
 	},
 	rpb.Request_NONE: {},
 	rpb.Request_VALIDATION: {
-		transformers.ReorderHeadTransformer,
+		transformers.ReorderHead,
 	},
 	rpb.Request_CUSTOM: {},
 }

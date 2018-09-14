@@ -77,7 +77,7 @@ type baseInfo struct {
 //
 //     [1]. TODO(b/112417267): Handle amp-img rewriting.
 //
-func URLTransformer(e *Engine) {
+func URL(e *Engine) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

@@ -21,9 +21,9 @@ import (
 	"golang.org/x/net/html"
 )
 
-// AMPBoilerplateTransformer removes <style> and <noscript> tags in <head>,
+// AMPBoilerplate removes <style> and <noscript> tags in <head>,
 // keeping only the amp-custom style tag. It then inserts the amp-boilerplate.
-func AMPBoilerplateTransformer(e *Engine) {
+func AMPBoilerplate(e *Engine) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

@@ -36,17 +36,10 @@ const (
 	relativeURL = "/foo"
 )
 
-// testCase stores the input HTML, expected output HTML, and an optional
-// baseURL.
-type urlTransformerTestCase struct {
-	desc     string
-	input    string
-	expected string
-	docURL   string
-}
-
 func TestURLTansformer(t *testing.T) {
-	tcs := []urlTransformerTestCase{
+	tcs := []struct {
+		desc, input, expected, docURL string
+	}{
 		{
 			desc:     "AmpImgSrcUrlNotChanged",
 			input:    "<amp-img src=" + relativeURL + "></amp-img>",
@@ -164,7 +157,7 @@ func TestURLTansformer(t *testing.T) {
 			t.Errorf("%s\nurl.Parse for %s failed %q", tc.desc, tc.docURL, err)
 			continue
 		}
-		transformers.URLTransformer(&engine)
+		transformers.URL(&engine)
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
@@ -185,7 +178,7 @@ func TestURLTansformer(t *testing.T) {
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: URLTransformer=\n%q\nwant=\n%q", tc.desc, &input, &expected)
+			t.Errorf("%s: URL=\n%q\nwant=\n%q", tc.desc, &input, &expected)
 		}
 	}
 }
