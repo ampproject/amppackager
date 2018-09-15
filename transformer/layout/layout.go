@@ -54,16 +54,16 @@ type layoutMetadata struct {
 // This map must be kept up-to-date to include every value! There is a
 // corresponding test that ensures this.
 var /* const */ layoutMetadataMap = map[amppb.AmpLayout_Layout]layoutMetadata{
-	amppb.AmpLayout_UNKNOWN:      layoutMetadata{false, false},
-	amppb.AmpLayout_NODISPLAY:    layoutMetadata{true, false},
-	amppb.AmpLayout_FIXED:        layoutMetadata{true, true},
-	amppb.AmpLayout_FIXED_HEIGHT: layoutMetadata{true, true},
-	amppb.AmpLayout_RESPONSIVE:   layoutMetadata{true, true},
-	amppb.AmpLayout_CONTAINER:    layoutMetadata{true, false},
-	amppb.AmpLayout_FILL:         layoutMetadata{true, true},
-	amppb.AmpLayout_FLEX_ITEM:    layoutMetadata{true, true},
-	amppb.AmpLayout_FLUID:        layoutMetadata{false, true},
-	amppb.AmpLayout_INTRINSIC:    layoutMetadata{false, true},
+	amppb.AmpLayout_UNKNOWN:      {false, false},
+	amppb.AmpLayout_NODISPLAY:    {true, false},
+	amppb.AmpLayout_FIXED:        {true, true},
+	amppb.AmpLayout_FIXED_HEIGHT: {true, true},
+	amppb.AmpLayout_RESPONSIVE:   {true, true},
+	amppb.AmpLayout_CONTAINER:    {true, false},
+	amppb.AmpLayout_FILL:         {true, true},
+	amppb.AmpLayout_FLEX_ITEM:    {true, true},
+	amppb.AmpLayout_FLUID:        {false, true},
+	amppb.AmpLayout_INTRINSIC:    {false, true},
 }
 
 // ApplyLayout applies the AMP layout algorithm to the given custom element
