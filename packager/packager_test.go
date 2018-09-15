@@ -21,6 +21,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
 	"net/url"
 	"sort"
 	"strings"
@@ -46,6 +47,7 @@ var lastRequestURL string
 // Don't override this manually; use replacingFakeHandler() instead.
 var fakeHandler = func(w http.ResponseWriter, req *http.Request) {
 	lastRequestURL = req.URL.String()
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write(fakeBody)
 }
 
@@ -128,7 +130,8 @@ func (this *PackagerSuite) TestSimple() {
 	this.Assert().Equal(signURL(httpURL).String(), exchange.RequestURI.String())
 	this.Assert().Equal(http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
 	this.Assert().Equal(200, exchange.ResponseStatus)
-	this.Assert().Equal([]string{"content-encoding", "content-length", "content-type", "date", "mi-draft2"}, headerNames(exchange.ResponseHeaders))
+	this.Assert().Equal([]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "mi-draft2"}, headerNames(exchange.ResponseHeaders))
+	this.Assert().Equal("text/html", exchange.ResponseHeaders.Get("Content-Type"))
 	// The response header values are untested here, as that is covered by signedexchange tests.
 
 	// For small enough bodies, the only thing that MICE does is add a record size prefix.
@@ -139,8 +142,7 @@ func (this *PackagerSuite) TestSimple() {
 
 func (this *PackagerSuite) TestNoFetchParam() {
 	urlSets := []URLSet{{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
-	}}
+		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
 	resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
@@ -163,6 +165,17 @@ func (this *PackagerSuite) TestSignAsPathParam() {
 	this.Assert().Equal(signURL(httpsURL).String(), exchange.RequestURI.String())
 }
 
+func (this *PackagerSuite) TestRemovesLinkHeaders() {
+	urlSets := []URLSet{{
+		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().NotContains(exchange.ResponseHeaders, textproto.CanonicalMIMEHeaderKey("Link"))
+}
+
 func (this *PackagerSuite) TestErrorNoCache() {
 	urlSets := []URLSet{{
 		Fetch: &URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
@@ -178,8 +191,9 @@ func (this *PackagerSuite) TestProxyUnsignedIfRedirect() {
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("cookie", "yum yum yum")
-		w.Header().Set("location", "/login")
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cookie", "yum yum yum")
+		w.Header().Set("Location", "/login")
 		w.WriteHeader(301)
 	}, func() {
 		resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
@@ -194,9 +208,10 @@ func (this *PackagerSuite) TestProxyUnsignedIfNotModified() {
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("cache-control", "private")
-		w.Header().Set("cookie", "yum yum yum")
-		w.Header().Set("etag", "superrad")
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cache-control", "private")
+		w.Header().Set("Cookie", "yum yum yum")
+		w.Header().Set("ETag", "superrad")
 		w.WriteHeader(304)
 	}, func() {
 		resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
@@ -234,6 +249,7 @@ func (this *PackagerSuite) TestProxyUnsignedErrOnStatefulHeader() {
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), true, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Set-Cookie", "chocolate chip")
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(200)
@@ -250,6 +266,7 @@ func (this *PackagerSuite) TestProxyUnsignedNonCachable() {
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(200)

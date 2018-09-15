@@ -26,6 +26,7 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -40,6 +41,12 @@ import (
 
 // Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
 var acceptablePackagerSchemes = map[string]bool{"http": true, "https": true}
+
+// The Content-Security-Policy in use by the AMP Cache today. Specifying here
+// provides protection for the publisher against bugs in the transformers, as
+// these pages will now run on the publisher's origin. In the future, this
+// value will likely be versioned along with the transforms.
+var contentSecurityPolicy = "default-src * blob: data:; script-src blob: https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/; object-src 'none'; style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net; report-uri https://csp-collector.appspot.com/csp/amp"
 
 // The user agent to send when issuing fetches. Should look like a mobile device.
 const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
@@ -210,17 +217,21 @@ func validateFetch(req *http.Request, resp *http.Response) error {
 	// Validate response is publicly-cacheable, per
 	// https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-03#section-6.1, as referenced by
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-6.
-	// TODO(twifkak): Set {PrivateCache: false} after we switch from
-	// fetching through the AMP CDN to fetching directly and using the
-	// transformer API. For now, the AMP CDN validates that the origin
-	// response is publicly-cacheable.
-	nonCachableReasons, _, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: true})
-
+	nonCachableReasons, _, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: false})
 	if err != nil {
 		return errors.Wrap(err, "Error parsing cache headers.")
 	}
 	if len(nonCachableReasons) > 0 {
 		return errors.Errorf("Non-cacheable response: %s", nonCachableReasons)
+	}
+
+	// Validate that Content-Type seems right. This is an approximation,
+	// because parsing media types is hard and we just want to verify we're
+	// not misinterpreting the server's intent. We override the
+	// Content-Type below for unambiguous interpretation.
+	content_type := resp.Header.Get("Content-Type")
+	if !strings.HasPrefix(strings.ToLower(content_type), "text/html") {
+		return errors.Errorf("Wrong content-type: %s", content_type)
 	}
 	return nil
 }
@@ -362,6 +373,11 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 			}
 			fetchResp.Header.Del(header)
 		}
+
+		// charset=utf-8 would be redundant, as it is specified in the <meta> of a valid AMPHTML document:
+		fetchResp.Header.Set("Content-Type", "text/html")
+		fetchResp.Header.Set("Content-Security-Policy", contentSecurityPolicy)
+		fetchResp.Header.Del("Link")  // Ensure there are no privacy-violating Link:rel=preload headers.
 
 		this.serveSignedExchange(resp, fetchResp, signURL)
 
