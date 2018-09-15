@@ -62,7 +62,7 @@ func parseParameterisedList(reader *strings.Reader) ([]parameterisedIdentifier, 
 			return nil, errors.New("expected another param-id")
 		}
 	}
-	return nil, errors.New("reached unexpected end of parseParameterisedList")
+	return nil, errors.New("expected non-empty parameterised list")
 }
 
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-4.2.4
@@ -81,11 +81,6 @@ func parseParameterisedIdentifier(reader *strings.Reader) (*parameterisedIdentif
 }
 
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-3.8
-func isIdentifier(c byte) bool {
-	return isLCAlpha(c) || isDigit(c) || c == '_' || c == '-' || c == '*' || c == '/'
-}
-
-// https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-3.8
 func isLCAlpha(c byte) bool {
 	return c >= 'a' && c <= 'z'
 }
@@ -93,6 +88,11 @@ func isLCAlpha(c byte) bool {
 // https://tools.ietf.org/html/rfc5234#appendix-B.1
 func isDigit(c byte) bool {
 	return c >= '0' && c <= '9'
+}
+
+// https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-3.8
+func isSecondIdentifierChar(c byte) bool {
+	return isLCAlpha(c) || isDigit(c) || c == '_' || c == '-' || c == '*' || c == '/'
 }
 
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-4.2.8
@@ -111,7 +111,7 @@ func parseIdentifier(reader *strings.Reader) (string, error) {
 		if err != nil {
 			return "", errors.Wrap(err, "reading byte")
 		}
-		if !isIdentifier(char) {
+		if !isSecondIdentifierChar(char) {
 			// Return to the position before the non-identifier char.
 			reader.Seek(-1, io.SeekCurrent)
 			return output.String(), nil
