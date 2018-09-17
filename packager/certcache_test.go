@@ -189,6 +189,7 @@ func (this *CertCacheSuite) TestOCSP() {
 	resp := getP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
+	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
 	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])

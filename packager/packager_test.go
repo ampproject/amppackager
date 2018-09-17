@@ -105,12 +105,20 @@ type PackagerSuite struct {
 	httpServer, tlsServer *httptest.Server
 }
 
+func (this *PackagerSuite) get(t *testing.T, handler AlmostHandler, target string) *http.Response {
+	return getH(t, handler, target, http.Header{"AMP-Cache-Transform": {"google"}})
+}
+
+func (this *PackagerSuite) getP(t *testing.T, handler AlmostHandler, target string, params httprouter.Params) *http.Response {
+	return getHP(t, handler, target, http.Header{"AMP-Cache-Transform": {"google"}}, params)
+}
+
 func (this *PackagerSuite) TestSimple() {
 	urlSets := []URLSet{{
 		Sign:  &URLPattern{[]string{"https"}, "", signURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 		Fetch: &URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
 	}}
-	resp := get(this.T(), newPackager(this.T(), urlSets),
+	resp := this.get(this.T(), newPackager(this.T(), urlSets),
 		"/priv/doc?fetch="+url.QueryEscape(fetchURL(httpURL).String())+"&sign="+url.QueryEscape(signURL(httpURL).String()))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
@@ -133,7 +141,7 @@ func (this *PackagerSuite) TestNoFetchParam() {
 	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
-	resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
+	resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
@@ -146,7 +154,7 @@ func (this *PackagerSuite) TestSignAsPathParam() {
 	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
-	resp := getP(this.T(), newPackager(this.T(), urlSets), `/priv/doc/`, httprouter.Params{httprouter.Param{"signURL", "/" + signURL(httpsURL).String()}})
+	resp := this.getP(this.T(), newPackager(this.T(), urlSets), `/priv/doc/`, httprouter.Params{httprouter.Param{"signURL", "/" + signURL(httpsURL).String()}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
@@ -160,12 +168,12 @@ func (this *PackagerSuite) TestErrorNoCache() {
 		Fetch: &URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
 	}}
 	// Missing sign param generates an error.
-	resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?fetch="+url.QueryEscape(fetchURL(httpURL).String()))
+	resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?fetch="+url.QueryEscape(fetchURL(httpURL).String()))
 	this.Assert().Equal(http.StatusBadRequest, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal("no-store", resp.Header.Get("Cache-Control"))
 }
 
-func (this *PackagerSuite) TestRedirectIsProxiedUnsigned() {
+func (this *PackagerSuite) TestProxyUnsignedIfRedirect() {
 	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
@@ -174,14 +182,14 @@ func (this *PackagerSuite) TestRedirectIsProxiedUnsigned() {
 		w.Header().Set("location", "/login")
 		w.WriteHeader(301)
 	}, func() {
-		resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
+		resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
 		this.Assert().Equal(301, resp.StatusCode)
 		this.Assert().Equal("", resp.Header.Get("cookie"))
 		this.Assert().Equal("/login", resp.Header.Get("location"))
 	})
 }
 
-func (this *PackagerSuite) TestNotModifiedIsProxiedUnsigned() {
+func (this *PackagerSuite) TestProxyUnsignedIfNotModified() {
 	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
@@ -191,7 +199,7 @@ func (this *PackagerSuite) TestNotModifiedIsProxiedUnsigned() {
 		w.Header().Set("etag", "superrad")
 		w.WriteHeader(304)
 	}, func() {
-		resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
+		resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
 		this.Assert().Equal(304, resp.StatusCode)
 		this.Assert().Equal("private", resp.Header.Get("cache-control"))
 		this.Assert().Equal("", resp.Header.Get("cookie"))
@@ -203,7 +211,18 @@ func (this *PackagerSuite) TestProxyUnsignedIfShouldntPackage() {
 	urlSets := []URLSet{{
 		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
-	resp := get(this.T(), newPackagerShouldPackage(this.T(), urlSets, false), "/priv/doc?sign="+signURL(httpsURL).String())
+	resp := this.get(this.T(), newPackagerShouldPackage(this.T(), urlSets, false), "/priv/doc?sign="+signURL(httpsURL).String())
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
+}
+
+func (this *PackagerSuite) TestProxyUnsignedIfMissingTransformHeader() {
+	urlSets := []URLSet{{
+		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	}}
+	resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	body, err := ioutil.ReadAll(resp.Body)
 	this.Require().NoError(err)
@@ -219,7 +238,7 @@ func (this *PackagerSuite) TestProxyUnsignedErrOnStatefulHeader() {
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(200)
 	}, func() {
-		resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
+		resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
 		this.Assert().Equal(200, resp.StatusCode)
 		this.Assert().Equal("chocolate chip", resp.Header.Get("Set-Cookie"))
 		this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
@@ -235,7 +254,7 @@ func (this *PackagerSuite) TestProxyUnsignedNonCachable() {
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(200)
 	}, func() {
-		resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
+		resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+signURL(httpsURL).String())
 		this.Assert().Equal(200, resp.StatusCode)
 		this.Assert().Equal("no-store", resp.Header.Get("Cache-Control"))
 		this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))

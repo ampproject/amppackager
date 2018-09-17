@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/ampproject/amppackager/packager/amp_cache_transform"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
@@ -338,12 +339,32 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		}
 	}()
 
-	if !this.shouldPackage() {
+	if !this.shouldPackage() || !amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform")) {
 		proxy(resp, fetchResp)
 		return
 	}
 
 	switch fetchResp.StatusCode {
+	case 200:
+		// If fetchURL returns an OK status, then validate, munge, and package.
+		if err := validateFetch(fetchReq, fetchResp); err != nil {
+			log.Println("Invalid fetch: ", err)
+			proxy(resp, fetchResp)
+			return
+		}
+		// TODO(twifkak): Add config: either ensure Expires is + 5 days, or reject. (Or at least do one and document it in the README.)
+		// TODO(twifkak): Should I be more restrictive and just whitelist some response headers?
+		for header := range statefulResponseHeaders {
+			if errorOnStatefulHeaders && fetchResp.Header.Get(header) != "" {
+				log.Println("Fetch response contains stateful header: ", header)
+				proxy(resp, fetchResp)
+				return
+			}
+			fetchResp.Header.Del(header)
+		}
+
+		this.serveSignedExchange(resp, fetchResp, signURL)
+
 	case 301, 302, 303:
 		// If fetchURL returns a redirect, then forward that along; do not sign it and do not error out.
 		resp.Header().Set("location", fetchResp.Header.Get("location"))
@@ -351,7 +372,6 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		if _, err := io.Copy(resp, fetchResp.Body); err != nil {
 			log.Println("Error writing redirect body:", err)
 		}
-		return
 
 	case 304:
 		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
@@ -361,31 +381,10 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 			}
 		}
 		resp.WriteHeader(http.StatusNotModified)
-		return
+
 	default:
-		if fetchResp.StatusCode != http.StatusOK {
-			NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", fetchResp.StatusCode).LogAndRespond(resp)
-			return
-		}
+		NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", fetchResp.StatusCode).LogAndRespond(resp)
 	}
-
-	if err := validateFetch(fetchReq, fetchResp); err != nil {
-		log.Println("Invalid fetch: ", err)
-		proxy(resp, fetchResp)
-		return
-	}
-	// TODO(twifkak): Add config: either ensure Expires is + 5 days, or reject. (Or at least do one and document it in the README.)
-	// TODO(twifkak): Should I be more restrictive and just whitelist some response headers?
-	for header := range statefulResponseHeaders {
-		if errorOnStatefulHeaders && fetchResp.Header.Get(header) != "" {
-			log.Println("Fetch response contains stateful header: ", header)
-			proxy(resp, fetchResp)
-			return
-		}
-		fetchResp.Header.Del(header)
-	}
-
-	this.serveSignedExchange(resp, fetchResp, signURL)
 }
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
