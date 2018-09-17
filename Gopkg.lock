@@ -10,9 +10,10 @@
     "go/signedexchange/certurl",
     "go/signedexchange/internal/bigendian",
     "go/signedexchange/internal/signingalgorithm",
-    "go/signedexchange/mice"
+    "go/signedexchange/mice",
+    "go/signedexchange/version"
   ]
-  revision = "d8e933ea1991dfc236d0bb69ee886c9ee27d6d15"
+  revision = "cf685b1384810a94cb7074a24c06ade8d7ab6550"
 
 [[projects]]
   branch = "master"
