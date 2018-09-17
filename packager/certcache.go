@@ -121,7 +121,18 @@ func (this *CertCache) Init(stop chan struct{}) error {
 }
 
 func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
-	return certurl.CreateCertChainCBOR(this.certs, ocsp, nil)
+	certChain := make(certurl.CertChain, len(this.certs))
+	for i, cert := range this.certs {
+		certChain[i] = &certurl.CertChainItem{Cert: cert}
+	}
+	certChain[0].OCSPResponse = ocsp
+
+	var buf bytes.Buffer
+	err := certChain.Write(&buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error writing cert chain")
+	}
+	return buf.Bytes(), nil
 }
 
 func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (time.Time, error) {

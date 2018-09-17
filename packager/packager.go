@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/ampproject/amppackager/packager/amp_cache_transform"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/transformer"
@@ -350,7 +351,13 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		}
 	}()
 
-	if !this.shouldPackage() || !amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform")) {
+	if !this.shouldPackage() {
+		log.Println("Not packaging because server is unhealthy; see above log statements.")
+		proxy(resp, fetchResp)
+		return
+	}
+	if !amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform")) {
+		log.Println("Not packaging because AMP-Cache-Transform request header is missing.")
 		proxy(resp, fetchResp)
 		return
 	}
@@ -359,7 +366,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 	case 200:
 		// If fetchURL returns an OK status, then validate, munge, and package.
 		if err := validateFetch(fetchReq, fetchResp); err != nil {
-			log.Println("Invalid fetch: ", err)
+			log.Println("Not packaging because of invalid fetch: ", err)
 			proxy(resp, fetchResp)
 			return
 		}
@@ -367,7 +374,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		// TODO(twifkak): Should I be more restrictive and just whitelist some response headers?
 		for header := range statefulResponseHeaders {
 			if errorOnStatefulHeaders && fetchResp.Header.Get(header) != "" {
-				log.Println("Fetch response contains stateful header: ", header)
+				log.Println("Not packaging because ErrorOnStatefulHeaders = True and fetch response contains stateful header: ", header)
 				proxy(resp, fetchResp)
 				return
 			}
@@ -440,7 +447,7 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 		NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
 		return
 	}
-	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
+	if err := exchange.MiEncodePayload(miRecordSize, version.Version1b2); err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
@@ -467,20 +474,20 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 		// default is to use getrandom(2) if available, else
 		// /dev/urandom.
 	}
-	if err := exchange.AddSignatureHeader(&signer); err != nil {
+	if err := exchange.AddSignatureHeader(&signer, version.Version1b2); err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
 		return
 	}
 	// TODO(twifkak): Make this a streaming response. How will we handle errors after part of the response has already been sent?
 	var body bytes.Buffer
-	if err := exchange.Write(&body); err != nil {
+	if err := exchange.Write(&body, version.Version1b2); err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
 	}
 
 	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
 	// should fetch an update (half-way between signature date & expires).
 	// TODO(twifkak): Add `X-Amppkg-Version: 0.0.0`.
-	resp.Header().Set("Content-Type", "application/signed-exchange;v=b1")
+	resp.Header().Set("Content-Type", "application/signed-exchange;v=b2")
 	resp.Header().Set("Cache-Control", "no-transform")
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)

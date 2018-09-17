@@ -143,9 +143,9 @@ func (this *CertCacheSuite) DecodeCBOR(r io.Reader) map[string][]byte {
 	decoder := cbor.NewDecoder(r)
 
 	// Our test cert chain has exactly two certs. First entry is a magic.
-	numCerts, err := decoder.DecodeArrayHeader()
+	numItems, err := decoder.DecodeArrayHeader()
 	this.Require().NoError(err, "decoding array header")
-	this.Require().EqualValues(3, numCerts)
+	this.Require().EqualValues(3, numItems)
 
 	magic, err := decoder.DecodeTextString()
 	this.Require().NoError(err, "decoding magic")
