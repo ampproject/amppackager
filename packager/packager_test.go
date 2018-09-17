@@ -130,7 +130,7 @@ func (this *PackagerSuite) TestSimple() {
 	this.Assert().Equal(signURL(httpURL).String(), exchange.RequestURI.String())
 	this.Assert().Equal(http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
 	this.Assert().Equal(200, exchange.ResponseStatus)
-	this.Assert().Equal([]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "mi-draft2"}, headerNames(exchange.ResponseHeaders))
+	this.Assert().Equal([]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest"}, headerNames(exchange.ResponseHeaders))
 	this.Assert().Equal("text/html", exchange.ResponseHeaders.Get("Content-Type"))
 	// The response header values are untested here, as that is covered by signedexchange tests.
 
