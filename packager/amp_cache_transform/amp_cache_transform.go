@@ -4,6 +4,7 @@
 package amp_cache_transform
 
 import (
+	"bytes"
 	"io"
 	"strings"
 
@@ -97,7 +98,7 @@ func isSecondIdentifierChar(c byte) bool {
 
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-4.2.8
 func parseIdentifier(reader *strings.Reader) (string, error) {
-	var output strings.Builder
+	var output bytes.Buffer
 	char, err := reader.ReadByte()
 	if err != nil {
 		return "", errors.Wrap(err, "reading byte")

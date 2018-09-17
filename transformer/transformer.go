@@ -18,6 +18,7 @@
 package transformer
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
 	"strings"
@@ -99,7 +100,7 @@ func Process(r *rpb.Request) (string, error) {
 	}
 	e := transformers.Engine{doc, u, fns, r}
 	runTransform(&e)
-	var o strings.Builder
+	var o bytes.Buffer
 	err = printer.Print(&o, e.Doc)
 	if err != nil {
 		return "", err
