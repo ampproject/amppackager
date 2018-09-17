@@ -50,13 +50,20 @@ var transformerFunctionMap = map[string]func(*transformers.Engine){
 var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Engine){
 	rpb.Request_DEFAULT: {
 		transformers.MetaTag,
-		transformers.LinkTag,
+		// TODO(alin04): Reenable LinkTag once validation is done.
+		// transformers.LinkTag,
+		// end TODO
 		transformers.URL,
 		transformers.AMPBoilerplate,
-		transformers.ServerSideRendering,
+		// TODO(alin04): Reenable SSR once validation is done.
+		// transformers.ServerSideRendering,
+		// end TODO
 		// AmpRuntimeCss must run after ServerSideRendering
-		transformers.AMPRuntimeCSS,
-		transformers.TransformedIdentifier,
+		// TODO(alin04): Reenable AMPRuntimeCSS and
+		// TransformedIdentifier once validation is done
+		// transformers.AMPRuntimeCSS,
+		// transformers.TransformedIdentifier,
+		// end TODO
 		// ReorderHead should run after all transformers that modify the
 		// <head>, as they may do so without preserving the proper order.
 		transformers.ReorderHead,
