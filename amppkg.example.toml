@@ -105,6 +105,13 @@ OCSPCache = '/tmp/amppkg/ocsp'
   # content from the same location. If you'd like more flexibility (for
   # instance, to fetch content from an edge node), uncomment this section. This
   # allows the frontend to specify an additional `fetch` query parameter.
+  # Instead of looking like:
+  #
+  #   /priv/doc/https://example.com/page.html
+  #
+  # The URL will look like:
+  #
+  #   /priv/doc?fetch=https%3A%2F%2Finternal.example.com%2Fpage.html&sign=https%3A%2F%2Fexample.com%2Fpage.html
   #
   # Note that this reduces the defense-in-depth against the "signing oracle"
   # attack. If an attacker can request custom URLs from the packager (or
