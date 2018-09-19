@@ -77,8 +77,8 @@ func getCert(url string) ([]byte, error) {
 func main() {
 	flag.Parse()
 	if flag.NArg() != 1 {
-		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "<url_of_sxg>\n")
-		fmt.Fprintln(os.Stderr, "Saves a copy of the SXG and cert-chain, to be served with amppkg_test_cache.\n")
+		fmt.Fprint(os.Stderr, "Usage: ", os.Args[0], " <url_of_sxg>\n\n")
+		fmt.Fprint(os.Stderr, "Saves a copy of the SXG and cert-chain, to be served with amppkg_test_cache.\n\n")
 		flag.Usage()
 		return
 	}

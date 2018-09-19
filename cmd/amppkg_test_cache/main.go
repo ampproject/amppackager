@@ -35,9 +35,9 @@ var flagPort = flag.Int("port", 8000, "Port to serve on.")
 func main() {
 	flag.Parse()
 	if flag.NArg() != 2 {
-		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "<cert_pem> <key_pem>\n")
-		fmt.Fprintln(os.Stderr, "Serves the test SXG and cert-chain as an AMP Cache might.")
-		fmt.Fprintln(os.Stderr, "Pass it a TLS certificate pair you wish to serve with.\n")
+		fmt.Fprint(os.Stderr, "Usage: ", os.Args[0], " <cert_pem> <key_pem>\n\n")
+		fmt.Fprint(os.Stderr, "Serves the test SXG and cert-chain as an AMP Cache might.\n")
+		fmt.Fprint(os.Stderr, "Pass it a TLS certificate pair you wish to serve with.\n\n")
 		flag.Usage()
 		return
 	}
