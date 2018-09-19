@@ -92,10 +92,7 @@ works with SXGs.
 
 #### Productionizing
 
-For now, productionizing is a bit manual. We would love to see scripts or
-packages that build in the best practices!
-
-The minimum steps are:
+For now, productionizing is a bit manual. The minimum steps are:
 
   1. Don't pass `-development` flag to `amppkg`. This causes it to serve HTTP
      rather than HTTPS.
@@ -121,12 +118,12 @@ Once you've done the above, you should be able to launch Chrome without any
 comamndline flags; just make sure chrome://flags/#enable-signed-http-exchange is
 enabled.
 
-#### Replicating
+#### Redundancy
 
-If you need to set up multiple replicas of `amppkg` for scale, you'll want your
-`OCSPCache` to be backed by a shared storage device (e.g. NFS). It doesn't need
-to be shared among all instances globally, but perhaps among all instances per
-datacenter. The reason for this is to reduce the number of OCSP requests
+If you need to load balance across multiple instances of `amppkg`, you'll want
+your `OCSPCache` to be backed by a shared storage device (e.g. NFS). It doesn't
+need to be shared among all instances globally, but perhaps among all instances
+per datacenter. The reason for this is to reduce the number of OCSP requests
 `amppkg` needs to make, per [OCSP stapling
 recommendations](https://gist.github.com/sleevi/5efe9ef98961ecfb4da8).
 
