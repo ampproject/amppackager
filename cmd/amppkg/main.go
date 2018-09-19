@@ -35,6 +35,7 @@ import (
 )
 
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
+var flagDevelopment = flag.Bool("development", false, "True if this is a development server.")
 
 // Prints errors returned by pkg/errors with stack traces.
 func die(err interface{}) { log.Fatalf("%+v", err) }
@@ -145,8 +146,11 @@ func main() {
 
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.
-	log.Fatal(server.ListenAndServe())
 
-	// To test this, place a TLS-terminating proxy in front of it, or
-	// change ListenAndServe() above to ListenAndServeTLS(certFile, keyFile).
+	if (*flagDevelopment) {
+		log.Println("WARNING: Running in development, using SXG key for TLS. This won't work in production.")
+		log.Fatal(server.ListenAndServeTLS(config.CertFile, config.KeyFile))
+	} else {
+		log.Fatal(server.ListenAndServe())
+	}
 }
