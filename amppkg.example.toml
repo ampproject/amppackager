@@ -8,10 +8,8 @@
 # LocalOnly = true
 
 # This is the URL prefix under which the packager is being served on the open
-# internet. This is used to generate cert-urls, by appending
-# "/amppkg/cert/blahblahblah". (In the future, it may have other uses.) This is
-# NOT the URL where the packager responds, which will instead be anchored to
-# the root path.
+# internet. This is used to generate cert-urls and validity-urls, by appending
+# "/amppkg/cert/blahblahblah" and "/amppkg/validity". This is
 #
 # For instance, if PackagerBase = "https://example.com/", then the frontend
 # server should reverse-proxy all URLs matching:

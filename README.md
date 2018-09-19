@@ -10,15 +10,15 @@ URLs](https://amphtml.wordpress.com/2018/01/09/improving-urls-for-amp-pages/).
 By running it in a proper configuration, web publishers may (eventually) have
 origin URLs appear in AMP search results.
 
-It works by creating [Signed HTTP
-Exchanges (SXGs)](https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00))
+The AMP Packager works by creating [Signed HTTP
+Exchanges (SXGs)](https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00)
 containing AMP documents, signed with a certificate associated with the origin,
-with a maximum lifetime of 7 days. In the near future, the [Google AMP
-Cache](https://www.ampproject.org/docs/fundamentals/how_cached) will ingest,
-cache, and serve them, similar to how it does for normal AMP HTML documents.
+with a maximum lifetime of 7 days. In the future, the [Google AMP
+Cache](https://www.ampproject.org/docs/fundamentals/how_cached) will fetch,
+cache, and serve them, similar to what it does for normal AMP HTML documents.
 When a user loads such an SXG, Chrome validates the signature and then displays
-certificate's domain in the URL bar instead of `google.com`, and runs the web
-page on that origin.
+the certificate's domain in the URL bar instead of `google.com`, and treats the
+web page as though it were on that domain.
 
 The packager is an HTTP server that sits behind a frontend server; it fetches
 and signs AMP documents as requested by the AMP Cache.
@@ -59,7 +59,9 @@ can obtain certificates for.
 
 #### Test your config
 
-  1. Run Chrome M70 or later (as of 2018-09-18, this is Beta or Dev). On the
+  1. Run Chrome M70 or later (as of 2018-09-18, this is
+     [Beta](https://www.google.com/chrome/beta/) or
+     [Dev](https://www.google.com/chrome/dev/)). On the
      command-line, pass the following flags:
      ```
      --user-data-dir=/tmp/udd
@@ -90,8 +92,8 @@ works with SXGs.
 
 #### Productionizing
 
-For now, productionizing is a bit manual. We would love to see a Docker
-container that builds in the best practices!
+For now, productionizing is a bit manual. We would love to see scripts or
+packages that build in the best practices!
 
 The minimum steps are:
 
@@ -116,7 +118,8 @@ You may also want to:
   2. Save its stdout to a rotated log somewhere.
 
 Once you've done the above, you should be able to launch Chrome without any
-flags; just make sure chrome://flags/#enable-signed-http-exchange is enabled.
+comamndline flags; just make sure chrome://flags/#enable-signed-http-exchange is
+enabled.
 
 #### Replicating
 
@@ -130,19 +133,18 @@ recommendations](https://gist.github.com/sleevi/5efe9ef98961ecfb4da8).
 #### How will these web packages be discovered by Google?
 
 For now, the presence of the `Vary: AMP-Cache-Transform` response header on an
-AMP HTML page will cause the Google AMP Cache to make a second request with
+AMP HTML page will allow the Google AMP Cache to make a second request with
 `AMP-Cache-Transform: google` for the SXG.
 
 In the future, Googlebot may make all requests with `AMP-Cache-Transform: google`,
-eliminating the second fetch. It would be able to "unwrap" these SXGs and use
-them for Search.
+eliminating the double fetch.
 
 ### Limitations
 
 Currently, the packager will refuse to sign any AMP documents larger than 4 MB.
 Patches that allow for streamed signing are welcome.
 
-If the packager refuses to sign any URL that results in a redirect. This is by
+The packager refuses to sign any URL that results in a redirect. This is by
 design, as neither the original URL nor the final URL makes sense as the signed
 URL.
 
@@ -155,14 +157,8 @@ https://github.com/WICG/webpackage/tree/master/go/signedexchange.
 
 ## Local Transformer
 
-The local transformer is a sub-library within the AMP Packager that transforms AMP HTML for security and performance improvements. These modifications are described in more detail [here](https://github.com/ampproject/amphtml/blob/master/spec/amp-cache-modifications.md). Note that the transformed AMP HTML produced by the library is only valid inside of a signed exchange, and not to be served this as normal HTML.
+The local transformer is a library within the AMP Packager that transforms AMP
+HTML for security and performance improvements. Ports of or alternatives to the
+AMP Packager will need to include these transforms.
 
-> **WARNING**: This local transformer library is still a work-in-progress and not all transformations described in the link above are implemented.
-
-### How to use
-The local transformer can be used separately from the packager/signer.
-
-1. `go get -u github.com/ampproject/amppackager/cmd/transform`
-1. `$GOPATH/bin/transform -url "documentURL" /path/to/html`
-
-For more help, `$GOPATH/bin/transform -h`
+More info [here](transformer/README.md).
