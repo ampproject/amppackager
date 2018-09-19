@@ -81,6 +81,17 @@ func TestQuotes(t *testing.T) {
 			`<lemur x="Вконтакте">`,
 			`<lemur x=Вконтакте>`,
 		},
+		{
+			// This is actually done in the parser, as per spec.
+			"Newline at start of <pre> is dropped.",
+			`<pre>&#13;</pre>`,
+			`<pre></pre>`,
+		},
+		{
+			"Add newline to <pre> when start with newline.",
+			`<pre>&#13;&#13;</pre>`,
+			`<pre>&#13;&#13;</pre>`,
+		},
 	}
 	runAllTestCases(t, testCases)
 }
