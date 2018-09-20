@@ -340,9 +340,19 @@ func TestPreLeadingNewline(t *testing.T) {
 			`<pre>&#13;&#13;</pre>`,
 		},
 		{
-			"Add LF to <pre> when start with LF.",
+			"Add CR to <pre> when start with LF.",
 			`<pre>&#10;&#10;</pre>`,
 			"<pre>&#13;\n</pre>",
+		},
+		{
+			"Don't add extra CR to <pre> with leading text.",
+			`<pre>blah&#13;&#13;</pre>`,
+			`<pre>blah&#13;&#13;</pre>`,
+		},
+		{
+			"Don't add extra CR to <pre> with leading element.",
+			`<pre><strong>boo</strong>&#13;&#13;</pre>`,
+			`<pre><strong>boo</strong>&#13;&#13;</pre>`,
 		},
 	}
 	runAllTestCases(t, testCases)

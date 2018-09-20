@@ -60,7 +60,7 @@ func render(w writer, n *html.Node) error {
 		if n.Data == "" {
 			return nil
 		}
-		if n.Parent.DataAtom == atom.Pre && (n.Data[0] == '\r' || n.Data[0] == '\n') {
+		if n.Parent.DataAtom == atom.Pre && n.PrevSibling == nil && (n.Data[0] == '\r' || n.Data[0] == '\n') {
 			// Emit a carriage return that will be summarily dropped
 			// if re-parsed again. This is needed for idempotency,
 			// when there are multiple newlines at the start of a
