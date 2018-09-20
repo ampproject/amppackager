@@ -217,10 +217,9 @@ func runAllTestCases(t *testing.T, tcs []tt.TestCase) {
 			t.Errorf("%s: html.Parse failed %q", tc.Input, err)
 			continue
 		}
-		engine := transformers.Engine{Doc: inputDoc}
-		engine.Transform()
+		transformers.NodeCleanup(&transformers.Context{Doc: inputDoc})
 		var input strings.Builder
-		if err := html.Render(&input, engine.Doc); err != nil {
+		if err := html.Render(&input, inputDoc); err != nil {
 			t.Errorf("%s: html.Render failed %q", tc.Input, err)
 			continue
 		}

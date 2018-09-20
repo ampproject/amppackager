@@ -26,7 +26,7 @@ import (
 // described in http://go/amp-ssr. In short, it calculates the AMP layout
 // server-side and expresses it by annotating the document with style
 // attributes etc. And if possible, it removes the boilerplate.
-func ServerSideRendering(e *Engine) {
+func ServerSideRendering(e *Context) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

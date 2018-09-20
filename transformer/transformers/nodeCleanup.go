@@ -16,37 +16,13 @@ package transformers
 
 import (
 	"log"
-	"net/url"
-	"os"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
-	"github.com/ampproject/amppackager/transformer/printer"
-	rpb "github.com/ampproject/amppackager/transformer/request"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
-
-// An Engine stores the root DOM Node, configurable transformers to
-// modify the DOM, and contextual data used for the transformers.
-type Engine struct {
-	Doc          *html.Node
-	DocumentURL  *url.URL
-	Transformers []func(*Engine)
-	Request      *rpb.Request
-}
-
-// Transform executes required transformations on the Engine's Node and
-// invokes any additionally configured transformers.
-func (e *Engine) Transform() {
-	requiredTransform(e.Doc)
-
-	// Invoke the configured transformers
-	for _, f := range e.Transformers {
-		f(e)
-	}
-}
 
 const (
 	whitespace = " \t\r\n\f"
@@ -55,8 +31,21 @@ const (
 	unsanitaryURIChars = "\t\n\r"
 )
 
-// Performs required transformations on the given node.
-func requiredTransform(n *html.Node) {
+// NodeCleanup cleans up the DOM tree, including, but not limited to:
+//  - stripping comment nodes.
+//  - removing duplicate attributes
+//  - stripping nonce attributes
+//  - sanitizing URI values
+//  - removing extra <title> elements
+func NodeCleanup(e *Context) {
+	if _, ok := amphtml.NewDOM(e.Doc); !ok {
+		return
+	}
+	nodeCleanupTransform(e.Doc)
+}
+
+// nodeCleanupTransform recursively does the actual work on each node.
+func nodeCleanupTransform(n *html.Node) {
 	switch n.Type {
 	case html.CommentNode:
 		// Strip out comment nodes.
@@ -110,7 +99,7 @@ func requiredTransform(n *html.Node) {
 		// Track the next sibling because if the node is removed in the recursive
 		// call, it becomes orphaned and the pointer to NextSibling is lost.
 		next = c.NextSibling
-		requiredTransform(c)
+		nodeCleanupTransform(c)
 	}
 }
 
@@ -207,13 +196,5 @@ func stripExtraTitles(n *html.Node) {
 	case htmlnode.IsDescendantOf(n, atom.Body):
 		// Strip any titles found in body.
 		n.Parent.RemoveChild(n)
-	}
-}
-
-// Print renders the HTML to STDOUT.
-func (e *Engine) Print() {
-	err := printer.Print(os.Stdout, e.Doc)
-	if err != nil {
-		log.Fatal(err)
 	}
 }

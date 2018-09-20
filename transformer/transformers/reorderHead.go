@@ -56,7 +56,7 @@ type headNodes struct {
 // (9) <style amp-custom>
 // (10) any other tags allowed in <head>
 // (11) AMP boilerplate (first <style amp-boilerplate>, then <noscript>)
-func ReorderHead(e *Engine) {
+func ReorderHead(e *Context) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

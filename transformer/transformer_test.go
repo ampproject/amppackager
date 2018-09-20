@@ -8,12 +8,12 @@ import (
 )
 
 func TestProcess(t *testing.T) {
-	var engine *transformers.Engine
+	var fns []func(*transformers.Context)
 	// Remember the original function and reinstate after test
-	orig := runTransform
-	defer func() { runTransform = orig }()
-	runTransform = func(e *transformers.Engine) {
-		engine = e
+	orig := runTransformers
+	defer func() { runTransformers = orig }()
+	runTransformers = func(e *transformers.Context, fs []func(*transformers.Context)) {
+		fns = fs
 	}
 
 	// TODO(alin04): Test for func identity equality.
@@ -21,8 +21,8 @@ func TestProcess(t *testing.T) {
 		config      rpb.Request_TransformersConfig
 		expectedLen int
 	}{
-		{rpb.Request_DEFAULT, 4},
-		{rpb.Request_NONE, 0},
+		{rpb.Request_DEFAULT, 5},
+		{rpb.Request_NONE, 1},
 		{rpb.Request_VALIDATION, 1},
 		{rpb.Request_CUSTOM, 0},
 	}
@@ -39,27 +39,28 @@ func TestProcess(t *testing.T) {
 			t.Errorf("Process(%v) = %q, want = %q", tc.config, got, want)
 		}
 
-		if len(engine.Transformers) != tc.expectedLen {
-			t.Errorf("Process(%v) number of transformers, get=%d, want=%d", tc.config, len(engine.Transformers), tc.expectedLen)
+		if len(fns) != tc.expectedLen {
+			t.Errorf("Process(%v) number of transformers, get=%d, want=%d", tc.config, len(fns), tc.expectedLen)
 		}
 	}
 }
 
 func TestCustom(t *testing.T) {
-	var engine *transformers.Engine
+	var fns []func(*transformers.Context)
 	// Remember the original function and reinstate after test
-	orig := runTransform
-	defer func() { runTransform = orig }()
-	runTransform = func(e *transformers.Engine) {
-		engine = e
+	orig := runTransformers
+	defer func() { runTransformers = orig }()
+	runTransformers = func(e *transformers.Context, fs []func(*transformers.Context)) {
+		fns = fs
 	}
 
 	// Case insensitive
 	tests := []string{
 		"aMpBoIlerplate",
 		"AMPRuntimeCSS",
-		"linkTag",
+		"linktag",
 		"metaTag",
+		"NODECLEANUP",
 		"reorderHead",
 		"serverSideRendering",
 		"transformedIdentifier",
@@ -71,20 +72,13 @@ func TestCustom(t *testing.T) {
 			t.Fatalf("Process(%v) unexpectedly failed %v", tc, err)
 		}
 
-		if len(engine.Transformers) != 1 {
+		if len(fns) != 1 {
 			t.Errorf("Process(%v) expected successful transformer lookup", tc)
 		}
 	}
 }
 
 func TestCustomFail(t *testing.T) {
-	// Remember the original function and reinstate after test
-	orig := runTransform
-	defer func() { runTransform = orig }()
-	runTransform = func(e *transformers.Engine) {
-		// do nothing
-	}
-
 	r := rpb.Request{Html: "<lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{"does_not_exist"}}
 	if got, err := Process(&r); err == nil {
 		t.Fatalf("Process(%v) = %s, nil; want error", r, got)

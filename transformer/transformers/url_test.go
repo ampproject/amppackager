@@ -24,12 +24,6 @@ import (
 	"golang.org/x/net/html"
 )
 
-// These tests do NOT run through the custom transformations of the
-// Engine, and instead rely exclusively on vanilla golang parser and
-// renderer (otherwise the scope of these tests would creep past unit
-// testing). Therefore, the test data must be made to match, and is not
-// the expected normalized output from transformer.go.
-
 const (
 	baseURL     = "https://www.example.com/foo"
 	barBaseURL  = "https://www.example.com/bar"
@@ -151,13 +145,13 @@ func TestURLTansformer(t *testing.T) {
 			t.Errorf("%s\nhtml.Parse for %s failed %q", tc.desc, rawInput, err)
 			continue
 		}
-		engine := transformers.Engine{Doc: inputDoc}
-		engine.DocumentURL, err = url.Parse(tc.docURL)
+		context := transformers.Context{Doc: inputDoc}
+		context.DocumentURL, err = url.Parse(tc.docURL)
 		if err != nil {
 			t.Errorf("%s\nurl.Parse for %s failed %q", tc.desc, tc.docURL, err)
 			continue
 		}
-		transformers.URL(&engine)
+		transformers.URL(&context)
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {

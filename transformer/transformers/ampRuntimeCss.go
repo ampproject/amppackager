@@ -25,7 +25,7 @@ import (
 
 // AMPRuntimeCSS inlines the contents of the AMP HTML CSS RTV, or
 // inserts a link into the appropriately revisioned v0.css (e.g. 102992221).
-func AMPRuntimeCSS(e *Engine) {
+func AMPRuntimeCSS(e *Context) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

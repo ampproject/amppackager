@@ -73,7 +73,7 @@ func TestAMPRuntimeCSS(t *testing.T) {
 			t.Errorf("%s: html.Parse on %s failed %q", tc.desc, tc.input, err)
 			continue
 		}
-		transformers.AMPRuntimeCSS(&transformers.Engine{Doc: inputDoc, Request: &rpb.Request{Rtv: "42", Css: tc.css}})
+		transformers.AMPRuntimeCSS(&transformers.Context{Doc: inputDoc, Request: &rpb.Request{Rtv: "42", Css: tc.css}})
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
 			t.Errorf("%s: html.Render on %s failed %q", tc.desc, tc.input, err)

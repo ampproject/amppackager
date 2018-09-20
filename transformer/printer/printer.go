@@ -15,7 +15,7 @@
 /*
 Package printer emits the given html.Node as HTML text to an io.Writer.
 
-It is assumed that the input html.Node is valid AMP HTML.
+This is forked from golang's render.go due to customizations needed for AMP HTML.
 */
 package printer
 
@@ -57,6 +57,20 @@ func render(w writer, n *html.Node) error {
 	case html.ErrorNode:
 		return errors.New("html: cannot render an ErrorNode node")
 	case html.TextNode:
+		if n.Data == "" {
+			return nil
+		}
+		if n.Parent.DataAtom == atom.Pre && (n.Data[0] == '\r' || n.Data[1] == '\n') {
+			// Emit a carriage return that will be summarily dropped
+			// if re-parsed again. This is needed for idempotency,
+			// when there are multiple newlines at the start of a
+			// <pre> tag.
+			// Here's the spec that says the leading newline is stripped:
+			// https://html.spec.whatwg.org/multipage/grouping-content.html#the-pre-element
+			// Here's where the go parser drops it:
+			// https://github.com/golang/net/blob/26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2/html/parse.go#L779
+			n.Data = "\r" + n.Data
+		}
 		// TODO(b/78471903): Minimize extraneous whitespace.
 		if _, err := w.WriteString(html.EscapeString(n.Data)); err != nil {
 			return err

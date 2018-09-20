@@ -19,7 +19,9 @@ package transformer
 
 import (
 	"fmt"
+	"log"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/printer"
@@ -34,11 +36,12 @@ import (
 //
 // NOTE: The string mapping is necessary as a language cross-over to
 // allow explicit transformer invocation (via the CUSTOM config).
-var transformerFunctionMap = map[string]func(*transformers.Engine){
+var transformerFunctionMap = map[string]func(*transformers.Context){
 	"ampboilerplate":        transformers.AMPBoilerplate,
 	"ampruntimecss":         transformers.AMPRuntimeCSS,
 	"linktag":               transformers.LinkTag,
 	"metatag":               transformers.MetaTag,
+	"nodecleanup":           transformers.NodeCleanup,
 	"reorderhead":           transformers.ReorderHead,
 	"serversiderendering":   transformers.ServerSideRendering,
 	"transformedidentifier": transformers.TransformedIdentifier,
@@ -47,8 +50,10 @@ var transformerFunctionMap = map[string]func(*transformers.Engine){
 
 // The map of config to the list of transformers, in the order in
 // which they should be executed.
-var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Engine){
+var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context){
 	rpb.Request_DEFAULT: {
+		// NodeCleanup should be first.
+		transformers.NodeCleanup,
 		transformers.MetaTag,
 		// TODO(alin04): Reenable LinkTag once validation is done.
 		// transformers.LinkTag,
@@ -68,7 +73,12 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Engine){
 		// <head>, as they may do so without preserving the proper order.
 		transformers.ReorderHead,
 	},
-	rpb.Request_NONE: {},
+	rpb.Request_NONE: {
+		// TODO(alin04): Despite config being NONE, we still
+		// must run NodeCleanup for comparison against cpp parser/lexer.
+		// Once cpp parser is fully obsoleted, this can be removed.
+		transformers.NodeCleanup,
+	},
 	rpb.Request_VALIDATION: {
 		transformers.ReorderHead,
 	},
@@ -76,8 +86,11 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Engine){
 }
 
 // Override for tests.
-var runTransform = func(e *transformers.Engine) {
-	e.Transform()
+var runTransformers = func(e *transformers.Context, fns []func(*transformers.Context)) {
+	// Invoke the configured transformers
+	for _, f := range fns {
+		f(e)
+	}
 }
 
 // Process will parse the given request, which contains the HTML to
@@ -104,12 +117,20 @@ func Process(r *rpb.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	e := transformers.Engine{doc, u, fns, r}
-	runTransform(&e)
+	e := transformers.Context{doc, u, r}
+	runTransformers(&e, fns)
 	var o strings.Builder
 	err = printer.Print(&o, e.Doc)
 	if err != nil {
 		return "", err
 	}
 	return o.String(), nil
+}
+
+// Print renders the DOM tree as HTML to STDOUT.
+func Print(e *transformers.Context) {
+	err := printer.Print(os.Stdout, e.Doc)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
