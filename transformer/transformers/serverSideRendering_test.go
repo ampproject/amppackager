@@ -23,13 +23,6 @@ import (
 	"golang.org/x/net/html"
 )
 
-// These tests do NOT run through the custom transformations of the
-// Engine, and instead rely exclusively on vanilla golang parser and
-// renderer (otherwise the scope of these tests would creep past unit
-// testing). Therefore, the test data must be made to match, and is not
-// the expected normalized output from transformer.go, nor from any other
-// transformers.
-
 func TestServerSideRendering(t *testing.T) {
 	testCases := []tt.TestCase{
 		{
@@ -175,7 +168,7 @@ func runServerSideRenderingTestcases(t *testing.T, testCases []tt.TestCase) {
 			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.ServerSideRendering(&transformers.Engine{Doc: inputDoc})
+		transformers.ServerSideRendering(&transformers.Context{Doc: inputDoc})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {

@@ -15,17 +15,16 @@
 package transformers
 
 import (
-	"github.com/ampproject/amppackager/transformer/internal/amphtml"
-	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
+	"net/url"
+
+	rpb "github.com/ampproject/amppackager/transformer/request"
+	"golang.org/x/net/html"
 )
 
-// TransformedIdentifier identifies that transformations
-// were made for a specific platform on this document.
-func TransformedIdentifier(e *Context) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
-		return
-	}
-
-	htmlnode.SetAttribute(dom.HTMLNode, "", "transformed", "google")
+// Context stores the root DOM Node and contextual data used for the
+// transformers.
+type Context struct {
+	Doc         *html.Node
+	DocumentURL *url.URL
+	Request     *rpb.Request
 }

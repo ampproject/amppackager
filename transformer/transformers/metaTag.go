@@ -28,7 +28,7 @@ import (
 // * It will relocate all meta tags found inside the body into the head.
 //
 // It does *not* sort the meta tags. This is done by ReorderHead.
-func MetaTag(e *Engine) {
+func MetaTag(e *Context) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return

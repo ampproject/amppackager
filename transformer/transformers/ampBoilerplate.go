@@ -23,7 +23,7 @@ import (
 
 // AMPBoilerplate removes <style> and <noscript> tags in <head>,
 // keeping only the amp-custom style tag. It then inserts the amp-boilerplate.
-func AMPBoilerplate(e *Engine) {
+func AMPBoilerplate(e *Context) {
 	dom, ok := amphtml.NewDOM(e.Doc)
 	if !ok {
 		return
