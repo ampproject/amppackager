@@ -18,6 +18,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/asn1"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -79,6 +81,9 @@ func main() {
 	}
 	if certs == nil || len(certs) == 0 {
 		die(fmt.Sprintf("no cert found in %s", config.CertFile))
+	}
+	if !*flagDevelopment && !amppkg.CanSignHttpExchanges(certs[0]) {
+		die("cert is missing CanSignHttpExchanges extension")
 	}
 	// TODO(twifkak): Verify that certs[0] covers all the signing domains in the config.
 
@@ -156,7 +161,7 @@ func main() {
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.
 
-	if (*flagDevelopment) {
+	if *flagDevelopment {
 		log.Println("WARNING: Running in development, using SXG key for TLS. This won't work in production.")
 		log.Fatal(server.ListenAndServeTLS(config.CertFile, config.KeyFile))
 	} else {
