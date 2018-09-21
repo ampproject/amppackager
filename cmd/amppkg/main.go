@@ -18,8 +18,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/asn1"
 	"flag"
 	"fmt"
 	"io/ioutil"
