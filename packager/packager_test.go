@@ -79,7 +79,7 @@ func newPackager(t *testing.T, urlSets []URLSet) *Packager {
 }
 
 func newPackagerShouldPackage(t *testing.T, urlSets []URLSet, shouldPackage bool) *Packager {
-	handler, err := NewPackager(certs[0], key, urlSets, &rtv.RTVCache{}, func() bool { return shouldPackage }, nil)
+	handler, err := NewPackager(certs[0], key, urlSets, &rtv.RTVCache{}, func() bool { return shouldPackage }, nil, true)
 	if err != nil {
 		t.Fatal(errors.WithStack(err))
 	}
@@ -108,11 +108,11 @@ type PackagerSuite struct {
 }
 
 func (this *PackagerSuite) get(t *testing.T, handler AlmostHandler, target string) *http.Response {
-	return getH(t, handler, target, http.Header{"AMP-Cache-Transform": {"google"}})
+	return this.getP(t, handler, target, httprouter.Params{})
 }
 
 func (this *PackagerSuite) getP(t *testing.T, handler AlmostHandler, target string, params httprouter.Params) *http.Response {
-	return getHP(t, handler, target, http.Header{"AMP-Cache-Transform": {"google"}}, params)
+	return getHP(t, handler, target, http.Header{"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=b2"}}, params)
 }
 
 func (this *PackagerSuite) TestSimple() {
