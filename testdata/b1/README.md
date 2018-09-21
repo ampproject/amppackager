@@ -15,7 +15,7 @@ $ cat server.cert ca.cert >fullchain.cert
 ```
 
 <!--
-TODO(twifkak): Use  k
+TODO(twifkak): Update this to add CanSignHttpExchanges extension.
 TODO(twifkak): Update this to add AIA for OCSP.
 https://www.feistyduck.com/library/openssl-cookbook/online/ch-openssl.html
 https://github.com/grimm-co/GOCSP-responder

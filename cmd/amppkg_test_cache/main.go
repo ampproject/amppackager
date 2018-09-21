@@ -15,20 +15,50 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"regexp"
+	"time"
+
+	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange/version"
 )
 
-var flagPackage = flag.String("package", "", "Path to package file.")
+var flagSXG = flag.String("sxg", "test.sxg", "Path to signed-exchange.")
+var flagCert = flag.String("cert", "test.cert", "Path to cert-chain+cbor.")
 var flagPort = flag.Int("port", 8000, "Port to serve on.")
 
 func main() {
 	flag.Parse()
-	if *flagPackage == "" {
-		log.Fatal("please specify --package")
+	if flag.NArg() != 2 {
+		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "<cert_pem> <key_pem>\n")
+		fmt.Fprintln(os.Stderr, "Serves the test SXG and cert-chain as an AMP Cache might.")
+		fmt.Fprintln(os.Stderr, "Pass it a TLS certificate pair you wish to serve with.\n")
+		flag.Usage()
+		return
 	}
+	certPem := flag.Arg(0)
+	keyPem := flag.Arg(1)
+	sxgFile, err := os.Open(*flagSXG)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+	defer sxgFile.Close()
+	exchange, err := signedexchange.ReadExchange(sxgFile)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+	re, err := regexp.Compile(`"; cert-url=(".*"); cert-sha256=\*`)
+	exchange.SignatureHeaderValue = re.ReplaceAllString(
+		exchange.SignatureHeaderValue,
+		fmt.Sprintf(`"; cert-url="https://localhost:%d/test.cert"; cert-sha256=*`, *flagPort))
+	var sxg bytes.Buffer
+	exchange.Write(&sxg, version.Version1b2)
+	sxgReader := bytes.NewReader(sxg.Bytes())
 	http.HandleFunc("/", func(resp http.ResponseWriter, req *http.Request) {
 		if req.URL.RequestURI() != "/" {
 			http.NotFound(resp, req)
@@ -36,14 +66,18 @@ func main() {
 		}
 		resp.Header().Set("Content-Type", "text/html")
 		resp.Write([]byte(`
-			<link rel=prefetch href=/test.wpk>
-			<a href=/test.wpk>click me!</a>
+			<link rel=prefetch href=/test.sxg>
+			<a href=/test.sxg>click me!</a>
 		`))
 	})
-	http.HandleFunc("/test.wpk", func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Set("Content-Type", "application/signed-exchange;v=b0")
-		http.ServeFile(resp, req, *flagPackage)
+	http.HandleFunc("/test.cert", func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "application/cert-chain+cbor")
+		http.ServeFile(resp, req, *flagCert)
+	})
+	http.HandleFunc("/test.sxg", func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "application/signed-exchange;v=b2")
+		http.ServeContent(resp, req, "test.sxg", time.Time{}, sxgReader)
 	})
 	log.Println("Serving on port", *flagPort)
-	log.Fatal(http.ListenAndServe(fmt.Sprint("localhost:", *flagPort), nil))
+	log.Fatal(http.ListenAndServeTLS(fmt.Sprint("localhost:", *flagPort), certPem, keyPem, nil))
 }

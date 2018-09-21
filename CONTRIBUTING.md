@@ -35,3 +35,10 @@ Copy `amppkg.example.toml` to `amppkg.toml` and modify it to suit your needs.
 You may use `testdata/b1/server.{cert,privkey}` to get started. However, you are
 at your own risk if you instruct your browser to trust `server.cert`. *NEVER*
 instruct your browser to trust `ca.cert`.
+
+# Suggestions for contributions
+
+Take a look at [good first
+issues](https://github.com/ampproject/amppackager/labels/good%20first%20issue),
+and please communicate early and often, to ensure we agree on the solution
+before you invest a lot of time into its implementation.

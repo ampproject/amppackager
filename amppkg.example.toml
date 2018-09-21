@@ -1,14 +1,15 @@
 # This is a TOML 0.4.0 file, as specified by https://github.com/toml-lang/toml.
 
+# The port to listen on; 8080 is the default.
+# Port = 8080
+
 # Uncomment this line to serve only to localhost clients, e.g. for testing, by
 # binding on the loopback interface.
 # LocalOnly = true
 
 # This is the URL prefix under which the packager is being served on the open
-# internet. This is used to generate cert-urls, by appending
-# "/amppkg/cert/blahblahblah". (In the future, it may have other uses.) This is
-# NOT the URL where the packager responds, which will instead be anchored to
-# the root path.
+# internet. This is used to generate cert-urls and validity-urls, by appending
+# "/amppkg/cert/blahblahblah" and "/amppkg/validity". This is
 #
 # For instance, if PackagerBase = "https://example.com/", then the frontend
 # server should reverse-proxy all URLs matching:
@@ -104,6 +105,13 @@ OCSPCache = '/tmp/amppkg/ocsp'
   # content from the same location. If you'd like more flexibility (for
   # instance, to fetch content from an edge node), uncomment this section. This
   # allows the frontend to specify an additional `fetch` query parameter.
+  # Instead of looking like:
+  #
+  #   /priv/doc/https://example.com/page.html
+  #
+  # The URL will look like:
+  #
+  #   /priv/doc?fetch=https%3A%2F%2Finternal.example.com%2Fpage.html&sign=https%3A%2F%2Fexample.com%2Fpage.html
   #
   # Note that this reduces the defense-in-depth against the "signing oracle"
   # attack. If an attacker can request custom URLs from the packager (or
