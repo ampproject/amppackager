@@ -15,9 +15,11 @@
 package packager
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/pem"
 
@@ -59,4 +61,18 @@ func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
 		}
 		// Else try next PEM block.
 	}
+}
+
+// CanSignHttpExchanges returns true if the given certificate has the
+// CanSignHttpExchanges extension. This is not the only requirement for SXGs;
+// it also needs to use the right public key type, which is not checked here.
+func CanSignHttpExchanges(cert *x509.Certificate) bool {
+	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-cert-req
+	for _, ext := range cert.Extensions {
+		// 0x05, 0x00 is the DER encoding of NULL.
+		if ext.Id.Equal(asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 1, 22}) && bytes.Equal(ext.Value, []byte{0x05, 0x00}) {
+			return true
+		}
+	}
+	return false
 }

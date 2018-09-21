@@ -19,7 +19,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/x509"
 	"encoding/asn1"
 	"flag"
 	"fmt"
@@ -46,17 +45,6 @@ func die(err interface{}) { log.Fatalf("%+v", err) }
 
 type logIntercept struct {
 	handler http.Handler
-}
-
-// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-cert-req
-func canSignHttpExchanges(cert *x509.Certificate) bool {
-	for _, ext := range cert.Extensions {
-		// 0x05, 0x00 is the DER encoding of NULL.
-		if ext.Id.Equal(asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 1, 22}) && bytes.Equal(ext.Value, []byte{0x05, 0x00}) {
-			return true
-		}
-	}
-	return false
 }
 
 func (this logIntercept) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -94,7 +82,7 @@ func main() {
 	if certs == nil || len(certs) == 0 {
 		die(fmt.Sprintf("no cert found in %s", config.CertFile))
 	}
-	if !*flagDevelopment && !canSignHttpExchanges(certs[0]) {
+	if !*flagDevelopment && !amppkg.CanSignHttpExchanges(certs[0]) {
 		die("cert is missing CanSignHttpExchanges extension")
 	}
 	// TODO(twifkak): Verify that certs[0] covers all the signing domains in the config.
