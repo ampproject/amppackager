@@ -11,7 +11,7 @@ By running it in a proper configuration, web publishers may (eventually) have
 origin URLs appear in AMP search results.
 
 The AMP Packager works by creating [Signed HTTP
-Exchanges (SXGs)](https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00)
+Exchanges (SXGs)](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html)
 containing AMP documents, signed with a certificate associated with the origin,
 with a maximum lifetime of 7 days. In the future, the [Google AMP
 Cache](https://www.ampproject.org/docs/fundamentals/how_cached) will fetch,
