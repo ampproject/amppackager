@@ -31,6 +31,7 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/version"
+	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/amp_cache_transform"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/transformer"
@@ -246,20 +247,23 @@ type Packager struct {
 	rtvCache        *rtv.RTVCache
 	shouldPackage   func() bool
 	overrideBaseURL *url.URL
+	requireHeaders  bool
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
-func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, urlSets []URLSet, rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL) (*Packager, error) {
+func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, urlSets []URLSet,
+	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
+	requireHeaders bool) (*Packager, error) {
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
 
-	return &Packager{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL}, nil
+	return &Packager{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
 }
 
 func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
@@ -348,8 +352,13 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		proxy(resp, fetchResp)
 		return
 	}
-	if !amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform")) {
+	if this.requireHeaders && !amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform")) {
 		log.Println("Not packaging because AMP-Cache-Transform request header is missing.")
+		proxy(resp, fetchResp)
+		return
+	}
+	if this.requireHeaders && !accept.CanSatisfy(req.Header.Get("Accept")) {
+		log.Printf("Not packaging because Accept request header lacks application/signed-exchange;v=%s.\n", accept.AcceptedSxgVersion)
 		proxy(resp, fetchResp)
 		return
 	}
