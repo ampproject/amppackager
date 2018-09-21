@@ -18,7 +18,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
@@ -27,7 +26,6 @@ import (
 type Config struct {
 	LocalOnly    bool
 	Port         int
-	PackagerBase string // The base URL under which /amppkg/ URLs will be served on the internet.
 	CertFile     string // This must be the full certificate chain.
 	KeyFile      string // Just for the first cert, obviously.
 	OCSPCache    string
@@ -152,10 +150,6 @@ func ReadConfig(configPath string) (*Config, error) {
 
 	if config.Port == 0 {
 		config.Port = 8080
-	}
-	if !strings.HasSuffix(config.PackagerBase, "/") {
-		// This ensures that the ResolveReference call doesn't replace the last path component.
-		config.PackagerBase += "/"
 	}
 	if config.CertFile == "" {
 		return nil, errors.New("must specify CertFile")

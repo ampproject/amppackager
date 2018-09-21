@@ -25,8 +25,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// CertURLPrefix must start without a slash, for PackagerBase's sake.
-const CertURLPrefix = "amppkg/cert"
+const CertURLPrefix = "/amppkg/cert"
 
 // CertName returns the basename for the given cert, as served by this
 // packager's cert cache. Should be stable and unique (e.g.
@@ -37,8 +36,7 @@ func CertName(cert *x509.Certificate) string {
 	return base64.RawURLEncoding.EncodeToString(sum[:])
 }
 
-// ValidityMapPath must start without a slash.
-const ValidityMapPath = "amppkg/validity"
+const ValidityMapPath = "/amppkg/validity"
 
 // ParsePrivateKey returns the first PEM block that looks like a private key.
 func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {

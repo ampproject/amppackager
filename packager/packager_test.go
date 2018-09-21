@@ -79,7 +79,7 @@ func newPackager(t *testing.T, urlSets []URLSet) *Packager {
 }
 
 func newPackagerShouldPackage(t *testing.T, urlSets []URLSet, shouldPackage bool) *Packager {
-	handler, err := NewPackager(certs[0], key, "https://example.com/", urlSets, &rtv.RTVCache{}, func() bool { return shouldPackage })
+	handler, err := NewPackager(certs[0], key, urlSets, &rtv.RTVCache{}, func() bool { return shouldPackage }, nil)
 	if err != nil {
 		t.Fatal(errors.WithStack(err))
 	}

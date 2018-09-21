@@ -7,25 +7,6 @@
 # binding on the loopback interface.
 # LocalOnly = true
 
-# This is the URL prefix under which the packager is being served on the open
-# internet. This is used to generate cert-urls and validity-urls, by appending
-# "/amppkg/cert/blahblahblah" and "/amppkg/validity". This is
-#
-# For instance, if PackagerBase = "https://example.com/", then the frontend
-# server should reverse-proxy all URLs matching:
-#   https://example.com/amppkg/(.*)
-# to the packager.
-#
-# Alternatively, if PackagerBase = "https://example.com/packager/", then the
-# frontend server should reverse-proxy all URLs matching:
-#   https://example.com/packager/amppkg/(.*)
-# to the packager, removing the "/packager" prefix from the path.
-#
-# The frontend MUST NOT forward any requests for /amppkg-priv/.* to the
-# packager. Doing so would allow users to sign the wrong URL on documents. (See
-# URLSet below for some mitigation of this.)
-PackagerBase = 'https://example.com/'
-
 # The path to the PEM file containing the full certificate chain, ordered from
 # leaf to root. This will be served at /amppkg/cert/blahblahblah, where
 # "blahblahblah" is a stable unique identifier for the cert (currently, its

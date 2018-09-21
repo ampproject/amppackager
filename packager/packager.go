@@ -40,9 +40,6 @@ import (
 	"github.com/pquerna/cachecontrol"
 )
 
-// Allowed schemes for the PackagerBase URL, from which certUrls are constructed.
-var acceptablePackagerSchemes = map[string]bool{"http": true, "https": true}
-
 // The Content-Security-Policy in use by the AMP Cache today. Specifying here
 // provides protection for the publisher against bugs in the transformers, as
 // these pages will now run on the publisher's origin. In the future, this
@@ -243,36 +240,26 @@ type Packager struct {
 	// at the moment.
 	cert *x509.Certificate
 	// TODO(twifkak): Do we want to allow multiple keys?
-	key           crypto.PrivateKey
-	client        *http.Client
-	baseURL       *url.URL
-	urlSets       []URLSet
-	rtvCache      *rtv.RTVCache
-	shouldPackage func() bool
+	key             crypto.PrivateKey
+	client          *http.Client
+	urlSets         []URLSet
+	rtvCache        *rtv.RTVCache
+	shouldPackage   func() bool
+	overrideBaseURL *url.URL
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
-func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, packagerBase string, urlSets []URLSet, rtvCache *rtv.RTVCache, shouldPackage func() bool) (*Packager, error) {
-	baseURL, err := url.Parse(packagerBase)
-	if err != nil {
-		return nil, errors.Wrapf(err, "parsing PackagerBase %q", packagerBase)
-	}
-	if !baseURL.IsAbs() {
-		return nil, errors.Errorf("PackagerBase %q must be an absolute URL.", packagerBase)
-	}
-	if !acceptablePackagerSchemes[baseURL.Scheme] {
-		return nil, errors.Errorf("PackagerBase %q must be over http or https.", packagerBase)
-	}
+func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, urlSets []URLSet, rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL) (*Packager, error) {
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
 
-	return &Packager{cert, key, &client, baseURL, urlSets, rtvCache, shouldPackage}, nil
+	return &Packager{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL}, nil
 }
 
 func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
@@ -298,14 +285,19 @@ func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.
 	return req, resp, nil
 }
 
-func (this *Packager) genCertURL(cert *x509.Certificate) (*url.URL, error) {
+func (this *Packager) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.URL, error) {
+	var baseURL *url.URL
+	if this.overrideBaseURL != nil {
+		baseURL = this.overrideBaseURL
+	} else {
+		baseURL = signURL
+	}
 	urlPath := path.Join(CertURLPrefix, url.PathEscape(CertName(cert)))
-	certURL, err := url.Parse(urlPath)
+	certHRef, err := url.Parse(urlPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing cert URL %q", urlPath)
 	}
-	// baseURL is always guaranteed to have a trailing slash due to config.go
-	ret := this.baseURL.ResolveReference(certURL)
+	ret := baseURL.ResolveReference(certHRef)
 	return ret, nil
 }
 
@@ -451,13 +443,13 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 		NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
-	certURL, err := this.genCertURL(this.cert)
+	certURL, err := this.genCertURL(this.cert, signURL)
 	if err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
 		return
 	}
 	now := time.Now()
-	validityHRef, err := url.Parse("/" + ValidityMapPath)
+	validityHRef, err := url.Parse(ValidityMapPath)
 	if err != nil {
 		NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
 	}

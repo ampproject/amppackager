@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"path"
 	"time"
 
@@ -106,7 +107,15 @@ func main() {
 	}
 	defer rtvCache.StopCron()
 
-	packager, err := amppkg.NewPackager(certs[0], key, config.PackagerBase, config.URLSet, rtvCache, certCache.IsHealthy)
+	var overrideBaseURL *url.URL
+	if *flagDevelopment {
+		overrideBaseURL, err = url.Parse(fmt.Sprintf("https://localhost:%d/", config.Port))
+		if err != nil {
+			die(errors.Wrap(err, "parsing development base URL"))
+		}
+	}
+
+	packager, err := amppkg.NewPackager(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy, overrideBaseURL)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
 	}
@@ -115,10 +124,10 @@ func main() {
 	mux := httprouter.New()
 	mux.RedirectTrailingSlash = false
 	mux.RedirectFixedPath = false
-	mux.GET(path.Join("/", amppkg.ValidityMapPath), validityMap.ServeHTTP)
+	mux.GET(amppkg.ValidityMapPath, validityMap.ServeHTTP)
 	mux.GET("/priv/doc", packager.ServeHTTP)
 	mux.GET("/priv/doc/*signURL", packager.ServeHTTP)
-	mux.GET(path.Join("/", amppkg.CertURLPrefix)+"/:certName", certCache.ServeHTTP)
+	mux.GET(path.Join(amppkg.CertURLPrefix, ":certName"), certCache.ServeHTTP)
 	addr := ""
 	if config.LocalOnly {
 		addr = "localhost"
