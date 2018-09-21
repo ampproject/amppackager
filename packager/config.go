@@ -24,12 +24,12 @@ import (
 )
 
 type Config struct {
-	LocalOnly    bool
-	Port         int
-	CertFile     string // This must be the full certificate chain.
-	KeyFile      string // Just for the first cert, obviously.
-	OCSPCache    string
-	URLSet       []URLSet
+	LocalOnly bool
+	Port      int
+	CertFile  string // This must be the full certificate chain.
+	KeyFile   string // Just for the first cert, obviously.
+	OCSPCache string
+	URLSet    []URLSet
 }
 
 type URLSet struct {

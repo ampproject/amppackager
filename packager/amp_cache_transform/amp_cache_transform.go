@@ -12,7 +12,7 @@ import (
 
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-3.3
 type parameterisedIdentifier struct {
-	id     string
+	id string
 	// In the future, this will include params.
 }
 
@@ -106,7 +106,7 @@ func parseIdentifier(reader *strings.Reader) (string, error) {
 		return "", errors.New("expected lowercase alpha")
 	}
 	output.WriteByte(char)
-	for ; reader.Len() > 0; {
+	for reader.Len() > 0 {
 		char, err := reader.ReadByte()
 		if err != nil {
 			return "", errors.Wrap(err, "reading byte")

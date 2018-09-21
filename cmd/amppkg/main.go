@@ -52,7 +52,7 @@ type logIntercept struct {
 func canSignHttpExchanges(cert *x509.Certificate) bool {
 	for _, ext := range cert.Extensions {
 		// 0x05, 0x00 is the DER encoding of NULL.
-		if ext.Id.Equal(asn1.ObjectIdentifier{1,3,6,1,4,1,11129,2,1,22}) && bytes.Equal(ext.Value, []byte{0x05, 0x00}) {
+		if ext.Id.Equal(asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 1, 22}) && bytes.Equal(ext.Value, []byte{0x05, 0x00}) {
 			return true
 		}
 	}
@@ -173,7 +173,7 @@ func main() {
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.
 
-	if (*flagDevelopment) {
+	if *flagDevelopment {
 		log.Println("WARNING: Running in development, using SXG key for TLS. This won't work in production.")
 		log.Fatal(server.ListenAndServeTLS(config.CertFile, config.KeyFile))
 	} else {
