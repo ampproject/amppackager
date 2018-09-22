@@ -36,6 +36,24 @@ You may use `testdata/b1/server.{cert,privkey}` to get started. However, you are
 at your own risk if you instruct your browser to trust `server.cert`. *NEVER*
 instruct your browser to trust `ca.cert`.
 
+## Presubmits
+
+- Run `go fmt` on the code you change. Don't run `go fmt ./...`; this affects
+  files that are mirrored from Google to GitHub, so we can't change them here.
+- Make sure `go test ./...` passes.
+- `golint` and `go vet` are optional.
+
+## New dependencies
+
+Feel free to add dependencies on small code if it implements a feature that's
+hard to implement yourself. Try not to add large dependencies, or dependencies
+for the sake of minor development inconvenience (unless it's for test code
+only). They add risk by bringing in code of unknown provenance, and bloat the
+binary.
+
+If you need to add or upgrade dependencies, AMP Packager uses
+[dep](https://golang.github.io/dep/).
+
 # Suggestions for contributions
 
 Take a look at [good first
