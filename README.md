@@ -95,7 +95,7 @@ works with SXGs.
 For now, productionizing is a bit manual. The minimum steps are:
 
   1. Don't pass `-development` flag to `amppkg`. This causes it to serve HTTP
-     rather than HTTPS.
+     rather than HTTPS, among other changes.
   2. Don't expose `amppkg` to the outside world; keep it on your internal
      network.
   3. Configure your TLS-serving frontend server to conditionally proxy to
@@ -114,9 +114,12 @@ You may also want to:
   1. Launch `amppkg` as a restricted user.
   2. Save its stdout to a rotated log somewhere.
 
-Once you've done the above, you should be able to launch Chrome without any
-comamndline flags; just make sure chrome://flags/#enable-signed-http-exchange is
-enabled.
+Once you've done the above, you should be able to test by launching Chrome
+without any comamndline flags; just make sure
+chrome://flags/#enable-signed-http-exchange is enabled. To test by visiting the
+packager URL directly, first add a Chrome extension to send an
+`AMP-Cache-Transform: any` request header. Otherwise, follow the above
+"Demonstrate privacy-preserving prefetch" instructions.
 
 #### Redundancy
 
