@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package packager
+package signer
 
 import (
 	"bytes"
@@ -29,6 +29,8 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/rtv"
+	pkgt "github.com/ampproject/amppackager/packager/testing"
+	"github.com/ampproject/amppackager/packager/util"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
@@ -74,12 +76,12 @@ func replacingFakeHandler(newFake func(w http.ResponseWriter, req *http.Request)
 	testCode()
 }
 
-func newPackager(t *testing.T, urlSets []URLSet) *Packager {
+func newPackager(t *testing.T, urlSets []util.URLSet) *Packager {
 	return newPackagerShouldPackage(t, urlSets, true)
 }
 
-func newPackagerShouldPackage(t *testing.T, urlSets []URLSet, shouldPackage bool) *Packager {
-	handler, err := NewPackager(certs[0], key, urlSets, &rtv.RTVCache{}, func() bool { return shouldPackage }, nil, true)
+func newPackagerShouldPackage(t *testing.T, urlSets []util.URLSet, shouldPackage bool) *Packager {
+	handler, err := New(pkgt.Certs[0], pkgt.Key, urlSets, &rtv.RTVCache{}, func() bool { return shouldPackage }, nil, true)
 	if err != nil {
 		t.Fatal(errors.WithStack(err))
 	}
@@ -107,18 +109,18 @@ type PackagerSuite struct {
 	httpServer, tlsServer *httptest.Server
 }
 
-func (this *PackagerSuite) get(t *testing.T, handler AlmostHandler, target string) *http.Response {
+func (this *PackagerSuite) get(t *testing.T, handler pkgt.AlmostHandler, target string) *http.Response {
 	return this.getP(t, handler, target, httprouter.Params{})
 }
 
-func (this *PackagerSuite) getP(t *testing.T, handler AlmostHandler, target string, params httprouter.Params) *http.Response {
-	return getHP(t, handler, target, http.Header{"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=b2"}}, params)
+func (this *PackagerSuite) getP(t *testing.T, handler pkgt.AlmostHandler, target string, params httprouter.Params) *http.Response {
+	return pkgt.GetHP(t, handler, target, http.Header{"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=b2"}}, params)
 }
 
 func (this *PackagerSuite) TestSimple() {
-	urlSets := []URLSet{{
-		Sign:  &URLPattern{[]string{"https"}, "", signURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
-		Fetch: &URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", signURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
 	}}
 	resp := this.get(this.T(), newPackager(this.T(), urlSets),
 		"/priv/doc?fetch="+url.QueryEscape(fetchURL(httpURL).String())+"&sign="+url.QueryEscape(signURL(httpURL).String()))
@@ -142,8 +144,8 @@ func (this *PackagerSuite) TestSimple() {
 }
 
 func (this *PackagerSuite) TestNoFetchParam() {
-	urlSets := []URLSet{{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
 	resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
@@ -154,8 +156,8 @@ func (this *PackagerSuite) TestNoFetchParam() {
 }
 
 func (this *PackagerSuite) TestSignAsPathParam() {
-	urlSets := []URLSet{{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	resp := this.getP(this.T(), newPackager(this.T(), urlSets), `/priv/doc/`, httprouter.Params{httprouter.Param{"signURL", "/" + signURL(httpsURL).String()}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -167,8 +169,8 @@ func (this *PackagerSuite) TestSignAsPathParam() {
 }
 
 func (this *PackagerSuite) TestRemovesLinkHeaders() {
-	urlSets := []URLSet{{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
 	resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
@@ -178,8 +180,8 @@ func (this *PackagerSuite) TestRemovesLinkHeaders() {
 }
 
 func (this *PackagerSuite) TestErrorNoCache() {
-	urlSets := []URLSet{{
-		Fetch: &URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
+	urlSets := []util.URLSet{{
+		Fetch: &util.URLPattern{[]string{"http"}, "", fetchURL(httpURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
 	}}
 	// Missing sign param generates an error.
 	resp := this.get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?fetch="+url.QueryEscape(fetchURL(httpURL).String()))
@@ -188,8 +190,8 @@ func (this *PackagerSuite) TestErrorNoCache() {
 }
 
 func (this *PackagerSuite) TestProxyUnsignedIfRedirect() {
-	urlSets := []URLSet{{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -205,8 +207,8 @@ func (this *PackagerSuite) TestProxyUnsignedIfRedirect() {
 }
 
 func (this *PackagerSuite) TestProxyUnsignedIfNotModified() {
-	urlSets := []URLSet{{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -224,8 +226,8 @@ func (this *PackagerSuite) TestProxyUnsignedIfNotModified() {
 }
 
 func (this *PackagerSuite) TestProxyUnsignedIfShouldntPackage() {
-	urlSets := []URLSet{{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	resp := this.get(this.T(), newPackagerShouldPackage(this.T(), urlSets, false), "/priv/doc?sign="+signURL(httpsURL).String())
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -235,10 +237,10 @@ func (this *PackagerSuite) TestProxyUnsignedIfShouldntPackage() {
 }
 
 func (this *PackagerSuite) TestProxyUnsignedIfMissingTransformHeader() {
-	urlSets := []URLSet{{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
-	resp := get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
+	resp := pkgt.Get(this.T(), newPackager(this.T(), urlSets), "/priv/doc?sign="+url.QueryEscape(signURL(httpsURL).String()))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	body, err := ioutil.ReadAll(resp.Body)
 	this.Require().NoError(err)
@@ -246,8 +248,8 @@ func (this *PackagerSuite) TestProxyUnsignedIfMissingTransformHeader() {
 }
 
 func (this *PackagerSuite) TestProxyUnsignedErrOnStatefulHeader() {
-	urlSets := []URLSet{URLSet{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), true, nil},
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), true, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -263,8 +265,8 @@ func (this *PackagerSuite) TestProxyUnsignedErrOnStatefulHeader() {
 }
 
 func (this *PackagerSuite) TestProxyUnsignedNonCachable() {
-	urlSets := []URLSet{URLSet{
-		Sign: &URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", signURL(httpsURL).Host, stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
 	replacingFakeHandler(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")

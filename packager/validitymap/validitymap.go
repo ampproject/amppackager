@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package packager
+package validitymap
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ type ValidityMap struct {
 	validityMap []byte
 }
 
-func NewValidityMap() (*ValidityMap, error) {
+func New() (*ValidityMap, error) {
 	this := new(ValidityMap)
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.6
 	// This is an empty validity map `{}`.

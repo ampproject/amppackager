@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package packager
+package signer
 
 import (
 	"bytes"
@@ -34,6 +34,7 @@ import (
 	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/amp_cache_transform"
 	"github.com/ampproject/amppackager/packager/rtv"
+	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
@@ -102,16 +103,16 @@ var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 	return &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: r.GetRTV(), Css: r.GetCSS()}
 }
 
-func parseURL(rawURL string, name string) (*url.URL, *HTTPError) {
+func parseURL(rawURL string, name string) (*url.URL, *util.HTTPError) {
 	if rawURL == "" {
-		return nil, NewHTTPError(http.StatusBadRequest, name, " URL is unspecified")
+		return nil, util.NewHTTPError(http.StatusBadRequest, name, " URL is unspecified")
 	}
 	ret, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, NewHTTPError(http.StatusBadRequest, "Error parsing ", name, " url: ", err)
+		return nil, util.NewHTTPError(http.StatusBadRequest, "Error parsing ", name, " url: ", err)
 	}
 	if !ret.IsAbs() {
-		return nil, NewHTTPError(http.StatusBadRequest, name, " url is relative")
+		return nil, util.NewHTTPError(http.StatusBadRequest, name, " url is relative")
 	}
 	// Evaluate "/..", by resolving the URL as a reference from itself.
 	// This prevents malformed URLs from eluding the PathRE protections.
@@ -126,7 +127,7 @@ func regexpFullMatch(pattern string, test string) bool {
 	return matches
 }
 
-func urlMatches(url *url.URL, pattern URLPattern) bool {
+func urlMatches(url *url.URL, pattern util.URLPattern) bool {
 	if url.Opaque != "" {
 		return false
 	}
@@ -147,7 +148,7 @@ func urlMatches(url *url.URL, pattern URLPattern) bool {
 	return true
 }
 
-func fetchUrlMatches(url *url.URL, pattern *URLPattern) bool {
+func fetchUrlMatches(url *url.URL, pattern *util.URLPattern) bool {
 	if pattern == nil {
 		// If URLSet.Fetch was unspecified, then so should ?fetch= be.
 		return url == nil
@@ -170,7 +171,7 @@ func fetchUrlMatches(url *url.URL, pattern *URLPattern) bool {
 	return urlMatches(url, *pattern)
 }
 
-func signUrlMatches(url *url.URL, pattern *URLPattern) bool {
+func signUrlMatches(url *url.URL, pattern *util.URLPattern) bool {
 	if url.Scheme != "https" {
 		return false
 	}
@@ -180,7 +181,7 @@ func signUrlMatches(url *url.URL, pattern *URLPattern) bool {
 	return urlMatches(url, *pattern)
 }
 
-func urlsMatch(fetchURL *url.URL, signURL *url.URL, set URLSet) bool {
+func urlsMatch(fetchURL *url.URL, signURL *url.URL, set util.URLSet) bool {
 	fetchOK := fetchUrlMatches(fetchURL, set.Fetch)
 	signOK := signUrlMatches(signURL, set.Sign)
 	theyMatch := set.Fetch == nil || !*set.Fetch.SamePath || fetchURL.RequestURI() == signURL.RequestURI()
@@ -188,9 +189,9 @@ func urlsMatch(fetchURL *url.URL, signURL *url.URL, set URLSet) bool {
 }
 
 // Returns parsed URLs and whether to fail on stateful headers.
-func parseURLs(fetch string, sign string, urlSets []URLSet) (*url.URL, *url.URL, bool, *HTTPError) {
+func parseURLs(fetch string, sign string, urlSets []util.URLSet) (*url.URL, *url.URL, bool, *util.HTTPError) {
 	var fetchURL *url.URL
-	var err *HTTPError
+	var err *util.HTTPError
 	if fetch != "" {
 		fetchURL, err = parseURL(fetch, "fetch")
 		if err != nil {
@@ -209,7 +210,7 @@ func parseURLs(fetch string, sign string, urlSets []URLSet) (*url.URL, *url.URL,
 			return fetchURL, signURL, set.Sign.ErrorOnStatefulHeaders, nil
 		}
 	}
-	return nil, nil, false, NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config")
+	return nil, nil, false, util.NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config")
 }
 
 func validateFetch(req *http.Request, resp *http.Response) error {
@@ -243,7 +244,7 @@ type Packager struct {
 	// TODO(twifkak): Do we want to allow multiple keys?
 	key             crypto.PrivateKey
 	client          *http.Client
-	urlSets         []URLSet
+	urlSets         []util.URLSet
 	rtvCache        *rtv.RTVCache
 	shouldPackage   func() bool
 	overrideBaseURL *url.URL
@@ -254,7 +255,7 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
-func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, urlSets []URLSet,
+func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
 	requireHeaders bool) (*Packager, error) {
 	client := http.Client{
@@ -266,14 +267,14 @@ func NewPackager(cert *x509.Certificate, key crypto.PrivateKey, urlSets []URLSet
 	return &Packager{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
 }
 
-func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *HTTPError) {
+func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *util.HTTPError) {
 	ampURL := fetch.String()
 
 	log.Printf("Fetching URL: %q\n", ampURL)
 	req, err := http.NewRequest(http.MethodGet, ampURL, nil)
 	// TODO(twifkak): Should we add 'Accept-Charset: utf-8'? Do AMP Caches require it? Will it break more servers than it fixes?
 	if err != nil {
-		return nil, nil, NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
+		return nil, nil, util.NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
 	// Set conditional headers that were included in ServeHTTP's Request.
@@ -284,7 +285,7 @@ func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.
 	}
 	resp, err := this.client.Do(req)
 	if err != nil {
-		return nil, nil, NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
+		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
 	}
 	return req, resp, nil
 }
@@ -296,7 +297,7 @@ func (this *Packager) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url
 	} else {
 		baseURL = signURL
 	}
-	urlPath := path.Join(CertURLPrefix, url.PathEscape(CertName(cert)))
+	urlPath := path.Join(util.CertURLPrefix, url.PathEscape(util.CertName(cert)))
 	certHRef, err := url.Parse(urlPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing cert URL %q", urlPath)
@@ -308,7 +309,7 @@ func (this *Packager) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url
 func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	// TODO(twifkak): See if there are any other validations or sanitizations that need adding.
 	if err := req.ParseForm(); err != nil {
-		NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)
 		return
 	}
 	var fetch, sign string
@@ -319,11 +320,11 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		}
 	} else {
 		if len(req.Form["fetch"]) > 1 {
-			NewHTTPError(http.StatusBadRequest, "More than 1 fetch param").LogAndRespond(resp)
+			util.NewHTTPError(http.StatusBadRequest, "More than 1 fetch param").LogAndRespond(resp)
 			return
 		}
 		if len(req.Form["sign"]) != 1 {
-			NewHTTPError(http.StatusBadRequest, "Not exactly 1 sign param").LogAndRespond(resp)
+			util.NewHTTPError(http.StatusBadRequest, "Not exactly 1 sign param").LogAndRespond(resp)
 			return
 		}
 		fetch = req.FormValue("fetch")
@@ -411,7 +412,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		resp.WriteHeader(http.StatusNotModified)
 
 	default:
-		NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", fetchResp.StatusCode).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", fetchResp.StatusCode).LogAndRespond(resp)
 	}
 }
 
@@ -434,7 +435,7 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
-		NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
 		return
 	}
 
@@ -442,29 +443,29 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
 	transformed, err := transformer.Process(r)
 	if err != nil {
-		NewHTTPError(http.StatusInternalServerError, "Error transforming: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusInternalServerError, "Error transforming: ", err).LogAndRespond(resp)
 		return
 	}
 	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
 
 	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err != nil {
-		NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
 		return
 	}
 	if err := exchange.MiEncodePayload(miRecordSize, version.Version1b2); err != nil {
-		NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
 	certURL, err := this.genCertURL(this.cert, signURL)
 	if err != nil {
-		NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
 		return
 	}
 	now := time.Now()
-	validityHRef, err := url.Parse(ValidityMapPath)
+	validityHRef, err := url.Parse(util.ValidityMapPath)
 	if err != nil {
-		NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
 	}
 	signer := signedexchange.Signer{
 		// Expires - Date must be <= 604800 seconds, per
@@ -480,13 +481,13 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 		// /dev/urandom.
 	}
 	if err := exchange.AddSignatureHeader(&signer, version.Version1b2); err != nil {
-		NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
 		return
 	}
 	// TODO(twifkak): Make this a streaming response. How will we handle errors after part of the response has already been sent?
 	var body bytes.Buffer
 	if err := exchange.Write(&body, version.Version1b2); err != nil {
-		NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
+		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
 	}
 
 	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
@@ -508,7 +509,7 @@ func proxy(resp http.ResponseWriter, fetchResp *http.Response) {
 	bytesCopied, err := io.Copy(resp, fetchResp.Body)
 	if err != nil {
 		if bytesCopied == 0 {
-			NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
+			util.NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
 		} else {
 			log.Printf("Error copying response body, %d bytes into stream\n", bytesCopied)
 		}
