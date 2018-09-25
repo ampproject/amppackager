@@ -352,10 +352,14 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		proxy(resp, fetchResp)
 		return
 	}
-	if this.requireHeaders && !amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform")) {
-		log.Println("Not packaging because AMP-Cache-Transform request header is missing.")
-		proxy(resp, fetchResp)
-		return
+	if this.requireHeaders {
+		act := amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform"))
+		if act == "" {
+			log.Println("Not packaging because AMP-Cache-Transform request header is missing.")
+			proxy(resp, fetchResp)
+			return
+		}
+		resp.Header().Set("AMP-Cache-Transform", act)
 	}
 	if this.requireHeaders && !accept.CanSatisfy(req.Header.Get("Accept")) {
 		log.Printf("Not packaging because Accept request header lacks application/signed-exchange;v=%s.\n", accept.AcceptedSxgVersion)
