@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package packager
+package certcache
 
 import (
 	"bytes"
@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
+	"github.com/ampproject/amppackager/packager/util"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/pquerna/cachecontrol"
@@ -68,9 +69,9 @@ type CertCache struct {
 }
 
 // Must call Init() on the returned CertCache before you can use it.
-func NewCertCache(certs []*x509.Certificate, ocspCache string) *CertCache {
+func New(certs []*x509.Certificate, ocspCache string) *CertCache {
 	return &CertCache{
-		certName:        CertName(certs[0]),
+		certName:        util.CertName(certs[0]),
 		certs:           certs,
 		ocspUpdateAfter: infiniteFuture, // Default, in case initial readOCSP successfully loads from disk.
 		// Distributed OCSP cache to support the following sleevi requirements:
@@ -153,12 +154,12 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 		// OCSP midpoint, in case it cannot parse it.
 		ocsp, _, err := this.readOCSP()
 		if err != nil {
-			NewHTTPError(http.StatusInternalServerError, "Error reading OCSP: ", err).LogAndRespond(resp)
+			util.NewHTTPError(http.StatusInternalServerError, "Error reading OCSP: ", err).LogAndRespond(resp)
 			return
 		}
 		midpoint, err := this.ocspMidpoint(ocsp, this.findIssuer())
 		if err != nil {
-			NewHTTPError(http.StatusInternalServerError, "Error computing OCSP midpoint: ", err).LogAndRespond(resp)
+			util.NewHTTPError(http.StatusInternalServerError, "Error computing OCSP midpoint: ", err).LogAndRespond(resp)
 			return
 		}
 		// int is large enough to represent 24855 days in seconds.
@@ -170,7 +171,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
 		cbor, err := this.createCertChainCBOR(ocsp)
 		if err != nil {
-			NewHTTPError(http.StatusInternalServerError, "Error building cert chain: ", err).LogAndRespond(resp)
+			util.NewHTTPError(http.StatusInternalServerError, "Error building cert chain: ", err).LogAndRespond(resp)
 			return
 		}
 		http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(cbor))

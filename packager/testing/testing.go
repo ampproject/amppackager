@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package packager
+package testing
 
 import (
 	"crypto"
@@ -23,20 +23,21 @@ import (
 	"testing"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/ampproject/amppackager/packager/util"
 	"github.com/julienschmidt/httprouter"
 )
 
 // A cert (with its issuer chain) for testing.
-var certs = func() []*x509.Certificate {
-	certPem, _ := ioutil.ReadFile("../testdata/b1/fullchain.cert")
+var Certs = func() []*x509.Certificate {
+	certPem, _ := ioutil.ReadFile("../../testdata/b1/fullchain.cert")
 	certs, _ := signedexchange.ParseCertificates(certPem)
 	return certs
 }()
 
 // Its corresponding private key.
-var key = func() crypto.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("../testdata/b1/server.privkey")
-	key, _ := ParsePrivateKey(keyPem)
+var Key = func() crypto.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("../../testdata/b1/server.privkey")
+	key, _ := util.ParsePrivateKey(keyPem)
 	return key
 }()
 
@@ -45,19 +46,19 @@ type AlmostHandler interface {
 	ServeHTTP(http.ResponseWriter, *http.Request, httprouter.Params)
 }
 
-func get(t *testing.T, handler AlmostHandler, target string) *http.Response {
-	return getP(t, handler, target, httprouter.Params{})
+func Get(t *testing.T, handler AlmostHandler, target string) *http.Response {
+	return GetP(t, handler, target, httprouter.Params{})
 }
 
-func getH(t *testing.T, handler AlmostHandler, target string, headers http.Header) *http.Response {
-	return getHP(t, handler, target, headers, httprouter.Params{})
+func GetH(t *testing.T, handler AlmostHandler, target string, headers http.Header) *http.Response {
+	return GetHP(t, handler, target, headers, httprouter.Params{})
 }
 
-func getP(t *testing.T, handler AlmostHandler, target string, params httprouter.Params) *http.Response {
-	return getHP(t, handler, target, http.Header{}, params)
+func GetP(t *testing.T, handler AlmostHandler, target string, params httprouter.Params) *http.Response {
+	return GetHP(t, handler, target, http.Header{}, params)
 }
 
-func getHP(t *testing.T, handler AlmostHandler, target string, headers http.Header, params httprouter.Params) *http.Response {
+func GetHP(t *testing.T, handler AlmostHandler, target string, headers http.Header, params httprouter.Params) *http.Response {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest("", target, nil)
 	for name, values := range headers {

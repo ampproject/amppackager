@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package packager
+package certcache
 
 import (
 	"crypto/rsa"
@@ -29,6 +29,8 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/cbor"
+	pkgt "github.com/ampproject/amppackager/packager/testing"
+	"github.com/ampproject/amppackager/packager/util"
 	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/crypto/ocsp"
@@ -37,21 +39,21 @@ import (
 const certName = "k9GCZZIDzAt2X0b2czRv0c2omW5vgYNh6ZaIz_UNTRQ"
 
 var caCert = func() *x509.Certificate {
-	certPem, _ := ioutil.ReadFile("../testdata/b1/ca.cert")
+	certPem, _ := ioutil.ReadFile("../../testdata/b1/ca.cert")
 	certs, _ := signedexchange.ParseCertificates(certPem)
 	return certs[0]
 }()
 
 var caKey = func() *rsa.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("../testdata/b1/ca.privkey")
-	key, _ := ParsePrivateKey(keyPem)
+	keyPem, _ := ioutil.ReadFile("../../testdata/b1/ca.privkey")
+	key, _ := util.ParsePrivateKey(keyPem)
 	return key.(*rsa.PrivateKey)
 }()
 
 func FakeOCSPResponse(thisUpdate time.Time) ([]byte, error) {
 	template := ocsp.Response{
 		Status:           ocsp.Good,
-		SerialNumber:     certs[0].SerialNumber,
+		SerialNumber:     pkgt.Certs[0].SerialNumber,
 		ThisUpdate:       thisUpdate,
 		NextUpdate:       thisUpdate.Add(7 * 24 * time.Hour),
 		RevokedAt:        thisUpdate.AddDate( /*years=*/ 0 /*months=*/, 0 /*days=*/, 365),
@@ -72,9 +74,9 @@ type CertCacheSuite struct {
 	handler             *CertCache
 }
 
-func (this *CertCacheSuite) NewCertCache() (*CertCache, error) {
+func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(twifkak): Stop the old CertCache's goroutine.
-	certCache := NewCertCache(certs, filepath.Join(this.tempDir, "ocsp"))
+	certCache := New(pkgt.Certs, filepath.Join(this.tempDir, "ocsp"))
 	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}
@@ -116,7 +118,7 @@ func (this *CertCacheSuite) SetupTest() {
 
 	this.stop = make(chan struct{})
 
-	this.handler, err = this.NewCertCache()
+	this.handler, err = this.New()
 	this.Require().NoError(err, "instantiating CertCache")
 }
 
@@ -168,7 +170,7 @@ func (this *CertCacheSuite) DecodeCBOR(r io.Reader) map[string][]byte {
 }
 
 func (this *CertCacheSuite) TestServesCertificate() {
-	resp := getP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Contains(cbor, "cert")
@@ -177,7 +179,7 @@ func (this *CertCacheSuite) TestServesCertificate() {
 }
 
 func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
-	resp := getP(this.T(), this.handler, "/amppkg/cert/lalala", httprouter.Params{httprouter.Param{"certName", "lalala"}})
+	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/lalala", httprouter.Params{httprouter.Param{"certName", "lalala"}})
 	this.Assert().Equal(http.StatusNotFound, resp.StatusCode, "incorrect status: %#v", resp)
 	body, _ := ioutil.ReadAll(resp.Body)
 	// Small enough not to fit a cert or key:
@@ -186,7 +188,7 @@ func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 
 func (this *CertCacheSuite) TestOCSP() {
 	// Verify it gets included in the cert-chain+cbor payload.
-	resp := getP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
@@ -204,7 +206,7 @@ func (this *CertCacheSuite) TestOCSPCached() {
 
 	// Create a new handler, to see it populates the memory cache from disk, not network:
 	this.Assert().False(this.ocspServerCalled(func() {
-		_, err := this.NewCertCache()
+		_, err := this.New()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
 }
@@ -216,12 +218,12 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
 	this.Require().NoError(err, "creating expired OCSP response")
 	this.Require().True(this.ocspServerCalled(func() {
-		this.handler, err = this.NewCertCache()
+		this.handler, err = this.New()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
 
 	// Verify HTTP response expires immediately:
-	resp := getP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal("public, max-age=0", resp.Header.Get("Cache-Control"))
 
 	// On update, verify network is called:
@@ -238,7 +240,7 @@ func (this *CertCacheSuite) TestOCSPUpdateFromDisk() {
 	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
 	this.Require().NoError(err, "creating stale OCSP response")
 	this.Require().True(this.ocspServerCalled(func() {
-		this.handler, err = this.NewCertCache()
+		this.handler, err = this.New()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
 
@@ -262,7 +264,7 @@ func (this *CertCacheSuite) TestOCSPExpiredViaHTTPHeaders() {
 	this.fakeOCSPExpiry = new(time.Time)
 	*this.fakeOCSPExpiry = time.Unix(0, 1) // Infinite past. time.Time{} is used as a sentinel value to mean no update.
 	this.Require().True(this.ocspServerCalled(func() {
-		this.handler, err = this.NewCertCache()
+		this.handler, err = this.New()
 		this.Require().NoError(err, "reinitializing CertCache")
 	}))
 	this.Require().Equal(time.Unix(0, 1), this.handler.ocspUpdateAfter)
@@ -282,7 +284,7 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 	this.Require().NoError(err, "creating stale OCSP response")
 	this.fakeOCSP = staleOCSP
 	this.Require().True(this.ocspServerCalled(func() {
-		this.handler, err = this.NewCertCache()
+		this.handler, err = this.New()
 		this.Require().NoError(err, "reinstantiating CertCache")
 	}))
 

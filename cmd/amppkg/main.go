@@ -31,7 +31,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 
-	amppkg "github.com/ampproject/amppackager/packager"
+	"github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/signer"
+	"github.com/ampproject/amppackager/packager/util"
+	"github.com/ampproject/amppackager/packager/validitymap"
 	"github.com/ampproject/amppackager/packager/rtv"
 )
 
@@ -58,7 +61,7 @@ func (this logIntercept) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 //  - It is in cleartext.
 func main() {
 	flag.Parse()
-	config, err := amppkg.ReadConfig(*flagConfig)
+	config, err := util.ReadConfig(*flagConfig)
 	if err != nil {
 		die(errors.Wrap(err, "reading config"))
 	}
@@ -80,23 +83,23 @@ func main() {
 	if certs == nil || len(certs) == 0 {
 		die(fmt.Sprintf("no cert found in %s", config.CertFile))
 	}
-	if !*flagDevelopment && !amppkg.CanSignHttpExchanges(certs[0]) {
+	if !*flagDevelopment && !util.CanSignHttpExchanges(certs[0]) {
 		die("cert is missing CanSignHttpExchanges extension")
 	}
 	// TODO(twifkak): Verify that certs[0] covers all the signing domains in the config.
 
-	key, err := amppkg.ParsePrivateKey(keyPem)
+	key, err := util.ParsePrivateKey(keyPem)
 	if err != nil {
 		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
 	}
 	// TODO(twifkak): Verify that key matches certs[0].
 
-	validityMap, err := amppkg.NewValidityMap()
+	validityMap, err := validitymap.New()
 	if err != nil {
 		die(errors.Wrap(err, "building validity map"))
 	}
 
-	certCache := amppkg.NewCertCache(certs, config.OCSPCache)
+	certCache := certcache.New(certs, config.OCSPCache)
 	if err = certCache.Init(nil); err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
@@ -118,7 +121,7 @@ func main() {
 		}
 	}
 
-	packager, err := amppkg.NewPackager(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
+	packager, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
 		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
@@ -128,10 +131,10 @@ func main() {
 	mux := httprouter.New()
 	mux.RedirectTrailingSlash = false
 	mux.RedirectFixedPath = false
-	mux.GET(amppkg.ValidityMapPath, validityMap.ServeHTTP)
+	mux.GET(util.ValidityMapPath, validityMap.ServeHTTP)
 	mux.GET("/priv/doc", packager.ServeHTTP)
 	mux.GET("/priv/doc/*signURL", packager.ServeHTTP)
-	mux.GET(path.Join(amppkg.CertURLPrefix, ":certName"), certCache.ServeHTTP)
+	mux.GET(path.Join(util.CertURLPrefix, ":certName"), certCache.ServeHTTP)
 	addr := ""
 	if config.LocalOnly {
 		addr = "localhost"
