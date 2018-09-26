@@ -123,6 +123,7 @@ func (this *PackagerSuite) TestSimple() {
 	resp := this.get(this.T(), newPackager(this.T(), urlSets),
 		"/priv/doc?fetch="+url.QueryEscape(fetchURL(httpURL).String())+"&sign="+url.QueryEscape(signURL(httpURL).String()))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	this.Assert().Equal("google", resp.Header.Get("AMP-Cache-Transform"))
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)

@@ -121,19 +121,20 @@ func parseIdentifier(reader *strings.Reader) (string, error) {
 	return output.String(), nil
 }
 
-// Returns true if the given AMP-Cache-Transform request header value is one
-// the packager can satisfy.
-func ShouldSendSXG(header_value string) bool {
+// If the given AMP-Cache-Transform request header value is one the packager
+// can satisfy, returns the corresponding AMP-Cache-Transform response header
+// it should send. Else, returns empty string.
+func ShouldSendSXG(header_value string) string {
 	reader := strings.NewReader(header_value)
 	identifiers, err := parseParameterisedList(reader)
 	if err != nil {
 		// TODO(twifkak): Debug-log err and reader.Len() bytes remaining.
-		return false
+		return ""
 	}
 	for _, identifier := range identifiers {
 		if identifier.id == "any" || identifier.id == "google" {
-			return true
+			return identifier.id
 		}
 	}
-	return false
+	return ""
 }
