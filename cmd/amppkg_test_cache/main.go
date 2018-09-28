@@ -53,6 +53,9 @@ func main() {
 		log.Fatalf("%+v", err)
 	}
 	re, err := regexp.Compile(`"; cert-url=(".*"); cert-sha256=\*`)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
 	exchange.SignatureHeaderValue = re.ReplaceAllString(
 		exchange.SignatureHeaderValue,
 		fmt.Sprintf(`"; cert-url="https://localhost:%d/test.cert"; cert-sha256=*`, *flagPort))
