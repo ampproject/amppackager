@@ -38,10 +38,15 @@ const (
 //  - sanitizing URI values
 //  - removing extra <title> elements
 func NodeCleanup(e *Context) {
-	if _, ok := amphtml.NewDOM(e.Doc); !ok {
+	dom, ok := amphtml.NewDOM(e.Doc)
+	if !ok {
 		return
 	}
 	nodeCleanupTransform(e.Doc)
+	// Find and fix amp-custom style after recursion above, which
+	// would have removed whitespace only children nodes. The fix call
+	// will then properly remove the empty style node.
+	findAndFixStyleAMPCustom(dom.HeadNode)
 }
 
 // nodeCleanupTransform recursively does the actual work on each node.
@@ -63,9 +68,6 @@ func nodeCleanupTransform(n *html.Node) {
 			}
 		}
 
-		// Fix style amp-custom nodes.
-		fixStyleAMPCustom(n)
-
 		// Sanitize URI attribute values.
 		n.Attr = sanitizeURIAttributes(n.Attr)
 
@@ -85,12 +87,9 @@ func nodeCleanupTransform(n *html.Node) {
 		}
 
 		// Strip out whitespace only text nodes, except in <body> or <title>.
-		if !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) {
-			s := strings.Trim(n.Data, whitespace)
-			if len(s) == 0 {
-				n.Parent.RemoveChild(n)
-				return
-			}
+		if !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) && len(strings.Trim(n.Data, whitespace)) == 0 {
+			n.Parent.RemoveChild(n)
+			return
 		}
 	}
 
@@ -156,23 +155,29 @@ func sanitizeURIAttributes(attrs []html.Attribute) []html.Attribute {
 	return attrs
 }
 
-// fixStyleAMPCustom removes empty style amp-custom nodes, or if not empty,
-// strips all remaining attributes.
-func fixStyleAMPCustom(n *html.Node) {
-	if n.DataAtom != atom.Style {
+// findAndFixStyleAMPCustom finds the <style amp-custom> element and
+// if it is empty, removes it, or if not empty, strips all remaining
+// attributes.
+// There can only be one <style amp-custom> element and only within head.
+// https://www.ampproject.org/docs/design/responsive_amp#add-styles-to-a-page
+func findAndFixStyleAMPCustom(h *html.Node) {
+	if h.DataAtom != atom.Head {
 		return
 	}
-	if !htmlnode.HasAttribute(n, amphtml.AMPCustom) {
-		return
-	}
+	for c := h.FirstChild; c != nil; c = c.NextSibling {
+		if c.DataAtom == atom.Style && htmlnode.HasAttribute(c, amphtml.AMPCustom) {
+			// Strip empty nodes
+			if c.FirstChild == nil && c.LastChild == nil {
+				h.RemoveChild(c)
+			} else {
+				// Strip remaining attributes
+				c.Attr = []html.Attribute{{Key: amphtml.AMPCustom}}
+			}
 
-	// Strip empty nodes
-	if n.FirstChild == nil && n.LastChild == nil {
-		n.Parent.RemoveChild(n)
-		return
+			// there can only be one <style amp-custom>, so return
+			return
+		}
 	}
-	// Strip remaining attributes
-	n.Attr = []html.Attribute{{Key: amphtml.AMPCustom}}
 }
 
 // stripExtraTitles removes extraneous title elements. There can only be one
