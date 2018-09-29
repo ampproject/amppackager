@@ -92,11 +92,19 @@ var statusNotModifiedHeaders = map[string]bool{
 	"Vary":             true,
 }
 
-// TODO(twifkak): Remove this restriction by allowing streamed responses from the signedexchange library.
+// MICE requires the sender process its payload in reverse order
+// (https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.1).
+// In an HTTP reverse proxy, this could be done using range requests, but would
+// be inefficient. Therefore, the signer requires the whole payload in memory.
+// To prevent DoS, a memory limit is set. This limit is mostly arbitrary,
+// though there's no benefit to having a limit greater than that of AMP Caches.
 const maxBodyLength = 4 * 1 << 20
 
-// TODO(twifkak): What value should this be?
-const miRecordSize = 4096
+// The current maximum is defined at:
+// https://cs.chromium.org/chromium/src/content/browser/loader/merkle_integrity_source_stream.cc?l=18&rcl=591949795043a818e50aba8a539094c321a4220c
+// The maximum is cheapest in terms of network usage, and probably CPU on both
+// server and client. The memory usage difference is negligible.
+const miRecordSize = 16 << 10
 
 // Overrideable for testing.
 var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
@@ -272,7 +280,6 @@ func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.
 
 	log.Printf("Fetching URL: %q\n", ampURL)
 	req, err := http.NewRequest(http.MethodGet, ampURL, nil)
-	// TODO(twifkak): Should we add 'Accept-Charset: utf-8'? Do AMP Caches require it? Will it break more servers than it fixes?
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
@@ -307,7 +314,6 @@ func (this *Packager) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url
 }
 
 func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-	// TODO(twifkak): See if there are any other validations or sanitizations that need adding.
 	if err := req.ParseForm(); err != nil {
 		util.NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)
 		return
@@ -376,8 +382,6 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 			proxy(resp, fetchResp)
 			return
 		}
-		// TODO(twifkak): Add config: either ensure Expires is + 5 days, or reject. (Or at least do one and document it in the README.)
-		// TODO(twifkak): Should I be more restrictive and just whitelist some response headers?
 		for header := range statefulResponseHeaders {
 			if errorOnStatefulHeaders && fetchResp.Header.Get(header) != "" {
 				log.Println("Not packaging because ErrorOnStatefulHeaders = True and fetch response contains stateful header: ", header)
@@ -424,14 +428,9 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 	// with the wrong content-type, but:
 	//  1. Some existing AMP servers may not be setting the proper content
 	//     type, and may be relying on the AMP cache to rewrite it.
-	//  2. This would require a media-type parser plus some logic for
-	//     determining equivalence.
+	//  2. This would require some logic for determining media type
+	//     equivalence (including parameters).
 	fetchResp.Header.Set("Content-Type", "text/html")
-
-	// TODO(twifkak): Are there any headers that AMP CDNs sets that publishers wouldn't want
-	// running on their origin? Are there any (such as CSP) that we absolutely need to run?
-	// TODO(twifkak): After the Transformer API, just add whatever headers are provided by the
-	// transformer plus a few extra (e.g. Content-Type).
 
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
@@ -484,7 +483,6 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
 		return
 	}
-	// TODO(twifkak): Make this a streaming response. How will we handle errors after part of the response has already been sent?
 	var body bytes.Buffer
 	if err := exchange.Write(&body, version.Version1b2); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
@@ -492,7 +490,6 @@ func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *h
 
 	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
 	// should fetch an update (half-way between signature date & expires).
-	// TODO(twifkak): Add `X-Amppkg-Version: 0.0.0`.
 	resp.Header().Set("Content-Type", "application/signed-exchange;v=b2")
 	resp.Header().Set("Cache-Control", "no-transform")
 	if _, err := resp.Write(body.Bytes()); err != nil {
