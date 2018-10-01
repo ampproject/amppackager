@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package transform invokes the golang HTML parser, executes the
+// Package transformer invokes the golang HTML parser, executes the
 // individual transformers (unless overridden), and prints the output
 // to the provided string.
 package transformer

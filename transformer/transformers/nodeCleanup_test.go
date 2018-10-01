@@ -92,6 +92,12 @@ func TestStrip(t *testing.T) {
 			Expected: "",
 		},
 		{
+			// Whitespace should be stripped, then empty style stripped too.
+			Desc:     "Strip amp-custom style with pure whitespace",
+			Input:    "<style amp-custom>  </style>",
+			Expected: "",
+		},
+		{
 			Desc:     "No-op (not empty amp-custom style)",
 			Input:    "<style amp-custom>amp-gist { color: red; }</style>",
 			Expected: "<style amp-custom>amp-gist { color: red; }</style>",

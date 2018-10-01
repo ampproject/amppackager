@@ -81,17 +81,6 @@ func TestQuotes(t *testing.T) {
 			`<lemur x="Вконтакте">`,
 			`<lemur x=Вконтакте>`,
 		},
-		{
-			// This is actually done in the parser, as per spec.
-			"Newline at start of <pre> is dropped.",
-			`<pre>&#13;</pre>`,
-			`<pre></pre>`,
-		},
-		{
-			"Add newline to <pre> when start with newline.",
-			`<pre>&#13;&#13;</pre>`,
-			`<pre>&#13;&#13;</pre>`,
-		},
 	}
 	runAllTestCases(t, testCases)
 }
@@ -331,6 +320,52 @@ func TestLowerCaseTagsAndAttrs(t *testing.T) {
 			"svg child tag",
 			"<svg><lineargradient>",
 			"<svg><lineargradient>",
+		},
+	}
+	runAllTestCases(t, testCases)
+}
+
+func TestPreLeadingNewline(t *testing.T) {
+	testCases := []tt.TestCase{
+		{
+			// This is actually done in the parser, as per spec. Verifying
+			// behavior here.
+			"Newline at start of <pre> is dropped.",
+			"<pre>&#13;</pre>",
+			"<pre></pre>",
+		},
+		{
+			// This is also done in the parser, as per spec, where the
+			// combo of CR LF is treated as a single newline. Verifying
+			// behavior here.
+			"CR LF",
+			"<pre>&#13;\n</pre>",
+			"<pre></pre>",
+		},
+		{
+			"Add LF to <pre> when start with CR.",
+			"<pre>&#13;&#13;</pre>",
+			"<pre>\n&#13;</pre>",
+		},
+		{
+			"Add LF to <pre> when start with LF.",
+			"<pre>&#10;&#10;</pre>",
+			"<pre>\n\n</pre>",
+		},
+		{
+			"LF LF with more text",
+			`<pre>&#10;&#10;lemur</pre>`,
+			"<pre>\n\nlemur</pre>",
+		},
+		{
+			"Don't add extra LF to <pre> with leading text.",
+			"<pre>blah&#10;&#13;</pre>",
+			"<pre>blah\n&#13;</pre>",
+		},
+		{
+			"Don't add extra LF to <pre> with leading element.",
+			"<pre><strong>boo</strong>&#10;&#13;</pre>",
+			"<pre><strong>boo</strong>\n&#13;</pre>",
 		},
 	}
 	runAllTestCases(t, testCases)
