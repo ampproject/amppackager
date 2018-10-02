@@ -125,9 +125,12 @@ func TestStrip(t *testing.T) {
 			Expected: `<lemur uri="  	">`,
 		},
 		{
+			// The extra whitespace node after second title element is to
+			// prove that siblings after the removed node are still processed.
+			// In this case, the whitespace is removed.
 			Desc:     "Strip extra <title> elements",
-			Input:    `<!doctype html><html ⚡>  <head><title>a</title><title>b</title></head>`,
-			Expected: `<!doctype html><html ⚡>  <head><title>a</title></head>`,
+			Input:    `<!doctype html><html ⚡><head><title>a</title><title>b</title> <script></script></head>`,
+			Expected: `<!doctype html><html ⚡><head><title>a</title><script></script></head>`,
 		},
 		{
 			Desc:     "Strip all <title> elements in body",
