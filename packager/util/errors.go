@@ -21,7 +21,10 @@ import (
 )
 
 // HTTPError encodes an internal message to be logged and an HTTP status code
-// to be used for the external error message.
+// to be used for the external error message. External errors should only be
+// used to signal misconfiguration of the packager. For errors that are
+// transient or a result of downstream server errors, the signer should fall
+// back to proxying the content unsigned.
 type HTTPError struct {
 	InternalMsg string
 	StatusCode  int

@@ -416,7 +416,8 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 		resp.WriteHeader(http.StatusNotModified)
 
 	default:
-		util.NewHTTPError(http.StatusBadGateway, "Non-OK fetch: ", fetchResp.StatusCode).LogAndRespond(resp)
+		log.Printf("Not packaging because status code %d is unrecognized.\n", fetchResp.StatusCode)
+		proxy(resp, fetchResp)
 	}
 }
 
