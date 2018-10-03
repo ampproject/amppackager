@@ -21,12 +21,11 @@ package printer
 
 import (
 	"bufio"
-	"errors"
-	"fmt"
 	"io"
 	"sort"
 	"strings"
 
+	"github.com/pkg/errors"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
@@ -121,11 +120,11 @@ func renderElementNode(w writer, n *html.Node) error {
 	sort.Slice(n.Attr, func(i, j int) bool {
 		iSortKey := n.Attr[i].Key
 		if n.Attr[i].Namespace != "" {
-			iSortKey = fmt.Sprintf("%s:%s", n.Attr[i].Namespace, n.Attr[i].Key)
+			iSortKey = n.Attr[i].Namespace + ":" + n.Attr[i].Key
 		}
 		jSortKey := n.Attr[j].Key
 		if n.Attr[j].Namespace != "" {
-			jSortKey = fmt.Sprintf("%s:%s", n.Attr[j].Namespace, n.Attr[j].Key)
+			jSortKey = n.Attr[j].Namespace + ":" + n.Attr[j].Key
 		}
 		return iSortKey < jSortKey
 	})
@@ -136,7 +135,7 @@ func renderElementNode(w writer, n *html.Node) error {
 	}
 	if voidElements[n.DataAtom] {
 		if n.FirstChild != nil {
-			return fmt.Errorf("html: void element <%s> has child nodes", n.Data)
+			return errors.Errorf("html: void element <%s> has child nodes", n.Data)
 		}
 		_, err := w.WriteString(">")
 		return err
