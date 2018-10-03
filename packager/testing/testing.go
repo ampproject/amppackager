@@ -37,6 +37,7 @@ var Certs = func() []*x509.Certificate {
 // Its corresponding private key.
 var Key = func() crypto.PrivateKey {
 	keyPem, _ := ioutil.ReadFile("../../testdata/b1/server.privkey")
+	// This call to ParsePrivateKey() is needed by util_test.go.
 	key, _ := util.ParsePrivateKey(keyPem)
 	return key
 }()
