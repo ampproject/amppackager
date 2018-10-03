@@ -61,9 +61,16 @@ func (this logIntercept) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 //  - It is in cleartext.
 func main() {
 	flag.Parse()
-	config, err := util.ReadConfig(*flagConfig)
+	if *flagConfig == "" {
+		die("must specify --config")
+	}
+	configBytes, err := ioutil.ReadFile(*flagConfig)
 	if err != nil {
-		die(errors.Wrap(err, "reading config"))
+		die(errors.Wrapf(err, "reading config at %s", *flagConfig))
+	}
+	config, err := util.ReadConfig(configBytes)
+	if err != nil {
+		die(errors.Wrapf(err, "parsing config at %s", *flagConfig))
 	}
 
 	// TODO(twifkak): Document what cert/key storage formats this accepts.
