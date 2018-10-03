@@ -59,7 +59,7 @@ func validateURLPattern(pattern *URLPattern) error {
 	}
 	for _, exclude := range pattern.PathExcludeRE {
 		if _, err := regexp.Compile(exclude); err != nil {
-			return errors.Errorf("PathExcludeRE contains be invalid regexp %q", exclude)
+			return errors.Errorf("PathExcludeRE contains invalid regexp %q", exclude)
 		}
 	}
 	if pattern.QueryRE == nil {
@@ -134,17 +134,14 @@ func validateFetchURLPattern(pattern *URLPattern) error {
 }
 
 // ReadConfig reads the config file specified at --config and validates it.
-func ReadConfig(configPath string) (*Config, error) {
-	if configPath == "" {
-		return nil, errors.New("must specify --config")
-	}
-	tree, err := toml.LoadFile(configPath)
+func ReadConfig(configBytes []byte) (*Config, error) {
+	tree, err := toml.LoadBytes(configBytes)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse config at: %s", configPath)
+		return nil, errors.Wrapf(err, "failed to parse TOML")
 	}
 	config := Config{}
 	if err = tree.Unmarshal(&config); err != nil {
-		return nil, errors.Wrapf(err, "failed to parse config at: %s", configPath)
+		return nil, errors.Wrapf(err, "failed to unmarshal TOML")
 	}
 	// TODO(twifkak): Return an error if the TOML includes any fields that aren't part of the Config struct.
 
