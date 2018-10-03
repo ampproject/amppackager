@@ -73,7 +73,11 @@ func nodeCleanupTransform(n *html.Node) {
 
 		// Remove extra <title> elements
 		if n.DataAtom == atom.Title {
-			stripExtraTitles(n)
+			maybeStripTitle(n)
+			if n.Parent == nil {
+				// bail if this element is now an orphan
+				return
+			}
 		}
 
 	case html.DoctypeNode:
@@ -86,19 +90,19 @@ func nodeCleanupTransform(n *html.Node) {
 			return
 		}
 
-		// Strip out whitespace only text nodes, except in <body> or <title>.
-		if !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) && len(strings.Trim(n.Data, whitespace)) == 0 {
+		// Strip out whitespace only text nodes that are not in <body> or <title>.
+		if len(strings.TrimLeft(n.Data, whitespace)) == 0 && !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) {
 			n.Parent.RemoveChild(n)
 			return
 		}
 	}
 
-	var next *html.Node
-	for c := n.FirstChild; c != nil; c = next {
+	for c := n.FirstChild; c != nil; {
 		// Track the next sibling because if the node is removed in the recursive
 		// call, it becomes orphaned and the pointer to NextSibling is lost.
-		next = c.NextSibling
+		next := c.NextSibling
 		nodeCleanupTransform(c)
+		c = next
 	}
 }
 
@@ -180,23 +184,22 @@ func findAndFixStyleAMPCustom(h *html.Node) {
 	}
 }
 
-// stripExtraTitles removes extraneous title elements. There can only be one
-// in head and none in body (svgs are excepted).
-func stripExtraTitles(n *html.Node) {
+// maybeStripTitle removes the given title element if it is extraneous.
+// There can only be one in head and none in body (svgs are excepted).
+func maybeStripTitle(n *html.Node) {
 	if n.DataAtom != atom.Title || htmlnode.IsDescendantOf(n, atom.Svg) {
 		return
 	}
 
 	switch {
 	case htmlnode.IsDescendantOf(n, atom.Head):
-		// If we are in head, the provided node is the one title element we
-		// want to keep. Strip all others in head.
-		for c := n.NextSibling; c != nil; {
-			next := c.NextSibling
+		// If we are in head, see if there are any previous title siblings,
+		// and if so, strip this one.
+		for c := n.PrevSibling; c != nil; c = c.PrevSibling {
 			if c.DataAtom == atom.Title {
-				n.Parent.RemoveChild(c)
+				n.Parent.RemoveChild(n)
+				return
 			}
-			c = next
 		}
 	case htmlnode.IsDescendantOf(n, atom.Body):
 		// Strip any titles found in body.
