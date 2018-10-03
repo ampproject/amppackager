@@ -244,7 +244,7 @@ func validateFetch(req *http.Request, resp *http.Response) error {
 	return nil
 }
 
-type Packager struct {
+type Signer struct {
 	// TODO(twifkak): Support multiple certs. This will require generating
 	// a signature for each one. Note that Chrome only supports 1 signature
 	// at the moment.
@@ -265,17 +265,17 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 
 func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
-	requireHeaders bool) (*Packager, error) {
+	requireHeaders bool) (*Signer, error) {
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
 
-	return &Packager{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
+	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
 }
 
-func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *util.HTTPError) {
+func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *util.HTTPError) {
 	ampURL := fetch.String()
 
 	log.Printf("Fetching URL: %q\n", ampURL)
@@ -297,7 +297,7 @@ func (this *Packager) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.
 	return req, resp, nil
 }
 
-func (this *Packager) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.URL, error) {
+func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.URL, error) {
 	var baseURL *url.URL
 	if this.overrideBaseURL != nil {
 		baseURL = this.overrideBaseURL
@@ -313,7 +313,7 @@ func (this *Packager) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url
 	return ret, nil
 }
 
-func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	if err := req.ParseForm(); err != nil {
 		util.NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)
 		return
@@ -422,7 +422,7 @@ func (this *Packager) ServeHTTP(resp http.ResponseWriter, req *http.Request, par
 }
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
-func (this *Packager) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL) {
+func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL) {
 	// Override the content-type of the fetch response to ensure browsers
 	// interpret the contents as HTML. The AMP Cache will validate that the
 	// payload is valid AMPHTML. Alternatively, we could reject responses
