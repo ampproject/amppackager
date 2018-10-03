@@ -18,7 +18,6 @@
 package transformer
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -27,6 +26,7 @@ import (
 	"github.com/ampproject/amppackager/transformer/printer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
+	"google3/third_party/golang/errors"
 	"golang.org/x/net/html"
 )
 
@@ -108,7 +108,7 @@ func Process(r *rpb.Request) (string, error) {
 		for _, val := range r.Transformers {
 			fn, ok := transformerFunctionMap[strings.ToLower(val)]
 			if !ok {
-				return "", fmt.Errorf("transformer doesn't exist: %s", val)
+				return "", errors.Errorf("transformer doesn't exist: %s", val)
 			}
 			fns = append(fns, fn)
 		}
