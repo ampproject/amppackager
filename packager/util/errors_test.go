@@ -24,6 +24,10 @@ func (this *ErrorsSuite) TearDownTest() {
 	log.SetOutput(os.Stderr)
 }
 
+func (this *ErrorsSuite) TestError() {
+	this.Assert().Equal("Coffee grinder is broken", NewHTTPError(418, "Coffee grinder is broken").Error())
+}
+
 func (this *ErrorsSuite) TestLogAndRespond() {
 	resp := httptest.NewRecorder()
 	NewHTTPError(418, "Coffee grinder is broken").LogAndRespond(resp)
