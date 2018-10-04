@@ -20,22 +20,31 @@ import (
 	"net/http"
 )
 
+// TODO(twifkak): Change all functions to return error instead of *HTTPError,
+// per https://golang.org/doc/faq#nil_error. Will need to convert LogAndRespond
+// to a free function that takes an error and switches on type.
+
 // HTTPError encodes an internal message to be logged and an HTTP status code
 // to be used for the external error message. External errors should only be
 // used to signal misconfiguration of the packager. For errors that are
 // transient or a result of downstream server errors, the signer should fall
 // back to proxying the content unsigned.
 type HTTPError struct {
-	InternalMsg string
-	StatusCode  int
+	internalMsg string
+	statusCode  int
 }
 
 func NewHTTPError(statusCode int, msg ...interface{}) *HTTPError {
 	return &HTTPError{fmt.Sprint(msg...), statusCode}
 }
 
+// Implements the error interface.
+func (e *HTTPError) Error() string {
+	return e.internalMsg
+}
+
 func (e *HTTPError) LogAndRespond(resp http.ResponseWriter) {
-	log.Println(e.InternalMsg)
+	log.Println(e.internalMsg)
 	resp.Header().Set("Cache-Control", "no-store")
-	http.Error(resp, http.StatusText(e.StatusCode), e.StatusCode)
+	http.Error(resp, http.StatusText(e.statusCode), e.statusCode)
 }

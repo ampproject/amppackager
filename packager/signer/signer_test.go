@@ -39,9 +39,6 @@ var fakePath = "/amp/secret-life-of-pine-trees.html"
 var fakeBody = []byte("They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
 var transformedBody = []byte("<html><head></head><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)</body></html>")
 
-func boolPtr(x bool) *bool       { return &x }
-func stringPtr(x string) *string { return &x }
-
 func headerNames(headers http.Header) []string {
 	names := make([]string, len(headers))
 	i := 0

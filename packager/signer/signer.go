@@ -24,9 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -39,7 +37,6 @@ import (
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
-	"github.com/pquerna/cachecontrol"
 )
 
 // The Content-Security-Policy in use by the AMP Cache today. Specifying here
@@ -109,139 +106,6 @@ const miRecordSize = 16 << 10
 // Overrideable for testing.
 var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 	return &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: r.GetRTV(), Css: r.GetCSS()}
-}
-
-func parseURL(rawURL string, name string) (*url.URL, *util.HTTPError) {
-	if rawURL == "" {
-		return nil, util.NewHTTPError(http.StatusBadRequest, name, " URL is unspecified")
-	}
-	ret, err := url.Parse(rawURL)
-	if err != nil {
-		return nil, util.NewHTTPError(http.StatusBadRequest, "Error parsing ", name, " url: ", err)
-	}
-	if !ret.IsAbs() {
-		return nil, util.NewHTTPError(http.StatusBadRequest, name, " url is relative")
-	}
-	// Evaluate "/..", by resolving the URL as a reference from itself.
-	// This prevents malformed URLs from eluding the PathRE protections.
-	ret = ret.ResolveReference(ret)
-	return ret, nil
-}
-
-func regexpFullMatch(pattern string, test string) bool {
-	// This is how regexp/exec_test.go turns a partial pattern into a full pattern.
-	fullRe := `\A(?:` + pattern + `)\z`
-	matches, _ := regexp.MatchString(fullRe, test)
-	return matches
-}
-
-func urlMatches(url *url.URL, pattern util.URLPattern) bool {
-	if url.Opaque != "" {
-		return false
-	}
-	if url.User != nil {
-		return false
-	}
-	if !regexpFullMatch(*pattern.PathRE, url.EscapedPath()) {
-		return false
-	}
-	for _, re := range pattern.PathExcludeRE {
-		if regexpFullMatch(re, url.EscapedPath()) {
-			return false
-		}
-	}
-	if !regexpFullMatch(*pattern.QueryRE, url.RawQuery) {
-		return false
-	}
-	return true
-}
-
-func fetchUrlMatches(url *url.URL, pattern *util.URLPattern) bool {
-	if pattern == nil {
-		// If URLSet.Fetch was unspecified, then so should ?fetch= be.
-		return url == nil
-	}
-	schemeMatches := false
-	for _, scheme := range pattern.Scheme {
-		if url.Scheme == scheme {
-			schemeMatches = true
-		}
-	}
-	if !schemeMatches {
-		return false
-	}
-	if pattern.Domain != "" && url.Host != pattern.Domain {
-		return false
-	}
-	if pattern.DomainRE != "" && !regexpFullMatch(pattern.DomainRE, url.Host) {
-		return false
-	}
-	return urlMatches(url, *pattern)
-}
-
-func signUrlMatches(url *url.URL, pattern *util.URLPattern) bool {
-	if url.Scheme != "https" {
-		return false
-	}
-	if url.Host != pattern.Domain {
-		return false
-	}
-	return urlMatches(url, *pattern)
-}
-
-func urlsMatch(fetchURL *url.URL, signURL *url.URL, set util.URLSet) bool {
-	fetchOK := fetchUrlMatches(fetchURL, set.Fetch)
-	signOK := signUrlMatches(signURL, set.Sign)
-	theyMatch := set.Fetch == nil || !*set.Fetch.SamePath || fetchURL.RequestURI() == signURL.RequestURI()
-	return fetchOK && signOK && theyMatch
-}
-
-// Returns parsed URLs and whether to fail on stateful headers.
-func parseURLs(fetch string, sign string, urlSets []util.URLSet) (*url.URL, *url.URL, bool, *util.HTTPError) {
-	var fetchURL *url.URL
-	var err *util.HTTPError
-	if fetch != "" {
-		fetchURL, err = parseURL(fetch, "fetch")
-		if err != nil {
-			return nil, nil, false, err
-		}
-	}
-	signURL, err := parseURL(sign, "sign")
-	if err != nil {
-		return nil, nil, false, err
-	}
-	for _, set := range urlSets {
-		if urlsMatch(fetchURL, signURL, set) {
-			if fetchURL == nil {
-				fetchURL = signURL
-			}
-			return fetchURL, signURL, set.Sign.ErrorOnStatefulHeaders, nil
-		}
-	}
-	return nil, nil, false, util.NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config")
-}
-
-func validateFetch(req *http.Request, resp *http.Response) error {
-	// Validate response is publicly-cacheable, per
-	// https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-03#section-6.1, as referenced by
-	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-6.
-	nonCachableReasons, _, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: false})
-	if err != nil {
-		return errors.Wrap(err, "Error parsing cache headers.")
-	}
-	if len(nonCachableReasons) > 0 {
-		return errors.Errorf("Non-cacheable response: %s", nonCachableReasons)
-	}
-
-	// Validate that Content-Type seems right. This is an approximation,
-	// because parsing media types is hard and we just want to verify we're
-	// not misinterpreting the server's intent. We override the
-	// Content-Type below for unambiguous interpretation.
-	content_type := resp.Header.Get("Content-Type")
-	if !strings.HasPrefix(strings.ToLower(content_type), "text/html") {
-		return errors.Errorf("Wrong content-type: %s", content_type)
-	}
-	return nil
 }
 
 type Signer struct {
