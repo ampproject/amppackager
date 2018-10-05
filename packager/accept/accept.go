@@ -3,11 +3,20 @@ package accept
 import (
 	"mime"
 	"regexp"
+
+	"github.com/WICG/webpackage/go/signedexchange/version"
 )
 
 // The SXG version that packager can produce. In the future, it may need to be
 // able to produce multiple versions.
 const AcceptedSxgVersion = "b2"
+
+// The Content-Type for the SXG version that the signer produces.
+const SxgContentType = "application/signed-exchange;v=" + AcceptedSxgVersion
+
+// The enum of the SXG version that the signer produces, for passing to the
+// signedexchange library.
+var SxgVersion = version.Version1b2
 
 // A comma, as would appear in an Accept header. Comma-separation is defined
 // in https://tools.ietf.org/html/rfc7230#section-7, with OWS defined in
