@@ -262,14 +262,6 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 
 		this.serveSignedExchange(resp, fetchResp, signURL)
 
-	case 301, 302, 303:
-		// If fetchURL returns a redirect, then forward that along; do not sign it and do not error out.
-		resp.Header().Set("location", fetchResp.Header.Get("location"))
-		resp.WriteHeader(fetchResp.StatusCode)
-		if _, err := io.Copy(resp, fetchResp.Body); err != nil {
-			log.Println("Error writing redirect body:", err)
-		}
-
 	case 304:
 		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
 		for header := range statusNotModifiedHeaders {
@@ -364,10 +356,13 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 }
 
 // Proxy the content unsigned.
+// TODO(twifkak): Take a look at the source code to httputil.ReverseProxy and
+// see what else needs to be implemented.
 func proxy(resp http.ResponseWriter, fetchResp *http.Response) {
 	for k, v := range fetchResp.Header {
 		resp.Header()[k] = v
 	}
+	resp.WriteHeader(fetchResp.StatusCode)
 	bytesCopied, err := io.Copy(resp, fetchResp.Body)
 	if err != nil {
 		if bytesCopied == 0 {
