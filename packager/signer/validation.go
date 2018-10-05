@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/pkg/errors"
@@ -205,12 +206,18 @@ func validateFetch(req *http.Request, resp *http.Response) error {
 	// params (such as charset); we just want to verify we're not
 	// misinterpreting the server's intent. We override the Content-Type
 	// later for unambiguous interpretation by the browser.
-	contentType, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+	contentType, params, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 	if err != nil {
 		return errors.Wrap(err, "Parsing Content-Type")
 	}
 	if contentType != "text/html" {
 		return errors.Errorf("Wrong Content-Type: %s", contentType)
+	}
+
+	// Don't allow charset other than utf-8, as this overrides <meta charset>.
+	charset := strings.ToLower(params["charset"])
+	if charset != "" && charset != "utf-8" {
+		return errors.Errorf("Wrong charset: %s", charset)
 	}
 	return nil
 }

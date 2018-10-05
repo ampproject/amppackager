@@ -131,7 +131,7 @@ func (this *SignerSuite) SetupTest() {
 	this.shouldPackage = true
 	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
 		this.lastRequestURL = req.URL.String()
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Content-Type", "text/html")
 		w.Write(fakeBody)
 	}
 	// Don't actually do any transforms. Only parse & print.
@@ -215,6 +215,21 @@ func (this *SignerSuite) TestSignAsPathParam() {
 	this.Require().NoError(err)
 	this.Assert().Equal(fakePath, this.lastRequestURL)
 	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI.String())
+}
+
+func (this *SignerSuite) TestPreservesContentType() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html;charset=utf-8;v=5")
+		w.Write(fakeBody)
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal("text/html;charset=utf-8;v=5", exchange.ResponseHeaders.Get("Content-Type"))
 }
 
 func (this *SignerSuite) TestRemovesLinkHeaders() {
