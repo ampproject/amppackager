@@ -72,8 +72,8 @@ can obtain certificates for.
   2. Open DevTools. Check 'Preserve log'.
   3. Click the `click me` link.
   4. Watch the URL transmogrify! Verify it came from an SXG by switching
-     DevTools to the Network tab and looking in the Size column for "(from
-     signed-exchange)".
+     DevTools to the Network tab and looking in the `Size` column for `(from
+     signed-exchange)` and in the `Type` column for `signed-exchange`.
 
 #### Demonstrate privacy-preserving prefetch
 
