@@ -42,4 +42,3 @@ func CanSatisfy(accept string) bool {
 	}
 	return false
 }
-
