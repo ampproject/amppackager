@@ -120,11 +120,6 @@ func (this *SignerSuite) SetupSuite() {
 	this.httpsClient = this.tlsServer.Client()
 	// Configure the test httpsClient to have the same redirect policy as production.
 	this.httpsClient.CheckRedirect = noRedirects
-
-	// Don't actually do any transforms. Only parse & print.
-	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
-		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_NONE}
-	}
 }
 
 func (this *SignerSuite) TearDownSuite() {
@@ -138,6 +133,10 @@ func (this *SignerSuite) SetupTest() {
 		this.lastRequestURL = req.URL.String()
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(fakeBody)
+	}
+	// Don't actually do any transforms. Only parse & print.
+	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
+		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_NONE}
 	}
 }
 
@@ -359,6 +358,20 @@ func (this *SignerSuite) TestProxyUnsignedNonCachable() {
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(200, resp.StatusCode)
 	this.Assert().Equal("no-store", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
+}
+
+func (this *SignerSuite) TestProxyTransformError() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
+	}}
+
+	// Generate a request for non-existent transformer that will fail
+	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
+		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_CUSTOM, Transformers: []string{"bogus"}}
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(200, resp.StatusCode)
 	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
 }
 
