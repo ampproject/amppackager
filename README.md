@@ -119,7 +119,7 @@ You may also want to:
      to verify that your published AMP documents are valid, for instance just
      before publication, or with a regular audit of a sample of documents. The
      [transforms](transformer/) are designed to work on valid AMP pages, and
-     break invalid AMP in small ways.
+     may break invalid AMP in small ways.
 
 Once you've done the above, you should be able to test by launching Chrome
 without any comamndline flags; just make sure
