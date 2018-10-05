@@ -18,9 +18,7 @@
 package transformer
 
 import (
-	"log"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/printer"
@@ -36,7 +34,7 @@ import (
 //
 // NOTE: The string mapping is necessary as a language cross-over to
 // allow explicit transformer invocation (via the CUSTOM config).
-var transformerFunctionMap = map[string]func(*transformers.Context){
+var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"ampboilerplate":        transformers.AMPBoilerplate,
 	"ampruntimecss":         transformers.AMPRuntimeCSS,
 	"linktag":               transformers.LinkTag,
@@ -50,7 +48,7 @@ var transformerFunctionMap = map[string]func(*transformers.Context){
 
 // The map of config to the list of transformers, in the order in
 // which they should be executed.
-var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context){
+var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context) error{
 	rpb.Request_DEFAULT: {
 		// NodeCleanup should be first.
 		transformers.NodeCleanup,
@@ -86,11 +84,14 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 }
 
 // Override for tests.
-var runTransformers = func(e *transformers.Context, fns []func(*transformers.Context)) {
+var runTransformers = func(c *transformers.Context, fns []func(*transformers.Context) error) error {
 	// Invoke the configured transformers
 	for _, f := range fns {
-		f(e)
+		if err := f(c); err != nil {
+			return errors.WithStack(err)
+		}
 	}
+	return nil
 }
 
 // Process will parse the given request, which contains the HTML to
@@ -100,7 +101,7 @@ var runTransformers = func(e *transformers.Context, fns []func(*transformers.Con
 func Process(r *rpb.Request) (string, error) {
 	doc, err := html.Parse(strings.NewReader(r.Html))
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "Error parsing input HTML")
 	}
 
 	fns := configMap[r.Config]
@@ -117,20 +118,14 @@ func Process(r *rpb.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	e := transformers.Context{doc, u, r}
-	runTransformers(&e, fns)
+	c := transformers.Context{doc, u, r}
+	if err := runTransformers(&c, fns); err != nil {
+		return "", err
+	}
 	var o strings.Builder
-	err = printer.Print(&o, e.Doc)
+	err = printer.Print(&o, c.Doc)
 	if err != nil {
 		return "", err
 	}
 	return o.String(), nil
-}
-
-// Print renders the DOM tree as HTML to STDOUT.
-func Print(e *transformers.Context) {
-	err := printer.Print(os.Stdout, e.Doc)
-	if err != nil {
-		log.Fatal(err)
-	}
 }

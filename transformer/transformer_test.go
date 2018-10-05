@@ -1,6 +1,7 @@
 package transformer
 
 import (
+	"errors"
 	"testing"
 
 	rpb "github.com/ampproject/amppackager/transformer/request"
@@ -8,12 +9,13 @@ import (
 )
 
 func TestProcess(t *testing.T) {
-	var fns []func(*transformers.Context)
+	var fns []func(*transformers.Context) error
 	// Remember the original function and reinstate after test
 	orig := runTransformers
 	defer func() { runTransformers = orig }()
-	runTransformers = func(e *transformers.Context, fs []func(*transformers.Context)) {
+	runTransformers = func(e *transformers.Context, fs []func(*transformers.Context) error) error {
 		fns = fs
+		return nil
 	}
 
 	// TODO(alin04): Test for func identity equality.
@@ -46,12 +48,13 @@ func TestProcess(t *testing.T) {
 }
 
 func TestCustom(t *testing.T) {
-	var fns []func(*transformers.Context)
+	var fns []func(*transformers.Context) error
 	// Remember the original function and reinstate after test
 	orig := runTransformers
 	defer func() { runTransformers = orig }()
-	runTransformers = func(e *transformers.Context, fs []func(*transformers.Context)) {
+	runTransformers = func(e *transformers.Context, fs []func(*transformers.Context) error) error {
 		fns = fs
+		return nil
 	}
 
 	// Case insensitive
@@ -82,5 +85,24 @@ func TestCustomFail(t *testing.T) {
 	r := rpb.Request{Html: "<lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{"does_not_exist"}}
 	if got, err := Process(&r); err == nil {
 		t.Fatalf("Process(%v) = %s, nil; want error", r, got)
+	}
+}
+
+func TestError(t *testing.T) {
+	s := "something happened!"
+	// Remember the original function and reinstate after test
+	orig := runTransformers
+	defer func() { runTransformers = orig }()
+	runTransformers = func(e *transformers.Context, fs []func(*transformers.Context) error) error {
+		return errors.New(s)
+	}
+
+	r := rpb.Request{Html: "<lemur>", Config: rpb.Request_DEFAULT}
+	_, err := Process(&r)
+	if err == nil {
+		t.Fatalf("Process() unexpectedly succeeded")
+	}
+	if err.Error() != s {
+		t.Fatalf("mismatched error. got=%s, want=%s", err.Error(), s)
 	}
 }
