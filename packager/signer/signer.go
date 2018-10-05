@@ -279,15 +279,6 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
 func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL) {
-	// Override the content-type of the fetch response to ensure browsers
-	// interpret the contents as HTML. The AMP Cache will validate that the
-	// payload is valid AMPHTML. Alternatively, we could reject responses
-	// with the wrong content-type, but:
-	//  1. Some existing AMP servers may not be setting the proper content
-	//     type, and may be relying on the AMP cache to rewrite it.
-	//  2. This would require some logic for determining media type
-	//     equivalence (including parameters).
-	fetchResp.Header.Set("Content-Type", "text/html")
 	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
 
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))

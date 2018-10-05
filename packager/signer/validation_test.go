@@ -164,14 +164,45 @@ func TestValidateFetch(t *testing.T) {
 		assert.Contains(t, err.Error(), "Parsing Content-Type")
 	}
 
+	resp.Header.Set("Content-Type", "text/html;charset=utf-8;charset=ebcdic")
+	if err := validateFetch(req, &resp); assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "Parsing Content-Type")
+	}
+
 	resp.Header.Set("Content-Type", "text/htmlol")
 	if err := validateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Wrong Content-Type")
 	}
 
-	resp.Header.Set("Content-Type", "TEXT/HTML")
+	resp.Header.Set("Content-Type", "text/html;charset=ebcdic")
+	if err := validateFetch(req, &resp); assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "Wrong charset")
+	}
+
+	resp.Header.Set("Content-Type", "text/html;CHARSET=ebcdic")
+	if err := validateFetch(req, &resp); assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "Wrong charset")
+	}
+
+	resp.Header.Set("Content-Type", `text/html; charset ="ebcdic"`)
+	if err := validateFetch(req, &resp); assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "Wrong charset")
+	}
+
+	resp.Header.Set("Content-Type", "text/html")
 	assert.NoError(t, validateFetch(req, &resp))
 
-	resp.Header.Set("Content-Type", "text/html;charset=ebcdic") // Close enough.
+	// Examples from https://tools.ietf.org/html/rfc7231#section-3.1.1.1:
+
+	resp.Header.Set("Content-Type", "text/html;charset=utf-8")
+	assert.NoError(t, validateFetch(req, &resp))
+
+	resp.Header.Set("Content-Type", "text/html;charset=UTF-8")
+	assert.NoError(t, validateFetch(req, &resp))
+
+	resp.Header.Set("Content-Type", `Text/HTML;Charset="utf-8"`)
+	assert.NoError(t, validateFetch(req, &resp))
+
+	resp.Header.Set("Content-Type", `text/html; charset="utf-8"`)
 	assert.NoError(t, validateFetch(req, &resp))
 }
