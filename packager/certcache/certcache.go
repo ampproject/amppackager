@@ -169,6 +169,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, pa
 		}
 		resp.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(expiry))
 		resp.Header().Set("ETag", "\""+this.certName+"\"")
+		resp.Header().Set("X-Content-Type-Options", "nosniff")
 		cbor, err := this.createCertChainCBOR(ocsp)
 		if err != nil {
 			util.NewHTTPError(http.StatusInternalServerError, "Error building cert chain: ", err).LogAndRespond(resp)

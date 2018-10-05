@@ -157,7 +157,9 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI.String())
 	this.Assert().Equal(http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
 	this.Assert().Equal(200, exchange.ResponseStatus)
-	this.Assert().Equal([]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest"}, headerNames(exchange.ResponseHeaders))
+	this.Assert().Equal(
+		[]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest", "x-content-type-options"},
+		headerNames(exchange.ResponseHeaders))
 	this.Assert().Equal("text/html", exchange.ResponseHeaders.Get("Content-Type"))
 	this.Assert().Contains(exchange.SignatureHeaderValue, "validity-url=\""+this.httpSignURL()+"/amppkg/validity\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "integrity=\"digest/mi-sha256-03\"")

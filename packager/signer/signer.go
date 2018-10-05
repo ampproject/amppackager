@@ -288,6 +288,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	//  2. This would require some logic for determining media type
 	//     equivalence (including parameters).
 	fetchResp.Header.Set("Content-Type", "text/html")
+	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
 
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
@@ -349,6 +350,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	// should fetch an update (half-way between signature date & expires).
 	resp.Header().Set("Content-Type", "application/signed-exchange;v=b2")
 	resp.Header().Set("Cache-Control", "no-transform")
+	resp.Header().Set("X-Content-Type-Options", "nosniff")
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)
 		return
