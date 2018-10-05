@@ -102,6 +102,8 @@ For now, productionizing is a bit manual. The minimum steps are:
      `amppkg`, if any of:
      1. The URL starts with `/amppkg/`.
      2. The URL is AMP and the `AMP-Cache-Transform` request header is present.
+        (Exercise caution not to send non-AMP URLs to `amppkg`; its
+        [transforms](transformer/) may break non-AMP pages.)
   4. Configure your frontend server to add `Vary: AMP-Cache-Transform` if the
      URL is AMP. This should occur for both HTML and SXG responses.
   5. Get an SXG cert from your CA. It must use an EC key with the prime256v1
@@ -113,6 +115,11 @@ You may also want to:
 
   1. Launch `amppkg` as a restricted user.
   2. Save its stdout to a rotated log somewhere.
+  3. Use the [provided tools](https://www.ampproject.org/docs/fundamentals/validate)
+     to verify that your published AMP documents are valid, for instance just
+     before publication, or with a regular audit of a sample of documents. The
+     [transforms](transformer/) are designed to work on valid AMP pages, and
+     break invalid AMP in small ways.
 
 Once you've done the above, you should be able to test by launching Chrome
 without any comamndline flags; just make sure
