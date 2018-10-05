@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
+	"google3/third_party/golang/errors"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
@@ -123,18 +124,21 @@ type DOM struct {
 }
 
 // NewDOM constructs and returns a pointer to a DOM struct by finding
-// the HTML nodes relevant to an AMP Document or ok=false if there is an error.
-func NewDOM(n *html.Node) (*DOM, bool) {
+// the HTML nodes relevant to an AMP Document or an error if there was
+// a problem.
+// TODO(alin04): I don't think this can EVER return an error. The golang
+// parser creates all these nodes if they're missing.
+func NewDOM(n *html.Node) (*DOM, error) {
 	var ok bool
 	d := new(DOM)
 	if d.HTMLNode, ok = htmlnode.FindNode(n, atom.Html); !ok {
-		return d, ok
+		return d, errors.New("missing <html> node")
 	}
 	if d.HeadNode, ok = htmlnode.FindNode(d.HTMLNode, atom.Head); !ok {
-		return d, ok
+		return d, errors.New("missing <head> node")
 	}
 	if d.BodyNode, ok = htmlnode.FindNode(d.HTMLNode, atom.Body); !ok {
-		return d, ok
+		return d, errors.New("missing <body> node")
 	}
-	return d, true
+	return d, nil
 }

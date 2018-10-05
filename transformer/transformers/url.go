@@ -37,7 +37,7 @@ type baseInfo struct {
 	target string
 }
 
-// URLTransformer operates on URL attributes, rewriting URLs as needed
+// URL operates on URL attributes, rewriting URLs as needed
 // depending on whether the document is being served from the AMP
 // Cache or not, relative to the base URL (which is derived from the
 // document URL and the <base> tag).
@@ -77,10 +77,10 @@ type baseInfo struct {
 //
 //     [1]. TODO(b/112417267): Handle amp-img rewriting.
 //
-func URL(e *Context) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
-		return
+func URL(e *Context) error {
+	dom, err := amphtml.NewDOM(e.Doc)
+	if err != nil {
+		return err
 	}
 	baseInfo := extractBase(dom.HeadNode, e.DocumentURL)
 
@@ -98,6 +98,7 @@ func URL(e *Context) {
 		}
 		urlTransform(top, baseInfo)
 	}
+	return nil
 }
 
 // extractBase returns a baseInfo struct that encapsulates the base

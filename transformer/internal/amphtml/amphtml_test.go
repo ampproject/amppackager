@@ -205,12 +205,12 @@ func TestNewDOM(t *testing.T) {
 	tcs := []struct {
 		desc     string
 		html     string
-		expected bool
+		expected error
 	}{
 		{
 			"true",
 			"<html><head></head><body></body></html>",
-			true,
+			nil,
 		},
 		// I can't find a false case. NewDOM might not need to check for required nodes.{
 		//	"false",
@@ -223,8 +223,8 @@ func TestNewDOM(t *testing.T) {
 		if err != nil {
 			t.Errorf("%s: html.Parse(%s) failed unexpectedly. %v", tc.desc, tc.html, err)
 		}
-		if _, ok := NewDOM(n); ok != tc.expected {
-			t.Errorf("%s: NewDOM()=%t want=%t", tc.desc, ok, tc.expected)
+		if _, err := NewDOM(n); err != tc.expected {
+			t.Errorf("%s: NewDOM()=%t want=%t", tc.desc, err, tc.expected)
 		}
 	}
 }

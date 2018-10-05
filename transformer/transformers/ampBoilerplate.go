@@ -23,10 +23,10 @@ import (
 
 // AMPBoilerplate removes <style> and <noscript> tags in <head>,
 // keeping only the amp-custom style tag. It then inserts the amp-boilerplate.
-func AMPBoilerplate(e *Context) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
-		return
+func AMPBoilerplate(e *Context) error {
+	dom, err := amphtml.NewDOM(e.Doc)
+	if err != nil {
+		return err
 	}
 
 	strip(dom.HeadNode)
@@ -39,7 +39,7 @@ func AMPBoilerplate(e *Context) {
 	styleNode.AppendChild(cssNode)
 
 	if boilerplate != amphtml.AMPBoilerplate {
-		return
+		return nil
 	}
 
 	// Regular AMP boilerplate also includes a noscript.
@@ -51,6 +51,7 @@ func AMPBoilerplate(e *Context) {
 
 	noScriptCSS := htmlnode.Text(amphtml.AMPBoilerplateNoscriptCSS)
 	noScriptStyle.AppendChild(noScriptCSS)
+	return nil
 }
 
 // Removes <style> and <noscript> tags keeping only the amp-custom style tag.

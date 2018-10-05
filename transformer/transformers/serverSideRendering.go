@@ -26,15 +26,15 @@ import (
 // described in http://go/amp-ssr. In short, it calculates the AMP layout
 // server-side and expresses it by annotating the document with style
 // attributes etc. And if possible, it removes the boilerplate.
-func ServerSideRendering(e *Context) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
-		return
+func ServerSideRendering(e *Context) error {
+	dom, err := amphtml.NewDOM(e.Doc)
+	if err != nil {
+		return err
 	}
 
 	// Simple check to ensure server-side rendering is only applied once.
 	if _, ok := htmlnode.FindAttribute(dom.HTMLNode, "", amphtml.IAMPHTMLLayout); ok {
-		return
+		return nil
 	}
 	htmlnode.SetAttribute(dom.HTMLNode, "", amphtml.IAMPHTMLLayout, "")
 
@@ -56,6 +56,7 @@ func ServerSideRendering(e *Context) {
 		// Find the boilerplate and remove it
 		removeBoilerplate(dom.HeadNode)
 	}
+	return nil
 }
 
 // transform recursively calls ApplyLayout to each AMP custom element,

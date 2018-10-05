@@ -15,11 +15,11 @@
 package transformers
 
 import (
-	"log"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
+	"google3/third_party/golang/errors"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
@@ -37,25 +37,28 @@ const (
 //  - stripping nonce attributes
 //  - sanitizing URI values
 //  - removing extra <title> elements
-func NodeCleanup(e *Context) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
-		return
+func NodeCleanup(e *Context) error {
+	dom, err := amphtml.NewDOM(e.Doc)
+	if err != nil {
+		return err
 	}
-	nodeCleanupTransform(e.Doc)
+	if err := nodeCleanupTransform(e.Doc); err != nil {
+		return err
+	}
 	// Find and fix amp-custom style after recursion above, which
 	// would have removed whitespace only children nodes. The fix call
 	// will then properly remove the empty style node.
 	findAndFixStyleAMPCustom(dom.HeadNode)
+	return nil
 }
 
 // nodeCleanupTransform recursively does the actual work on each node.
-func nodeCleanupTransform(n *html.Node) {
+func nodeCleanupTransform(n *html.Node) error {
 	switch n.Type {
 	case html.CommentNode:
 		// Strip out comment nodes.
 		n.Parent.RemoveChild(n)
-		return
+		return nil
 
 	case html.ElementNode:
 		// Deduplicate attributes from element nodes
@@ -76,7 +79,7 @@ func nodeCleanupTransform(n *html.Node) {
 			maybeStripTitle(n)
 			if n.Parent == nil {
 				// bail if this element is now an orphan
-				return
+				return nil
 			}
 		}
 
@@ -86,14 +89,14 @@ func nodeCleanupTransform(n *html.Node) {
 		n.Attr = nil
 
 	case html.TextNode:
-		if n.Parent.Data == "noscript" && parseNoscriptContents(n) {
-			return
+		if n.Parent.Data == "noscript" {
+			return parseNoscriptContents(n)
 		}
 
 		// Strip out whitespace only text nodes that are not in <body> or <title>.
 		if len(strings.TrimLeft(n.Data, whitespace)) == 0 && !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) {
 			n.Parent.RemoveChild(n)
-			return
+			return nil
 		}
 	}
 
@@ -101,16 +104,19 @@ func nodeCleanupTransform(n *html.Node) {
 		// Track the next sibling because if the node is removed in the recursive
 		// call, it becomes orphaned and the pointer to NextSibling is lost.
 		next := c.NextSibling
-		nodeCleanupTransform(c)
+		if err := nodeCleanupTransform(c); err != nil {
+			return err
+		}
 		c = next
 	}
+	return nil
 }
 
-// Parse the contents of <noscript> tag, returning true if parsing was done.
+// Parse the contents of <noscript> tag.
 // The golang tokenizer treats <noscript> children as one big TextNode, so
 // retokenize to extract the elements.
 // See https://golang.org/issue/16318
-func parseNoscriptContents(n *html.Node) bool {
+func parseNoscriptContents(n *html.Node) error {
 	parent := n.Parent
 	if n.Type == html.TextNode && parent != nil && parent.Data == "noscript" {
 		// Pass in <noscript>'s parent as the context. Passing <noscript> in
@@ -118,15 +124,14 @@ func parseNoscriptContents(n *html.Node) bool {
 		// noscript from the context and use its parent (either head or body).
 		parsed, err := html.ParseFragment(strings.NewReader(n.Data), parent.Parent)
 		if err != nil {
-			log.Fatal(err)
+			return errors.WithStack(err)
 		}
 		parent.RemoveChild(n)
 		for _, c := range parsed {
 			parent.AppendChild(c)
 		}
-		return true
 	}
-	return false
+	return nil
 }
 
 // Returns the unique attributes (based off the attribute key), keeping
