@@ -21,11 +21,12 @@ import (
 
 // TransformedIdentifier identifies that transformations
 // were made for a specific platform on this document.
-func TransformedIdentifier(e *Context) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
-		return
+func TransformedIdentifier(e *Context) error {
+	dom, err := amphtml.NewDOM(e.Doc)
+	if err != nil {
+		return err
 	}
 
 	htmlnode.SetAttribute(dom.HTMLNode, "", "transformed", "google")
+	return nil
 }
