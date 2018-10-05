@@ -307,7 +307,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
 	transformed, err := transformer.Process(r)
 	if err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error transforming: ", err).LogAndRespond(resp)
+		proxy(resp, fetchResp)
 		return
 	}
 	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
