@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	"github.com/WICG/webpackage/go/signedexchange/version"
 	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/amp_cache_transform"
 	"github.com/ampproject/amppackager/packager/rtv"
@@ -299,7 +298,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		util.NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
 		return
 	}
-	if err := exchange.MiEncodePayload(miRecordSize, version.Version1b2); err != nil {
+	if err := exchange.MiEncodePayload(miRecordSize, accept.SxgVersion); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
@@ -326,18 +325,18 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		// default is to use getrandom(2) if available, else
 		// /dev/urandom.
 	}
-	if err := exchange.AddSignatureHeader(&signer, version.Version1b2); err != nil {
+	if err := exchange.AddSignatureHeader(&signer, accept.SxgVersion); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
 		return
 	}
 	var body bytes.Buffer
-	if err := exchange.Write(&body, version.Version1b2); err != nil {
+	if err := exchange.Write(&body, accept.SxgVersion); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
 	}
 
 	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
 	// should fetch an update (half-way between signature date & expires).
-	resp.Header().Set("Content-Type", "application/signed-exchange;v=b2")
+	resp.Header().Set("Content-Type", accept.SxgContentType)
 	resp.Header().Set("Cache-Control", "no-transform")
 	resp.Header().Set("X-Content-Type-Options", "nosniff")
 	if _, err := resp.Write(body.Bytes()); err != nil {
