@@ -255,8 +255,6 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 			fetchResp.Header.Del(header)
 		}
 
-		// charset=utf-8 would be redundant, as it is specified in the <meta> of a valid AMPHTML document:
-		fetchResp.Header.Set("Content-Type", "text/html")
 		fetchResp.Header.Set("Content-Security-Policy", contentSecurityPolicy)
 		fetchResp.Header.Del("Link") // Ensure there are no privacy-violating Link:rel=preload headers.
 
