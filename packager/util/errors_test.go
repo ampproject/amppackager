@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type ErrorsSuite struct{
+type ErrorsSuite struct {
 	suite.Suite
 	logOut bytes.Buffer
 }

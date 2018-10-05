@@ -37,5 +37,6 @@ func New() (*ValidityMap, error) {
 func (this *ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	resp.Header().Set("Content-Type", "application/cbor")
 	resp.Header().Set("Cache-Control", "public, max-age=604800")
+	resp.Header().Set("X-Content-Type-Options", "nosniff")
 	http.ServeContent(resp, req, "", time.Time{}, bytes.NewReader(this.validityMap))
 }

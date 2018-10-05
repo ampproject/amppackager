@@ -172,6 +172,7 @@ func (this *CertCacheSuite) DecodeCBOR(r io.Reader) map[string][]byte {
 func (this *CertCacheSuite) TestServesCertificate() {
 	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Contains(cbor, "cert")
 	this.Assert().Contains(cbor, "ocsp")

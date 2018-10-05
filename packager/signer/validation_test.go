@@ -141,7 +141,7 @@ func TestParseURLs(t *testing.T) {
 
 func TestValidateFetch(t *testing.T) {
 	req := httptest.NewRequest("", "/", nil)
-	resp := http.Response{Header:http.Header{}}
+	resp := http.Response{Header: http.Header{}}
 	resp.Header.Set("Cache-Control", "max-age=ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
 	if err := validateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Parsing cache headers")
@@ -172,6 +172,6 @@ func TestValidateFetch(t *testing.T) {
 	resp.Header.Set("Content-Type", "TEXT/HTML")
 	assert.NoError(t, validateFetch(req, &resp))
 
-	resp.Header.Set("Content-Type", "text/html;charset=ebcdic")  // Close enough.
+	resp.Header.Set("Content-Type", "text/html;charset=ebcdic") // Close enough.
 	assert.NoError(t, validateFetch(req, &resp))
 }

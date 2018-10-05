@@ -36,14 +36,14 @@ func TestMinimalValidConfig(t *testing.T) {
 	`))
 	require.NoError(t, err)
 	assert.Equal(t, Config{
-		Port: 8080,
-		CertFile: "cert.pem",
-		KeyFile: "key.pem",
+		Port:      8080,
+		CertFile:  "cert.pem",
+		KeyFile:   "key.pem",
 		OCSPCache: "/tmp/ocsp",
 		URLSet: []URLSet{{
 			Sign: &URLPattern{
-				Domain: "example.com",
-				PathRE: stringPtr(".*"),
+				Domain:  "example.com",
+				PathRE:  stringPtr(".*"),
 				QueryRE: stringPtr(".*"),
 			},
 		}},
@@ -161,10 +161,10 @@ func TestSignOverrides(t *testing.T) {
 	require.Equal(t, 1, len(config.URLSet))
 	// TODO(twifkak): Don't depend on scheme order.
 	assert.Equal(t, URLPattern{
-		Domain: "example.com",
-		PathRE: stringPtr("/amp/.*"),
-		PathExcludeRE: []string{"/amp/signin", "/amp/settings(/.*)?"},
-		QueryRE: stringPtr(""),
+		Domain:                 "example.com",
+		PathRE:                 stringPtr("/amp/.*"),
+		PathExcludeRE:          []string{"/amp/signin", "/amp/settings(/.*)?"},
+		QueryRE:                stringPtr(""),
 		ErrorOnStatefulHeaders: true,
 	}, *config.URLSet[0].Sign)
 }
@@ -212,12 +212,12 @@ func TestFetchOverrides(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(config.URLSet))
 	assert.Equal(t, URLPattern{
-		Scheme: []string{"http"},
-		DomainRE: ".*",
-		PathRE: stringPtr("/amp/.*"),
+		Scheme:        []string{"http"},
+		DomainRE:      ".*",
+		PathRE:        stringPtr("/amp/.*"),
 		PathExcludeRE: []string{"/amp/signin", "/amp/settings(/.*)?"},
-		QueryRE: stringPtr(""),
-		SamePath: boolPtr(false),
+		QueryRE:       stringPtr(""),
+		SamePath:      boolPtr(false),
 	}, *config.URLSet[0].Fetch)
 }
 

@@ -150,6 +150,7 @@ func (this *SignerSuite) TestSimple() {
 			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal("google", resp.Header.Get("AMP-Cache-Transform"))
+	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
 	this.Assert().Equal(fakePath, this.lastRequestURL)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
@@ -157,8 +158,11 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI.String())
 	this.Assert().Equal(http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
 	this.Assert().Equal(200, exchange.ResponseStatus)
-	this.Assert().Equal([]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest"}, headerNames(exchange.ResponseHeaders))
+	this.Assert().Equal(
+		[]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest", "x-content-type-options"},
+		headerNames(exchange.ResponseHeaders))
 	this.Assert().Equal("text/html", exchange.ResponseHeaders.Get("Content-Type"))
+	this.Assert().Equal("nosniff", exchange.ResponseHeaders.Get("X-Content-Type-Options"))
 	this.Assert().Contains(exchange.SignatureHeaderValue, "validity-url=\""+this.httpSignURL()+"/amppkg/validity\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "integrity=\"digest/mi-sha256-03\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-url=\""+this.httpSignURL()+"/amppkg/cert/k9GCZZIDzAt2X0b2czRv0c2omW5vgYNh6ZaIz_UNTRQ\"")
