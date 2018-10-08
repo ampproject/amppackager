@@ -19,10 +19,12 @@ package transformer
 
 import (
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/printer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
+	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"google3/third_party/golang/errors"
 	"golang.org/x/net/html"
@@ -90,6 +92,24 @@ var runTransformers = func(c *transformers.Context, fns []func(*transformers.Con
 	return nil
 }
 
+var ampAttrRE = regexp.MustCompile(`\A(⚡|amp)(4(ads|email))?\z`)
+
+// requireAMPAttribute returns an error if the <html> tag doesn't contain an
+// attribute indicating that the document is AMP.
+func requireAMPAttribute(doc *html.Node) error {
+	dom, err := amphtml.NewDOM(doc)
+	if err != nil {
+		return err
+	}
+
+	for _, attr := range dom.HTMLNode.Attr {
+		if attr.Namespace == "" && ampAttrRE.MatchString(attr.Key) {
+			return nil
+		}
+	}
+	return errors.New("html tag is missing an AMP attribute")
+}
+
 // Process will parse the given request, which contains the HTML to
 // transform, applying the requested list of transformers, and return the
 // transformed HTML, or an error.
@@ -98,6 +118,10 @@ func Process(r *rpb.Request) (string, error) {
 	doc, err := html.Parse(strings.NewReader(r.Html))
 	if err != nil {
 		return "", errors.Wrap(err, "Error parsing input HTML")
+	}
+
+	if err := requireAMPAttribute(doc); err != nil {
+		return "", err
 	}
 
 	fns := configMap[r.Config]
