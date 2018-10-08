@@ -71,13 +71,9 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		// <head>, as they may do so without preserving the proper order.
 		transformers.ReorderHead,
 	},
-	rpb.Request_NONE: {
-		// TODO(alin04): Despite config being NONE, we still
-		// must run NodeCleanup for comparison against cpp parser/lexer.
-		// Once cpp parser is fully obsoleted, this can be removed.
-		transformers.NodeCleanup,
-	},
+	rpb.Request_NONE: {},
 	rpb.Request_VALIDATION: {
+		// TODO(alin04): Fill this in
 		transformers.ReorderHead,
 	},
 	rpb.Request_CUSTOM: {},
