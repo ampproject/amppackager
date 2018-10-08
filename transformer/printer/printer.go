@@ -115,18 +115,9 @@ func renderElementNode(w writer, n *html.Node) error {
 	if _, err := w.WriteString(strings.ToLower(n.Data)); err != nil {
 		return err
 	}
-	// Sort attributes by combined namespace (if exists) and key.
-	// This means <foo y x:y=bar> would emit as <foo x:y=bar y>
-	sort.Slice(n.Attr, func(i, j int) bool {
-		iSortKey := n.Attr[i].Key
-		if n.Attr[i].Namespace != "" {
-			iSortKey = n.Attr[i].Namespace + ":" + n.Attr[i].Key
-		}
-		jSortKey := n.Attr[j].Key
-		if n.Attr[j].Namespace != "" {
-			jSortKey = n.Attr[j].Namespace + ":" + n.Attr[j].Key
-		}
-		return iSortKey < jSortKey
+	// Sort attributes so <foo y x:y=bar> will emit as <foo x:y=bar y>
+	sort.SliceStable(n.Attr, func(i, j int) bool {
+		return strings.Compare(sortKey(n.Attr[i]), sortKey(n.Attr[j])) < 0
 	})
 	for _, a := range n.Attr {
 		if err := renderElementAttr(w, a); err != nil {
@@ -185,6 +176,15 @@ func renderElementNode(w writer, n *html.Node) error {
 	}
 	err := w.WriteByte('>')
 	return err
+}
+
+// sortKey generates a sorting key from the given Attribute from its
+// namespace and key. It ignores the value.
+func sortKey(a html.Attribute) string {
+	if a.Namespace == "" {
+		return a.Key
+	}
+	return a.Namespace + ":" + a.Key
 }
 
 func renderElementAttr(w writer, a html.Attribute) error {
