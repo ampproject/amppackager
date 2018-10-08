@@ -24,7 +24,7 @@ func TestProcess(t *testing.T) {
 		expectedLen int
 	}{
 		{rpb.Request_DEFAULT, 5},
-		{rpb.Request_NONE, 1},
+		{rpb.Request_NONE, 0},
 		{rpb.Request_VALIDATION, 1},
 		{rpb.Request_CUSTOM, 0},
 	}
