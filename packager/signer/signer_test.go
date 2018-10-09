@@ -54,7 +54,7 @@ type SignerSuite struct {
 	httpServer, tlsServer *httptest.Server
 	httpsClient           *http.Client
 	shouldPackage         bool
-	fakeHandler           func(w http.ResponseWriter, req *http.Request)
+	fakeHandler           func(resp http.ResponseWriter, req *http.Request)
 	lastRequestURL        string
 }
 
@@ -110,12 +110,12 @@ func (this *SignerSuite) httpsHost() string {
 
 func (this *SignerSuite) SetupSuite() {
 	// Mock out example.com endpoint.
-	this.httpServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		this.fakeHandler(w, req)
+	this.httpServer = httptest.NewServer(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		this.fakeHandler(resp, req)
 	}))
 
-	this.tlsServer = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		this.fakeHandler(w, req)
+	this.tlsServer = httptest.NewTLSServer(http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		this.fakeHandler(resp, req)
 	}))
 	this.httpsClient = this.tlsServer.Client()
 	// Configure the test httpsClient to have the same redirect policy as production.
@@ -129,10 +129,10 @@ func (this *SignerSuite) TearDownSuite() {
 
 func (this *SignerSuite) SetupTest() {
 	this.shouldPackage = true
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		this.lastRequestURL = req.URL.String()
-		w.Header().Set("Content-Type", "text/html")
-		w.Write(fakeBody)
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Write(fakeBody)
 	}
 	// Don't actually do any transforms. Only parse & print.
 	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
@@ -221,9 +221,9 @@ func (this *SignerSuite) TestSignAsPathParam() {
 func (this *SignerSuite) TestPreservesContentType() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html;charset=utf-8;v=5")
-		w.Write(fakeBody)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html;charset=utf-8;v=5")
+		resp.Write(fakeBody)
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -236,10 +236,10 @@ func (this *SignerSuite) TestPreservesContentType() {
 func (this *SignerSuite) TestRemovesLinkHeaders() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Link", "rel=preload;<http://1.2.3.4/>")
-		w.Write(fakeBody)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Header().Set("Link", "rel=preload;<http://1.2.3.4/>")
+		resp.Write(fakeBody)
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -252,10 +252,10 @@ func (this *SignerSuite) TestRemovesLinkHeaders() {
 func (this *SignerSuite) TestRemovesStatefulHeaders() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Set-Cookie", "yum yum yum")
-		w.Write(fakeBody)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Header().Set("Set-Cookie", "yum yum yum")
+		resp.Write(fakeBody)
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -279,11 +279,11 @@ func (this *SignerSuite) TestProxyUnsignedIfRedirect() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Set-Cookie", "yum yum yum")
-		w.Header().Set("Location", "/login")
-		w.WriteHeader(301)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Header().Set("Set-Cookie", "yum yum yum")
+		resp.Header().Set("Location", "/login")
+		resp.WriteHeader(301)
 	}
 
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
@@ -296,12 +296,12 @@ func (this *SignerSuite) TestProxyUnsignedIfNotModified() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Cache-control", "private")
-		w.Header().Set("Cookie", "yum yum yum")
-		w.Header().Set("ETag", "superrad")
-		w.WriteHeader(304)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Header().Set("Cache-control", "private")
+		resp.Header().Set("Cookie", "yum yum yum")
+		resp.Header().Set("ETag", "superrad")
+		resp.WriteHeader(304)
 	}
 
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
@@ -351,11 +351,11 @@ func (this *SignerSuite) TestProxyUnsignedErrOnStatefulHeader() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), true, nil},
 	}}
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Set-Cookie", "chocolate chip")
-		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(200)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Header().Set("Set-Cookie", "chocolate chip")
+		resp.Header().Set("Content-Type", "text/html")
+		resp.WriteHeader(200)
 	}
 
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
@@ -368,11 +368,11 @@ func (this *SignerSuite) TestProxyUnsignedNonCachable() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
 	}}
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Cache-Control", "no-store")
-		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(200)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Header().Set("Cache-Control", "no-store")
+		resp.Header().Set("Content-Type", "text/html")
+		resp.WriteHeader(200)
 	}
 
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
@@ -385,9 +385,9 @@ func (this *SignerSuite) TestProxyUnsignedIfNotAMP() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
 	nonAMPBody := []byte("<html><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		w.Write(nonAMPBody)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Write(nonAMPBody)
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -401,9 +401,9 @@ func (this *SignerSuite) TestProxyUnsignedIfWrongAMP() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
 	wrongAMPBody := []byte("<html amp4email><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
-	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		w.Write(wrongAMPBody)
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Write(wrongAMPBody)
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
