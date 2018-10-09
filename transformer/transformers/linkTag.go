@@ -27,9 +27,9 @@ import (
 // LinkTag operates on the <link> tag.
 // * It will rename author supplied resource hints from rel= to disabled-rel=.
 // * It will add a preconnect link tag for Google Font resources.
-func LinkTag(e *Context) {
-	if _, ok := amphtml.NewDOM(e.Doc); !ok {
-		return
+func LinkTag(e *Context) error {
+	if _, err := amphtml.NewDOM(e.Doc); err != nil {
+		return err
 	}
 
 	preconnectAdded := false
@@ -48,6 +48,7 @@ func LinkTag(e *Context) {
 		}
 		linkTagTransform(top, &preconnectAdded)
 	}
+	return nil
 }
 
 // linkTagTransform does the actual work on each node.

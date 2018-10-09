@@ -56,10 +56,10 @@ type headNodes struct {
 // (9) <style amp-custom>
 // (10) any other tags allowed in <head>
 // (11) AMP boilerplate (first <style amp-boilerplate>, then <noscript>)
-func ReorderHead(e *Context) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
-		return
+func ReorderHead(e *Context) error {
+	dom, err := amphtml.NewDOM(e.Doc)
+	if err != nil {
+		return err
 	}
 
 	hn := new(headNodes)
@@ -123,6 +123,7 @@ func ReorderHead(e *Context) {
 	if hn.noscript != nil {
 		dom.HeadNode.AppendChild(hn.noscript)
 	}
+	return nil
 }
 
 // registerLink registers <link> tags to different variables depending on the attributes on the <link> tag. These are (1) resource hint <link> tags, (2) favicon <link> tags, (3) stylesheets before AMP Custom stylesheet, and (4) all other <link> tags.

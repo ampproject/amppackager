@@ -15,13 +15,12 @@
 package layout
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
+	"google3/third_party/golang/errors"
 	"golang.org/x/net/html"
 	amppb "github.com/ampproject/amphtml/validator"
 )
@@ -91,7 +90,7 @@ func newCSSLength(input *string, allowAuto, allowFluid bool) (*cssLength, error)
 	default:
 		m := regex.FindStringSubmatch(*input)
 		if m == nil || len(m) != 3 {
-			return nil, fmt.Errorf("invalid input: %s", *input)
+			return nil, errors.Errorf("invalid input: %s", *input)
 		}
 		// m will have length of 3, holding the text of the leftmost
 		// match of the regex, and the subexpression matches (which
@@ -103,7 +102,7 @@ func newCSSLength(input *string, allowAuto, allowFluid bool) (*cssLength, error)
 		}
 		if m[2] != "" {
 			if _, ok := acceptedUnits[m[2]]; !ok {
-				return &result, fmt.Errorf("Unit is not valid: %s", m[2])
+				return &result, errors.Errorf("Unit is not valid: %s", m[2])
 			}
 			result.unit = m[2]
 		}

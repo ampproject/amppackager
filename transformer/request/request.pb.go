@@ -56,7 +56,6 @@ var Request_TransformersConfig_name = map[int32]string{
 	2: "VALIDATION",
 	3: "CUSTOM",
 }
-
 var Request_TransformersConfig_value = map[string]int32{
 	"DEFAULT":    0,
 	"NONE":       1,
@@ -67,9 +66,8 @@ var Request_TransformersConfig_value = map[string]int32{
 func (x Request_TransformersConfig) String() string {
 	return proto.EnumName(Request_TransformersConfig_name, int32(x))
 }
-
 func (Request_TransformersConfig) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_762cce2ac5f73405, []int{0, 0}
+	return fileDescriptor_request_3f6784479c1c6b77, []int{0, 0}
 }
 
 // A Request encapsulates input and contextual parameters for use by the
@@ -97,7 +95,7 @@ func (m *Request) Reset()         { *m = Request{} }
 func (m *Request) String() string { return proto.CompactTextString(m) }
 func (*Request) ProtoMessage()    {}
 func (*Request) Descriptor() ([]byte, []int) {
-	return fileDescriptor_762cce2ac5f73405, []int{0}
+	return fileDescriptor_request_3f6784479c1c6b77, []int{0}
 }
 func (m *Request) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Request.Unmarshal(m, b)
@@ -164,9 +162,11 @@ func init() {
 	proto.RegisterEnum("amp.transform.Request_TransformersConfig", Request_TransformersConfig_name, Request_TransformersConfig_value)
 }
 
-func init() { proto.RegisterFile("transformer/request/request.proto", fileDescriptor_762cce2ac5f73405) }
+func init() {
+	proto.RegisterFile("transformer/request/request.proto", fileDescriptor_request_3f6784479c1c6b77)
+}
 
-var fileDescriptor_762cce2ac5f73405 = []byte{
+var fileDescriptor_request_3f6784479c1c6b77 = []byte{
 	// 282 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x90, 0x41, 0x4f, 0xfa, 0x40,
 	0x10, 0xc5, 0xff, 0xa5, 0xfc, 0x8b, 0x0c, 0x48, 0x9a, 0x39, 0xed, 0x11, 0x38, 0xe1, 0x65, 0x49,

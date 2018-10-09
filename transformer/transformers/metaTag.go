@@ -28,10 +28,10 @@ import (
 // * It will relocate all meta tags found inside the body into the head.
 //
 // It does *not* sort the meta tags. This is done by ReorderHead.
-func MetaTag(e *Context) {
-	dom, ok := amphtml.NewDOM(e.Doc)
-	if !ok {
-		return
+func MetaTag(e *Context) error {
+	dom, err := amphtml.NewDOM(e.Doc)
+	if err != nil {
+		return err
 	}
 
 	var stk htmlnode.Stack
@@ -48,6 +48,7 @@ func MetaTag(e *Context) {
 		}
 		metaTagTransform(top, dom.HeadNode)
 	}
+	return nil
 }
 
 // metaTagTransform does the actual work on each node.

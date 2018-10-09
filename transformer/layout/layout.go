@@ -15,12 +15,12 @@
 package layout
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
+	"google3/third_party/golang/errors"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 	amppb "github.com/ampproject/amphtml/validator"
@@ -161,7 +161,7 @@ func getNormalizedLayout(layout amppb.AmpLayout_Layout, dimensions cssDimensions
 
 	meta, ok := layoutMetadataMap[result]
 	if !ok || !meta.isSupported {
-		return result, fmt.Errorf("layout %q is not supported", result)
+		return result, errors.Errorf("layout %q is not supported", result)
 	}
 	return result, nil
 }
