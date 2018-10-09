@@ -35,8 +35,8 @@ import (
 )
 
 var fakePath = "/amp/secret-life-of-pine-trees.html"
-var fakeBody = []byte("They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
-var transformedBody = []byte("<html><head></head><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)</body></html>")
+var fakeBody = []byte("<html amp><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
+var transformedBody = []byte("<html amp><head></head><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)</body></html>")
 
 func headerNames(headers http.Header) []string {
 	names := make([]string, len(headers))
