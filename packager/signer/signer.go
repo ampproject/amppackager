@@ -288,6 +288,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
 	transformed, err := transformer.Process(r)
 	if err != nil {
+		log.Println("Not packaging due to transformer error:", err)
 		proxy(resp, fetchResp)
 		return
 	}
