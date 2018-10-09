@@ -112,63 +112,94 @@ func TestRequireAMPAttribute(t *testing.T) {
 		desc     string
 		html     string
 		expectedError bool
+		expectedErrorInAMP bool
+		expectedErrorInAMP4Ads bool
+		expectedErrorInAMP4Email bool
 	}{
 		{
 			"⚡",
 			"<html ⚡><head></head><body></body></html>",
-			false,
+			false, false, true, true,
 		},
 		{
 			"amp",
 			"<html amp><head></head><body></body></html>",
-			false,
+			false, false, true, true,
 		},
 		{
 			"AMP",
 			"<HTML AMP><HEAD></HEAD><BODY></BODY></HTML>",
-			false,
+			false, false, true, true,
 		},
 		{
 			"⚡4ads",
 			"<html ⚡4ads><head></head><body></body></html>",
-			false,
+			false, true, false, true,
 		},
 		{
 			"amp4ads",
 			"<html amp4ads><head></head><body></body></html>",
-			false,
+			false, true, false, true,
 		},
 		{
 			"AMP4ADS",
 			"<HTML AMP4ADS><HEAD></HEAD><BODY></BODY></HTML>",
-			false,
+			false, true, false, true,
 		},
 		{
 			"⚡4email",
 			"<html ⚡4email><head></head><body></body></html>",
-			false,
+			false, true, true, false,
 		},
 		{
 			"amp4email",
 			"<html amp4email><head></head><body></body></html>",
-			false,
+			false, true, true, false,
 		},
 		{
 			"AMP4EMAIL",
 			"<HTML AMP4EMAIL><HEAD></HEAD><BODY></BODY></HTML>",
-			false,
+			false, true, true, false,
+		},
+		{
+			"amp4ads amp4email",
+			"<html amp4ads amp4email><head></head><body></body></html>",
+			false, true, false, false,
+		},
+		{
+			"amp4",
+			"<html amp4><head></head><body></body></html>",
+			true, true, true, true,
 		},
 		{
 			"not AMP",
 			"<html><head></head><body></body></html>",
-			true,
+			true, true, true, true,
 		},
 	}
 	for _, test := range tests {
 		r := rpb.Request{Html: test.html, Config: rpb.Request_NONE}
 		_, err := Process(&r)
 		if (err != nil) != test.expectedError {
-			t.Errorf("%s: RequireAMPAttribute() has error=%#v want=%t", test.desc, err, test.expectedError)
+			t.Errorf("%s: Process() has error=%#v want=%t", test.desc, err, test.expectedError)
+		}
+
+		r = rpb.Request{Html: test.html, Config: rpb.Request_NONE, AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP}}
+		_, err = Process(&r)
+		if (err != nil) != test.expectedErrorInAMP {
+			t.Errorf("%s: Process(AMP) has error=%#v want=%t", test.desc, err, test.expectedErrorInAMP)
+		}
+
+		r = rpb.Request{Html: test.html, Config: rpb.Request_NONE, AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP4ADS}}
+		_, err = Process(&r)
+		if (err != nil) != test.expectedErrorInAMP4Ads {
+			t.Errorf("%s: Process(AMP4Ads) has error=%#v want=%t", test.desc, err, test.expectedErrorInAMP4Ads)
+		}
+
+		r = rpb.Request{Html: test.html, Config: rpb.Request_NONE, AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP4EMAIL}}
+		_, err = Process(&r)
+		if (err != nil) != test.expectedErrorInAMP4Email {
+			t.Errorf("%s: Process(AMP4Email) has error=%#v want=%t", test.desc, err, test.expectedErrorInAMP4Email)
 		}
 	}
- }
+}

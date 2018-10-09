@@ -92,19 +92,64 @@ var runTransformers = func(c *transformers.Context, fns []func(*transformers.Con
 	return nil
 }
 
-var ampAttrRE = regexp.MustCompile(`\A(⚡|amp)(4(ads|email))?\z`)
+// ampAttrRE is a regexp to match html amp attributes. Its group capture should
+// be compared against ampFormatSuffixes.
+var ampAttrRE = func() *regexp.Regexp {
+	r := regexp.MustCompile(`\A(?:⚡|amp)(?:4(.+))?\z`)
+	if len(r.SubexpNames()) != 2 {
+		panic("ampAttrRE must have 1 subexpression")
+	}
+	return r
+}()
+
+// The allowed AMP formats, and their serialization as an html "amp4" attribute.
+var ampFormatSuffixes = map[rpb.Request_HtmlFormat]string {
+	rpb.Request_AMP: "",
+	rpb.Request_AMP4ADS: "ads",
+	rpb.Request_AMP4EMAIL: "email",
+}
+
+// The keys from ampFormatSuffixes.
+var ampFormats = func() []rpb.Request_HtmlFormat {
+	ret := []rpb.Request_HtmlFormat{}
+	for v, _ := range ampFormatSuffixes {
+		ret = append(ret, v)
+	}
+	return ret
+}()
+
+// isAllowed returns true iff the declared format, as parsed from the html amp
+// attribute, corresponds to one of the allowed formats. If allowedFormats is
+// empty, then any AMP format is allowed.
+func isAllowed(declaredFormat string, allowedFormats []rpb.Request_HtmlFormat) bool {
+	// Default to all formats.
+	if len(allowedFormats) == 0 {
+		allowedFormats = ampFormats
+	}
+	for _, allowedFormat := range allowedFormats {
+		suffix, ok := ampFormatSuffixes[allowedFormat]
+		if ok && declaredFormat == suffix {
+			return true
+		}
+	}
+	return false
+}
 
 // requireAMPAttribute returns an error if the <html> tag doesn't contain an
 // attribute indicating that the document is AMP.
-func requireAMPAttribute(doc *html.Node) error {
+func requireAMPAttribute(doc *html.Node, allowedFormats []rpb.Request_HtmlFormat) error {
 	dom, err := amphtml.NewDOM(doc)
 	if err != nil {
 		return err
 	}
 
 	for _, attr := range dom.HTMLNode.Attr {
-		if attr.Namespace == "" && ampAttrRE.MatchString(attr.Key) {
-			return nil
+		if attr.Namespace == "" {
+			if match := ampAttrRE.FindStringSubmatch(attr.Key); match != nil {
+				if isAllowed(match[1], allowedFormats) {
+					return nil
+				}
+			}
 		}
 	}
 	return errors.New("html tag is missing an AMP attribute")
@@ -120,7 +165,7 @@ func Process(r *rpb.Request) (string, error) {
 		return "", errors.Wrap(err, "Error parsing input HTML")
 	}
 
-	if err := requireAMPAttribute(doc); err != nil {
+	if err := requireAMPAttribute(doc, r.AllowedFormats); err != nil {
 		return "", err
 	}
 
