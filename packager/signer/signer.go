@@ -104,7 +104,8 @@ const miRecordSize = 16 << 10
 
 // Overrideable for testing.
 var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
-	return &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: r.GetRTV(), Css: r.GetCSS()}
+	return &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: r.GetRTV(), Css: r.GetCSS(),
+		AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP}}
 }
 
 type Signer struct {
@@ -219,21 +220,21 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 
 	if !this.shouldPackage() {
 		log.Println("Not packaging because server is unhealthy; see above log statements.")
-		proxy(resp, fetchResp)
+		proxy(resp, fetchResp, nil)
 		return
 	}
 	if this.requireHeaders {
 		act := amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform"))
 		if act == "" {
 			log.Println("Not packaging because AMP-Cache-Transform request header is missing.")
-			proxy(resp, fetchResp)
+			proxy(resp, fetchResp, nil)
 			return
 		}
 		resp.Header().Set("AMP-Cache-Transform", act)
 	}
 	if this.requireHeaders && !accept.CanSatisfy(req.Header.Get("Accept")) {
 		log.Printf("Not packaging because Accept request header lacks application/signed-exchange;v=%s.\n", accept.AcceptedSxgVersion)
-		proxy(resp, fetchResp)
+		proxy(resp, fetchResp, nil)
 		return
 	}
 
@@ -242,13 +243,13 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		// If fetchURL returns an OK status, then validate, munge, and package.
 		if err := validateFetch(fetchReq, fetchResp); err != nil {
 			log.Println("Not packaging because of invalid fetch: ", err)
-			proxy(resp, fetchResp)
+			proxy(resp, fetchResp, nil)
 			return
 		}
 		for header := range statefulResponseHeaders {
 			if errorOnStatefulHeaders && fetchResp.Header.Get(header) != "" {
 				log.Println("Not packaging because ErrorOnStatefulHeaders = True and fetch response contains stateful header: ", header)
-				proxy(resp, fetchResp)
+				proxy(resp, fetchResp, nil)
 				return
 			}
 			fetchResp.Header.Del(header)
@@ -270,7 +271,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 
 	default:
 		log.Printf("Not packaging because status code %d is unrecognized.\n", fetchResp.StatusCode)
-		proxy(resp, fetchResp)
+		proxy(resp, fetchResp, nil)
 	}
 }
 
@@ -278,6 +279,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL) {
 	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
 
+	// After this, fetchResp.Body is consumed, and attempts to read or proxy it will result in an empty body.
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
 		util.NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
@@ -289,7 +291,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	transformed, err := transformer.Process(r)
 	if err != nil {
 		log.Println("Not packaging due to transformer error:", err)
-		proxy(resp, fetchResp)
+		proxy(resp, fetchResp, fetchBody)
 		return
 	}
 	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
@@ -346,20 +348,24 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	}
 }
 
-// Proxy the content unsigned.
+// Proxy the content unsigned. If body is non-nil, it is used in place of fetchResp.Body.
 // TODO(twifkak): Take a look at the source code to httputil.ReverseProxy and
 // see what else needs to be implemented.
-func proxy(resp http.ResponseWriter, fetchResp *http.Response) {
+func proxy(resp http.ResponseWriter, fetchResp *http.Response, body []byte) {
 	for k, v := range fetchResp.Header {
 		resp.Header()[k] = v
 	}
 	resp.WriteHeader(fetchResp.StatusCode)
-	bytesCopied, err := io.Copy(resp, fetchResp.Body)
-	if err != nil {
-		if bytesCopied == 0 {
-			util.NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
-		} else {
-			log.Printf("Error copying response body, %d bytes into stream\n", bytesCopied)
+	if body != nil {
+		resp.Write(body)
+	} else {
+		bytesCopied, err := io.Copy(resp, fetchResp.Body)
+		if err != nil {
+			if bytesCopied == 0 {
+				util.NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
+			} else {
+				log.Printf("Error copying response body, %d bytes into stream\n", bytesCopied)
+			}
 		}
 	}
 }

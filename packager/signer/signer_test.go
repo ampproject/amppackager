@@ -136,7 +136,8 @@ func (this *SignerSuite) SetupTest() {
 	}
 	// Don't actually do any transforms. Only parse & print.
 	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
-		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_NONE}
+		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_NONE,
+			AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP}}
 	}
 }
 
@@ -380,6 +381,38 @@ func (this *SignerSuite) TestProxyUnsignedNonCachable() {
 	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
 }
 
+func (this *SignerSuite) TestProxyUnsignedIfNotAMP() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	nonAMPBody := []byte("<html><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
+	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write(nonAMPBody)
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(nonAMPBody, body, "incorrect body: %#v", resp)
+}
+
+func (this *SignerSuite) TestProxyUnsignedIfWrongAMP() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	wrongAMPBody := []byte("<html amp4email><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
+	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write(wrongAMPBody)
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(wrongAMPBody, body, "incorrect body: %#v", resp)
+}
+
 func (this *SignerSuite) TestProxyTransformError() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil},
@@ -387,11 +420,17 @@ func (this *SignerSuite) TestProxyTransformError() {
 
 	// Generate a request for non-existent transformer that will fail
 	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
-		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_CUSTOM, Transformers: []string{"bogus"}}
+		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_CUSTOM,
+			AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP},
+			Transformers: []string{"bogus"}}
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(200, resp.StatusCode)
 	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
+
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
 }
 
 func TestSignerSuite(t *testing.T) {
