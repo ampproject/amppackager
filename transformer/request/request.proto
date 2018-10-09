@@ -34,6 +34,21 @@ message Request {
   // The CSS contents to inline into the transformed HTML
   string css = 5;
 
+  // This should be kept in sync with HtmlFormat.Code in
+  // github.com/ampproject/amphtml/validator/validator.proto.
+  enum HtmlFormat {
+    UNKNOWN_CODE = 0;  // Never used
+    AMP = 1;
+    AMP4ADS = 2;
+    AMP4EMAIL = 3;
+    EXPERIMENTAL = 4;  // Currently unused
+  }
+
+  // Transformations are only run if the HTML tag contains the attribute
+  // specifying one of the provided formats. If allowed_formats is empty, then
+  // all non-experimental AMP formats are allowed.
+  repeated HtmlFormat allowed_formats = 7;
+
   enum TransformersConfig {
     // Execute the default list of transformers. For packager production
     // environments, this should be the config used.
