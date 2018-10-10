@@ -179,7 +179,7 @@ func apply(n *html.Node, layout amppb.AmpLayout_Layout, dimensions cssDimensions
 	var styles string
 	switch layout {
 	case amppb.AmpLayout_NODISPLAY:
-		styles = "display:none;"
+		htmlnode.SetAttribute(n, "", "hidden", "hidden")
 	case amppb.AmpLayout_FIXED, amppb.AmpLayout_FLEX_ITEM:
 		styles = getCSSLengthStyle(dimensions.width, "width") +
 			getCSSLengthStyle(dimensions.height, "height")

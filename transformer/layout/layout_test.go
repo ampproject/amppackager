@@ -91,14 +91,14 @@ func TestApplyLayout(t *testing.T) {
 			htmlnode.Element(
 				"amp-img",
 				html.Attribute{Key: "layout", Val: "nodisplay"}, html.Attribute{Key: "class", Val: "myclass"}),
-			`<amp-img layout="nodisplay" class="myclass i-amphtml-layout-nodisplay" style="display:none;" i-amphtml-layout="nodisplay"></amp-img>`,
+			`<amp-img layout="nodisplay" class="myclass i-amphtml-layout-nodisplay" hidden="hidden" i-amphtml-layout="nodisplay"></amp-img>`,
 		},
 		{
 			"Nodisplay",
 			htmlnode.Element(
 				"amp-img",
 				html.Attribute{Key: "layout", Val: "nodisplay"}),
-			`<amp-img layout="nodisplay" class="i-amphtml-layout-nodisplay" style="display:none;" i-amphtml-layout="nodisplay"></amp-img>`,
+			`<amp-img layout="nodisplay" class="i-amphtml-layout-nodisplay" hidden="hidden" i-amphtml-layout="nodisplay"></amp-img>`,
 		},
 		{
 			"Fixed",
