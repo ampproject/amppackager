@@ -27,34 +27,29 @@ import (
 // server-side and expresses it by annotating the document with style
 // attributes etc. And if possible, it removes the boilerplate.
 func ServerSideRendering(e *Context) error {
-	dom, err := amphtml.NewDOM(e.Doc)
-	if err != nil {
-		return err
-	}
-
 	// Simple check to ensure server-side rendering is only applied once.
-	if _, ok := htmlnode.FindAttribute(dom.HTMLNode, "", amphtml.IAMPHTMLLayout); ok {
+	if _, ok := htmlnode.FindAttribute(e.DOM.HTMLNode, "", amphtml.IAMPHTMLLayout); ok {
 		return nil
 	}
-	htmlnode.SetAttribute(dom.HTMLNode, "", amphtml.IAMPHTMLLayout, "")
+	htmlnode.SetAttribute(e.DOM.HTMLNode, "", amphtml.IAMPHTMLLayout, "")
 
 	// Assume the boilerplate can be removed, unless proven otherwise.
 	remove := true
 
-	transform(dom.BodyNode, &remove)
+	transform(e.DOM.BodyNode, &remove)
 
 	// Emit the amp-runtime marker to indicate that server side
 	// rendering has been applied.
 	ampRuntimeMarker := htmlnode.Element("style", html.Attribute{Key: "amp-runtime"})
-	dom.HeadNode.InsertBefore(ampRuntimeMarker, dom.HeadNode.FirstChild)
+	e.DOM.HeadNode.InsertBefore(ampRuntimeMarker, e.DOM.HeadNode.FirstChild)
 
 	// Also check the <head> tag if boilerplate is needed or not.
-	remove = remove && canRemoveBoilerplateRecursive(dom.HeadNode)
+	remove = remove && canRemoveBoilerplateRecursive(e.DOM.HeadNode)
 	if remove {
-		htmlnode.SetAttribute(dom.HTMLNode, "", "i-amphtml-no-boilerplate", "")
+		htmlnode.SetAttribute(e.DOM.HTMLNode, "", "i-amphtml-no-boilerplate", "")
 
 		// Find the boilerplate and remove it
-		removeBoilerplate(dom.HeadNode)
+		removeBoilerplate(e.DOM.HeadNode)
 	}
 	return nil
 }

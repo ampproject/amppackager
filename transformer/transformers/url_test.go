@@ -19,6 +19,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	tt "github.com/ampproject/amppackager/transformer/internal/testing"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"golang.org/x/net/html"
@@ -145,7 +146,12 @@ func TestURLTansformer(t *testing.T) {
 			t.Errorf("%s\nhtml.Parse for %s failed %q", tc.desc, rawInput, err)
 			continue
 		}
-		context := transformers.Context{Doc: inputDoc}
+		inputDOM, err := amphtml.NewDOM(inputDoc)
+		if err != nil {
+			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.desc, tc.input, err)
+			continue
+		}
+		context := transformers.Context{DOM: inputDOM}
 		context.DocumentURL, err = url.Parse(tc.docURL)
 		if err != nil {
 			t.Errorf("%s\nurl.Parse for %s failed %q", tc.desc, tc.docURL, err)

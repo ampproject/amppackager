@@ -18,6 +18,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	tt "github.com/ampproject/amppackager/transformer/internal/testing"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"golang.org/x/net/html"
@@ -75,7 +76,12 @@ func TestMetaTag(t *testing.T) {
 			t.Errorf("%s: html.Parse on %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.MetaTag(&transformers.Context{Doc: inputDoc})
+		inputDOM, err := amphtml.NewDOM(inputDoc)
+		if err != nil {
+			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.Desc, tc.Input, err)
+			continue
+		}
+		transformers.MetaTag(&transformers.Context{DOM: inputDOM})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {

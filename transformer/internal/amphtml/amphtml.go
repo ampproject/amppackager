@@ -118,6 +118,7 @@ func IsScriptRenderDelaying(n *html.Node) bool {
 
 // DOM encapsulates the various HTML nodes a transformer may need access to.
 type DOM struct {
+	RootNode *html.Node
 	HTMLNode *html.Node
 	HeadNode *html.Node
 	BodyNode *html.Node
@@ -130,7 +131,7 @@ type DOM struct {
 // parser creates all these nodes if they're missing.
 func NewDOM(n *html.Node) (*DOM, error) {
 	var ok bool
-	d := new(DOM)
+	d := &DOM{RootNode: n}
 	if d.HTMLNode, ok = htmlnode.FindNode(n, atom.Html); !ok {
 		return d, errors.New("missing <html> node")
 	}

@@ -38,17 +38,13 @@ const (
 //  - sanitizing URI values
 //  - removing extra <title> elements
 func NodeCleanup(e *Context) error {
-	dom, err := amphtml.NewDOM(e.Doc)
-	if err != nil {
-		return err
-	}
-	if err := nodeCleanupTransform(e.Doc); err != nil {
+	if err := nodeCleanupTransform(e.DOM.RootNode); err != nil {
 		return err
 	}
 	// Find and fix amp-custom style after recursion above, which
 	// would have removed whitespace only children nodes. The fix call
 	// will then properly remove the empty style node.
-	findAndFixStyleAMPCustom(dom.HeadNode)
+	findAndFixStyleAMPCustom(e.DOM.HeadNode)
 	return nil
 }
 

@@ -18,7 +18,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
@@ -28,14 +27,10 @@ import (
 // * It will rename author supplied resource hints from rel= to disabled-rel=.
 // * It will add a preconnect link tag for Google Font resources.
 func LinkTag(e *Context) error {
-	if _, err := amphtml.NewDOM(e.Doc); err != nil {
-		return err
-	}
-
 	preconnectAdded := false
 
 	var stk htmlnode.Stack
-	stk.Push(e.Doc)
+	stk.Push(e.DOM.RootNode)
 	for len(stk) > 0 {
 		top := stk.Pop()
 		// Traverse the children in reverse order so the iteration of

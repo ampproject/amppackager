@@ -57,15 +57,10 @@ type headNodes struct {
 // (10) any other tags allowed in <head>
 // (11) AMP boilerplate (first <style amp-boilerplate>, then <noscript>)
 func ReorderHead(e *Context) error {
-	dom, err := amphtml.NewDOM(e.Doc)
-	if err != nil {
-		return err
-	}
-
 	hn := new(headNodes)
 
 	// Register each set of children we care about the order of in <head>.
-	for c := dom.HeadNode.FirstChild; c != nil; c = c.NextSibling {
+	for c := e.DOM.HeadNode.FirstChild; c != nil; c = c.NextSibling {
 		switch c.DataAtom {
 		case atom.Link:
 			registerLink(c, hn)
@@ -89,39 +84,39 @@ func ReorderHead(e *Context) error {
 	hn.scriptNonRenderDelaying = uniquifyAndSortCustomScripts(hn.scriptNonRenderDelaying)
 
 	// Remove children of <head>.
-	htmlnode.RemoveAllChildren(dom.HeadNode)
+	htmlnode.RemoveAllChildren(e.DOM.HeadNode)
 
 	// Append children of <head> in specific order.
 	if hn.metaCharset != nil {
-		dom.HeadNode.AppendChild(hn.metaCharset)
+		e.DOM.HeadNode.AppendChild(hn.metaCharset)
 	}
 	if hn.linkStylesheetRuntimeCSS != nil {
-		dom.HeadNode.AppendChild(hn.linkStylesheetRuntimeCSS)
+		e.DOM.HeadNode.AppendChild(hn.linkStylesheetRuntimeCSS)
 	}
 	if hn.styleAMPRuntime != nil {
-		dom.HeadNode.AppendChild(hn.styleAMPRuntime)
+		e.DOM.HeadNode.AppendChild(hn.styleAMPRuntime)
 	}
-	htmlnode.AppendChildren(dom.HeadNode, hn.metaOther...)
+	htmlnode.AppendChildren(e.DOM.HeadNode, hn.metaOther...)
 	if hn.scriptAMPRuntime != nil {
-		dom.HeadNode.AppendChild(hn.scriptAMPRuntime)
+		e.DOM.HeadNode.AppendChild(hn.scriptAMPRuntime)
 	}
 	if hn.scriptAMPViewer != nil {
-		dom.HeadNode.AppendChild(hn.scriptAMPViewer)
+		e.DOM.HeadNode.AppendChild(hn.scriptAMPViewer)
 	}
-	htmlnode.AppendChildren(dom.HeadNode, hn.scriptRenderDelaying...)
-	htmlnode.AppendChildren(dom.HeadNode, hn.scriptNonRenderDelaying...)
-	htmlnode.AppendChildren(dom.HeadNode, hn.linkFavicon...)
-	htmlnode.AppendChildren(dom.HeadNode, hn.linkResourceHint...)
-	htmlnode.AppendChildren(dom.HeadNode, hn.linkStylesheetBeforeAMPCustom...)
+	htmlnode.AppendChildren(e.DOM.HeadNode, hn.scriptRenderDelaying...)
+	htmlnode.AppendChildren(e.DOM.HeadNode, hn.scriptNonRenderDelaying...)
+	htmlnode.AppendChildren(e.DOM.HeadNode, hn.linkFavicon...)
+	htmlnode.AppendChildren(e.DOM.HeadNode, hn.linkResourceHint...)
+	htmlnode.AppendChildren(e.DOM.HeadNode, hn.linkStylesheetBeforeAMPCustom...)
 	if hn.styleAMPCustom != nil {
-		dom.HeadNode.AppendChild(hn.styleAMPCustom)
+		e.DOM.HeadNode.AppendChild(hn.styleAMPCustom)
 	}
-	htmlnode.AppendChildren(dom.HeadNode, hn.other...)
+	htmlnode.AppendChildren(e.DOM.HeadNode, hn.other...)
 	if hn.styleAMPBoilerplate != nil {
-		dom.HeadNode.AppendChild(hn.styleAMPBoilerplate)
+		e.DOM.HeadNode.AppendChild(hn.styleAMPBoilerplate)
 	}
 	if hn.noscript != nil {
-		dom.HeadNode.AppendChild(hn.noscript)
+		e.DOM.HeadNode.AppendChild(hn.noscript)
 	}
 	return nil
 }

@@ -15,18 +15,12 @@
 package transformers
 
 import (
-	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 )
 
 // TransformedIdentifier identifies that transformations
 // were made for a specific platform on this document.
 func TransformedIdentifier(e *Context) error {
-	dom, err := amphtml.NewDOM(e.Doc)
-	if err != nil {
-		return err
-	}
-
-	htmlnode.SetAttribute(dom.HTMLNode, "", "transformed", "google")
+	htmlnode.SetAttribute(e.DOM.HTMLNode, "", "transformed", "google")
 	return nil
 }
