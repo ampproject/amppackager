@@ -78,14 +78,10 @@ type baseInfo struct {
 //     [1]. TODO(b/112417267): Handle amp-img rewriting.
 //
 func URL(e *Context) error {
-	dom, err := amphtml.NewDOM(e.Doc)
-	if err != nil {
-		return err
-	}
-	baseInfo := extractBase(dom.HeadNode, e.DocumentURL)
+	baseInfo := extractBase(e.DOM.HeadNode, e.DocumentURL)
 
 	var stk htmlnode.Stack
-	stk.Push(e.Doc)
+	stk.Push(e.DOM.RootNode)
 	for len(stk) > 0 {
 		top := stk.Pop()
 		// Traverse the children in reverse order so the iteration of

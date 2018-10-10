@@ -137,12 +137,7 @@ func isAllowed(declaredFormat string, allowedFormats []rpb.Request_HtmlFormat) b
 
 // requireAMPAttribute returns an error if the <html> tag doesn't contain an
 // attribute indicating that the document is AMP.
-func requireAMPAttribute(doc *html.Node, allowedFormats []rpb.Request_HtmlFormat) error {
-	dom, err := amphtml.NewDOM(doc)
-	if err != nil {
-		return err
-	}
-
+func requireAMPAttribute(dom *amphtml.DOM, allowedFormats []rpb.Request_HtmlFormat) error {
 	for _, attr := range dom.HTMLNode.Attr {
 		if attr.Namespace == "" {
 			if match := ampAttrRE.FindStringSubmatch(attr.Key); match != nil {
@@ -164,8 +159,12 @@ func Process(r *rpb.Request) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "Error parsing input HTML")
 	}
+	dom, err := amphtml.NewDOM(doc)
+	if err != nil {
+		return "", err
+	}
 
-	if err := requireAMPAttribute(doc, r.AllowedFormats); err != nil {
+	if err := requireAMPAttribute(dom, r.AllowedFormats); err != nil {
 		return "", err
 	}
 
@@ -183,12 +182,12 @@ func Process(r *rpb.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	c := transformers.Context{doc, u, r}
+	c := transformers.Context{dom, u, r}
 	if err := runTransformers(&c, fns); err != nil {
 		return "", err
 	}
 	var o strings.Builder
-	err = printer.Print(&o, c.Doc)
+	err = printer.Print(&o, c.DOM.RootNode)
 	if err != nil {
 		return "", err
 	}

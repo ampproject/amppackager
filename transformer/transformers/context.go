@@ -17,14 +17,14 @@ package transformers
 import (
 	"net/url"
 
+	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	rpb "github.com/ampproject/amppackager/transformer/request"
-	"golang.org/x/net/html"
 )
 
 // Context stores the root DOM Node and contextual data used for the
 // transformers.
 type Context struct {
-	Doc         *html.Node
+	DOM         *amphtml.DOM
 	DocumentURL *url.URL
 	Request     *rpb.Request
 }

@@ -17,7 +17,6 @@ package transformers
 import (
 	"strings"
 
-	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
@@ -29,13 +28,8 @@ import (
 //
 // It does *not* sort the meta tags. This is done by ReorderHead.
 func MetaTag(e *Context) error {
-	dom, err := amphtml.NewDOM(e.Doc)
-	if err != nil {
-		return err
-	}
-
 	var stk htmlnode.Stack
-	stk.Push(e.Doc)
+	stk.Push(e.DOM.RootNode)
 	for len(stk) > 0 {
 		top := stk.Pop()
 		// Traverse the children in reverse order so the iteration of
@@ -46,7 +40,7 @@ func MetaTag(e *Context) error {
 		for c := top.LastChild; c != nil; c = c.PrevSibling {
 			stk.Push(c)
 		}
-		metaTagTransform(top, dom.HeadNode)
+		metaTagTransform(top, e.DOM.HeadNode)
 	}
 	return nil
 }

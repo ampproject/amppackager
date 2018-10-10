@@ -26,15 +26,10 @@ import (
 // AMPRuntimeCSS inlines the contents of the AMP HTML CSS RTV, or
 // inserts a link into the appropriately revisioned v0.css (e.g. 102992221).
 func AMPRuntimeCSS(e *Context) error {
-	dom, err := amphtml.NewDOM(e.Doc)
-	if err != nil {
-		return err
-	}
-
 	// If server side rendering is active, then look for the
 	// <style amp-runtime> added by ServerSideRendering into
 	// <head>.
-	n, ok := findStyleAMPRuntime(dom.HeadNode)
+	n, ok := findStyleAMPRuntime(e.DOM.HeadNode)
 	if !ok {
 		// No Server Side Rendering.
 		return nil
@@ -62,7 +57,7 @@ func AMPRuntimeCSS(e *Context) error {
 	link = link + "/v0.css"
 	l := htmlnode.Element("link", html.Attribute{Key: "rel", Val: "stylesheet"},
 		html.Attribute{Key: "href", Val: link})
-	dom.HeadNode.AppendChild(l)
+	e.DOM.HeadNode.AppendChild(l)
 	return nil
 }
 

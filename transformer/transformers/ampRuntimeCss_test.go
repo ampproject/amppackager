@@ -18,6 +18,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	tt "github.com/ampproject/amppackager/transformer/internal/testing"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
@@ -73,7 +74,12 @@ func TestAMPRuntimeCSS(t *testing.T) {
 			t.Errorf("%s: html.Parse on %s failed %q", tc.desc, tc.input, err)
 			continue
 		}
-		transformers.AMPRuntimeCSS(&transformers.Context{Doc: inputDoc, Request: &rpb.Request{Rtv: "42", Css: tc.css}})
+		inputDOM, err := amphtml.NewDOM(inputDoc)
+		if err != nil {
+			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.desc, tc.input, err)
+			continue
+		}
+		transformers.AMPRuntimeCSS(&transformers.Context{DOM: inputDOM, Request: &rpb.Request{Rtv: "42", Css: tc.css}})
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
 			t.Errorf("%s: html.Render on %s failed %q", tc.desc, tc.input, err)
