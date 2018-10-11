@@ -6,6 +6,7 @@ import (
 
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestProcess(t *testing.T) {
@@ -31,18 +32,61 @@ func TestProcess(t *testing.T) {
 
 	for _, tc := range tests {
 		r := rpb.Request{Html: "<html ⚡><lemur>", Config: tc.config}
-		got, err := Process(&r)
+		html, metadata, err := Process(&r)
 		if err != nil {
 			t.Fatalf("Process(%v) unexpectedly failed %v", tc.config, err)
 		}
 
-		want := "<html ⚡><head></head><body><lemur></lemur></body></html>"
-		if got != want {
-			t.Errorf("Process(%v) = %q, want = %q", tc.config, got, want)
+		expectedHTML := "<html ⚡><head></head><body><lemur></lemur></body></html>"
+		if html != expectedHTML {
+			t.Errorf("Process(%v) = %q, want = %q", tc.config, html, expectedHTML)
+		}
+
+		if metadata == nil {
+			t.Errorf("Process(%v) metadata unexpectedly nil", tc.config)
 		}
 
 		if len(fns) != tc.expectedLen {
-			t.Errorf("Process(%v) number of transformers, get=%d, want=%d", tc.config, len(fns), tc.expectedLen)
+			t.Errorf("Process(%v) number of transformers, got=%d, want=%d", tc.config, len(fns), tc.expectedLen)
+		}
+	}
+}
+
+func TestPreloads(t *testing.T) {
+	tests := []struct {
+		html string
+		expectedPreloads []string
+	}{
+		{
+			"<html ⚡><script>",
+			[]string{},
+		},
+		{
+			"<html ⚡><script src=foo>",
+			[]string{"foo"},
+		},
+		{
+			"<html ⚡><link rel=foaf href=foo>",
+			[]string{},
+		},
+		{
+			"<html ⚡><link rel=stylesheet href=foo>",
+			[]string{"foo"},
+		},
+		{
+			"<html ⚡><link rel=stylesheet href=foo><script src=bar>",
+			[]string{"foo", "bar"},
+		},
+	}
+
+	for _, test := range tests {
+		_, metadata, err := Process(&rpb.Request{Html: test.html, Config: rpb.Request_NONE})
+		if err != nil {
+			t.Fatalf("Process(%q) unexpectedly failed: %v", test.html, err)
+		}
+
+		if diff := cmp.Diff(test.expectedPreloads, metadata.Preloads); diff != "" {
+			t.Errorf("Process(%q) preloads differ (-want +got):\n%s", test.html, diff)
 		}
 	}
 }
@@ -71,7 +115,7 @@ func TestCustom(t *testing.T) {
 	}
 	for _, tc := range tests {
 		r := rpb.Request{Html: "<html ⚡><lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{tc}}
-		if _, err := Process(&r); err != nil {
+		if _, _, err := Process(&r); err != nil {
 			t.Fatalf("Process(%v) unexpectedly failed %v", tc, err)
 		}
 
@@ -83,8 +127,8 @@ func TestCustom(t *testing.T) {
 
 func TestCustomFail(t *testing.T) {
 	r := rpb.Request{Html: "<html ⚡><lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{"does_not_exist"}}
-	if got, err := Process(&r); err == nil {
-		t.Fatalf("Process(%v) = %s, nil; want error", r, got)
+	if html, _, err := Process(&r); err == nil {
+		t.Fatalf("Process(%v) = %s, nil; want error", r, html)
 	}
 }
 
@@ -98,7 +142,7 @@ func TestError(t *testing.T) {
 	}
 
 	r := rpb.Request{Html: "<html ⚡><lemur>", Config: rpb.Request_DEFAULT}
-	_, err := Process(&r)
+	_, _, err := Process(&r)
 	if err == nil {
 		t.Fatalf("Process() unexpectedly succeeded")
 	}
@@ -179,25 +223,25 @@ func TestRequireAMPAttribute(t *testing.T) {
 	}
 	for _, test := range tests {
 		r := rpb.Request{Html: test.html, Config: rpb.Request_NONE}
-		_, err := Process(&r)
+		_, _, err := Process(&r)
 		if (err != nil) != test.expectedError {
 			t.Errorf("%s: Process() has error=%#v want=%t", test.desc, err, test.expectedError)
 		}
 
 		r = rpb.Request{Html: test.html, Config: rpb.Request_NONE, AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP}}
-		_, err = Process(&r)
+		_, _, err = Process(&r)
 		if (err != nil) != test.expectedErrorInAMP {
 			t.Errorf("%s: Process(AMP) has error=%#v want=%t", test.desc, err, test.expectedErrorInAMP)
 		}
 
 		r = rpb.Request{Html: test.html, Config: rpb.Request_NONE, AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP4ADS}}
-		_, err = Process(&r)
+		_, _, err = Process(&r)
 		if (err != nil) != test.expectedErrorInAMP4Ads {
 			t.Errorf("%s: Process(AMP4Ads) has error=%#v want=%t", test.desc, err, test.expectedErrorInAMP4Ads)
 		}
 
 		r = rpb.Request{Html: test.html, Config: rpb.Request_NONE, AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP4EMAIL}}
-		_, err = Process(&r)
+		_, _, err = Process(&r)
 		if (err != nil) != test.expectedErrorInAMP4Email {
 			t.Errorf("%s: Process(AMP4Email) has error=%#v want=%t", test.desc, err, test.expectedErrorInAMP4Email)
 		}
