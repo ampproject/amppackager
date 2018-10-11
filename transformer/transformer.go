@@ -25,9 +25,11 @@ import (
 	"github.com/ampproject/amppackager/transformer/printer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
+	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"github.com/pkg/errors"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // Transformer functions must be added here in order to be passed in from
@@ -150,22 +152,48 @@ func requireAMPAttribute(dom *amphtml.DOM, allowedFormats []rpb.Request_HtmlForm
 	return errors.New("html tag is missing an AMP attribute")
 }
 
+// extractPreloads returns a list of absolute URLs of the resources to preload,
+// in the order to preload them. It depends on transformers.ReorderHead having
+// run.
+func extractPreloads(dom *amphtml.DOM) ([]string, error) {
+	preloads := []string{}
+	for child := dom.HeadNode.FirstChild; child != nil; child = child.NextSibling {
+		switch child.DataAtom {
+		case atom.Script:
+			if src, ok := htmlnode.GetAttributeVal(child, "src"); ok {
+				preloads = append(preloads, src)
+			}
+		case atom.Link:
+			if rel, ok := htmlnode.GetAttributeVal(child, "rel"); ok {
+				if rel == "stylesheet" {
+					if href, ok := htmlnode.GetAttributeVal(child, "href"); ok {
+						preloads = append(preloads, href)
+					}
+				}
+			}
+		}
+	}
+	return preloads, nil
+}
+
 // Process will parse the given request, which contains the HTML to
 // transform, applying the requested list of transformers, and return the
-// transformed HTML, or an error.
+// transformed HTML and list of resources to preload (absolute URLs), or an
+// error.
+//
 // If the requested list of transformers is empty, apply the default.
-func Process(r *rpb.Request) (string, error) {
+func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 	doc, err := html.Parse(strings.NewReader(r.Html))
 	if err != nil {
-		return "", errors.Wrap(err, "Error parsing input HTML")
+		return "", nil, errors.Wrap(err, "Error parsing input HTML")
 	}
 	dom, err := amphtml.NewDOM(doc)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	if err := requireAMPAttribute(dom, r.AllowedFormats); err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	fns := configMap[r.Config]
@@ -173,23 +201,27 @@ func Process(r *rpb.Request) (string, error) {
 		for _, val := range r.Transformers {
 			fn, ok := transformerFunctionMap[strings.ToLower(val)]
 			if !ok {
-				return "", errors.Errorf("transformer doesn't exist: %s", val)
+				return "", nil, errors.Errorf("transformer doesn't exist: %s", val)
 			}
 			fns = append(fns, fn)
 		}
 	}
 	u, err := url.Parse(r.DocumentUrl)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	c := transformers.Context{dom, u, r}
 	if err := runTransformers(&c, fns); err != nil {
-		return "", err
+		return "", nil, err
+	}
+	preloads, err := extractPreloads(dom)
+	if err != nil {
+		return "", nil, err
 	}
 	var o strings.Builder
 	err = printer.Print(&o, c.DOM.RootNode)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
-	return o.String(), nil
+	return o.String(), &rpb.Metadata{Preloads: preloads}, nil
 }
