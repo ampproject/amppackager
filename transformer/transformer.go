@@ -155,7 +155,7 @@ func requireAMPAttribute(dom *amphtml.DOM, allowedFormats []rpb.Request_HtmlForm
 // extractPreloads returns a list of absolute URLs of the resources to preload,
 // in the order to preload them. It depends on transformers.ReorderHead having
 // run.
-func extractPreloads(dom *amphtml.DOM) ([]string, error) {
+func extractPreloads(dom *amphtml.DOM) []string {
 	preloads := []string{}
 	for child := dom.HeadNode.FirstChild; child != nil; child = child.NextSibling {
 		switch child.DataAtom {
@@ -173,7 +173,7 @@ func extractPreloads(dom *amphtml.DOM) ([]string, error) {
 			}
 		}
 	}
-	return preloads, nil
+	return preloads
 }
 
 // Process will parse the given request, which contains the HTML to
@@ -214,14 +214,10 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 	if err := runTransformers(&c, fns); err != nil {
 		return "", nil, err
 	}
-	preloads, err := extractPreloads(dom)
-	if err != nil {
-		return "", nil, err
-	}
 	var o strings.Builder
 	err = printer.Print(&o, c.DOM.RootNode)
 	if err != nil {
 		return "", nil, err
 	}
-	return o.String(), &rpb.Metadata{Preloads: preloads}, nil
+	return o.String(), &rpb.Metadata{Preloads: extractPreloads(dom)}, nil
 }
