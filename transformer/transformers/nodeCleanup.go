@@ -19,7 +19,6 @@ import (
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
-	"github.com/pkg/errors"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
@@ -33,6 +32,7 @@ const (
 
 // NodeCleanup cleans up the DOM tree, including, but not limited to:
 //  - stripping comment nodes.
+//  - stripping noscript elements.
 //  - removing duplicate attributes
 //  - stripping nonce attributes
 //  - sanitizing URI values
@@ -42,7 +42,7 @@ func NodeCleanup(e *Context) error {
 		return err
 	}
 	// Find and fix amp-custom style after recursion above, which
-	// would have removed whitespace only children nodes. The fix call
+	// would have removed whitespace only children nodes. This call
 	// will then properly remove the empty style node.
 	findAndFixStyleAMPCustom(e.DOM.HeadNode)
 	return nil
@@ -57,6 +57,12 @@ func nodeCleanupTransform(n *html.Node) error {
 		return nil
 
 	case html.ElementNode:
+		// TODO(b/79415817): Removing <noscript> is a temporary fix until we know how to handle them.
+		if n.DataAtom == atom.Noscript {
+			n.Parent.RemoveChild(n)
+			return nil
+		}
+
 		// Deduplicate attributes from element nodes
 		n.Attr = uniqueAttributes(n.Attr)
 
@@ -85,10 +91,6 @@ func nodeCleanupTransform(n *html.Node) error {
 		n.Attr = nil
 
 	case html.TextNode:
-		if n.Parent.Data == "noscript" {
-			return parseNoscriptContents(n)
-		}
-
 		// Strip out whitespace only text nodes that are not in <body> or <title>.
 		if len(strings.TrimLeft(n.Data, whitespace)) == 0 && !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) {
 			n.Parent.RemoveChild(n)
@@ -104,28 +106,6 @@ func nodeCleanupTransform(n *html.Node) error {
 			return err
 		}
 		c = next
-	}
-	return nil
-}
-
-// Parse the contents of <noscript> tag.
-// The golang tokenizer treats <noscript> children as one big TextNode, so
-// retokenize to extract the elements.
-// See https://golang.org/issue/16318
-func parseNoscriptContents(n *html.Node) error {
-	parent := n.Parent
-	if n.Type == html.TextNode && parent != nil && parent.Data == "noscript" {
-		// Pass in <noscript>'s parent as the context. Passing <noscript> in
-		// will result in the same behavior (one big TextNode), so remove
-		// noscript from the context and use its parent (either head or body).
-		parsed, err := html.ParseFragment(strings.NewReader(n.Data), parent.Parent)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		parent.RemoveChild(n)
-		for _, c := range parsed {
-			parent.AppendChild(c)
-		}
 	}
 	return nil
 }
