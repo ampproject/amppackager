@@ -209,12 +209,32 @@ func TestNonceRemoved(t *testing.T) {
 	runAllTestCases(t, tcs)
 }
 
-func TestNoScriptParsed(t *testing.T) {
+func TestNoScriptRemoved(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
-			Desc:     "parse noscript",
+			Desc:     "remove noscript in head",
+			Input:    "<head><noscript><style></style></noscript></head>",
+			Expected: `<head></head>`,
+		},
+		{
+			Desc:     "remove noscript in body",
 			Input:    "<body><noscript><lemur z b y></noscript></body>",
-			Expected: `<body><noscript><lemur z="" b="" y=""></lemur></noscript></body>`,
+			Expected: `<body></body>`,
+		},
+		{
+			Desc:     "imbalanced comment",
+			Input:    "<body><noscript><!-- comment </noscript>--></body>",
+			Expected: `<body>--&gt;</body>`,
+		},
+		{
+			Desc:     "imbalanced",
+			Input:    "<body><noscript><noscript></noscript></body>",
+			Expected: `<body></body>`,
+		},
+		{
+			Desc:     "imbalanced 2",
+			Input:    "<body><noscript/></noscript></body>",
+			Expected: `<body></body>`,
 		},
 	}
 	runAllTestCases(t, tcs)
