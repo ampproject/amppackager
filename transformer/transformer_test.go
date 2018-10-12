@@ -24,7 +24,7 @@ func TestProcess(t *testing.T) {
 		config      rpb.Request_TransformersConfig
 		expectedLen int
 	}{
-		{rpb.Request_DEFAULT, 5},
+		{rpb.Request_DEFAULT, 6},
 		{rpb.Request_NONE, 0},
 		{rpb.Request_VALIDATION, 1},
 		{rpb.Request_CUSTOM, 0},
@@ -54,7 +54,7 @@ func TestProcess(t *testing.T) {
 
 func TestPreloads(t *testing.T) {
 	tests := []struct {
-		html string
+		html             string
 		expectedPreloads []string
 	}{
 		{
@@ -153,11 +153,11 @@ func TestError(t *testing.T) {
 
 func TestRequireAMPAttribute(t *testing.T) {
 	tests := []struct {
-		desc     string
-		html     string
-		expectedError bool
-		expectedErrorInAMP bool
-		expectedErrorInAMP4Ads bool
+		desc                     string
+		html                     string
+		expectedError            bool
+		expectedErrorInAMP       bool
+		expectedErrorInAMP4Ads   bool
 		expectedErrorInAMP4Email bool
 	}{
 		{

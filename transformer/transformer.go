@@ -22,14 +22,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ampproject/amppackager/transformer/printer"
-	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
+	"github.com/ampproject/amppackager/transformer/printer"
+	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"github.com/pkg/errors"
-	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"golang.org/x/net/html"
 )
 
 // Transformer functions must be added here in order to be passed in from
@@ -46,6 +46,7 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"nodecleanup":           transformers.NodeCleanup,
 	"reorderhead":           transformers.ReorderHead,
 	"serversiderendering":   transformers.ServerSideRendering,
+	"stripjs":               transformers.StripJS,
 	"transformedidentifier": transformers.TransformedIdentifier,
 	"url":                   transformers.URL,
 }
@@ -56,6 +57,7 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 	rpb.Request_DEFAULT: {
 		// NodeCleanup should be first.
 		transformers.NodeCleanup,
+		transformers.StripJS,
 		transformers.MetaTag,
 		// TODO(alin04): Reenable LinkTag once validation is done.
 		// transformers.LinkTag,
@@ -105,9 +107,9 @@ var ampAttrRE = func() *regexp.Regexp {
 }()
 
 // The allowed AMP formats, and their serialization as an html "amp4" attribute.
-var ampFormatSuffixes = map[rpb.Request_HtmlFormat]string {
-	rpb.Request_AMP: "",
-	rpb.Request_AMP4ADS: "ads",
+var ampFormatSuffixes = map[rpb.Request_HtmlFormat]string{
+	rpb.Request_AMP:       "",
+	rpb.Request_AMP4ADS:   "ads",
 	rpb.Request_AMP4EMAIL: "email",
 }
 
