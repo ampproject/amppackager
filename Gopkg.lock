@@ -34,6 +34,17 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value"
+  ]
+  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+  version = "v0.2.0"
+
+[[projects]]
   name = "github.com/julienschmidt/httprouter"
   packages = ["."]
   revision = "8c199fb6259ffc1af525cc3ad52ee60ba8359669"
@@ -106,6 +117,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c6827885b226e4bccdd64d930e5f3adc9b420f9984069268ee8a793e9db5a4cd"
+  inputs-digest = "01661a5835ef866f582c73814d9b5172899a148a1325b70c45965f5b2eae36af"
   solver-name = "gps-cdcl"
   solver-version = 1
