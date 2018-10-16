@@ -94,10 +94,22 @@ message Request {
 // serialization/deserialization round-trip when the Go library is called from
 // C.
 message Metadata {
+  message Preload {
+    // The URL of the resource to preload. Will be an absolute URL on the domain
+    // of the target AMP cache.
+    string url = 1;
+    // The `as` attribute of the preload, as specified in
+    // https://w3c.github.io/preload/#as-attribute and
+    // https://html.spec.whatwg.org/multipage/semantics.html#attr-link-as. The
+    // full list of potential values is specified in
+    // https://fetch.spec.whatwg.org/#concept-request-destination, though for
+    // the time being only "script" and "style" are allowed.
+    string as = 2;
+  }
   // Absolute URLs of resources that should be preloaded when the AMP is
   // prefetched. In a signed exchange (SXG) context, these would be included as
   // `Link: rel=preload` headers, as these are used by the browser during SXG
   // prefetch:
   // https://github.com/WICG/webpackage/blob/master/explainer.md#prefetching-stops-here
-  repeated string preloads = 1;
+  repeated Preload preloads = 1;
 }

@@ -55,27 +55,27 @@ func TestProcess(t *testing.T) {
 func TestPreloads(t *testing.T) {
 	tests := []struct {
 		html             string
-		expectedPreloads []string
+		expectedPreloads []*rpb.Metadata_Preload
 	}{
 		{
 			"<html ⚡><script>",
-			[]string{},
+			[]*rpb.Metadata_Preload{},
 		},
 		{
 			"<html ⚡><script src=foo>",
-			[]string{"foo"},
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "script"}},
 		},
 		{
 			"<html ⚡><link rel=foaf href=foo>",
-			[]string{},
+			[]*rpb.Metadata_Preload{},
 		},
 		{
 			"<html ⚡><link rel=stylesheet href=foo>",
-			[]string{"foo"},
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}},
 		},
 		{
 			"<html ⚡><link rel=stylesheet href=foo><script src=bar>",
-			[]string{"foo", "bar"},
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}, {Url: "bar", As: "script"}},
 		},
 	}
 
