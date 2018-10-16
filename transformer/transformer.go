@@ -157,19 +157,19 @@ func requireAMPAttribute(dom *amphtml.DOM, allowedFormats []rpb.Request_HtmlForm
 // extractPreloads returns a list of absolute URLs of the resources to preload,
 // in the order to preload them. It depends on transformers.ReorderHead having
 // run.
-func extractPreloads(dom *amphtml.DOM) []string {
-	preloads := []string{}
+func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
+	preloads := []*rpb.Metadata_Preload{}
 	for child := dom.HeadNode.FirstChild; child != nil; child = child.NextSibling {
 		switch child.DataAtom {
 		case atom.Script:
 			if src, ok := htmlnode.GetAttributeVal(child, "src"); ok {
-				preloads = append(preloads, src)
+				preloads = append(preloads, &rpb.Metadata_Preload{Url: src, As: "script"})
 			}
 		case atom.Link:
 			if rel, ok := htmlnode.GetAttributeVal(child, "rel"); ok {
 				if rel == "stylesheet" {
 					if href, ok := htmlnode.GetAttributeVal(child, "href"); ok {
-						preloads = append(preloads, href)
+						preloads = append(preloads, &rpb.Metadata_Preload{Url: href, As: "style"})
 					}
 				}
 			}
