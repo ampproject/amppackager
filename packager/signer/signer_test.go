@@ -17,6 +17,7 @@ package signer
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -298,6 +299,27 @@ func (this *SignerSuite) TestEscapesLinkHeaders() {
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal("<https://foo.com/a,b%3Ec>;rel=preload;as=script", exchange.ResponseHeaders.Get("Link"))
+}
+
+func (this *SignerSuite) TestLimitsLinkHeaders() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		var html bytes.Buffer
+		html.WriteString("<html amp><head>")
+		for i := 0; i <= maxPreloads; i++ {
+			html.WriteString(fmt.Sprintf(`<script src="https://foo.com/%d.js"></script>`, i))
+		}
+		resp.Write(html.Bytes())
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Contains(exchange.ResponseHeaders.Get("Link"), fmt.Sprintf("https://foo.com/%d.js", maxPreloads-1))
+	this.Assert().NotContains(exchange.ResponseHeaders.Get("Link"), fmt.Sprintf("https://foo.com/%d.js", maxPreloads))
 }
 
 func (this *SignerSuite) TestErrorNoCache() {
