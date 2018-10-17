@@ -85,6 +85,11 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 	rpb.Request_CUSTOM: {},
 }
 
+// The maximum number of preloads to place in the Link header. This limit
+// should be enforced by AMP Caches, to protect any pages that prefetch the SXG
+// from an unnecessary number of fetches.
+const maxPreloads = 20
+
 // Override for tests.
 var runTransformers = func(c *transformers.Context, fns []func(*transformers.Context) error) error {
 	// Invoke the configured transformers
@@ -173,6 +178,9 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 					}
 				}
 			}
+		}
+		if len(preloads) == maxPreloads {
+			break
 		}
 	}
 	return preloads
