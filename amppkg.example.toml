@@ -8,13 +8,30 @@
 # LocalOnly = true
 
 # The path to the PEM file containing the full certificate chain, ordered from
-# leaf to root. This will be served at /amppkg/cert/blahblahblah, where
-# "blahblahblah" is a stable unique identifier for the cert (currently, its
-# base64-encoded SHA-256).
+# leaf to root.
 #
-# This certificate must use an EC P-256 key. (See https://goo.gl/pwK9EJ item
-# 3.1.5.) It must have at least one SCT, either as an X.509 extension or as an
-# extension to the OCSP responses from the URI mentioned in its Authority
+# Typically, it would look like:
+#   -----BEGIN CERTIFICATE-----
+#   ....
+#   -----END CERTIFICATE-----
+#   -----BEGIN CERTIFICATE-----
+#   ....
+#   -----END CERTIFICATE-----
+# where the first certificate is for your domain, and the second is your CA's
+# cert.
+#
+# To verify it has the right key type:
+#   openssl x509 -in cert.pem -text | grep 'ASN1 OID: prime256v1'
+# To verify it has the CanSignHttpExchanges extension:
+#   openssl x509 -in cert.pem -text | grep 1.3.6.1.4.1.11129.2.1.22:
+#
+# This will be served at /amppkg/cert/blahblahblah, where "blahblahblah" is a
+# stable unique identifier for the cert (currently, its base64-encoded
+# SHA-256).
+#
+# The leaf certificate must use an EC P-256 key. (See https://goo.gl/pwK9EJ
+# item 3.1.5.) It must have at least one SCT, either as an X.509 extension or
+# as an extension to the OCSP responses from the URI mentioned in its Authority
 # Information Access extension. (See https://goo.gl/JQiyNs item 7.4.)
 #
 # To mitigate the risk of an attacker gaining access to your private key
