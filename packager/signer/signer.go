@@ -25,6 +25,7 @@ import (
 	"net/url"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -275,6 +276,23 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 	}
 }
 
+func formatLinkHeader(preloads []*rpb.Metadata_Preload) string {
+	var values []string
+	for _, preload := range preloads {
+		var value strings.Builder
+		value.WriteByte('<')
+		u, err := url.Parse(preload.Url)
+		if err != nil {
+			log.Printf("Invalid preload URL: %q\n", preload.Url)
+		}
+		value.WriteString(u.String())
+		value.WriteString(">;rel=preload;as=")
+		value.WriteString(preload.As)
+		values = append(values, value.String())
+	}
+	return strings.Join(values, ",")
+}
+
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
 func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL) {
 	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
@@ -288,13 +306,16 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 
 	// Perform local transformations.
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
-	transformed, _, err := transformer.Process(r)
+	transformed, metadata, err := transformer.Process(r)
 	if err != nil {
 		log.Println("Not packaging due to transformer error:", err)
 		proxy(resp, fetchResp, fetchBody)
 		return
 	}
 	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
+	if linkHeader := formatLinkHeader(metadata.Preloads); linkHeader != "" {
+		fetchResp.Header.Set("Link", linkHeader)
+	}
 
 	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err != nil {

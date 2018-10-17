@@ -265,6 +265,41 @@ func (this *SignerSuite) TestRemovesStatefulHeaders() {
 	this.Assert().NotContains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Set-Cookie"))
 }
 
+func (this *SignerSuite) TestAddsLinkHeaders() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Write([]byte("<html amp><head><link rel=stylesheet href=foo><script src=bar>"))
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal("<foo>;rel=preload;as=style,<bar>;rel=preload;as=script", exchange.ResponseHeaders.Get("Link"))
+}
+
+func (this *SignerSuite) TestEscapesLinkHeaders() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		// This shouldn't happen for valid AMP, and AMP Caches should
+		// verify the Link header so that it wouldn't be ingested.
+		// However, it would be nice to limit the impact that could be
+		// caused by transformation of an invalid AMP, e.g. on a
+		// same-origin impression.
+		resp.Write([]byte(`<html amp><head><script src="https://foo.com/a,b>c">`))
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal("<https://foo.com/a,b%3Ec>;rel=preload;as=script", exchange.ResponseHeaders.Get("Link"))
+}
+
 func (this *SignerSuite) TestErrorNoCache() {
 	urlSets := []util.URLSet{{
 		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},
@@ -422,7 +457,7 @@ func (this *SignerSuite) TestProxyTransformError() {
 	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_CUSTOM,
 			AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP},
-			Transformers: []string{"bogus"}}
+			Transformers:   []string{"bogus"}}
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(200, resp.StatusCode)
@@ -436,6 +471,3 @@ func (this *SignerSuite) TestProxyTransformError() {
 func TestSignerSuite(t *testing.T) {
 	suite.Run(t, new(SignerSuite))
 }
-
-// TODO(twifkak): Write lots more tests.
-// TODO(twifkak): Fuzz-test.
