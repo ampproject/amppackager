@@ -103,6 +103,11 @@ const maxBodyLength = 4 * 1 << 20
 // server and client. The memory usage difference is negligible.
 const miRecordSize = 16 << 10
 
+// The maximum number of preloads to place in the Link header. This limit
+// should be enforced by AMP Caches, to protect any pages that prefetch the SXG
+// from an unnecessary number of fetches.
+const maxPreloads = 20
+
 // Overrideable for testing.
 var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 	return &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: r.GetRTV(), Css: r.GetCSS(),
@@ -278,7 +283,13 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 
 func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 	var values []string
-	for _, preload := range preloads {
+	for i, preload := range preloads {
+		// Limit the number of preloads.
+		if i >= maxPreloads {
+			break
+		}
+
+		// Validate the Preload.
 		u, err := url.Parse(preload.Url)
 		if err != nil {
 			return "", errors.Wrapf(err, "Invalid preload URL: %q\n", preload.Url)
@@ -287,6 +298,7 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 			return "", errors.Errorf("Missing `as` attribute for preload URL: %q\n", preload.Url)
 		}
 
+		// Format the header, percent-escaping the URL if necessary.
 		var value strings.Builder
 		value.WriteByte('<')
 		value.WriteString(u.String())
