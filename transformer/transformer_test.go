@@ -2,6 +2,8 @@ package transformer
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 
 	rpb "github.com/ampproject/amppackager/transformer/request"
@@ -53,6 +55,17 @@ func TestProcess(t *testing.T) {
 }
 
 func TestPreloads(t *testing.T) {
+	// Programmatically prepare the `> maxPreloads` test case.
+	var manyScriptsHTML strings.Builder
+	manyScriptsPreloads := []*rpb.Metadata_Preload{}
+	manyScriptsHTML.WriteString("<html ⚡>")
+	for i := 0; i <= maxPreloads; i++ {
+		fmt.Fprintf(&manyScriptsHTML, `<script src="foo%d"></script>`, i)
+		if i < maxPreloads {
+			manyScriptsPreloads = append(manyScriptsPreloads, &rpb.Metadata_Preload{Url: fmt.Sprintf("foo%d", i), As: "script"})
+		}
+	}
+
 	tests := []struct {
 		html             string
 		expectedPreloads []*rpb.Metadata_Preload
@@ -76,6 +89,10 @@ func TestPreloads(t *testing.T) {
 		{
 			"<html ⚡><link rel=stylesheet href=foo><script src=bar>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}, {Url: "bar", As: "script"}},
+		},
+		{
+			manyScriptsHTML.String(),
+			manyScriptsPreloads,
 		},
 	}
 
