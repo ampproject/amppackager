@@ -276,21 +276,25 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 	}
 }
 
-func formatLinkHeader(preloads []*rpb.Metadata_Preload) string {
+func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 	var values []string
 	for _, preload := range preloads {
-		var value strings.Builder
-		value.WriteByte('<')
 		u, err := url.Parse(preload.Url)
 		if err != nil {
-			log.Printf("Invalid preload URL: %q\n", preload.Url)
+			return "", errors.Wrapf(err, "Invalid preload URL: %q\n", preload.Url)
 		}
+		if preload.As == "" {
+			return "", errors.Errorf("Missing `as` attribute for preload URL: %q\n", preload.Url)
+		}
+
+		var value strings.Builder
+		value.WriteByte('<')
 		value.WriteString(u.String())
 		value.WriteString(">;rel=preload;as=")
 		value.WriteString(preload.As)
 		values = append(values, value.String())
 	}
-	return strings.Join(values, ",")
+	return strings.Join(values, ","), nil
 }
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
@@ -313,7 +317,13 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		return
 	}
 	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
-	if linkHeader := formatLinkHeader(metadata.Preloads); linkHeader != "" {
+	linkHeader, err := formatLinkHeader(metadata.Preloads)
+	if err != nil {
+		log.Println("Not packaging due to Link header error:", err)
+		proxy(resp, fetchResp, fetchBody)
+		return
+	}
+	if linkHeader != "" {
 		fetchResp.Header.Set("Link", linkHeader)
 	}
 
