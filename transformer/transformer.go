@@ -206,6 +206,11 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 		return "", nil, err
 	}
 
+	version, err := selectVersion(r.Versions, supportedVersions)
+	if err != nil {
+		return "", nil, err
+	}
+
 	fns := configMap[r.Config]
 	if r.Config == rpb.Request_CUSTOM {
 		for _, val := range r.Transformers {
@@ -220,7 +225,7 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 	if err != nil {
 		return "", nil, err
 	}
-	c := transformers.Context{dom, u, r}
+	c := transformers.Context{dom, u, version, r}
 	if err := runTransformers(&c, fns); err != nil {
 		return "", nil, err
 	}
@@ -229,5 +234,5 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 	if err != nil {
 		return "", nil, err
 	}
-	return o.String(), &rpb.Metadata{Preloads: extractPreloads(dom)}, nil
+	return o.String(), &rpb.Metadata{Preloads: extractPreloads(dom), Version: version}, nil
 }

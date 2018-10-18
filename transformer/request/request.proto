@@ -86,10 +86,24 @@ message Request {
   // If config == CUSTOM, this is the list of custom transformers to execute,
   // in the order provided here. Otherwise, this is ignored.
   repeated string transformers = 3;
+
+  // An inclusive range of version numbers.
+  message VersionRange {
+    int64 min = 1;
+    int64 max = 2;
+  }
+
+  // The set of all transform version numbers accepted by the requestor. These
+  // ranges should be non-overlapping and in descending order.
+  //
+  // The transfomer will select the highest one from this list that it supports.
+  // If this set is empty, the transfomer will select the highest version it
+  // supports. In both cases, it shouldn't include in-development versions.
+  repeated VersionRange versions = 8;
 }
 
 // A Metadata is part of the transformers' response, and includes additional
-// information either not present in or easily accessible from the HTML. It
+// information either not present in or not easily accessible from the HTML. It
 // should remain relatively small, as it undergoes a
 // serialization/deserialization round-trip when the Go library is called from
 // C.
@@ -112,4 +126,7 @@ message Metadata {
   // prefetch:
   // https://github.com/WICG/webpackage/blob/master/explainer.md#prefetching-stops-here
   repeated Preload preloads = 1;
+
+  // The version of the transforms that were performed on this output.
+  int64 version = 2;
 }
