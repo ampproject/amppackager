@@ -108,6 +108,38 @@ func TestPreloads(t *testing.T) {
 	}
 }
 
+func TestVersion(t *testing.T) {
+	// context is the context provided by Process() to runTransformers().
+	var context *transformers.Context
+	// Remember the original function and reinstate after test
+	orig := runTransformers
+	defer func() { runTransformers = orig }()
+	runTransformers = func(e *transformers.Context, fs []func(*transformers.Context) error) error {
+		context = e
+		return nil
+	}
+
+	_, metadata, err := Process(&rpb.Request{Html: "<html ⚡>", Config: rpb.Request_NONE})
+	if err != nil {
+		t.Fatalf("Process() unexpectedly failed: %v", err)
+	}
+
+	if context.Version != supportedVersions[0].Max {
+		t.Errorf("Incorrect context.Version = %d", context.Version)
+	}
+
+	if metadata.Version != supportedVersions[0].Max {
+		t.Errorf("Incorrect metadata.Version = %d", metadata.Version)
+	}
+
+	// Construct an unsatisfied version request.
+	badVersion := supportedVersions[0].Max + 1
+	_, metadata, err = Process(&rpb.Request{Html: "", Config: rpb.Request_NONE, Versions: []*rpb.Request_VersionRange{{Max: badVersion, Min: badVersion}}})
+	if err == nil {
+		t.Fatalf("Process() unexpectedly succeeded: metadata.Version = %d", metadata.Version)
+	}
+}
+
 func TestCustom(t *testing.T) {
 	var fns []func(*transformers.Context) error
 	// Remember the original function and reinstate after test

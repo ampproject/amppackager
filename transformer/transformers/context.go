@@ -26,5 +26,6 @@ import (
 type Context struct {
 	DOM         *amphtml.DOM
 	DocumentURL *url.URL
+	Version     int64
 	Request     *rpb.Request
 }
