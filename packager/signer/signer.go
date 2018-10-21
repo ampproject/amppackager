@@ -131,6 +131,8 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
 	requireHeaders bool) (*Signer, error) {
+	// TODO(stillers) Conditionally use NewFileTransport for client Transport
+	// https://golang.org/pkg/net/http/#NewFileTransport
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
