@@ -7,11 +7,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-// supportedVersions is a set of all transform versions supported by this
+// SupportedVersions is a set of all transform versions supported by this
 // snapshot of the library. This should not include transforms not yet
 // snapshotted to a finalized version.
 // The ranges should be non-overlapping and in descending order.
-var supportedVersions = []*rpb.Request_VersionRange{{Min: 0, Max: 0}}
+// Visible for test.
+var SupportedVersions = []*rpb.VersionRange{{Min: 1, Max: 1}}
 
 func min(a, b int64) int64 {
 	if a < b {
@@ -22,25 +23,25 @@ func min(a, b int64) int64 {
 
 // intervalsOverlap returns true if there exists at least one value in both `a`
 // and `b`. This assumes `a` and `b` are not malformed.
-func intervalsOverlap(a, b *rpb.Request_VersionRange) bool {
+func intervalsOverlap(a, b *rpb.VersionRange) bool {
 	return a.Max >= b.Min && a.Min <= b.Max
 }
 
 // isGreater returns true if all of the values in `a` are greater than all of
 // the values in `b`. This assumes `a` and `b` are not malformed.
-func isGreater(a, b *rpb.Request_VersionRange) bool {
+func isGreater(a, b *rpb.VersionRange) bool {
 	return a.Min > b.Max
 }
 
 // validateRequest verifies the request is properly formed.
-func validateRequest(rs []*rpb.Request_VersionRange) error {
+func validateRequest(rs []*rpb.VersionRange) error {
 	var lastMin int64 = math.MaxInt64
 	for i, r := range rs {
 		if r.Min > r.Max {
 			return errors.Errorf("malformed range %v at index %d", r, i)
 		}
-		if r.Min < 0 || r.Max < 0 {
-			return errors.Errorf("negative value in range %v at index %d", r, i)
+		if r.Min < 1 || r.Max < 1 {
+			return errors.Errorf("non-positive value in range %v at index %d", r, i)
 		}
 		if r.Max >= lastMin {
 			return errors.Errorf("overlapping or out-of-order range %v at index %d", r, i)
@@ -50,10 +51,7 @@ func validateRequest(rs []*rpb.Request_VersionRange) error {
 	return nil
 }
 
-// selectVersion returns the highest requested version number that the
-// transformer supports, or an error if no such version exists. Both inputs
-// must consist of non-overlapping ranges in descending order.
-func selectVersion(requested, supported []*rpb.Request_VersionRange) (int64, error) {
+func selectVersion(requested, supported []*rpb.VersionRange) (int64, error) {
 	// If request is invalid, then error.
 	if err := validateRequest(requested); err != nil {
 		return 0, err
@@ -78,4 +76,16 @@ func selectVersion(requested, supported []*rpb.Request_VersionRange) (int64, err
 		}
 	}
 	return 0, errors.New("no requested version is supported by this transformer")
+}
+
+// SelectVersion returns the highest requested version number that the
+// transformer supports, or an error if no such version exists. The requested
+// list must consist of non-overlapping ranges in descending order.
+//
+// The transfomer will select the highest version from requested that it
+// supports. If requested is nil or empty, the transfomer will select the
+// highest version it supports. In both cases, it shouldn't include
+// in-development versions.
+func SelectVersion(requested []*rpb.VersionRange) (int64, error) {
+	return selectVersion(requested, SupportedVersions)
 }
