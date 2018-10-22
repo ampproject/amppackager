@@ -8,35 +8,39 @@ import (
 
 func TestValidateRequest(t *testing.T) {
 	tests := []struct {
-		rs []*rpb.Request_VersionRange
+		rs []*rpb.VersionRange
 		expectedError        bool
 	}{
 		{
-			rs:            []*rpb.Request_VersionRange{},
+			rs:            nil,
 			expectedError: false,
 		},
 		{
-			rs:            []*rpb.Request_VersionRange{{Max: 0, Min: 1}},
+			rs:            []*rpb.VersionRange{},
+			expectedError: false,
+		},
+		{
+			rs:            []*rpb.VersionRange{{Max: 1, Min: 2}},
 			expectedError: true, // Malformed.
 		},
 		{
-			rs:            []*rpb.Request_VersionRange{{Max: 1, Min: -1}},
+			rs:            []*rpb.VersionRange{{Max: 1, Min: -1}},
 			expectedError: true, // Negative.
 		},
 		{
-			rs:            []*rpb.Request_VersionRange{{Max: 1, Min: 1}},
+			rs:            []*rpb.VersionRange{{Max: 1, Min: 1}},
 			expectedError: false,
 		},
 		{
-			rs:            []*rpb.Request_VersionRange{{Max: 2, Min: 1}, {Max: 1, Min: 1}},
+			rs:            []*rpb.VersionRange{{Max: 2, Min: 1}, {Max: 1, Min: 1}},
 			expectedError: true, // Overlapping.
 		},
 		{
-			rs:            []*rpb.Request_VersionRange{{Max: 3, Min: 2}, {Max: 1, Min: 1}},
+			rs:            []*rpb.VersionRange{{Max: 3, Min: 2}, {Max: 1, Min: 1}},
 			expectedError: false,
 		},
 		{
-			rs:            []*rpb.Request_VersionRange{{Max: 1, Min: 1}, {Max: 3, Min: 2}},
+			rs:            []*rpb.VersionRange{{Max: 1, Min: 1}, {Max: 3, Min: 2}},
 			expectedError: true, // Out of order.
 		},
 	}
@@ -50,68 +54,74 @@ func TestValidateRequest(t *testing.T) {
 
 func TestSelectVersion(t *testing.T) {
 	tests := []struct {
-		requested, supported []*rpb.Request_VersionRange
+		requested, supported []*rpb.VersionRange
 		expectedVersion      int64
 		expectedError        bool
 	}{
 		// No supported.
 		{
-			requested:     []*rpb.Request_VersionRange{{Max: 4, Min: 0}},
-			supported:     []*rpb.Request_VersionRange{},
+			requested:     []*rpb.VersionRange{{Max: 4, Min: 1}},
+			supported:     []*rpb.VersionRange{},
 			expectedError: true,
 		},
 		// No request, highest version supported.
 		{
-			requested:       []*rpb.Request_VersionRange{},
-			supported:       []*rpb.Request_VersionRange{{Max: 4, Min: 0}},
+			requested:       []*rpb.VersionRange{},
+			supported:       []*rpb.VersionRange{{Max: 4, Min: 1}},
+			expectedVersion: 4,
+		},
+		// No request (nil), highest version supported.
+		{
+			requested:       nil,
+			supported:       []*rpb.VersionRange{{Max: 4, Min: 1}},
 			expectedVersion: 4,
 		},
 		// One version, match.
 		{
-			requested:       []*rpb.Request_VersionRange{{Max: 0, Min: 0}},
-			supported:       []*rpb.Request_VersionRange{{Max: 0, Min: 0}},
-			expectedVersion: 0,
+			requested:       []*rpb.VersionRange{{Max: 1, Min: 1}},
+			supported:       []*rpb.VersionRange{{Max: 1, Min: 1}},
+			expectedVersion: 1,
 		},
 		// One version, mismatch.
 		{
-			requested:     []*rpb.Request_VersionRange{{Max: 0, Min: 0}},
-			supported:     []*rpb.Request_VersionRange{{Max: 1, Min: 1}},
+			requested:     []*rpb.VersionRange{{Max: 1, Min: 1}},
+			supported:     []*rpb.VersionRange{{Max: 2, Min: 2}},
 			expectedError: true,
 		},
 		// Supported is a subset of requested.
 		{
-			requested:       []*rpb.Request_VersionRange{{Max: 4, Min: 0}},
-			supported:       []*rpb.Request_VersionRange{{Max: 2, Min: 1}},
+			requested:       []*rpb.VersionRange{{Max: 4, Min: 1}},
+			supported:       []*rpb.VersionRange{{Max: 2, Min: 2}},
 			expectedVersion: 2,
 		},
 		// Requested is a subset of supported.
 		{
-			requested:       []*rpb.Request_VersionRange{{Max: 2, Min: 1}},
-			supported:       []*rpb.Request_VersionRange{{Max: 4, Min: 0}},
+			requested:       []*rpb.VersionRange{{Max: 2, Min: 2}},
+			supported:       []*rpb.VersionRange{{Max: 4, Min: 1}},
 			expectedVersion: 2,
 		},
 		// Requested and supported abut.
 		{
-			requested:       []*rpb.Request_VersionRange{{Max: 4, Min: 2}},
-			supported:       []*rpb.Request_VersionRange{{Max: 2, Min: 0}},
+			requested:       []*rpb.VersionRange{{Max: 4, Min: 2}},
+			supported:       []*rpb.VersionRange{{Max: 2, Min: 1}},
 			expectedVersion: 2,
 		},
 		// Requested includes a hole in supported.
 		{
-			requested:       []*rpb.Request_VersionRange{{Max: 2, Min: 0}},
-			supported:       []*rpb.Request_VersionRange{{Max: 4, Min: 3}, {Max: 1, Min: 0}},
+			requested:       []*rpb.VersionRange{{Max: 2, Min: 1}},
+			supported:       []*rpb.VersionRange{{Max: 4, Min: 3}, {Max: 1, Min: 1}},
 			expectedVersion: 1,
 		},
 		// Requested requires a hole in supported.
 		{
-			requested:     []*rpb.Request_VersionRange{{Max: 2, Min: 2}},
-			supported:     []*rpb.Request_VersionRange{{Max: 4, Min: 3}, {Max: 1, Min: 0}},
+			requested:     []*rpb.VersionRange{{Max: 2, Min: 2}},
+			supported:     []*rpb.VersionRange{{Max: 4, Min: 3}, {Max: 1, Min: 1}},
 			expectedError: true,
 		},
 		// Overlap is between the second elements of both requested and supported.
 		{
-			requested:       []*rpb.Request_VersionRange{{Max: 6, Min: 5}, {Max: 2, Min: 0}},
-			supported:       []*rpb.Request_VersionRange{{Max: 4, Min: 3}, {Max: 1, Min: 0}},
+			requested:       []*rpb.VersionRange{{Max: 6, Min: 5}, {Max: 2, Min: 1}},
+			supported:       []*rpb.VersionRange{{Max: 4, Min: 3}, {Max: 1, Min: 1}},
 			expectedVersion: 1,
 		},
 	}
