@@ -119,24 +119,19 @@ func TestVersion(t *testing.T) {
 		return nil
 	}
 
-	_, metadata, err := Process(&rpb.Request{Html: "<html ⚡>", Config: rpb.Request_NONE})
+	_, _, err := Process(&rpb.Request{Html: "<html ⚡>", Config: rpb.Request_NONE, Version: SupportedVersions[0].Max})
 	if err != nil {
 		t.Fatalf("Process() unexpectedly failed: %v", err)
 	}
-
-	if context.Version != supportedVersions[0].Max {
+	if context.Version != SupportedVersions[0].Max {
 		t.Errorf("Incorrect context.Version = %d", context.Version)
 	}
 
-	if metadata.Version != supportedVersions[0].Max {
-		t.Errorf("Incorrect metadata.Version = %d", metadata.Version)
-	}
-
 	// Construct an unsatisfied version request.
-	badVersion := supportedVersions[0].Max + 1
-	_, metadata, err = Process(&rpb.Request{Html: "", Config: rpb.Request_NONE, Versions: []*rpb.Request_VersionRange{{Max: badVersion, Min: badVersion}}})
+	badVersion := SupportedVersions[0].Max + 1
+	_, _, err = Process(&rpb.Request{Html: "", Config: rpb.Request_NONE, Version: badVersion})
 	if err == nil {
-		t.Fatalf("Process() unexpectedly succeeded: metadata.Version = %d", metadata.Version)
+		t.Fatal("Process() unexpectedly succeeded")
 	}
 }
 
