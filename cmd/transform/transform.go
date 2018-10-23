@@ -33,6 +33,8 @@ import (
 )
 
 var documentURLFlag = flag.String("url", "", "The URL of the document being processed, e.g. https://example.com/amphtml/article1234")
+var configFlag = flag.String("config", "DEFAULT", "The configuration that determines the transformations to run. Valid values are DEFAULT, NONE, VALIDATION. See transformer.go for more info.")
+var skipNewlineFlag = flag.Bool("noeol", false, "do not output the trailing newline")
 
 func checkErr(e error) {
 	if e != nil {
@@ -69,7 +71,14 @@ cat /path/to/input.html | $GOPATH/bin/transform
 	}
 	checkErr(err)
 	r := &rpb.Request{Html: string(data), DocumentUrl: *documentURLFlag}
+	if *configFlag != "" {
+		r.Config = rpb.Request_TransformersConfig(rpb.Request_TransformersConfig_value[*configFlag])
+	}
 	o, _, err := t.Process(r)
 	checkErr(err)
-	fmt.Println(o)
+	if *skipNewlineFlag {
+		fmt.Print(o)
+	} else {
+		fmt.Println(o)
+	}
 }
