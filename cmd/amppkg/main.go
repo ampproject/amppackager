@@ -28,14 +28,13 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
-
 	"github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/packager/validitymap"
-	"github.com/ampproject/amppackager/packager/rtv"
+	"github.com/julienschmidt/httprouter"
+	"github.com/pkg/errors"
 )
 
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
@@ -54,6 +53,19 @@ func (this logIntercept) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 	this.handler.ServeHTTP(resp, req)
 	// TODO(twifkak): Get status code from resp. This requires making a ResponseWriter wrapper.
 	// TODO(twifkak): Separate the typical weblog from the detailed error log.
+}
+
+func allowProject(id string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		// X-Appengine-Inbound-Appid can be trusted on GAE:
+		// https://cloud.google.com/appengine/docs/standard/go/appidentity/#asserting_identity_to_other_app_engine_apps
+		if req.Header.Get("X-Appengine-Inbound-Appid") == id {
+			h.ServeHTTP(resp, req)
+		} else {
+			log.Println("Blocking access to [%s] (X-Appengine-Inbound-Appid header incorrect)")
+			http.NotFound(resp, req)
+		}
+	})
 }
 
 // Exposes an HTTP server. Don't run this on the open internet, for at least two reasons:
@@ -129,7 +141,7 @@ func main() {
 	}
 
 	packager, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment)
+		overrideBaseURL /*requireHeaders=*/, !*flagDevelopment)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
 	}
@@ -151,7 +163,8 @@ func main() {
 		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
-		Handler:           logIntercept{mux},
+		// TODO Respond to /_ah/healthcheck with a 200
+		Handler:           allowProject("foo", logIntercept{mux}),
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		// If needing to stream the response, disable WriteTimeout and

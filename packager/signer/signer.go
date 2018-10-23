@@ -132,11 +132,15 @@ func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
 	requireHeaders bool) (*Signer, error) {
 	// TODO(stillers) Conditionally use NewFileTransport for client Transport
-	// https://golang.org/pkg/net/http/#NewFileTransport
+	t := &http.Transport{}
+	r := http.NewFileTransport(http.Dir("/www"))
+	t.RegisterProtocol("http", r)
+	t.RegisterProtocol("https", r)
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
-		Timeout: 60 * time.Second,
+		Timeout:   60 * time.Second,
+		Transport: t,
 	}
 
 	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
