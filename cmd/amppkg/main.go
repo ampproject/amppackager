@@ -179,7 +179,7 @@ func main() {
 
 	// TODO(twifkak): Add monitoring (e.g. per the above Cloudflare blog).
 
-	log.Println("Serving on port", config.Port)
+	log.Println("Serving ABE on port", config.Port)
 
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.
