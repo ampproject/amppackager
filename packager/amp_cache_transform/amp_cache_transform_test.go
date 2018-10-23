@@ -17,13 +17,13 @@ func TestShouldSendSXG(t *testing.T) {
 	defer func() { transformer.SupportedVersions = orig }()
 	transformer.SupportedVersions = []*rpb.VersionRange{{Max: 1, Min: 1}}
 
+	// Success.
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG("any")))
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG("foobar, any")))
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG("any, google")))
-	// Technically this is a false positive -- trailing OWS is not allowed
-	// by the spec. (This is occurring because the comma parsing code
-	// doesn't fail if it finds OWS and no comma.) That said... meh. Close
-	// enough:
+	// Technically this is a false positive -- trailing whitespace is not
+	// allowed by the spec. (This is occurring because the comma parsing
+	// code doesn't fail if it finds WS and no comma.) Meh, close enough:
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG("any ")))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG("google")))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG("google, any")))
@@ -33,6 +33,7 @@ func TestShouldSendSXG(t *testing.T) {
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG("google ,foobar")))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG("google, a*b-c_d/e")))
 
+	// Failure.
 	assert.Equal(t, "", header(ShouldSendSXG("")))
 	assert.Equal(t, "", header(ShouldSendSXG(" any")))
 	assert.Equal(t, "", header(ShouldSendSXG("foobar")))
@@ -40,15 +41,33 @@ func TestShouldSendSXG(t *testing.T) {
 	assert.Equal(t, "", header(ShouldSendSXG("googleany")))
 	assert.Equal(t, "", header(ShouldSendSXG("google;any")))
 	assert.Equal(t, "", header(ShouldSendSXG("google;v=1")))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v="1,any`)))
 	assert.Equal(t, "", header(ShouldSendSXG("google,123")))
 	assert.Equal(t, "", header(ShouldSendSXG("google, eh!")))
 	assert.Equal(t, "", header(ShouldSendSXG("ABC,google")))
 
+	// Version spec success.
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="1"`)))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="1..2"`)))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="1,2..3,5"`)))
+	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google ; v="1"`)))
+	// Technically these two are false positives -- surrounding whitespace
+	// is not allowed by the spec. This is a consequence of using
+	// strings.FieldsFunc. Meh, close enough:
+	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v=" 1"`)))
+	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="1 "`)))
 
+	// Version spec failure.
+	assert.Equal(t, "", header(ShouldSendSXG(`google,v="1"`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v ="1"`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v= "1"`)))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v="2"`)))
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="2",any`)))
+	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="2..frog",any`)))
+	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="-1..1",any`)))
+	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="1,-1",any`)))
+	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="1..2,2..3",any`)))
+	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="1..\"2",any`)))
+	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;x="1",any`)))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="2",google`)))
 }

@@ -19,7 +19,7 @@ import (
 
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-3.3
 type parameterisedIdentifier struct {
-	id string
+	id     string
 	params map[string]string
 }
 
@@ -57,11 +57,9 @@ func parseParameterisedList(reader *strings.Reader) ([]parameterisedIdentifier, 
 		if err := discardOWS(reader); err != nil {
 			return nil, errors.Wrap(err, "discarding OWS")
 		}
-		comma, err := reader.ReadByte()
-		if err != nil {
+		if comma, err := reader.ReadByte(); err != nil {
 			return nil, errors.Wrap(err, "reading ','")
-		}
-		if comma != ',' {
+		} else if comma != ',' {
 			return nil, errors.New("expected ','")
 		}
 		if err := discardOWS(reader); err != nil {
@@ -93,11 +91,9 @@ func parseParameterisedIdentifier(reader *strings.Reader) (*parameterisedIdentif
 		if reader.Len() == 0 {
 			break
 		}
-		semicolon, err := reader.ReadByte()
-		if err != nil {
+		if semicolon, err := reader.ReadByte(); err != nil {
 			return nil, errors.Wrap(err, "reading ';'")
-		}
-		if semicolon != ';' {
+		} else if semicolon != ';' {
 			if err := reader.UnreadByte(); err != nil {
 				return nil, errors.Wrap(err, "unreading ';'")
 			}
@@ -115,19 +111,14 @@ func parseParameterisedIdentifier(reader *strings.Reader) (*parameterisedIdentif
 		if _, has := params[name]; has {
 			return nil, errors.Errorf("param %q already present", name)
 		}
-		if name != "v" {
-			return nil, errors.Errorf("invalid AMP-Cache-Transform param %q", name)
-		}
 
 		// ... and a parameter value.
 		// NOTE: The current version of the AMP-Cache-Transform spec
 		// does not use any null-valued parameters. So, for now, a
 		// missing '=' is a parse failure.
-		equals, err := reader.ReadByte()
-		if err != nil {
+		if equals, err := reader.ReadByte(); err != nil {
 			return nil, errors.Wrap(err, "reading '='")
-		}
-		if equals != '=' {
+		} else if equals != '=' {
 			return nil, errors.New("expected '='")
 		}
 		// NOTE: In the future, this may need to be parseItem() to
@@ -158,12 +149,6 @@ func parseString(reader *strings.Reader) (string, error) {
 		if err != nil {
 			return "", errors.Wrap(err, "reading char")
 		}
-		if char <= 0x1f || char == 0x7f {
-			return "", errors.Errorf("invalid char %d", char)
-		}
-		if char == '"' {
-			break
-		}
 		if char == '\\' {
 			char, err = reader.ReadByte()
 			if err != nil {
@@ -172,8 +157,14 @@ func parseString(reader *strings.Reader) (string, error) {
 			if char != '"' && char != '\\' {
 				return "", errors.Errorf("unexpected backslash-escaped char %c", char)
 			}
+			value.WriteByte(char) // "The returned error is always nil." https://golang.org/pkg/strings/#Builder.WriteByte
+		} else if char == '"' {
+			break
+		} else if char <= 0x1f || char == 0x7f {
+			return "", errors.Errorf("invalid char %d", char)
+		} else {
+			value.WriteByte(char)
 		}
-		value.WriteByte(char)  // "The returned error is always nil." https://golang.org/pkg/strings/#Builder.WriteByte
 	}
 	return value.String(), nil
 }
@@ -271,14 +262,21 @@ func ShouldSendSXG(header_value string) (string, int64) {
 		log.Printf("Failed to parse AMP-Cache-Transform %q with error %v\n", header_value, err)
 		return "", 0
 	}
+
+IdentifierLoop:
 	for _, identifier := range identifiers {
 		if identifier.id == "any" || identifier.id == "google" {
 			var requested []*rpb.VersionRange
-			if v, ok := identifier.params["v"]; ok {
-				requested, err = parseVersions(v)
-				if err != nil {
-					log.Printf("Failed to parse versions from %q with error %v\n", header_value, err)
-					return "", 0
+			for name, value := range identifier.params {
+				if name == "v" {
+					requested, err = parseVersions(value)
+					if err != nil {
+						log.Printf("Failed to parse versions from %q with error %v\n", header_value, err)
+						continue IdentifierLoop
+					}
+				} else {
+					log.Printf("Invalid param name %q in %q\n", name, header_value)
+					continue IdentifierLoop
 				}
 			}
 			version, err := transformer.SelectVersion(requested)
