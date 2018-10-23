@@ -363,6 +363,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// the base64 encoding includes '/' and '=' (and therefore should be
 	// StdEncoding).
 	getURL := ocspServer + "/" + url.PathEscape(base64.StdEncoding.EncodeToString(req))
+	log.Printf("getURL = %s\n", getURL)
 	var httpReq *http.Request
 	if len(getURL) <= 255 {
 		httpReq, err = http.NewRequest("GET", getURL, nil)
