@@ -17,6 +17,7 @@ package signer
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -29,6 +30,7 @@ import (
 	"github.com/ampproject/amppackager/packager/rtv"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/ampproject/amppackager/packager/util"
+	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/suite"
@@ -150,7 +152,7 @@ func (this *SignerSuite) TestSimple() {
 		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath)+
 			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
-	this.Assert().Equal("google", resp.Header.Get("AMP-Cache-Transform"))
+	this.Assert().Equal(fmt.Sprintf(`google;v="%d"`, transformer.SupportedVersions[0].Max), resp.Header.Get("AMP-Cache-Transform"))
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
 	this.Assert().Equal(fakePath, this.lastRequestURL)
 
