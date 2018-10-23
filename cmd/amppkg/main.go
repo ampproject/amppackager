@@ -164,6 +164,7 @@ func main() {
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
 		// TODO Respond to /_ah/healthcheck with a 200
+		// TODO Configure project_id
 		Handler:           allowProject("foo", logIntercept{mux}),
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
