@@ -12,6 +12,10 @@ func header(header string, version int64) string {
 	return header
 }
 
+func version(header string, version int64) int64 {
+	return version
+}
+
 func TestShouldSendSXG(t *testing.T) {
 	orig := transformer.SupportedVersions
 	defer func() { transformer.SupportedVersions = orig }()
@@ -56,12 +60,23 @@ func TestShouldSendSXG(t *testing.T) {
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v=" 1"`)))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="1 "`)))
 
-	// Version spec failure.
-	assert.Equal(t, "", header(ShouldSendSXG(`google;v="2"`)))
+	// Version spec parse failure.
+	assert.Equal(t, "", header(ShouldSendSXG(`google;`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v=`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v=`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v="`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v="\`)))
 	assert.Equal(t, "", header(ShouldSendSXG("google;v=1,any")))
 	assert.Equal(t, "", header(ShouldSendSXG(`google,v="1",any`)))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v ="1",any`)))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v= "1",any`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v="\a",any`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v="\1",any`)))
+	assert.Equal(t, "", header(ShouldSendSXG("google;v=\"\t\",any")))
+
+	// Version spec semantic failure or mismatch.
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v="2"`)))
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="2",any`)))
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="2..frog",any`)))
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="-1..1",any`)))
@@ -70,4 +85,13 @@ func TestShouldSendSXG(t *testing.T) {
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;v="1..\"2",any`)))
 	assert.Equal(t, `any;v="1"`, header(ShouldSendSXG(`google;x="1",any`)))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="2",google`)))
+}
+
+func TestShouldSendSXG_Version(t *testing.T) {
+	orig := transformer.SupportedVersions
+	defer func() { transformer.SupportedVersions = orig }()
+	transformer.SupportedVersions = []*rpb.VersionRange{{Max: 2, Min: 1}}
+
+	assert.Equal(t, int64(1), version(ShouldSendSXG(`google;v="1"`)))
+	assert.Equal(t, int64(2), version(ShouldSendSXG(`google;v="2"`)))
 }

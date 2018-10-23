@@ -39,6 +39,8 @@ func discardOWS(reader *strings.Reader) error {
 	return nil
 }
 
+const parameterisedListSeparator = ','
+
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-4.2.3
 func parseParameterisedList(reader *strings.Reader) ([]parameterisedIdentifier, error) {
 	items := []parameterisedIdentifier{}
@@ -57,10 +59,10 @@ func parseParameterisedList(reader *strings.Reader) ([]parameterisedIdentifier, 
 		if err := discardOWS(reader); err != nil {
 			return nil, errors.Wrap(err, "discarding OWS")
 		}
-		if comma, err := reader.ReadByte(); err != nil {
-			return nil, errors.Wrap(err, "reading ','")
-		} else if comma != ',' {
-			return nil, errors.New("expected ','")
+		if char, err := reader.ReadByte(); err != nil {
+			return nil, errors.Wrapf(err, "reading '%c'", parameterisedListSeparator)
+		} else if char != parameterisedListSeparator {
+			return nil, errors.Errorf("expected '%c'", parameterisedListSeparator)
 		}
 		if err := discardOWS(reader); err != nil {
 			return nil, errors.Wrap(err, "discarding OWS")
@@ -71,6 +73,11 @@ func parseParameterisedList(reader *strings.Reader) ([]parameterisedIdentifier, 
 	}
 	return nil, errors.New("expected non-empty parameterised list")
 }
+
+const (
+	parameterSeparator = ';'
+	parameterValueSeparator = '='
+)
 
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-4.2.4
 func parseParameterisedIdentifier(reader *strings.Reader) (*parameterisedIdentifier, error) {
@@ -91,11 +98,11 @@ func parseParameterisedIdentifier(reader *strings.Reader) (*parameterisedIdentif
 		if reader.Len() == 0 {
 			break
 		}
-		if semicolon, err := reader.ReadByte(); err != nil {
-			return nil, errors.Wrap(err, "reading ';'")
-		} else if semicolon != ';' {
+		if char, err := reader.ReadByte(); err != nil {
+			return nil, errors.Wrapf(err, "reading '%c'", parameterSeparator)
+		} else if char != parameterSeparator {
 			if err := reader.UnreadByte(); err != nil {
-				return nil, errors.Wrap(err, "unreading ';'")
+				return nil, errors.Wrapf(err, "unreading '%c'", parameterSeparator)
 			}
 			break
 		}
@@ -116,10 +123,10 @@ func parseParameterisedIdentifier(reader *strings.Reader) (*parameterisedIdentif
 		// NOTE: The current version of the AMP-Cache-Transform spec
 		// does not use any null-valued parameters. So, for now, a
 		// missing '=' is a parse failure.
-		if equals, err := reader.ReadByte(); err != nil {
-			return nil, errors.Wrap(err, "reading '='")
-		} else if equals != '=' {
-			return nil, errors.New("expected '='")
+		if char, err := reader.ReadByte(); err != nil {
+			return nil, errors.Wrapf(err, "reading '%c'", parameterValueSeparator)
+		} else if char != parameterValueSeparator {
+			return nil, errors.Errorf("expected '%c'", parameterValueSeparator)
 		}
 		// NOTE: In the future, this may need to be parseItem() to
 		// support other Item types:
@@ -134,14 +141,21 @@ func parseParameterisedIdentifier(reader *strings.Reader) (*parameterisedIdentif
 	return &parameterisedIdentifier{primaryID, params}, nil
 }
 
+const (
+	stringDelimiter = '"'
+	stringEscape = '\\'
+)
+
+func invalidStringChar(char byte) bool {
+	return char <= 0x1f || char == 0x7f
+}
+
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-4.2.7
 func parseString(reader *strings.Reader) (string, error) {
-	quote, err := reader.ReadByte()
-	if err != nil {
-		return "", errors.Wrap(err, "reading '\"'")
-	}
-	if quote != '"' {
-		return "", errors.New("expected '\"'")
+	if char, err := reader.ReadByte(); err != nil {
+		return "", errors.Wrapf(err, "reading '%c'", stringDelimiter)
+	} else if char != stringDelimiter {
+		return "", errors.Errorf("expected '%c'", stringDelimiter)
 	}
 	var value strings.Builder
 	for {
@@ -149,18 +163,17 @@ func parseString(reader *strings.Reader) (string, error) {
 		if err != nil {
 			return "", errors.Wrap(err, "reading char")
 		}
-		if char == '\\' {
-			char, err = reader.ReadByte()
-			if err != nil {
+		if char == stringEscape {
+			if char, err = reader.ReadByte(); err != nil {
 				return "", errors.Wrap(err, "reading backslash-escaped char")
-			}
-			if char != '"' && char != '\\' {
+			} else if char != stringDelimiter && char != stringEscape {
 				return "", errors.Errorf("unexpected backslash-escaped char %c", char)
+			} else {
+				value.WriteByte(char) // "The returned error is always nil." https://golang.org/pkg/strings/#Builder.WriteByte
 			}
-			value.WriteByte(char) // "The returned error is always nil." https://golang.org/pkg/strings/#Builder.WriteByte
-		} else if char == '"' {
+		} else if char == stringDelimiter {
 			break
-		} else if char <= 0x1f || char == 0x7f {
+		} else if invalidStringChar(char) {
 			return "", errors.Errorf("invalid char %d", char)
 		} else {
 			value.WriteByte(char)
@@ -187,27 +200,25 @@ func isSecondIdentifierChar(c byte) bool {
 // https://tools.ietf.org/html/draft-ietf-httpbis-header-structure-07#section-4.2.8
 func parseIdentifier(reader *strings.Reader) (string, error) {
 	var output strings.Builder
-	char, err := reader.ReadByte()
-	if err != nil {
+	if char, err := reader.ReadByte(); err != nil {
 		return "", errors.Wrap(err, "reading byte")
-	}
-	if !isLCAlpha(char) {
+	} else if !isLCAlpha(char) {
 		return "", errors.New("expected lowercase alpha")
+	} else {
+		output.WriteByte(char)
 	}
-	output.WriteByte(char)
 	for reader.Len() > 0 {
-		char, err := reader.ReadByte()
-		if err != nil {
+		if char, err := reader.ReadByte(); err != nil {
 			return "", errors.Wrap(err, "reading byte")
-		}
-		if !isSecondIdentifierChar(char) {
+		} else if !isSecondIdentifierChar(char) {
 			// Return to the position before the non-identifier char.
 			if err := reader.UnreadByte(); err != nil {
 				return "", errors.Wrap(err, "unreading byte")
 			}
 			return output.String(), nil
+		} else {
+			output.WriteByte(char)
 		}
-		output.WriteByte(char)
 	}
 	return output.String(), nil
 }
@@ -251,6 +262,13 @@ func parseVersions(v_spec string) ([]*rpb.VersionRange, error) {
 	return ret, nil
 }
 
+// The valid set of "destination AMP cache" identifiers for which this packager
+// can serve a request. Eventually, this should be parsed from caches.json
+// (issue #156).
+var validIdentifiers = map[string]bool {"any": true, "google": true}
+
+const versionParamName = "v"
+
 // If the given AMP-Cache-Transform request header value is one the packager
 // can satisfy, returns the corresponding AMP-Cache-Transform response header
 // it should send, plus the transform version it should use. Else, returns
@@ -265,10 +283,10 @@ func ShouldSendSXG(header_value string) (string, int64) {
 
 IdentifierLoop:
 	for _, identifier := range identifiers {
-		if identifier.id == "any" || identifier.id == "google" {
+		if _, ok := validIdentifiers[identifier.id]; ok {
 			var requested []*rpb.VersionRange
 			for name, value := range identifier.params {
-				if name == "v" {
+				if name == versionParamName {
 					requested, err = parseVersions(value)
 					if err != nil {
 						log.Printf("Failed to parse versions from %q with error %v\n", header_value, err)
