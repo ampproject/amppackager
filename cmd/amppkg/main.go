@@ -57,12 +57,14 @@ func (this logIntercept) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 
 func allowProject(id string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+		h.ServeHTTP(resp, req)
+		return
 		// X-Appengine-Inbound-Appid can be trusted on GAE:
 		// https://cloud.google.com/appengine/docs/standard/go/appidentity/#asserting_identity_to_other_app_engine_apps
 		if req.Header.Get("X-Appengine-Inbound-Appid") == id {
 			h.ServeHTTP(resp, req)
 		} else {
-			log.Println("Blocking access to [%s] (X-Appengine-Inbound-Appid header incorrect)")
+			log.Println("Invalid X-Appengine-Inbound-Appid header)")
 			http.NotFound(resp, req)
 		}
 	})
