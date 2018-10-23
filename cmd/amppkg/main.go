@@ -72,6 +72,7 @@ func allowProject(id string, h http.Handler) http.Handler {
 //  - It exposes an API that allows people to sign any URL as any other URL.
 //  - It is in cleartext.
 func main() {
+	log.Println("QQQQQQ")
 	flag.Parse()
 	if *flagConfig == "" {
 		die("must specify --config")
