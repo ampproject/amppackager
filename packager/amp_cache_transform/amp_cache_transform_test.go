@@ -40,7 +40,6 @@ func TestShouldSendSXG(t *testing.T) {
 	assert.Equal(t, "", header(ShouldSendSXG("foobar, baz")))
 	assert.Equal(t, "", header(ShouldSendSXG("googleany")))
 	assert.Equal(t, "", header(ShouldSendSXG("google;any")))
-	assert.Equal(t, "", header(ShouldSendSXG("google;v=1")))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v="1,any`)))
 	assert.Equal(t, "", header(ShouldSendSXG("google,123")))
 	assert.Equal(t, "", header(ShouldSendSXG("google, eh!")))
@@ -59,6 +58,7 @@ func TestShouldSendSXG(t *testing.T) {
 
 	// Version spec failure.
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v="2"`)))
+	assert.Equal(t, "", header(ShouldSendSXG("google;v=1,any")))
 	assert.Equal(t, "", header(ShouldSendSXG(`google,v="1",any`)))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v ="1",any`)))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v= "1",any`)))
