@@ -15,16 +15,13 @@
 package transformers
 
 import (
-	"strings"
-
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
 
-// MetaTag operates on the <meta> tag.
-// * It will strip some meta tags.
-// * It will relocate all meta tags found inside the body into the head.
+// MetaTag operates on the <meta> tag. It will relocate all meta tags found
+// inside the body into the head.
 //
 // It does *not* sort the meta tags. This is done by ReorderHead.
 func MetaTag(e *Context) error {
@@ -52,85 +49,9 @@ func metaTagTransform(n, h *html.Node) {
 		return
 	}
 
-	if shouldStripMetaTag(n) {
-		n.Parent.RemoveChild(n)
-		return
-	}
-
-	// Relocate meta tags in body, which are not stripped, into head.
+	// Relocate meta tags in body into head.
 	if htmlnode.IsDescendantOf(n, atom.Body) {
 		n.Parent.RemoveChild(n)
 		h.AppendChild(n)
 	}
-}
-
-// shouldStripMetaTag returns true if the given node should be removed
-// from the document. See b/34885784 for details.
-func shouldStripMetaTag(n *html.Node) bool {
-	if n.DataAtom != atom.Meta {
-		return false
-	}
-
-	// Keep <meta charset> tag.
-	if htmlnode.HasAttribute(n, "charset") {
-		return false
-	}
-
-	// Keep <meta> tags that have attribute http-equiv except if
-	// value=x-dns-prefetch-control
-	if v, ok := htmlnode.GetAttributeVal(n, "http-equiv"); ok {
-		return strings.EqualFold(v, "x-dns-prefetch-control")
-	}
-
-	// Keep <meta> tags that don't have attributes content, itemprop, name,
-	// and property.
-	if !htmlnode.HasAttribute(n, "content") && !htmlnode.HasAttribute(n, "itemprop") && !htmlnode.HasAttribute(n, "name") && !htmlnode.HasAttribute(n, "property") {
-		return false
-	}
-
-	// Keep <meta name=...> tags if name:
-	//   - Has prefix "amp-"
-	//   - Has prefix "amp4ads-"
-	//   - Has prefix "dc."
-	//   - Has prefix "i-amphtml-"
-	//   - Has prefix "twitter:"
-	//   - Is "apple-itunes-app"
-	//   - Is "copyright"
-	//   - Is "referrer"
-	//   - Is "viewport"
-	if v, ok := htmlnode.GetAttributeVal(n, "name"); ok {
-		v = strings.ToLower(v)
-		if strings.HasPrefix(v, "amp-") ||
-			strings.HasPrefix(v, "amp4ads-") ||
-			strings.HasPrefix(v, "dc.") ||
-			strings.HasPrefix(v, "i-amphtml-") ||
-			strings.HasPrefix(v, "twitter:") ||
-			v == "apple-itunes-app" ||
-			v == "copyright" ||
-			v == "referrer" ||
-			v == "viewport" {
-			return false
-		}
-	}
-
-	// Keep <meta property=...> tags if property:
-	//   (1) Has prefix "al:"
-	//   (2) Has prefix "fb:"
-	//   (3) Has prefix "og:"
-	if v, ok := htmlnode.GetAttributeVal(n, "property"); ok {
-		v = strings.ToLower(v)
-		if strings.HasPrefix(v, "al:") ||
-			strings.HasPrefix(v, "fb:") ||
-			strings.HasPrefix(v, "og:") {
-			return false
-		}
-	}
-
-	// Keep <meta itemprop> when name attribute is not present.
-	// For amp-subscriptions (see b/75965615).
-	if htmlnode.HasAttribute(n, "itemprop") && !htmlnode.HasAttribute(n, "name") {
-		return false
-	}
-
-	return true
 }

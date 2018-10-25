@@ -27,38 +27,13 @@ import (
 func TestMetaTag(t *testing.T) {
 	testCases := []tt.TestCase{
 		{
-			Desc: "Strips some meta tags",
+			Desc: "Moves some meta tags",
 			Input: tt.Concat("<!doctype html><html ⚡><head>",
 				tt.ScriptAMPRuntime, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				tt.MetaCharset, tt.MetaViewport,
-				"<meta http-equiv=x-dns-prefetch-control>", // gets stripped
-				"<meta content=com.nytimes.com:basic itemprop=productID>",
-				"<meta itemprop=productID name=nytimes>", // gets stripped
-				"<meta name=Author content=lorem>",       // gets stripped
-				"<meta content=experiment-a name=amp-experiments-opt-in>",
-				"<meta name=robots content=index>", // gets stripped
-				"<meta property=rendition:spread>", // gets stripped
-				"<meta as=script href=v0.js rel=preload>",
-				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
-				tt.MetaCharset, tt.MetaViewport,
-				"<meta content=com.nytimes.com:basic itemprop=productID>",
-				"<meta content=experiment-a name=amp-experiments-opt-in>",
-				"<meta as=script href=v0.js rel=preload>",
-				"</head><body></body></html>"),
-		},
-		{
-			Desc: "Strips and moves some meta tags",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
-				tt.MetaCharset, tt.MetaViewport,
-				"<meta name=author content=lorem>", // gets stripped
 				"<meta content=experiment-a name=amp-experiments-opt-in>",
 				"<meta content=experiment-b name=amp-experiments-opt-in>",
-				"<meta property=rendition:spread>", // gets stripped
 				"</head><body>",
-				"<meta name=author content=ipsum>",                        // gets stripped
 				"<meta content=experiment-c name=amp-experiments-opt-in>", // moves to head
 				"</body></html>"),
 			Expected: tt.Concat("<!doctype html><html ⚡><head>",
