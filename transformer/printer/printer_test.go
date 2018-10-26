@@ -353,6 +353,24 @@ func TestPreLeadingNewline(t *testing.T) {
 			"<pre>\n\n</pre>",
 		},
 		{
+			"Preserve LF LF when comment in the middle.",
+			"<pre>&#10;<!-- comment -->&#10;</pre>",
+			"<pre>\n\n</pre>",
+		},
+		{
+			"Add LF to <pre> when comment followed by LF.",
+			"<pre><!-- comment -->&#10;</pre>",
+			"<pre>\n\n</pre>",
+		},
+		{
+			"Add LF to LF LF preceded by comment.",
+			"<pre><!-- comment -->&#10;&#10;</pre>",
+			// HTML parsers will strip the first LF, thus
+			// preserving the meaning of the originally non-leading
+			// LF LF:
+			"<pre>\n\n\n</pre>",
+		},
+		{
 			"LF LF with more text",
 			`<pre>&#10;&#10;lemur</pre>`,
 			"<pre>\n\nlemur</pre>",
