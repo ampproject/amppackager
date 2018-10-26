@@ -50,6 +50,17 @@ func Print(w io.Writer, n *html.Node) error {
 	return buf.Flush()
 }
 
+// isFirstNode returns true if n is the first of its siblings that is rendered.
+func isFirstNode(n *html.Node) bool {
+	for n = n.PrevSibling; n != nil; n = n.PrevSibling {
+		// Comments are not rendered.
+		if n.Type != html.CommentNode {
+			return false
+		}
+	}
+	return true
+}
+
 func render(w writer, n *html.Node) error {
 	// Render non-element nodes; these are the easy cases.
 	switch n.Type {
@@ -59,7 +70,7 @@ func render(w writer, n *html.Node) error {
 		if n.Data == "" {
 			return nil
 		}
-		if n.Parent.DataAtom == atom.Pre && n.PrevSibling == nil && (n.Data[0] == '\r' || n.Data[0] == '\n') {
+		if n.Parent.DataAtom == atom.Pre && isFirstNode(n) && (n.Data[0] == '\r' || n.Data[0] == '\n') {
 			// Emit a line feed that will be summarily dropped
 			// if re-parsed again. This is needed for idempotency,
 			// when there are multiple newlines at the start of a
