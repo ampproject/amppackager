@@ -15,6 +15,9 @@
 package transformers
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"github.com/ampproject/amppackager/transformer/layout"
@@ -84,6 +87,51 @@ func transform(n *html.Node, remove *bool) {
 	}
 }
 
+// isAmpExperimentUsed checks if amp-experiment has one child that is
+// a script/json tag with a textnode that is parsable JSON and not empty.
+// The validator ensures that the script/json is parsable but since
+// transformers may be used outside of validation it is checked here as well.
+func isAmpExperimentUsed(n *html.Node) bool {
+	var s *html.Node
+	// Look for the script/json tag.
+	for c := n.FirstChild; c != nil; {
+		next := c.NextSibling
+		if c.DataAtom == atom.Script {
+			if v, ok := htmlnode.GetAttributeVal(c, "type"); ok {
+				if strings.ToLower(v) == "application/json" {
+					s = c
+					break
+				}
+			}
+		}
+		c = next
+	}
+	// If not script/json tag, then not used.
+	if s == nil {
+		return false
+	}
+	// If not exactly one child is present, then not used.
+	if s.FirstChild == nil || s.FirstChild.NextSibling != nil {
+		return false
+	}
+	c := s.FirstChild
+	// If child is not a textnode, then not used.
+	if c.Type != html.TextNode {
+		return false
+	}
+	// If textnode is not JSON parsable, then not used.
+	var j map[string]interface{}
+	if err := json.Unmarshal([]byte(c.Data), &j); err != nil {
+		return false
+	}
+	// If JSON is empty, then not used.
+	if len(j) == 0 {
+		return false
+	}
+	// Otherwise, used.
+	return true
+}
+
 // canRemoveBoilerplate checks if any attributes or tags exist on node
 // n that need the boilerplate, and returns 'false' (meaning the
 // boilerplate is required and cannot be removed).
@@ -95,7 +143,7 @@ func canRemoveBoilerplate(n *html.Node) bool {
 	if amphtml.IsAMPCustomElement(n) && htmlnode.IsDescendantOf(n, atom.Body) {
 		// amp-experiment is a render delaying extension iff the tag is used in
 		// the doc.
-		if n.Data == amphtml.AMPExperiment {
+		if n.Data == amphtml.AMPExperiment && isAmpExperimentUsed(n) {
 			return false
 		}
 		// amp-audio requires knowing the dimensions of the browser. Do not
