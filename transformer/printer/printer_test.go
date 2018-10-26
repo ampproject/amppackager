@@ -389,6 +389,18 @@ func TestPreLeadingNewline(t *testing.T) {
 	runAllTestCases(t, testCases)
 }
 
+func TestTextareaLeadingNewline(t *testing.T) {
+	testCases := []tt.TestCase{
+		{
+			// The same logic for <pre> also applies for <textarea>.
+			"Add LF to <textarea> when start with CR.",
+			"<pre>&#13;&#13;</pre>",
+			"<pre>\n&#13;</pre>",
+		},
+	}
+	runAllTestCases(t, testCases)
+}
+
 func runAllTestCases(t *testing.T, testCases []tt.TestCase) {
 	for _, tc := range testCases {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
