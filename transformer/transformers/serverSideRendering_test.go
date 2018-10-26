@@ -98,6 +98,20 @@ func TestServerSideRendering(t *testing.T) {
 				`<amp-img layout="container" class="i-amphtml-layout-container" i-amphtml-layout="container"></amp-img>`,
 				"</body></html>"),
 		},
+		{
+      Desc: "Boilerplate removed when amp-experiment is present but empty",
+      Input: tt.Concat("<!doctype html><html ⚡><head>",
+        tt.ScriptAMPRuntime, tt.LinkFavicon, tt.StyleAMPBoilerplate,
+        tt.NoscriptAMPBoilerplate, "</head>",
+        `<body><amp-experiment><script type="application/json">{ }</script></amp-experiment></body></html>`),
+      Expected: tt.Concat(`<!doctype html><html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
+        `<style amp-runtime=""></style>`,
+        tt.ScriptAMPRuntime, tt.LinkFavicon,
+        "</head><body>",
+				`<amp-experiment class=i-amphtml-layout-container i-amphtml-layout=container><script type="application/json">{ }</script></amp-experiment>`,
+        "</body></html>"),
+    },
+
 	}
 	runServerSideRenderingTestcases(t, testCases)
 }
@@ -124,9 +138,9 @@ func TestBoilerplatePreserved(t *testing.T) {
 			Expected: expected("", "<amp-audio></amp-audio>"),
 		},
 		{
-			Desc:     "amp-experiment",
-			Input:    input("", "<amp-experiment></amp-experiment>"),
-			Expected: expected("", `<amp-experiment class="i-amphtml-layout-container" i-amphtml-layout="container"></amp-experiment>`),
+			Desc: "amp-experiment is non-empty",
+			Input: input("", `<amp-experiment><script type="application/json">{ "exp": { "variants": { "a": 25, "b": 25 } } }</script></amp-experiment>`),
+			Expected: expected("", `<amp-experiment class="i-amphtml-layout-container" i-amphtml-layout="container"><script type="application/json">{ "exp": { "variants": { "a": 25, "b": 25 } } }</script></amp-experiment>`),
 		},
 		{
 			Desc:     "amp-story",
