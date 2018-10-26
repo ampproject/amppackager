@@ -163,6 +163,8 @@ func requireAMPAttribute(dom *amphtml.DOM, allowedFormats []rpb.Request_HtmlForm
 // in the order to preload them. It depends on transformers.ReorderHead having
 // run.
 func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
+	// If you add additional preloads here, verify that they can not be
+	// unintentionally author supplied.
 	preloads := []*rpb.Metadata_Preload{}
 	for child := dom.HeadNode.FirstChild; child != nil; child = child.NextSibling {
 		switch child.DataAtom {

@@ -48,17 +48,6 @@ func TestLinkTag(t *testing.T) {
 				tt.NoscriptAMPBoilerplate, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
 				tt.LinkGoogleFont, "</head><body></body></html>"),
 		},
-		{
-			Desc: "Renames author supplied resource hints",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				"<link href=https://cdn.ampproject.org/ rel=preconnect>",
-				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡=\"\"><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
-				"<link href=https://cdn.ampproject.org/ disabled-rel=preconnect>",
-				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
-		},
 	}
 	for _, tc := range testCases {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))

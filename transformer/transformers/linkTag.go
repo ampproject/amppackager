@@ -24,7 +24,6 @@ import (
 )
 
 // LinkTag operates on the <link> tag.
-// * It will rename author supplied resource hints from rel= to disabled-rel=.
 // * It will add a preconnect link tag for Google Font resources.
 func LinkTag(e *Context) error {
 	preconnectAdded := false
@@ -48,9 +47,6 @@ func LinkTag(e *Context) error {
 
 // linkTagTransform does the actual work on each node.
 func linkTagTransform(n *html.Node, preconnectAdded *bool) {
-	if htmlnode.HasAttribute(n, "rel") {
-		renameAuthorSuppliedResourceHints(n)
-	}
 	if !*preconnectAdded && isLinkGoogleFont(n) {
 		addLinkGoogleFontPreconnect(n)
 		*preconnectAdded = true
@@ -81,22 +77,4 @@ func addLinkGoogleFontPreconnect(n *html.Node) {
 	}
 	preconnect := htmlnode.Element("link", html.Attribute{Key: "crossorigin"}, html.Attribute{Key: "href", Val: "https://fonts.gstatic.com"}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
 	n.Parent.InsertBefore(preconnect, n)
-}
-
-// renameAuthorSuppliedResourceHints renames author supplied resource hints from
-// rel= to disabled=rel=.
-func renameAuthorSuppliedResourceHints(n *html.Node) {
-	r, ok := htmlnode.FindAttribute(n, "", "rel")
-	if !ok {
-		return
-	}
-	s := strings.Split(strings.ToLower(r.Val), " ")
-	for _, h := range s {
-		switch h {
-		case "dns-prefetch", "preconnect", "prefetch", "preload", "prerender":
-			htmlnode.SetAttribute(n, "", "disabled-rel", r.Val)
-			htmlnode.RemoveAttribute(n, r)
-			return
-		}
-	}
 }
