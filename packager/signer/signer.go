@@ -230,14 +230,24 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		proxy(resp, fetchResp, nil)
 		return
 	}
+	var transformVersion int64
 	if this.requireHeaders {
-		act := amp_cache_transform.ShouldSendSXG(req.Header.Get("AMP-Cache-Transform"))
+		header_value := req.Header.Get("AMP-Cache-Transform")
+		var act string
+		act, transformVersion = amp_cache_transform.ShouldSendSXG(header_value)
 		if act == "" {
-			log.Println("Not packaging because AMP-Cache-Transform request header is missing.")
+			log.Println("Not packaging because AMP-Cache-Transform request header is invalid:", header_value)
 			proxy(resp, fetchResp, nil)
 			return
 		}
 		resp.Header().Set("AMP-Cache-Transform", act)
+	} else {
+		var err error
+		transformVersion, err = transformer.SelectVersion(nil)
+		if err != nil {
+			log.Println("Not packaging because of internal SelectVersion error:", err)
+			proxy(resp, fetchResp, nil)
+		}
 	}
 	if this.requireHeaders && !accept.CanSatisfy(req.Header.Get("Accept")) {
 		log.Printf("Not packaging because Accept request header lacks application/signed-exchange;v=%s.\n", accept.AcceptedSxgVersion)
@@ -265,7 +275,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		fetchResp.Header.Set("Content-Security-Policy", contentSecurityPolicy)
 		fetchResp.Header.Del("Link") // Ensure there are no privacy-violating Link:rel=preload headers.
 
-		this.serveSignedExchange(resp, fetchResp, signURL)
+		this.serveSignedExchange(resp, fetchResp, signURL, transformVersion)
 
 	case 304:
 		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
@@ -304,7 +314,7 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 }
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
-func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL) {
+func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, transformVersion int64) {
 	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
 
 	// After this, fetchResp.Body is consumed, and attempts to read or proxy it will result in an empty body.
@@ -316,6 +326,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 
 	// Perform local transformations.
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
+	r.Version = transformVersion
 	transformed, metadata, err := transformer.Process(r)
 	if err != nil {
 		log.Println("Not packaging due to transformer error:", err)
