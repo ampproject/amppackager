@@ -155,7 +155,7 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Equal(fmt.Sprintf(`google;v="%d"`, transformer.SupportedVersions[0].Max), resp.Header.Get("AMP-Cache-Transform"))
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
 	this.Assert().Equal(fakePath, this.lastRequestURL)
-	this.Assert().Equal([]string{"Accept", "AMP-Cache-Transform"}, resp.Header["Vary"])
+	this.Assert().Equal("Accept, AMP-Cache-Transform", resp.HeaderGet("Vary")
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
