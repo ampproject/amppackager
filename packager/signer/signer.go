@@ -179,6 +179,8 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 }
 
 func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+	resp.Header().Add("Vary", "Accept")
+
 	if err := req.ParseForm(); err != nil {
 		util.NewHTTPError(http.StatusBadRequest, "Form input parsing failed: ", err).LogAndRespond(resp)
 		return
