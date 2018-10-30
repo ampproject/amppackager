@@ -25,6 +25,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"github.com/pkg/errors"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
@@ -114,6 +115,37 @@ func render(w writer, n *html.Node) error {
 	}
 }
 
+// isHTMLType does the encoding attribute check for isHTMLIntegrationPoint.
+func isHTMLType(val *string) bool {
+	// strings.EqualFold performs UTF-8 case-folding, but since the strings
+	// on the right are ASCII-only, this should be equivalent to the
+	// spec-requested ASCII case-folding.
+	return val != nil && (strings.EqualFold(*val, "text/html") || strings.EqualFold(*val, "application/xhtml+xml"))
+}
+
+// isSVGForeignObject does the SVG check for isHTMLIntegrationPoint.
+func isSVGForeignObject(a atom.Atom) bool {
+	return a == atom.ForeignObject || a == atom.Desc || a == atom.Title
+}
+
+// isHTMLIntegrationPoint returns true iff the node is an HTML integration
+// point, according to
+// https://html.spec.whatwg.org/multipage/parsing.html#html-integration-point.
+// This should be equivalent to htmlIntegrationPoint in
+// https://github.com/golang/net/blob/master/html/foreign.go.
+func isHTMLIntegrationPoint(n *html.Node) bool {
+	return n.Type == html.ElementNode && (
+		(n.Namespace == "math" && n.DataAtom == atom.AnnotationXml && isHTMLType(htmlnode.GetAttributeValOrNil(n, "encoding"))) ||
+		(n.Namespace == "svg" && isSVGForeignObject(n.DataAtom)))
+}
+
+// isForeignElement returns true iff the node is a foreign element. Specified
+// in https://html.spec.whatwg.org/multipage/parsing.html; search for "insert a
+// foreign element".
+func isForeignElement(n *html.Node) bool {
+	return n.Type == html.ElementNode && (n.DataAtom == atom.Svg || n.DataAtom == atom.Math)
+}
+
 func renderElementNode(w writer, n *html.Node) error {
 	if n.Type != html.ElementNode {
 		// Do nothing if the provided node is not an ElementNode.
@@ -139,7 +171,24 @@ func renderElementNode(w writer, n *html.Node) error {
 		if n.FirstChild != nil {
 			return errors.Errorf("html: void element <%s> has child nodes", n.Data)
 		}
-		_, err := w.WriteString(">")
+		inForeignContent := false
+		// Look for the innermost node that defines which parsing mode the parser will be in.
+		for p := n; p != nil; p = p.Parent {
+			if isHTMLIntegrationPoint(p) {
+				break
+			} else if isForeignElement(p) {
+				inForeignContent = true
+				break
+			}
+		}
+		var str string
+		if inForeignContent {
+			// Space is required before solidus, so that it isn't interpreted as part of an attribute value.
+			str = " />"
+		} else {
+			str = ">"
+		}
+		_, err := w.WriteString(str)
 		return err
 	}
 	if err := w.WriteByte('>'); err != nil {
