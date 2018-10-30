@@ -148,8 +148,8 @@ func isForeignElement(n *html.Node) bool {
 
 func renderElementNode(w writer, n *html.Node) error {
 	if n.Type != html.ElementNode {
-		// Do nothing if the provided node is not an ElementNode.
-		return nil
+		// The provided node must be an ElementNode.
+		return errors.Errorf("html: node %+v is not an element node", n)
 	}
 	// Render the <xxx> opening tag.
 	if err := w.WriteByte('<'); err != nil {
