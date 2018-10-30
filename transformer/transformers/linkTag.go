@@ -28,29 +28,13 @@ import (
 func LinkTag(e *Context) error {
 	preconnectAdded := false
 
-	var stk htmlnode.Stack
-	stk.Push(e.DOM.RootNode)
-	for len(stk) > 0 {
-		top := stk.Pop()
-		// Traverse the children in reverse order so the iteration of
-		// the DOM tree traversal is in the proper sequence.
-		// E.g. Given <a><b/><c/></a>, we will visit a, b, c.
-		// An alternative is to traverse children in forward order and
-		// utilize a queue instead.
-		for c := top.LastChild; c != nil; c = c.PrevSibling {
-			stk.Push(c)
+	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
+		if !preconnectAdded && isLinkGoogleFont(n) {
+			addLinkGoogleFontPreconnect(n)
+			preconnectAdded = true
 		}
-		linkTagTransform(top, &preconnectAdded)
 	}
 	return nil
-}
-
-// linkTagTransform does the actual work on each node.
-func linkTagTransform(n *html.Node, preconnectAdded *bool) {
-	if !*preconnectAdded && isLinkGoogleFont(n) {
-		addLinkGoogleFontPreconnect(n)
-		*preconnectAdded = true
-	}
 }
 
 // isGoogleFontHostname returns true if the given string, after being parsed as

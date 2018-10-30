@@ -17,7 +17,6 @@ package transformers
 import (
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html/atom"
-	"golang.org/x/net/html"
 )
 
 // MetaTag operates on the <meta> tag. It will relocate all meta tags found
@@ -25,33 +24,15 @@ import (
 //
 // It does *not* sort the meta tags. This is done by ReorderHead.
 func MetaTag(e *Context) error {
-	var stk htmlnode.Stack
-	stk.Push(e.DOM.RootNode)
-	for len(stk) > 0 {
-		top := stk.Pop()
-		// Traverse the children in reverse order so the iteration of
-		// the DOM tree traversal is in the proper sequence.
-		// E.g. Given <a><b/><c/></a>, we will visit a, b, c.
-		// An alternative is to traverse children in forward order and
-		// utilize a queue instead.
-		for c := top.LastChild; c != nil; c = c.PrevSibling {
-			stk.Push(c)
+	for n := e.DOM.BodyNode; n != nil; n = htmlnode.Next(n) {
+		// Skip non-meta tags.
+		if n.DataAtom != atom.Meta {
+			continue
 		}
-		metaTagTransform(top, e.DOM.HeadNode)
+
+		// Relocate meta tags in body into head.
+		removed := htmlnode.RemoveNode(&n)
+		e.DOM.HeadNode.AppendChild(removed)
 	}
 	return nil
-}
-
-// metaTagTransform does the actual work on each node.
-func metaTagTransform(n, h *html.Node) {
-	// Skip non-meta tags.
-	if n.DataAtom != atom.Meta {
-		return
-	}
-
-	// Relocate meta tags in body into head.
-	if htmlnode.IsDescendantOf(n, atom.Body) {
-		n.Parent.RemoveChild(n)
-		h.AppendChild(n)
-	}
 }

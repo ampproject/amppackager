@@ -78,21 +78,87 @@ type baseInfo struct {
 //     [1]. TODO(b/112417267): Handle amp-img rewriting.
 //
 func URL(e *Context) error {
-	baseInfo := extractBase(e.DOM.HeadNode, e.DocumentURL)
+	b := extractBase(e.DOM.HeadNode, e.DocumentURL)
 
-	var stk htmlnode.Stack
-	stk.Push(e.DOM.RootNode)
-	for len(stk) > 0 {
-		top := stk.Pop()
-		// Traverse the children in reverse order so the iteration of
-		// the DOM tree traversal is in the proper sequence.
-		// E.g. Given <a><b/><c/></a>, we will visit a, b, c.
-		// An alternative is to traverse children in forward order and
-		// utilize a queue instead.
-		for c := top.LastChild; c != nil; c = c.PrevSibling {
-			stk.Push(c)
+	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
+		// Skip text nodes
+		if n.Type == html.TextNode {
+			continue
 		}
-		urlTransform(top, baseInfo)
+
+		// TODO(b/112417267): Handle amp-img rewriting.
+		if strings.EqualFold(n.Data, "amp-img") {
+			continue
+		}
+
+		// Make attributes with URLs portable on any tag
+		rewritePortableURLs(n, b.url, anyTagAttrs)
+
+		switch n.DataAtom {
+		case atom.Form:
+			// Make attributes with URLs absolute on <form> tag.
+			rewriteAbsoluteURLs(n, b.url, formTagAttrs)
+		case atom.Img:
+			// Make attributes with URLs portable on <img> tag.
+			rewritePortableURLs(n, b.url, imgTagAttrs)
+		default:
+			switch n.Data {
+			case "amp-install-serviceworker":
+				// Make attributes with URLs portable on <amp-install-serviceworker> tag.
+				rewritePortableURLs(n, b.url, ampInstallServiceWorkerTagAttrs)
+			case amphtml.AMPStory:
+				// Make attributes with URLs portable on <amp-story> tag.
+				rewritePortableURLs(n, b.url, ampStoryTagAttrs)
+			case "amp-story-page":
+				// Make attributes with URLs portable on <amp-story-page> tag.
+				rewritePortableURLs(n, b.url, ampStoryPageTagAttrs)
+			}
+		}
+
+		// Tags with href attribute.
+		if href, ok := htmlnode.FindAttribute(n, "", "href"); ok {
+			// Remove the base tag href with the following rationale:
+			//
+			// 1) The <base href> can be harmful. When handling things like image
+			//    source sets which are re-hosted and served from
+			//    https://cdn.ampproject.org, paths starting with "/" are rewritten
+			//    into the stored html document with the intent that "/" is relative
+			//    to the root of cdn.ampproject.org. If a base href were present, it
+			//    would change the meaning of the relative links.
+			//
+			// 2) Other hrefs are absolutified in the document relative to the base
+			//    href. Thus, it is not necessary to maintain the base href for
+			//    browser URL resolution.
+			if n.DataAtom == atom.Base {
+				htmlnode.RemoveAttribute(n, href)
+				if len(n.Attr) == 0 {
+					htmlnode.RemoveNode(&n)
+					continue
+				}
+			} else if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && n.DataAtom == atom.Link && v == "canonical" {
+				// If the origin doc is self-canonical, it should be an absolute URL
+				// and not portable (which would result in canonical = "#").
+				// Maintain the original canonical, and absolutify it. See b/36102624
+				in := htmlnode.IsDescendantOf(n, atom.Template)
+				htmlnode.SetAttribute(n, "", "href", rewriteURL(b.url, in, href.Val, true))
+			} else if n.DataAtom == atom.A {
+				in := htmlnode.IsDescendantOf(n, atom.Template)
+				portableHref := rewriteURL(b.url, in, href.Val, false)
+				// Set a default target
+				// 1. If the href is not a fragment AND
+				// 2. If there is no target OR If there is a target and it is not an allowed target
+				if !strings.HasPrefix(portableHref, "#") {
+					if v, ok := htmlnode.GetAttributeVal(n, "target"); !ok || (ok && !isAllowedTarget(v)) {
+						htmlnode.SetAttribute(n, "", "target", b.target)
+					}
+				}
+				htmlnode.SetAttribute(n, "", "href", portableHref)
+			} else {
+				// Make a PortableUrl for any remaining tags with href.
+				in := htmlnode.IsDescendantOf(n, atom.Template)
+				htmlnode.SetAttribute(n, "", "href", rewriteURL(b.url, in, href.Val, false))
+			}
+		}
 	}
 	return nil
 }
@@ -123,88 +189,6 @@ func extractBase(n *html.Node, d *url.URL) *baseInfo {
 // isAllowedTarget returns true if the given string is either "_blank" or "_top"
 func isAllowedTarget(t string) bool {
 	return strings.EqualFold(t, "_blank") || strings.EqualFold(t, "_top")
-}
-
-// urlTransform does the actual work of rewriting URLs
-func urlTransform(n *html.Node, b *baseInfo) {
-	// Skip text nodes
-	if n.Type == html.TextNode {
-		return
-	}
-
-	// TODO(b/112417267): Handle amp-img rewriting.
-	if strings.EqualFold(n.Data, "amp-img") {
-		return
-	}
-
-	// Make attributes with URLs portable on any tag
-	rewritePortableURLs(n, b.url, anyTagAttrs)
-
-	switch n.DataAtom {
-	case atom.Form:
-		// Make attributes with URLs absolute on <form> tag.
-		rewriteAbsoluteURLs(n, b.url, formTagAttrs)
-	case atom.Img:
-		// Make attributes with URLs portable on <img> tag.
-		rewritePortableURLs(n, b.url, imgTagAttrs)
-	default:
-		switch n.Data {
-		case "amp-install-serviceworker":
-			// Make attributes with URLs portable on <amp-install-serviceworker> tag.
-			rewritePortableURLs(n, b.url, ampInstallServiceWorkerTagAttrs)
-		case amphtml.AMPStory:
-			// Make attributes with URLs portable on <amp-story> tag.
-			rewritePortableURLs(n, b.url, ampStoryTagAttrs)
-		case "amp-story-page":
-			// Make attributes with URLs portable on <amp-story-page> tag.
-			rewritePortableURLs(n, b.url, ampStoryPageTagAttrs)
-		}
-	}
-
-	// Tags with href attribute.
-	if href, ok := htmlnode.FindAttribute(n, "", "href"); ok {
-		// Remove the base tag href with the following rationale:
-		//
-		// 1) The <base href> can be harmful. When handling things like image
-		//    source sets which are re-hosted and served from
-		//    https://cdn.ampproject.org, paths starting with "/" are rewritten
-		//    into the stored html document with the intent that "/" is relative
-		//    to the root of cdn.ampproject.org. If a base href were present, it
-		//    would change the meaning of the relative links.
-		//
-		// 2) Other hrefs are absolutified in the document relative to the base
-		//    href. Thus, it is not necessary to maintain the base href for
-		//    browser URL resolution.
-		if n.DataAtom == atom.Base {
-			htmlnode.RemoveAttribute(n, href)
-			if len(n.Attr) == 0 {
-				n.Parent.RemoveChild(n)
-				return
-			}
-		} else if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && n.DataAtom == atom.Link && v == "canonical" {
-			// If the origin doc is self-canonical, it should be an absolute URL
-			// and not portable (which would result in canonical = "#").
-			// Maintain the original canonical, and absolutify it. See b/36102624
-			in := htmlnode.IsDescendantOf(n, atom.Template)
-			htmlnode.SetAttribute(n, "", "href", rewriteURL(b.url, in, href.Val, true))
-		} else if n.DataAtom == atom.A {
-			in := htmlnode.IsDescendantOf(n, atom.Template)
-			portableHref := rewriteURL(b.url, in, href.Val, false)
-			// Set a default target
-			// 1. If the href is not a fragment AND
-			// 2. If there is no target OR If there is a target and it is not an allowed target
-			if !strings.HasPrefix(portableHref, "#") {
-				if v, ok := htmlnode.GetAttributeVal(n, "target"); !ok || (ok && !isAllowedTarget(v)) {
-					htmlnode.SetAttribute(n, "", "target", b.target)
-				}
-			}
-			htmlnode.SetAttribute(n, "", "href", portableHref)
-		} else {
-			// Make a PortableUrl for any remaining tags with href.
-			in := htmlnode.IsDescendantOf(n, atom.Template)
-			htmlnode.SetAttribute(n, "", "href", rewriteURL(b.url, in, href.Val, false))
-		}
-	}
 }
 
 // rewriteAbsoluteURLs rewrites URLs in the given slice of attributes

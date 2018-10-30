@@ -31,15 +31,36 @@ import (
 // attributes etc. And if possible, it removes the boilerplate.
 func ServerSideRendering(e *Context) error {
 	// Simple check to ensure server-side rendering is only applied once.
-	if _, ok := htmlnode.FindAttribute(e.DOM.HTMLNode, "", amphtml.IAMPHTMLLayout); ok {
+	if htmlnode.HasAttribute(e.DOM.HTMLNode, amphtml.IAMPHTMLLayout) {
 		return nil
 	}
 	htmlnode.SetAttribute(e.DOM.HTMLNode, "", amphtml.IAMPHTMLLayout, "")
 
 	// Assume the boilerplate can be removed, unless proven otherwise.
 	remove := true
+	for n := e.DOM.BodyNode; n != nil; n = htmlnode.Next(n) {
+		// Skip tags inside a template tag.
+		if htmlnode.IsDescendantOf(n, atom.Template) {
+			continue
+		}
 
-	transform(e.DOM.BodyNode, &remove)
+		if amphtml.IsAMPCustomElement(n) {
+			if remove {
+				remove = canRemoveBoilerplate(n)
+			}
+
+			// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
+			if htmlnode.HasAttribute(n, "style") {
+				continue
+			}
+
+			// If ApplyLayout encounters any unsupported layout, the
+			// boilerplate cannot be removed.
+			if err := layout.ApplyLayout(n); err != nil {
+				remove = false
+			}
+		}
+	}
 
 	// Emit the amp-runtime marker to indicate that server side
 	// rendering has been applied.
@@ -55,36 +76,6 @@ func ServerSideRendering(e *Context) error {
 		removeBoilerplate(e.DOM.HeadNode)
 	}
 	return nil
-}
-
-// transform recursively calls ApplyLayout to each AMP custom element,
-// and at the same time, checks if the boilerplate can be removed.
-func transform(n *html.Node, remove *bool) {
-	// Skip tags inside a template tag.
-	if htmlnode.IsDescendantOf(n, atom.Template) {
-		return
-	}
-
-	if amphtml.IsAMPCustomElement(n) {
-		if *remove {
-			*remove = canRemoveBoilerplate(n)
-		}
-
-		// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
-		if _, ok := htmlnode.FindAttribute(n, "", "style"); ok {
-			return
-		}
-
-		// If ApplyLayout encounters any unsupported layout, the
-		// boilerplate cannot be removed.
-		if err := layout.ApplyLayout(n); err != nil {
-			*remove = false
-		}
-	}
-
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		transform(c, remove)
-	}
 }
 
 // isAmpExperimentUsed checks if amp-experiment has one child that is
@@ -152,17 +143,17 @@ func canRemoveBoilerplate(n *html.Node) bool {
 		if n.Data == amphtml.AMPAudio {
 			return false
 		}
-		if _, ok := htmlnode.FindAttribute(n, "", "heights"); ok {
+		if htmlnode.HasAttribute(n, "heights") {
 			return false
 		}
-		if _, ok := htmlnode.FindAttribute(n, "", "media"); ok {
+		if htmlnode.HasAttribute(n, "media") {
 			return false
 		}
-		if _, ok := htmlnode.FindAttribute(n, "", "sizes"); ok {
+		if htmlnode.HasAttribute(n, "sizes") {
 			return false
 		}
 		// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
-		if _, ok := htmlnode.FindAttribute(n, "", "style"); ok {
+		if htmlnode.HasAttribute(n, "style") {
 			return false
 		}
 	}
@@ -198,14 +189,13 @@ func removeBoilerplate(n *html.Node) {
 	}
 	for c := n.FirstChild; c != nil; {
 		next := c.NextSibling
-		if c.DataAtom == atom.Noscript {
+		switch c.DataAtom {
+		case atom.Noscript:
 			n.RemoveChild(c)
-		} else if c.DataAtom == atom.Style {
-			if _, ok := htmlnode.FindAttribute(c, "", amphtml.AMPBoilerplate); ok {
-				n.RemoveChild(c)
-			} else if _, ok := htmlnode.FindAttribute(c, "", amphtml.AMP4AdsBoilerplate); ok {
-				n.RemoveChild(c)
-			} else if _, ok := htmlnode.FindAttribute(c, "", amphtml.AMP4EmailBoilerplate); ok {
+		case atom.Style:
+			if htmlnode.HasAttribute(c, amphtml.AMPBoilerplate) ||
+				htmlnode.HasAttribute(c, amphtml.AMP4AdsBoilerplate) ||
+				htmlnode.HasAttribute(c, amphtml.AMP4EmailBoilerplate) {
 				n.RemoveChild(c)
 			}
 		}

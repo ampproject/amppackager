@@ -24,6 +24,12 @@ import (
 	"golang.org/x/net/html"
 )
 
+// eventRE is a regexp to match event attributes, e.g. onClick
+var eventRE = func() *regexp.Regexp {
+	r := regexp.MustCompile("^on[A-Za-z].*")
+	return r
+}()
+
 // StripJS removes non-AMP javascript from the DOM.
 // - For <script> elements, remove where any of the following is true:
 //     - has a src attribute whose value is not prefixed by https://cdn.ampproject.org/ (case-insensitive match).
@@ -32,43 +38,34 @@ import (
 //
 // - For all other elements, remove any event attribute that matches "on[A-Za-z].*".
 func StripJS(e *Context) error {
-	stripJS(e.DOM.RootNode)
-	return nil
-}
+	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
+		if n.Type != html.ElementNode {
+			continue
+		}
 
-// eventRE is a regexp to match event attributes, e.g. onClick
-var eventRE = func() *regexp.Regexp {
-	r := regexp.MustCompile("^on[A-Za-z].*")
-	return r
-}()
-
-// stripJS recursively does the actual work on each node.
-func stripJS(n *html.Node) {
-	if n.Type == html.ElementNode {
-		switch n.DataAtom {
-		case atom.Script:
+		if n.DataAtom == atom.Script {
 			srcVal, srcOk := htmlnode.GetAttributeVal(n, "src")
 			if srcOk {
 				if !strings.HasPrefix(strings.ToLower(srcVal), amphtml.AMPCacheRootURL) {
-					n.Parent.RemoveChild(n)
-					return
+					htmlnode.RemoveNode(&n)
+					continue
 				}
 			}
 			typeVal, typeOk := htmlnode.GetAttributeVal(n, "type")
 			if !srcOk && !typeOk {
-				n.Parent.RemoveChild(n)
-				return
+				htmlnode.RemoveNode(&n)
+				continue
 			}
 			if typeOk {
 				switch strings.ToLower(typeVal) {
 				case "application/json", "application/ld+json":
 					// ok to keep
 				default:
-					n.Parent.RemoveChild(n)
-					return
+					htmlnode.RemoveNode(&n)
+					continue
 				}
 			}
-		default:
+		} else {
 			for _, attr := range n.Attr {
 				if attr.Namespace == "" {
 					if match := eventRE.MatchString(attr.Key); match {
@@ -78,12 +75,5 @@ func stripJS(n *html.Node) {
 			}
 		}
 	}
-
-	for c := n.FirstChild; c != nil; {
-		// Track the next sibling because if the node is removed in the recursive
-		// call, it becomes orphaned and the pointer to NextSibling is lost.
-		next := c.NextSibling
-		stripJS(c)
-		c = next
-	}
+	return nil
 }
