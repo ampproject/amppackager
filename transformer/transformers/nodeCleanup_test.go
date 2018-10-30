@@ -24,7 +24,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func TestStrip(t *testing.T) {
+func TestNodeCleanup_Strip(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
 			Desc: "strips comments",
@@ -150,10 +150,10 @@ func TestStrip(t *testing.T) {
 				"</body>"),
 		},
 	}
-	runAllTestCases(t, tcs)
+	runNodeCleanupTestCases(t, tcs)
 }
 
-func TestDoctype(t *testing.T) {
+func TestNodeCleanup_Doctype(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
 			Desc:     "doctype no-op",
@@ -181,10 +181,10 @@ func TestDoctype(t *testing.T) {
 			Expected: "<!doctype html>",
 		},
 	}
-	runAllTestCases(t, tcs)
+	runNodeCleanupTestCases(t, tcs)
 }
 
-func TestWellFormedHtml(t *testing.T) {
+func TestNodeCleanup_WellFormedHtml(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
 			Desc: "wellformed",
@@ -195,10 +195,10 @@ func TestWellFormedHtml(t *testing.T) {
 			Expected: `<!DOCTYPE html><html ⚡=""><head><script async="" src="https://cdn.ampproject.org/v0.js"></script><link href="https://example.com/favicon.ico" rel="icon"/></head><body><foo></foo></body></html>`,
 		},
 	}
-	runAllTestCases(t, tcs)
+	runNodeCleanupTestCases(t, tcs)
 }
 
-func TestNonceRemoved(t *testing.T) {
+func TestNodeCleanup_NonceRemoved(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
 			Desc:     "remove nonce",
@@ -206,10 +206,10 @@ func TestNonceRemoved(t *testing.T) {
 			Expected: "<script async>",
 		},
 	}
-	runAllTestCases(t, tcs)
+	runNodeCleanupTestCases(t, tcs)
 }
 
-func TestNoScriptRemoved(t *testing.T) {
+func TestNodeCleanup_NoScriptRemoved(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
 			Desc:     "remove noscript in head",
@@ -237,10 +237,10 @@ func TestNoScriptRemoved(t *testing.T) {
 			Expected: `<body></body>`,
 		},
 	}
-	runAllTestCases(t, tcs)
+	runNodeCleanupTestCases(t, tcs)
 }
 
-func runAllTestCases(t *testing.T, tcs []tt.TestCase) {
+func runNodeCleanupTestCases(t *testing.T, tcs []tt.TestCase) {
 	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {

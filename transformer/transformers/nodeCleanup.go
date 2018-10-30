@@ -38,75 +38,56 @@ const (
 //  - sanitizing URI values
 //  - removing extra <title> elements
 func NodeCleanup(e *Context) error {
-	if err := nodeCleanupTransform(e.DOM.RootNode); err != nil {
-		return err
+	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
+		switch n.Type {
+		case html.CommentNode:
+			// Strip out comment nodes.
+			htmlnode.RemoveNode(&n)
+			continue
+
+		case html.ElementNode:
+			// TODO(b/79415817): Removing <noscript> is a temporary fix until we know how to handle them.
+			if n.DataAtom == atom.Noscript {
+				htmlnode.RemoveNode(&n)
+				continue
+			}
+
+			// Deduplicate attributes from element nodes
+			n.Attr = uniqueAttributes(n.Attr)
+
+			// Strip out nonce attributes
+			for i := len(n.Attr) - 1; i >= 0; i-- {
+				if n.Attr[i].Key == "nonce" {
+					n.Attr = append(n.Attr[:i], n.Attr[i+1:]...)
+				}
+			}
+
+			// Sanitize URI attribute values.
+			n.Attr = sanitizeURIAttributes(n.Attr)
+
+			// Remove extra <title> elements
+			if n.DataAtom == atom.Title {
+				maybeStripTitle(&n)
+			}
+
+		case html.DoctypeNode:
+			// Force doctype to be HTML 5.
+			n.Data = "html"
+			n.Attr = nil
+
+		case html.TextNode:
+			// Strip out whitespace only text nodes that are not in <body> or <title>.
+			if len(strings.TrimLeft(n.Data, whitespace)) == 0 && !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) {
+				htmlnode.RemoveNode(&n)
+				continue
+			}
+		}
 	}
+
 	// Find and fix amp-custom style after recursion above, which
 	// would have removed whitespace only children nodes. This call
 	// will then properly remove the empty style node.
 	findAndFixStyleAMPCustom(e.DOM.HeadNode)
-	return nil
-}
-
-// nodeCleanupTransform recursively does the actual work on each node.
-func nodeCleanupTransform(n *html.Node) error {
-	switch n.Type {
-	case html.CommentNode:
-		// Strip out comment nodes.
-		n.Parent.RemoveChild(n)
-		return nil
-
-	case html.ElementNode:
-		// TODO(b/79415817): Removing <noscript> is a temporary fix until we know how to handle them.
-		if n.DataAtom == atom.Noscript {
-			n.Parent.RemoveChild(n)
-			return nil
-		}
-
-		// Deduplicate attributes from element nodes
-		n.Attr = uniqueAttributes(n.Attr)
-
-		// Strip out nonce attributes
-		for i := len(n.Attr) - 1; i >= 0; i-- {
-			if n.Attr[i].Key == "nonce" {
-				n.Attr = append(n.Attr[:i], n.Attr[i+1:]...)
-			}
-		}
-
-		// Sanitize URI attribute values.
-		n.Attr = sanitizeURIAttributes(n.Attr)
-
-		// Remove extra <title> elements
-		if n.DataAtom == atom.Title {
-			maybeStripTitle(n)
-			if n.Parent == nil {
-				// bail if this element is now an orphan
-				return nil
-			}
-		}
-
-	case html.DoctypeNode:
-		// Force doctype to be HTML 5.
-		n.Data = "html"
-		n.Attr = nil
-
-	case html.TextNode:
-		// Strip out whitespace only text nodes that are not in <body> or <title>.
-		if len(strings.TrimLeft(n.Data, whitespace)) == 0 && !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) {
-			n.Parent.RemoveChild(n)
-			return nil
-		}
-	}
-
-	for c := n.FirstChild; c != nil; {
-		// Track the next sibling because if the node is removed in the recursive
-		// call, it becomes orphaned and the pointer to NextSibling is lost.
-		next := c.NextSibling
-		if err := nodeCleanupTransform(c); err != nil {
-			return err
-		}
-		c = next
-	}
 	return nil
 }
 
@@ -167,23 +148,23 @@ func findAndFixStyleAMPCustom(h *html.Node) {
 
 // maybeStripTitle removes the given title element if it is extraneous.
 // There can only be one in head and none in body (svgs are excepted).
-func maybeStripTitle(n *html.Node) {
-	if n.DataAtom != atom.Title || htmlnode.IsDescendantOf(n, atom.Svg) {
+func maybeStripTitle(n **html.Node) {
+	if (*n).DataAtom != atom.Title || htmlnode.IsDescendantOf(*n, atom.Svg) {
 		return
 	}
 
 	switch {
-	case htmlnode.IsDescendantOf(n, atom.Head):
+	case htmlnode.IsDescendantOf(*n, atom.Head):
 		// If we are in head, see if there are any previous title siblings,
 		// and if so, strip this one.
-		for c := n.PrevSibling; c != nil; c = c.PrevSibling {
+		for c := (*n).PrevSibling; c != nil; c = c.PrevSibling {
 			if c.DataAtom == atom.Title {
-				n.Parent.RemoveChild(n)
+				htmlnode.RemoveNode(n)
 				return
 			}
 		}
-	case htmlnode.IsDescendantOf(n, atom.Body):
+	case htmlnode.IsDescendantOf(*n, atom.Body):
 		// Strip any titles found in body.
-		n.Parent.RemoveChild(n)
+		htmlnode.RemoveNode(n)
 	}
 }

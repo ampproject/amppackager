@@ -153,3 +153,55 @@ func TestGetAttributeValOrNil(t *testing.T) {
 		}
 	}
 }
+
+func TestNextAndPrev(t *testing.T) {
+	// This creates a tree of
+	// root
+	// |- child1
+	//    |- grandchild1
+	// |- child2
+	root := html.Node{Data: "root"}
+	child1 := html.Node{Data: "child1"}
+	child2 := html.Node{Data: "child2"}
+	grandchild1 := html.Node{Data: "grandchild1"}
+	root.AppendChild(&child1)
+	root.AppendChild(&child2)
+	child1.AppendChild(&grandchild1)
+
+	// expected traversal order and node value
+	expected := map[int]string{
+		0: "root",
+		1: "child1",
+		2: "grandchild1",
+		3: "child2",
+	}
+
+	// Next
+	index := 0
+	for n := &root; n != nil; n = Next(n) {
+		if n.Data != expected[index] {
+			t.Errorf("Next(%v, \"index\") = %d, want %s", n, index, expected[index])
+		}
+		index++
+	}
+
+	// Prev
+	index = 3
+	for n := &child2; n != nil; n = Prev(n) {
+		if n.Data != expected[index] {
+			t.Errorf("Prev(%v, \"index\") = %d, want %s", n, index, expected[index])
+		}
+		index--
+	}
+
+	// RemoveNode
+	nodePtr := &child1
+	removed := RemoveNode(&nodePtr)
+	if nodePtr.Data != "root" {
+		t.Errorf("RemoveNode(%v) = %s, want %s", child1, removed.Data, "root")
+	}
+	if n := Next(nodePtr); n.Data != "child2" {
+		t.Errorf("Next after RemovedNode = %s, want %s", n.Data, "child2")
+	}
+
+}

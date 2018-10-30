@@ -21,6 +21,46 @@ import (
 	"golang.org/x/net/html"
 )
 
+// RemoveNode removes the node and adjusts the Node pointer to continue
+// iterating over the remaining tree nodes. Returns the removed node.
+func RemoveNode(n **html.Node) *html.Node {
+	current := *n
+	// Update pointer to previous.
+	*n = Prev(*n)
+	current.Parent.RemoveChild(current)
+	return current
+}
+
+// Prev returns the prev node in depth first order.
+func Prev(n *html.Node) *html.Node {
+	c := n.PrevSibling
+	if c == nil {
+		return n.Parent
+	}
+	for c.LastChild != nil {
+		c = c.LastChild
+	}
+	return c
+}
+
+// Next returns the next node in depth first order.
+func Next(n *html.Node) *html.Node {
+	if n == nil {
+		return nil
+	}
+	if n.FirstChild != nil {
+		return n.FirstChild
+	}
+
+	c := n.NextSibling
+	p := n.Parent
+	for c == nil && p != nil {
+		c = p.NextSibling
+		p = p.Parent
+	}
+	return c
+}
+
 // FindNode returns the (first) specified child node of the given atom
 // type or ok=false if there are none.
 func FindNode(n *html.Node, atom atom.Atom) (*html.Node, bool) {

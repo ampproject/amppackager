@@ -24,7 +24,18 @@ import (
 // AMPBoilerplate removes <style> and <noscript> tags in <head>,
 // keeping only the amp-custom style tag. It then inserts the amp-boilerplate.
 func AMPBoilerplate(e *Context) error {
-	strip(e.DOM.HeadNode)
+	// Remove <style> and <noscript> tags keeping only the amp-custom style tag.
+	for n := e.DOM.HeadNode; n != nil && n.DataAtom != atom.Body; n = htmlnode.Next(n) {
+		switch n.DataAtom {
+		case atom.Style:
+			if !htmlnode.HasAttribute(n, amphtml.AMPCustom) {
+				htmlnode.RemoveNode(&n)
+			}
+		case atom.Noscript:
+			htmlnode.RemoveNode(&n)
+		}
+	}
+
 	boilerplate, css := determineBoilerplateAndCSS(e.DOM.HTMLNode)
 
 	styleNode := htmlnode.Element("style", html.Attribute{Key: boilerplate})
@@ -47,26 +58,6 @@ func AMPBoilerplate(e *Context) error {
 	noScriptCSS := htmlnode.Text(amphtml.AMPBoilerplateNoscriptCSS)
 	noScriptStyle.AppendChild(noScriptCSS)
 	return nil
-}
-
-// Removes <style> and <noscript> tags keeping only the amp-custom style tag.
-func strip(n *html.Node) {
-	switch n.DataAtom {
-	case atom.Style:
-		if _, ok := htmlnode.FindAttribute(n, "", amphtml.AMPCustom); !ok {
-			n.Parent.RemoveChild(n)
-			return
-		}
-	case atom.Noscript:
-		n.Parent.RemoveChild(n)
-		return
-	}
-
-	for c := n.FirstChild; c != nil; {
-		next := c.NextSibling
-		strip(c)
-		c = next
-	}
 }
 
 // Returns the boilerplate style and CSS for the flavor of AMP used.
