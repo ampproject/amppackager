@@ -101,9 +101,9 @@ For now, productionizing is a bit manual. The minimum steps are:
   3. Configure your TLS-serving frontend server to conditionally proxy to
      `amppkg`:
      1. If the URL starts with `/amppkg/`, forward the request unmodified.
-     2. If the URL points to an AMP page and the `AMP-Cache-Transform` request
-        header is present, rewrite the URL by prepending `/priv/doc` and forward
-        the request.
+     2. If the URL points to an AMP page, the `AMP-Cache-Transform` request
+        header is present and the `Accept` header contains `application/signed-exchange`,
+        rewrite the URL by prepending `/priv/doc` and forward the request.
      3. If at all possible, don't send URLs of non-AMP pages to `amppkg`; its
         [transforms](transformer/) may break non-AMP HTML.
      4. DO NOT forward `/priv/doc` requests; these URLs are meant to be
