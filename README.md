@@ -1,9 +1,8 @@
 # AMP Packager
 
-> **WARNING**: This code is still brand new, and highly experimental. The
+> **WARNING**: This code is still evolving, and is a developer preview. The
 > specification is still changing, and this is an implementation of a snapshot
-> of it, as a proof of concept. Feel free to play around with it, but be
-> cautious. Examine the code.
+> of it. Feel free to use it, but treat with care how you configure and deploy it.
 
 AMP Packager is a tool to [improve AMP
 URLs](https://amphtml.wordpress.com/2018/01/09/improving-urls-for-amp-pages/).
