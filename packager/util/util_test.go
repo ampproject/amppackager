@@ -12,7 +12,7 @@ import (
 )
 
 func TestCertName(t *testing.T) {
-	assert.Equal(t, "tY8hsc_hfMAT2JTe-G6avQ0q0AiQnnitc2JftVOYaf4", util.CertName(pkgt.Certs[0]))
+	assert.Equal(t, "hwEGDUdv5LgqOr9jM-5nhe6vgg65n5upqt1CpAlLP8U", util.CertName(pkgt.Certs[0]))
 }
 
 // ParsePrivateKey() is tested indirectly via the definition of pkgt.Key.
