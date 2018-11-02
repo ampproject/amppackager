@@ -26,8 +26,8 @@ and signs AMP documents as requested by the AMP Cache.
 
 ### How to use
 
-In all the instructions below, replace `example.com` with a domain you own and
-can obtain certificates for.
+In all the instructions below, replace `amppackageexample.com` with a domain you
+own and can obtain certificates for.
 
 #### Development server
 
@@ -65,7 +65,7 @@ can obtain certificates for.
      --user-data-dir=/tmp/udd
      --ignore-certificate-errors-spki-list=$(openssl x509 -pubkey -noout -in path/to/fullchain.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
      --enable-features=SignedHTTPExchange
-     'data:text/html,<a href="https://localhost:8080/priv/doc/https://example.com/">click me'
+     'data:text/html,<a href="https://localhost:8080/priv/doc/https://amppackageexample.com/">click me'
      ```
   2. Open DevTools. Check 'Preserve log'.
   3. Click the `click me` link.
@@ -80,7 +80,7 @@ prefetch](https://wicg.github.io/webpackage/draft-yasskin-webpackage-use-cases.h
 works with SXGs.
 
   1. `go get -u github.com/ampproject/amppackager/cmd/amppkg_dl_sxg`.
-  2. `amppkg_dl_sxg https://localhost:8080/priv/doc/https://example.com/`
+  2. `amppkg_dl_sxg https://localhost:8080/priv/doc/https://amppackageexample.com/`
   3. Stop `amppkg` with Ctrl-C.
   4. `go get -u github.com/ampproject/amppackager/cmd/amppkg_test_cache`.
   5. `amppkg_test_cache`
