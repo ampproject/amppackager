@@ -20,6 +20,18 @@
 # where the first certificate is for your domain, and the second is your CA's
 # cert.
 #
+# For development, it may be any certificate. For production, it must meet
+# the following requirements set by the Signed Exchanges specification:
+#
+#   The leaf certificate must use an EC P-256 key. (See https://goo.gl/pwK9EJ
+#   item 3.1.5.) It must have at least one SCT, either as an X.509 extension or
+#   as an extension to the OCSP responses from the URI mentioned in its Authority
+#   Information Access extension. (See https://goo.gl/JQiyNs item 7.4.)
+#
+#   To limit the risk to your existing TLS traffic, your signed exchanges
+#   certificate should be minted from a different private key than your TLS
+#   certificate. See https://goo.gl/U4vasm for details.
+#
 # To verify it has the right key type:
 #   openssl x509 -in cert.pem -text | grep 'ASN1 OID: prime256v1'
 # To verify it has the CanSignHttpExchanges extension:
@@ -28,17 +40,6 @@
 # This will be served at /amppkg/cert/blahblahblah, where "blahblahblah" is a
 # stable unique identifier for the cert (currently, its base64-encoded
 # SHA-256).
-#
-# The leaf certificate must use an EC P-256 key. (See https://goo.gl/pwK9EJ
-# item 3.1.5.) It must have at least one SCT, either as an X.509 extension or
-# as an extension to the OCSP responses from the URI mentioned in its Authority
-# Information Access extension. (See https://goo.gl/JQiyNs item 7.4.)
-#
-# To mitigate the risk of an attacker gaining access to your private key
-# through a vulnerability in this packager, you should generate a new
-# certificate/key pair for the domain(s) you wish to sign packages with. This
-# allows you to revoke that certificate without affecting your normal
-# web-serving traffic.
 CertFile = './pems/cert.pem'
 
 # The path to the PEM file containing the private key that corresponds to the
@@ -62,6 +63,14 @@ OCSPCache = '/tmp/amppkg/ocsp'
   # the AMP Cache. By default, the URL that the frontend requests to sign is
   # also the URL where the packager fetches it. For extra flexibility, see
   # URLSet.Fetch below.
+  #
+  # To ask the packager to fetch/sign a specific URL, request it like this:
+  #   /priv/doc/https://example.com/
+  # or this:
+  #   /priv/doc?sign=https%3A%2F%2Fexample.com%2F
+  #
+  # Note the need for the latter to be URL-escaped. Both options are provided,
+  # depending on what's easier for your server software.
   [URLSet.Sign]
     # The scheme of the URL must be https. There is no way to configure this.
     # The `user:pass@` portion is disallowed. There is no way to configure this.
