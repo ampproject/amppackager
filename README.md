@@ -43,15 +43,14 @@ can obtain certificates for.
      PackagerBase = 'https://localhost:8080/'
      CertFile = 'path/to/fullchain.pem'
      KeyFile = 'path/to/privkey.pem'
-     OCSPCache = '/tmp/amppkg/ocsp'
+     OCSPCache = '/tmp/amppkg-ocsp'
 
      [[URLSet]]
        [URLSet.Sign]
-         Domain = "example.com"
+         Domain = "amppackageexample.com"
      ```
      More details can be found in [amppkg.example.toml](amppkg.example.toml).
-  4. `mkdir /tmp/amppkg`
-  5. `amppkg -development`
+  4. `amppkg -development`
 
      If `amppkg.toml` is not in the current working directory, pass
      `-config=/path/to/amppkg.toml`.

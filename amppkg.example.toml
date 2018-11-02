@@ -49,7 +49,7 @@ KeyFile = './pems/privkey.pem'
 # The path to a file where the OCSP response will be cached. The parent
 # directory should exist, but the file need not. If this is a network-mounted
 # file, it should support shared/exclusive locking.
-OCSPCache = '/tmp/amppkg/ocsp'
+OCSPCache = '/tmp/amppkg-ocsp'
 
 # This is a simple level of validation, to guard against accidental
 # misconfiguration of the reverse proxy that sits in front of the packager.
@@ -65,9 +65,9 @@ OCSPCache = '/tmp/amppkg/ocsp'
   # URLSet.Fetch below.
   #
   # To ask the packager to fetch/sign a specific URL, request it like this:
-  #   /priv/doc/https://example.com/
+  #   /priv/doc/https://amppackageexample.com/
   # or this:
-  #   /priv/doc?sign=https%3A%2F%2Fexample.com%2F
+  #   /priv/doc?sign=https%3A%2F%2Famppackageexample.com%2F
   #
   # Note the need for the latter to be URL-escaped. Both options are provided,
   # depending on what's easier for your server software.
@@ -77,7 +77,7 @@ OCSPCache = '/tmp/amppkg/ocsp'
 
     # The domain to limit signed URLs to. An exact string match. The
     # certificate must cover this domain.
-    Domain = "example.com"
+    Domain = "amppackageexample.com"
 
     # A full-match regexp on the path (not including the ?query).
     # Defaults to ".*". The below example allows paths starting with /world/.
@@ -114,11 +114,11 @@ OCSPCache = '/tmp/amppkg/ocsp'
   # allows the frontend to specify an additional `fetch` query parameter.
   # Instead of looking like:
   #
-  #   /priv/doc/https://example.com/page.html
+  #   /priv/doc/https://amppackageexample.com/page.html
   #
   # The URL will look like:
   #
-  #   /priv/doc?fetch=https%3A%2F%2Finternal.example.com%2Fpage.html&sign=https%3A%2F%2Fexample.com%2Fpage.html
+  #   /priv/doc?fetch=https%3A%2F%2Finternal.amppackageexample.com%2Fpage.html&sign=https%3A%2F%2Famppackageexample.com%2Fpage.html
   #
   # Note that this reduces the defense-in-depth against the "signing oracle"
   # attack. If an attacker can request custom URLs from the packager (or
@@ -141,9 +141,9 @@ OCSPCache = '/tmp/amppkg/ocsp'
   # # Domain may be specified. Exercise caution; test the regexp thoroughly.
   # # For instance, a DomainRE of "www.example.com" would allow fetches from
   # # www-example.com.
-  # DomainRE = "www\\.corp\\d+\\.example\\.com"
+  # DomainRE = "www\\.corp\\d+\\.amppackageexample\\.com"
   #
   # # All other fields behave the same.
-  # Domain = "www.corp.example.com"
+  # Domain = "www.corp.amppackageexample.com"
   # PathRE = "/world/.*"
   # QueryRE = ""
