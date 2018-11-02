@@ -47,3 +47,15 @@ getraw https://beebo.red/
 
 # returns application/signed-exchange
 getraw -H 'amp-cache-transform: google' -H 'accept: application/signed-exchange;v=b2;q=0.9,*/*;q=0.8' https://beebo.red/
+
+# Setting project-wide metadata (environment vars?)
+https://developers.google.com/compute/docs/metadata?hl=en_US#projectwide
+
+# Setting instance env vars
+https://cloud.google.com/compute/docs/containers/configuring-options-to-run-containers#setting_environment_variables
+
+# Encrypt
+openssl aes-256-cbc -e -k $PASSWORD -in network.xml -out network.xml.enc
+
+# Decrypt
+openssl aes-256-cbc -d -k $PASSWORD -in network.xml.enc -out network.xml
