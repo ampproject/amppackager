@@ -36,7 +36,9 @@ file.
 $ openssl ocsp -index ./index.txt -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout <path_to_response>.der
 ```
 
-###Appendix
+
+### Appendix
+
 <!--
 TODO(twifkak): Update this to add CanSignHttpExchanges extension.
 TODO(twifkak): Update this to add AIA for OCSP.
