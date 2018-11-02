@@ -7,22 +7,33 @@ To generate:
 
 ```
 $ openssl genrsa -out ca.privkey 2048
-$ openssl req -new -nodes -key ca.privkey -sha256 -days 1825 -out ca.csr -subj '/C=US/ST=California/O=Google LLC/CN=Fake CA'
-$ openssl x509 -req -in ca.csr -signkey ca.privkey -out ca.cert \
-  -extfile <(echo -e "subjectKeyIdentifier = hash\nauthorityKeyIdentifier = keyid:always,issuer\nbasicConstraints = critical,CA:true\nextendedKeyUsage = critical, OCSPSigning\n")
+$ openssl req -x509 -new -nodes -key ca.privkey -sha256 -days 1825 -out ca.cert -subj '/C=US/ST=California/O=Google LLC/CN=Fake CA'
 $ openssl ecparam -out server.privkey -name prime256v1 -genkey
 $ openssl req -new -sha256 -key server.privkey -out server.csr -subj /CN=example.com
 $ openssl x509 -req -in server.csr -CA ca.cert -CAkey ca.privkey -CAcreateserial -out server.cert -days 3650 \
  -extfile <(echo -e "1.3.6.1.4.1.11129.2.1.22 = ASN1:NULL\nsubjectAltName=DNS:example.org")
 $ cat server.cert ca.cert >fullchain.cert
+```
+
+## OCSP
+
+To regenerate the OCSP signing certificate:
+
+```
+$ openssl req -new -sha256 -key ca.privkey -out ocsp.csr -subj '/C=US/ST=California/O=Google LLC/CN=ocsp.example.com'
+$ openssl x509 -req -in ocsp.csr -signkey ca.privkey -out ca.ocsp.cert \
+  -extfile <(echo -e "keyUsage = critical, digitalSignature\nextendedKeyUsage = critical, OCSPSigning\n")
 $ openssl ocsp -issuer ca.cert -cert server.cert -reqout ocspreq.der
 
 ```
 
-To generate an OCSP response: Note this step must be done manually on demand
-because of the 7 day expiry. DO NOT commit the generated file.
+Generate an OCSP response to seed the cache. Note this step must be done
+manually on demand because of the 7 day expiry. DO NOT commit the generated
+file.
+
+
 ```
-$ openssl ocsp -index ./index.txt -port 8888 -rsigner ca.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout <path_to_response>.der
+$ openssl ocsp -index ./index.txt -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout <path_to_response>.der
 ```
 
 ###Appendix
