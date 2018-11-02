@@ -1,4 +1,4 @@
-## Docker
+## Overview
 
 This is a base docker image that runs the AMP Packager in development
 mode locally.
@@ -7,7 +7,7 @@ Stay tuned for more instructions on productioning.
 
 ### Run locally in development mode
 
-### As-is
+#### As-is
 
 To run the AMP Packager with the fake test certificates that it ships
 with (forwarding local port 8080 to the container's port 8080):
@@ -18,13 +18,13 @@ $ docker run -p 8080:8080 amppackger
 ```
 
 
-### Customizing
+#### Customizing
 
 To use your own certificates, create your own Dockerfile using this
 one as a base image. In your Dockerfile, you can copy in your custom
 .toml file and certificates.
 
-Write something along the lines of:
+Write a Dockerfile something along the lines of:
 
 ```
 FROM amppackager
@@ -39,3 +39,5 @@ COPY . .
 CMD [ "-development", "-config=<path_to_your_toml_on_docker>"]
 
 ```
+
+Then build your Docker image and run it.
