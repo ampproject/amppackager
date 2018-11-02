@@ -30,6 +30,7 @@ import (
 	"github.com/ampproject/amppackager/packager/rtv"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/ampproject/amppackager/packager/util"
+	"github.com/ampproject/amppackager/testdata/b1"
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/julienschmidt/httprouter"
@@ -169,8 +170,8 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Equal("nosniff", exchange.ResponseHeaders.Get("X-Content-Type-Options"))
 	this.Assert().Contains(exchange.SignatureHeaderValue, "validity-url=\""+this.httpSignURL()+"/amppkg/validity\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "integrity=\"digest/mi-sha256-03\"")
-	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-url=\""+this.httpSignURL()+"/amppkg/cert/tY8hsc_hfMAT2JTe-G6avQ0q0AiQnnitc2JftVOYaf4\"")
-	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*tY8hsc_hfMAT2JTe-G6avQ0q0AiQnnitc2JftVOYaf4=*")
+	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-url=\""+this.httpSignURL()+"/amppkg/cert/"+b1.CertName+"\"")
+	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*"+b1.CertName+"=*")
 	// TODO(twifkak): Control date, and test for expires and sig.
 	// The response header values are untested here, as that is covered by signedexchange tests.
 

@@ -1,17 +1,19 @@
 # Test certificates for b1
 
 This is an example certificate built under the constraints set by `v=b1` (and
-possibly also applicable to higher versions). This assumes the
-[OCSPSigning](#ocspsigning) extended key usage is present.
+possibly also applicable to higher versions).
 
 To generate:
 
 ```
 $ openssl genrsa -out ca.privkey 2048
-$ openssl req -x509 -new -nodes -key ca.privkey -sha256 -days 1825 -out ca.cert -subj '/C=US/ST=California/O=Google LLC/CN=Fake CA'
+$ openssl req -new -nodes -key ca.privkey -sha256 -days 1825 -out ca.csr -subj '/C=US/ST=California/O=Google LLC/CN=Fake CA'
+$ openssl x509 -req -in ca.csr -signkey ca.privkey -out ca.cert \
+  -extfile <(echo -e "subjectKeyIdentifier = hash\nauthorityKeyIdentifier = keyid:always,issuer\nbasicConstraints = critical,CA:true\nextendedKeyUsage = critical, OCSPSigning\n")
 $ openssl ecparam -out server.privkey -name prime256v1 -genkey
 $ openssl req -new -sha256 -key server.privkey -out server.csr -subj /CN=example.com
-$ openssl x509 -req -in server.csr -CA ca.cert -CAkey ca.privkey -CAcreateserial -out server.cert -days 3650
+$ openssl x509 -req -in server.csr -CA ca.cert -CAkey ca.privkey -CAcreateserial -out server.cert -days 3650 \
+ -extfile <(echo -e "1.3.6.1.4.1.11129.2.1.22 = ASN1:NULL\nsubjectAltName=DNS:example.org")
 $ cat server.cert ca.cert >fullchain.cert
 $ openssl ocsp -issuer ca.cert -cert server.cert -reqout ocspreq.der
 
@@ -20,15 +22,7 @@ $ openssl ocsp -issuer ca.cert -cert server.cert -reqout ocspreq.der
 To generate an OCSP response: Note this step must be done manually on demand
 because of the 7 day expiry. DO NOT commit the generated file.
 ```
-$ openssl ocsp -index ./index.txt -port 8888 -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout ocspresp.der
-```
-
-#### OCSPSigning
-
-Make sure your openssl.cfg has an extendedKeyUsage section, like:
-
-```
-extendedKeyUsage = critical, OCSPSigning
+$ openssl ocsp -index ./index.txt -port 8888 -rsigner ca.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout <path_to_response>.der
 ```
 
 ###Appendix

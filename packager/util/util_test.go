@@ -7,12 +7,13 @@ import (
 
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/ampproject/amppackager/packager/util"
+	"github.com/ampproject/amppackager/testdata/b1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCertName(t *testing.T) {
-	assert.Equal(t, "hwEGDUdv5LgqOr9jM-5nhe6vgg65n5upqt1CpAlLP8U", util.CertName(pkgt.Certs[0]))
+	assert.Equal(t, b1.CertName, util.CertName(pkgt.Certs[0]))
 }
 
 // ParsePrivateKey() is tested indirectly via the definition of pkgt.Key.
