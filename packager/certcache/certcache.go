@@ -419,5 +419,12 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 		log.Println("OCSP nextUpdate in the past:", resp.NextUpdate)
 		return orig
 	}
+	// OCSP duration must be <=7 days, per
+	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-trust.
+	// Serving these responses may cause UAs to reject the SXG.
+	if resp.NextUpdate.Sub(resp.ThisUpdate) > time.Hour * 24 * 7 {
+		log.Printf("OCSP nextUpdate %+v too far ahead of thisUpdate %+v\n", resp.NextUpdate, resp.ThisUpdate)
+		return orig
+	}
 	return respBytes
 }
