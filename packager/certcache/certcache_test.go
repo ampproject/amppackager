@@ -36,7 +36,7 @@ import (
 	"golang.org/x/crypto/ocsp"
 )
 
-const certName = "tY8hsc_hfMAT2JTe-G6avQ0q0AiQnnitc2JftVOYaf4"
+const certName = "k9GCZZIDzAt2X0b2czRv0c2omW5vgYNh6ZaIz_UNTRQ"
 
 var caCert = func() *x509.Certificate {
 	certPem, _ := ioutil.ReadFile("../../testdata/b1/ca.cert")
