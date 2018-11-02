@@ -3,7 +3,7 @@
 This is a base docker image that runs the AMP Packager in development
 mode locally.
 
-Stay tuned for more instructions on productioning.
+Stay tuned for more instructions on productionizing.
 
 ### Run locally in development mode
 
