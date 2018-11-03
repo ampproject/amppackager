@@ -93,7 +93,7 @@ OCSPCache = '/tmp/amppkg-ocsp'
     #     chance of an XSS vulnerability in your templating library, the impact
     #     of such event is higher here: even after you've fixed the bug, caches
     #     may serve your signed packages for up to 7 days.
-    PathExcludeRE = []
+    # PathExcludeRE = []
 
     # A full-match regexp on the query portion of the URL, excluding the initial
     # "?". Defaults to ".*". The below example disallows non-empty query strings
