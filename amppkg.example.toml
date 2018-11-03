@@ -20,8 +20,10 @@
 # where the first certificate is for your domain, and the second is your CA's
 # cert.
 #
-# For development, it may be any certificate. For production, it must meet
-# the following requirements set by the Signed Exchanges specification:
+# For development, it may be any certificate that has an OCSP URL in its
+# Authority Information Access section (e.g. a TLS cert from Let's Encrypt).
+# For production, it must meet the following requirements set by the Signed
+# Exchanges specification:
 #
 #   The leaf certificate must use an EC P-256 key. (See https://goo.gl/pwK9EJ
 #   item 3.1.5.) It must have at least one SCT, either as an X.509 extension or
