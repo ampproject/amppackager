@@ -34,6 +34,9 @@
 #   certificate should be minted from a different private key than your TLS
 #   certificate. See https://goo.gl/U4vasm for details.
 #
+# As of November 2018, DigiCert is the only provider of such certs:
+#   https://www.digicert.com/account/ietf/http-signed-exchange.php
+#
 # To verify it has the right key type:
 #   openssl x509 -in cert.pem -text | grep 'ASN1 OID: prime256v1'
 # To verify it has the CanSignHttpExchanges extension:
