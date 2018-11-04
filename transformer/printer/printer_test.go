@@ -183,7 +183,7 @@ func TestVoidTags(t *testing.T) {
 			"<br>",
 		},
 		{
-			"Strip end tag",
+			"Strip ending slash",
 			"<br/>",
 			"<br>",
 		},
@@ -196,6 +196,26 @@ func TestVoidTags(t *testing.T) {
 			"Strip end tag with crazy spacing",
 			"<img src  = 'lemur.png' />",
 			"<img src=lemur.png>",
+		},
+		{
+			"Keep ending slash for void element in foreign content (SVG)",
+			"<svg><link rel=alternate /></svg>",
+			"<svg><link rel=alternate /></svg>",
+		},
+		{
+			"Keep ending slash for void element in foreign content (MathML)",
+			"<math><link rel=alternate /></math>",
+			"<math><link rel=alternate /></math>",
+		},
+		{
+			"Strip ending slash for void element in HTML integration point (SVG)",
+			"<svg><foreignobject><link rel=alternate /></foreignobject></svg>",
+			"<svg><foreignobject><link rel=alternate></foreignobject></svg>",
+		},
+		{
+			"Strip ending slash for void element in HTML integration point (MathML)",
+			"<math><annotation-xml encoding=text/html><link rel=alternate /></annotation-xml></math>",
+			"<math><annotation-xml encoding=text/html><link rel=alternate></annotation-xml></math>",
 		},
 	}
 	runAllTestCases(t, testCases)
@@ -353,6 +373,24 @@ func TestPreLeadingNewline(t *testing.T) {
 			"<pre>\n\n</pre>",
 		},
 		{
+			"Preserve LF LF when comment in the middle.",
+			"<pre>&#10;<!-- comment -->&#10;</pre>",
+			"<pre>\n\n</pre>",
+		},
+		{
+			"Add LF to <pre> when comment followed by LF.",
+			"<pre><!-- comment -->&#10;</pre>",
+			"<pre>\n\n</pre>",
+		},
+		{
+			"Add LF to LF LF preceded by comment.",
+			"<pre><!-- comment -->&#10;&#10;</pre>",
+			// HTML parsers will strip the first LF, thus
+			// preserving the meaning of the originally non-leading
+			// LF LF:
+			"<pre>\n\n\n</pre>",
+		},
+		{
 			"LF LF with more text",
 			`<pre>&#10;&#10;lemur</pre>`,
 			"<pre>\n\nlemur</pre>",
@@ -366,6 +404,18 @@ func TestPreLeadingNewline(t *testing.T) {
 			"Don't add extra LF to <pre> with leading element.",
 			"<pre><strong>boo</strong>&#10;&#13;</pre>",
 			"<pre><strong>boo</strong>\n&#13;</pre>",
+		},
+	}
+	runAllTestCases(t, testCases)
+}
+
+func TestTextareaLeadingNewline(t *testing.T) {
+	testCases := []tt.TestCase{
+		{
+			// The same logic for <pre> also applies for <textarea>.
+			"Add LF to <textarea> when start with CR.",
+			"<pre>&#13;&#13;</pre>",
+			"<pre>\n&#13;</pre>",
 		},
 	}
 	runAllTestCases(t, testCases)

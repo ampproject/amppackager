@@ -102,6 +102,12 @@ func TestURLTansformer(t *testing.T) {
 			docURL:   baseURL,
 		},
 		{
+			desc:     "Both tags parsed.",
+			input:    "<base href=" + baseURL + "/><link href=" + relativeURL + "/ rel=canonical>",
+			expected: "<link href=" + baseURL + "/ rel=canonical>",
+			docURL:   baseURL,
+		},
+		{
 			desc:     "LinkCanonicalHrefBecomeAbsolute",
 			input:    "<link href=" + relativeURL + "/ rel=canonical>",
 			expected: "<link href=" + baseURL + "/ rel=canonical>",

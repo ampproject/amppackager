@@ -24,37 +24,17 @@ import (
 )
 
 // LinkTag operates on the <link> tag.
-// * It will rename author supplied resource hints from rel= to disabled-rel=.
 // * It will add a preconnect link tag for Google Font resources.
 func LinkTag(e *Context) error {
 	preconnectAdded := false
 
-	var stk htmlnode.Stack
-	stk.Push(e.DOM.RootNode)
-	for len(stk) > 0 {
-		top := stk.Pop()
-		// Traverse the children in reverse order so the iteration of
-		// the DOM tree traversal is in the proper sequence.
-		// E.g. Given <a><b/><c/></a>, we will visit a, b, c.
-		// An alternative is to traverse children in forward order and
-		// utilize a queue instead.
-		for c := top.LastChild; c != nil; c = c.PrevSibling {
-			stk.Push(c)
+	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
+		if !preconnectAdded && isLinkGoogleFont(n) {
+			addLinkGoogleFontPreconnect(n)
+			preconnectAdded = true
 		}
-		linkTagTransform(top, &preconnectAdded)
 	}
 	return nil
-}
-
-// linkTagTransform does the actual work on each node.
-func linkTagTransform(n *html.Node, preconnectAdded *bool) {
-	if htmlnode.HasAttribute(n, "rel") {
-		renameAuthorSuppliedResourceHints(n)
-	}
-	if !*preconnectAdded && isLinkGoogleFont(n) {
-		addLinkGoogleFontPreconnect(n)
-		*preconnectAdded = true
-	}
 }
 
 // isGoogleFontHostname returns true if the given string, after being parsed as
@@ -81,22 +61,4 @@ func addLinkGoogleFontPreconnect(n *html.Node) {
 	}
 	preconnect := htmlnode.Element("link", html.Attribute{Key: "crossorigin"}, html.Attribute{Key: "href", Val: "https://fonts.gstatic.com"}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
 	n.Parent.InsertBefore(preconnect, n)
-}
-
-// renameAuthorSuppliedResourceHints renames author supplied resource hints from
-// rel= to disabled=rel=.
-func renameAuthorSuppliedResourceHints(n *html.Node) {
-	r, ok := htmlnode.FindAttribute(n, "", "rel")
-	if !ok {
-		return
-	}
-	s := strings.Split(strings.ToLower(r.Val), " ")
-	for _, h := range s {
-		switch h {
-		case "dns-prefetch", "preconnect", "prefetch", "preload", "prerender":
-			htmlnode.SetAttribute(n, "", "disabled-rel", r.Val)
-			htmlnode.RemoveAttribute(n, r)
-			return
-		}
-	}
 }
