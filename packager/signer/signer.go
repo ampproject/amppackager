@@ -128,14 +128,20 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
-func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
+func New(cert *x509.Certificate, key crypto.PrivateKey, docroot string, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
 	requireHeaders bool) (*Signer, error) {
-	// TODO(stillers) Conditionally use NewFileTransport for client Transport
-	t := &http.Transport{}
-	r := http.NewFileTransport(http.Dir("/www"))
-	t.RegisterProtocol("http", r)
-	t.RegisterProtocol("https", r)
+	var t http.RoundTripper
+	if docroot != "" {
+		t := &http.Transport{}
+		r := http.NewFileTransport(http.Dir(docroot))
+		t.RegisterProtocol("http", r)
+		t.RegisterProtocol("https", r)
+		log.Printf("AMP source is \"%s\"", docroot)
+	} else {
+		t = http.DefaultTransport
+		log.Printf("AMP source is network")
+	}
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.

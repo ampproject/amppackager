@@ -50,6 +50,14 @@ KeyFile = './pems/privkey.pem'
 # file, it should support shared/exclusive locking.
 OCSPCache = '/tmp/amppkg/ocsp'
 
+# If a Docroot directory is specified, amppkg will look in this directory for
+# valid AMPs to package (instead of fetching AMPs from the network).
+# Docroot = "/www"
+
+# If a ProjectId is specified, amppkg will verify that all incoming HTTP
+# requests have an X-Appengine-Inbound-Appid header equal to this value.
+# ProjectId = "ampbyexample"
+
 # This is a simple level of validation, to guard against accidental
 # misconfiguration of the reverse proxy that sits in front of the packager.
 #
@@ -84,7 +92,7 @@ OCSPCache = '/tmp/amppkg/ocsp'
     #     chance of an XSS vulnerability in your templating library, the impact
     #     of such event is higher here: even after you've fixed the bug, caches
     #     may serve your signed packages for up to 7 days.
-    PathExcludeRE = []
+    # PathExcludeRE = []
 
     # A full-match regexp on the query portion of the URL, excluding the initial
     # "?". Defaults to ".*". The below example disallows non-empty query strings

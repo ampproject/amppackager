@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -57,15 +58,17 @@ func (this logIntercept) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 
 func allowProject(id string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		h.ServeHTTP(resp, req)
-		return
 		// X-Appengine-Inbound-Appid can be trusted on GAE:
 		// https://cloud.google.com/appengine/docs/standard/go/appidentity/#asserting_identity_to_other_app_engine_apps
 		if req.Header.Get("X-Appengine-Inbound-Appid") == id {
 			h.ServeHTTP(resp, req)
 		} else {
-			log.Println("Invalid X-Appengine-Inbound-Appid header)")
-			http.NotFound(resp, req)
+			log.Printf(
+				"Invalid X-Appengine-Inbound-Appid header: actual [%s], expected [%s]\n",
+				req.Header.Get("X-Appengine-Inbound-Appid"),
+				id,
+			)
+			http.Error(resp, "403 Forbidden", http.StatusForbidden)
 		}
 	})
 }
@@ -74,7 +77,6 @@ func allowProject(id string, h http.Handler) http.Handler {
 //  - It exposes an API that allows people to sign any URL as any other URL.
 //  - It is in cleartext.
 func main() {
-	log.Println("QQQQQQ")
 	flag.Parse()
 	if *flagConfig == "" {
 		die("must specify --config")
@@ -143,7 +145,7 @@ func main() {
 		}
 	}
 
-	packager, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
+	packager, err := signer.New(certs[0], key, config.Docroot, config.URLSet, rtvCache, certCache.IsHealthy,
 		overrideBaseURL /*requireHeaders=*/, !*flagDevelopment)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
@@ -162,13 +164,19 @@ func main() {
 		addr = "localhost"
 	}
 	addr += fmt.Sprint(":", config.Port)
+	var handler http.Handler
+	if config.ProjectId != "" {
+		handler = allowProject(config.ProjectId, logIntercept{mux})
+		log.Printf("X-Appengine-Inbound-Appid header must equal \"%s\"", config.ProjectId)
+	} else {
+		handler = logIntercept{mux}
+	}
 	server := http.Server{
 		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
 		// TODO Respond to /_ah/healthcheck with a 200
-		// TODO Configure project_id
-		Handler:           allowProject("foo", logIntercept{mux}),
+		Handler:           handler,
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		// If needing to stream the response, disable WriteTimeout and
@@ -182,7 +190,11 @@ func main() {
 
 	// TODO(twifkak): Add monitoring (e.g. per the above Cloudflare blog).
 
-	log.Println("Serving ABE on port", config.Port)
+	var d []string
+	for i := range config.URLSet {
+		d = append(d, config.URLSet[i].Sign.Domain)
+	}
+	log.Printf("Serving SXG of \"%s\" on port %d\n", strings.Join(d, ", "), config.Port)
 
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.
