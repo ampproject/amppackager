@@ -17,6 +17,8 @@ $ docker build -t amppackager .
 $ docker run -p 8080:8080 amppackager
 ```
 
+Refer to [these instructions](../README.md#test-your-config) on how to run an
+end-to-end test.
 
 #### Customizing
 
@@ -41,3 +43,6 @@ CMD [ "-development", "-config=<path_to_your_toml_on_docker>"]
 ```
 
 Then build your Docker image and run it.
+
+### Test your config
+
