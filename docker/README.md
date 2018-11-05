@@ -13,8 +13,8 @@ To run the AMP Packager with the fake test certificates that it ships
 with (forwarding local port 8080 to the container's port 8080):
 
 ```sh
-$ docker build -t amppackager
-$ docker run -p 8080:8080 amppackger
+$ docker build -t amppackager .
+$ docker run -p 8080:8080 amppackager
 ```
 
 

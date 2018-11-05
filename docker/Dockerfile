@@ -20,12 +20,13 @@ RUN go get -v github.com/ampproject/amppackager/cmd/amppkg
 
 # Seed the ocsp cache
 WORKDIR /go/src/github.com/ampproject/amppackager/testdata/b1/
-RUN mkdir -p /tmp/amppkg && touch ./index.txt && touch ./index.txt.attr && openssl ocsp -index ./index.txt -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout /tmp/amppkg/ocsp
+RUN openssl ocsp -index ./index.txt -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout /tmp/amppkg-ocsp
 
-# Copy the binary and config file
 WORKDIR /go/src/app
+# Copy the AMP packager binary into our app dir inside the container.
 RUN cp /go/bin/amppkg .
-COPY . .
+# Copy example config file into container.
+COPY amppkg.example.toml .
 
 # Make port 8080 available to the world outside this container. This
 # port must match the AMP Packager port configured in the toml file.
