@@ -23,7 +23,6 @@ To regenerate the OCSP signing certificate:
 $ openssl req -new -sha256 -key ca.privkey -out ocsp.csr -subj '/C=US/ST=California/O=Google LLC/CN=ocsp.example.com'
 $ openssl x509 -req -in ocsp.csr -signkey ca.privkey -out ca.ocsp.cert \
   -extfile <(echo -e "keyUsage = critical, digitalSignature\nextendedKeyUsage = critical, OCSPSigning\n")
-$ openssl ocsp -issuer ca.cert -cert server.cert -reqout ocspreq.der
 
 ```
 
