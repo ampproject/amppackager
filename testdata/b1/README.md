@@ -33,7 +33,7 @@ file.
 
 
 ```
-$ openssl ocsp -index ./index.txt -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout /tmp/amppkg-ocsp
+$ ./seedcache.sh
 ```
 
 
