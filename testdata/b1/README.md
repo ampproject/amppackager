@@ -11,7 +11,7 @@ $ openssl req -x509 -new -nodes -key ca.privkey -sha256 -days 1825 -out ca.cert 
 $ openssl ecparam -out server.privkey -name prime256v1 -genkey
 $ openssl req -new -sha256 -key server.privkey -out server.csr -subj /CN=example.com
 $ openssl x509 -req -in server.csr -CA ca.cert -CAkey ca.privkey -CAcreateserial -out server.cert -days 3650 \
- -extfile <(echo -e "1.3.6.1.4.1.11129.2.1.22 = ASN1:NULL\nsubjectAltName=DNS:example.org")
+ -extfile <(echo -e "1.3.6.1.4.1.11129.2.1.22 = ASN1:NULL")
 $ cat server.cert ca.cert >fullchain.cert
 ```
 
@@ -33,7 +33,7 @@ file.
 
 
 ```
-$ openssl ocsp -index ./index.txt -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout <path_to_response>.der
+$ openssl ocsp -index ./index.txt -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout /tmp/amppkg-ocsp
 ```
 
 
