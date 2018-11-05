@@ -20,7 +20,7 @@ RUN go get -v github.com/ampproject/amppackager/cmd/amppkg
 
 # Seed the ocsp cache
 WORKDIR /go/src/github.com/ampproject/amppackager/testdata/b1/
-RUN openssl ocsp -index ./index.txt -rsigner ca.ocsp.cert -rkey ca.privkey -CA ca.cert -ndays 7 -reqin ocspreq.der -respout /tmp/amppkg-ocsp
+RUN ./seedcache.sh
 
 WORKDIR /go/src/app
 # Copy the AMP packager binary into our app dir inside the container.
