@@ -31,6 +31,8 @@ own and can obtain certificates for.
 
 #### Development server
 
+##### Manual installation
+
   1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
      is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
@@ -54,6 +56,11 @@ own and can obtain certificates for.
 
      If `amppkg.toml` is not in the current working directory, pass
      `-config=/path/to/amppkg.toml`.
+
+##### Docker
+
+Follow the instructions [here](docker/README.md) on how to deploy a local Docker
+container.
 
 #### Test your config
 
