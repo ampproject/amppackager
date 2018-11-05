@@ -43,6 +43,3 @@ CMD [ "-development", "-config=<path_to_your_toml_on_docker>"]
 ```
 
 Then build your Docker image and run it.
-
-### Test your config
-
