@@ -363,7 +363,6 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// the base64 encoding includes '/' and '=' (and therefore should be
 	// StdEncoding).
 	getURL := ocspServer + "/" + url.PathEscape(base64.StdEncoding.EncodeToString(req))
-	log.Printf("getURL = %s\n", getURL)
 	var httpReq *http.Request
 	if len(getURL) <= 255 {
 		httpReq, err = http.NewRequest("GET", getURL, nil)
@@ -423,7 +422,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// OCSP duration must be <=7 days, per
 	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-trust.
 	// Serving these responses may cause UAs to reject the SXG.
-	if resp.NextUpdate.Sub(resp.ThisUpdate) > time.Hour * 24 * 7 {
+	if resp.NextUpdate.Sub(resp.ThisUpdate) > time.Hour*24*7 {
 		log.Printf("OCSP nextUpdate %+v too far ahead of thisUpdate %+v\n", resp.NextUpdate, resp.ThisUpdate)
 		return orig
 	}
