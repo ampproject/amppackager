@@ -165,11 +165,9 @@ func main() {
 		addr = "localhost"
 	}
 	addr += fmt.Sprint(":", config.Port)
-	var handler http.Handler
+	handler := http.Handler(logIntercept{mux})
 	if config.ProjectId != "" {
 		handler = allowProject(config.ProjectId, logIntercept{mux})
-	} else {
-		handler = logIntercept{mux}
 	}
 	server := http.Server{
 		Addr: addr,
