@@ -61,11 +61,11 @@ func allowProject(id string, h http.Handler) http.Handler {
 		// X-Appengine-Inbound-Appid can be trusted on GAE:
 		// https://cloud.google.com/appengine/docs/standard/go/appidentity/#asserting_identity_to_other_app_engine_apps
 		if req.Header.Get("X-Appengine-Inbound-Appid") == id {
-			log.Printf("X-Appengine-Inbound-Appid = [%s]", req.Header.Get("X-Appengine-Inbound-Appid"))
+			log.Printf("Allowing GET from [%s]", req.Header.Get("X-Appengine-Inbound-Appid"))
 			h.ServeHTTP(resp, req)
 		} else {
 			log.Printf(
-				"Invalid X-Appengine-Inbound-Appid header: actual [%s], expected [%s]\n",
+				"Denying GET from [%s], expected X-Appengine-Inbound-Appid header to be [%s]\n",
 				req.Header.Get("X-Appengine-Inbound-Appid"),
 				id,
 			)
