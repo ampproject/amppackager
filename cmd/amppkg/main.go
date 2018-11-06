@@ -167,7 +167,7 @@ func main() {
 	addr += fmt.Sprint(":", config.Port)
 	handler := http.Handler(logIntercept{mux})
 	if config.ProjectId != "" {
-		handler = allowProject(config.ProjectId, logIntercept{mux})
+		handler = allowProject(config.ProjectId, handler)
 	}
 	server := http.Server{
 		Addr: addr,
