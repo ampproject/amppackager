@@ -173,7 +173,7 @@ func main() {
 		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
-		// TODO Respond to /_ah/healthcheck with a 200
+		// TODO Respond to /_ah/healthcheck with a 200 (consider certCache.IsHealthy, too)
 		Handler:           handler,
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
