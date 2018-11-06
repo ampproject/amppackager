@@ -169,8 +169,8 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Equal("nosniff", exchange.ResponseHeaders.Get("X-Content-Type-Options"))
 	this.Assert().Contains(exchange.SignatureHeaderValue, "validity-url=\""+this.httpSignURL()+"/amppkg/validity\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "integrity=\"digest/mi-sha256-03\"")
-	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-url=\""+this.httpSignURL()+"/amppkg/cert/k9GCZZIDzAt2X0b2czRv0c2omW5vgYNh6ZaIz_UNTRQ\"")
-	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*k9GCZZIDzAt2X0b2czRv0c2omW5vgYNh6ZaIz/UNTRQ=*")
+	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-url=\""+this.httpSignURL()+"/amppkg/cert/"+pkgt.CertName+"\"")
+	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*"+pkgt.CertName+"=*")
 	// TODO(twifkak): Control date, and test for expires and sig.
 	// The response header values are untested here, as that is covered by signedexchange tests.
 

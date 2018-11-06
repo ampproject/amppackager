@@ -26,10 +26,12 @@ and signs AMP documents as requested by the AMP Cache.
 
 ### How to use
 
-In all the instructions below, replace `example.com` with a domain you own and
-can obtain certificates for.
+In all the instructions below, replace `amppackageexample.com` with a domain you
+own and can obtain certificates for.
 
 #### Development server
+
+##### Manual installation
 
   1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
@@ -43,18 +45,22 @@ can obtain certificates for.
      PackagerBase = 'https://localhost:8080/'
      CertFile = 'path/to/fullchain.pem'
      KeyFile = 'path/to/privkey.pem'
-     OCSPCache = '/tmp/amppkg/ocsp'
+     OCSPCache = '/tmp/amppkg-ocsp'
 
      [[URLSet]]
        [URLSet.Sign]
-         Domain = "example.com"
+         Domain = "amppackageexample.com"
      ```
      More details can be found in [amppkg.example.toml](amppkg.example.toml).
-  4. `mkdir /tmp/amppkg`
-  5. `amppkg -development`
+  4. `amppkg -development`
 
      If `amppkg.toml` is not in the current working directory, pass
      `-config=/path/to/amppkg.toml`.
+
+##### Docker
+
+Follow the instructions [here](docker/README.md) on how to deploy a local Docker
+container.
 
 #### Test your config
 
@@ -66,7 +72,7 @@ can obtain certificates for.
      --user-data-dir=/tmp/udd
      --ignore-certificate-errors-spki-list=$(openssl x509 -pubkey -noout -in path/to/fullchain.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
      --enable-features=SignedHTTPExchange
-     'data:text/html,<a href="https://localhost:8080/priv/doc/https://example.com/">click me'
+     'data:text/html,<a href="https://localhost:8080/priv/doc/https://amppackageexample.com/">click me'
      ```
   2. Open DevTools. Check 'Preserve log'.
   3. Click the `click me` link.
@@ -81,7 +87,7 @@ prefetch](https://wicg.github.io/webpackage/draft-yasskin-webpackage-use-cases.h
 works with SXGs.
 
   1. `go get -u github.com/ampproject/amppackager/cmd/amppkg_dl_sxg`.
-  2. `amppkg_dl_sxg https://localhost:8080/priv/doc/https://example.com/`
+  2. `amppkg_dl_sxg https://localhost:8080/priv/doc/https://amppackageexample.com/`
   3. Stop `amppkg` with Ctrl-C.
   4. `go get -u github.com/ampproject/amppackager/cmd/amppkg_test_cache`.
   5. `amppkg_test_cache`

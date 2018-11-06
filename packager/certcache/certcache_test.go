@@ -36,8 +36,6 @@ import (
 	"golang.org/x/crypto/ocsp"
 )
 
-const certName = "k9GCZZIDzAt2X0b2czRv0c2omW5vgYNh6ZaIz_UNTRQ"
-
 var caCert = func() *x509.Certificate {
 	certPem, _ := ioutil.ReadFile("../../testdata/b1/ca.cert")
 	certs, _ := signedexchange.ParseCertificates(certPem)
@@ -170,7 +168,7 @@ func (this *CertCacheSuite) DecodeCBOR(r io.Reader) map[string][]byte {
 }
 
 func (this *CertCacheSuite) TestServesCertificate() {
-	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+pkgt.CertName, httprouter.Params{httprouter.Param{"certName", pkgt.CertName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
 	cbor := this.DecodeCBOR(resp.Body)
@@ -189,7 +187,7 @@ func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 
 func (this *CertCacheSuite) TestOCSP() {
 	// Verify it gets included in the cert-chain+cbor payload.
-	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+pkgt.CertName, httprouter.Params{httprouter.Param{"certName", pkgt.CertName}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
@@ -224,7 +222,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 	}))
 
 	// Verify HTTP response expires immediately:
-	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+certName, httprouter.Params{httprouter.Param{"certName", certName}})
+	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+pkgt.CertName, httprouter.Params{httprouter.Param{"certName", pkgt.CertName}})
 	this.Assert().Equal("public, max-age=0", resp.Header.Get("Cache-Control"))
 
 	// On update, verify network is called:
