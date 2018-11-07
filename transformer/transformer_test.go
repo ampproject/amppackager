@@ -297,17 +297,17 @@ func TestRequireAMPAttribute(t *testing.T) {
 }
 
 func TestBaseURL(t *testing.T) {
-	d := "http://example.com/a/page.html"
+	docURL := "http://example.com/a/page.html"
 	tests := []struct {
 		desc, base, expected string
 	}{
 		{
 			"no base href",
 			"<base target=_top>",
-			d,
+			docURL,
 		},
 		{
-			"fqdn",
+			"absolute",
 			"<base href=https://www.foo.com>",
 			"https://www.foo.com",
 		},
@@ -317,7 +317,7 @@ func TestBaseURL(t *testing.T) {
 			"http://example.com/a/child/to/a",
 		},
 		{
-			"absolute",
+			"relative to root",
 			"<base href=\"/\">",
 			"http://example.com/",
 		},
@@ -332,7 +332,7 @@ func TestBaseURL(t *testing.T) {
 			}
 			return nil
 		}
-		r := rpb.Request{Html: "<html amp><head>" + test.base + "</head></html>", DocumentUrl: d, Config: rpb.Request_NONE}
+		r := rpb.Request{Html: "<html amp><head>" + test.base + "</head></html>", DocumentUrl: docURL, Config: rpb.Request_NONE}
 		_, _, err := Process(&r)
 		if err != nil {
 			t.Fatalf("Process(%v) unexpectedly failed %v", test.desc, err)
