@@ -121,7 +121,7 @@ var ampFormatSuffixes = map[rpb.Request_HtmlFormat]string{
 // The keys from ampFormatSuffixes.
 var ampFormats = func() []rpb.Request_HtmlFormat {
 	ret := []rpb.Request_HtmlFormat{}
-	for v, _ := range ampFormatSuffixes {
+	for v := range ampFormatSuffixes {
 		ret = append(ret, v)
 	}
 	return ret
@@ -142,6 +142,21 @@ func isAllowed(declaredFormat string, allowedFormats []rpb.Request_HtmlFormat) b
 		}
 	}
 	return false
+}
+
+// setDOM parses the input HTML and sets c.DOM to the parsed DOM struct.
+func setDOM(c *transformers.Context, s string) error {
+	doc, err := html.Parse(strings.NewReader(s))
+	if err != nil {
+		return errors.Wrap(err, "Error parsing input HTML")
+	}
+
+	dom, err := amphtml.NewDOM(doc)
+	if err != nil {
+		return err
+	}
+	c.DOM = dom
+	return nil
 }
 
 // requireAMPAttribute returns an error if the <html> tag doesn't contain an
@@ -174,7 +189,7 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 			}
 		case atom.Link:
 			if rel, ok := htmlnode.GetAttributeVal(child, "rel"); ok {
-				if rel == "stylesheet" {
+				if strings.EqualFold(rel, "stylesheet") {
 					if href, ok := htmlnode.GetAttributeVal(child, "href"); ok {
 						preloads = append(preloads, &rpb.Metadata_Preload{Url: href, As: "style"})
 					}
@@ -188,6 +203,22 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 	return preloads
 }
 
+// setBaseURL derives the absolute base URL, and sets it on c.BaseURL. The value
+// is derived using the <base> href in the DOM, if it exists. If the href is
+// relative, it is parsed in the context of the document URL.
+// This must run after DocumentURL is set on the context.
+func setBaseURL(c *transformers.Context) {
+	if n, ok := htmlnode.FindNode(c.DOM.HeadNode, atom.Base); ok {
+		if v, ok := htmlnode.GetAttributeVal(n, "href"); ok {
+			if u, err := c.DocumentURL.Parse(v); err == nil {
+				c.BaseURL = u
+				return
+			}
+		}
+	}
+	c.BaseURL = c.DocumentURL
+}
+
 // Process will parse the given request, which contains the HTML to
 // transform, applying the requested list of transformers, and return the
 // transformed HTML and list of resources to preload (absolute URLs), or an
@@ -195,16 +226,15 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 //
 // If the requested list of transformers is empty, apply the default.
 func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
-	doc, err := html.Parse(strings.NewReader(r.Html))
-	if err != nil {
-		return "", nil, errors.Wrap(err, "Error parsing input HTML")
-	}
-	dom, err := amphtml.NewDOM(doc)
+	context := &transformers.Context{}
+	var err error
+
+	err = setDOM(context, r.Html)
 	if err != nil {
 		return "", nil, err
 	}
 
-	if err := requireAMPAttribute(dom, r.AllowedFormats); err != nil {
+	if err = requireAMPAttribute(context.DOM, r.AllowedFormats); err != nil {
 		return "", nil, err
 	}
 
@@ -218,26 +248,30 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 			fns = append(fns, fn)
 		}
 	}
-	u, err := url.Parse(r.DocumentUrl)
+
+	context.DocumentURL, err = url.Parse(r.DocumentUrl)
 	if err != nil {
 		return "", nil, err
 	}
-	version := r.Version
-	if version == 0 {
-		var err error
-		version, err = SelectVersion(nil)
+
+	context.Version = r.Version
+	if r.Version == 0 {
+		context.Version, err = SelectVersion(nil)
 		if err != nil {
 			return "", nil, err
 		}
 	}
-	c := transformers.Context{dom, u, version, r}
-	if err := runTransformers(&c, fns); err != nil {
+
+	// This must run AFTER DocumentURL is parsed.
+	setBaseURL(context)
+
+	if err := runTransformers(context, fns); err != nil {
 		return "", nil, err
 	}
 	var o strings.Builder
-	err = printer.Print(&o, c.DOM.RootNode)
+	err = printer.Print(&o, context.DOM.RootNode)
 	if err != nil {
 		return "", nil, err
 	}
-	return o.String(), &rpb.Metadata{Preloads: extractPreloads(dom)}, nil
+	return o.String(), &rpb.Metadata{Preloads: extractPreloads(context.DOM)}, nil
 }

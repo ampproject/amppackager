@@ -31,12 +31,6 @@ var /* const */ ampStoryPageTagAttrs = []string{"background-audio"}
 var /* const */ formTagAttrs = []string{"action", "action-xhr"}
 var /* const */ imgTagAttrs = []string{"longdesc"}
 
-// baseInfo encapsulates data about the <base> tag of the document.
-type baseInfo struct {
-	url    *url.URL
-	target string
-}
-
 // URL operates on URL attributes, rewriting URLs as needed
 // depending on whether the document is being served from the AMP
 // Cache or not, relative to the base URL (which is derived from the
@@ -78,7 +72,7 @@ type baseInfo struct {
 //     [1]. TODO(b/112417267): Handle amp-img rewriting.
 //
 func URL(e *Context) error {
-	b := extractBase(e.DOM.HeadNode, e.DocumentURL)
+	target := extractBaseTarget(e.DOM.HeadNode)
 
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
 		// Skip text nodes
@@ -92,26 +86,26 @@ func URL(e *Context) error {
 		}
 
 		// Make attributes with URLs portable on any tag
-		rewritePortableURLs(n, b.url, anyTagAttrs)
+		rewritePortableURLs(n, e.BaseURL, anyTagAttrs)
 
 		switch n.DataAtom {
 		case atom.Form:
 			// Make attributes with URLs absolute on <form> tag.
-			rewriteAbsoluteURLs(n, b.url, formTagAttrs)
+			rewriteAbsoluteURLs(n, e.BaseURL, formTagAttrs)
 		case atom.Img:
 			// Make attributes with URLs portable on <img> tag.
-			rewritePortableURLs(n, b.url, imgTagAttrs)
+			rewritePortableURLs(n, e.BaseURL, imgTagAttrs)
 		default:
 			switch n.Data {
 			case "amp-install-serviceworker":
 				// Make attributes with URLs portable on <amp-install-serviceworker> tag.
-				rewritePortableURLs(n, b.url, ampInstallServiceWorkerTagAttrs)
+				rewritePortableURLs(n, e.BaseURL, ampInstallServiceWorkerTagAttrs)
 			case amphtml.AMPStory:
 				// Make attributes with URLs portable on <amp-story> tag.
-				rewritePortableURLs(n, b.url, ampStoryTagAttrs)
+				rewritePortableURLs(n, e.BaseURL, ampStoryTagAttrs)
 			case "amp-story-page":
 				// Make attributes with URLs portable on <amp-story-page> tag.
-				rewritePortableURLs(n, b.url, ampStoryPageTagAttrs)
+				rewritePortableURLs(n, e.BaseURL, ampStoryPageTagAttrs)
 			}
 		}
 
@@ -140,50 +134,38 @@ func URL(e *Context) error {
 				// and not portable (which would result in canonical = "#").
 				// Maintain the original canonical, and absolutify it. See b/36102624
 				in := htmlnode.IsDescendantOf(n, atom.Template)
-				htmlnode.SetAttribute(n, "", "href", rewriteURL(b.url, in, href.Val, true))
+				htmlnode.SetAttribute(n, "", "href", rewriteURL(e.BaseURL, in, href.Val, true))
 			} else if n.DataAtom == atom.A {
 				in := htmlnode.IsDescendantOf(n, atom.Template)
-				portableHref := rewriteURL(b.url, in, href.Val, false)
+				portableHref := rewriteURL(e.BaseURL, in, href.Val, false)
 				// Set a default target
 				// 1. If the href is not a fragment AND
 				// 2. If there is no target OR If there is a target and it is not an allowed target
 				if !strings.HasPrefix(portableHref, "#") {
 					if v, ok := htmlnode.GetAttributeVal(n, "target"); !ok || (ok && !isAllowedTarget(v)) {
-						htmlnode.SetAttribute(n, "", "target", b.target)
+						htmlnode.SetAttribute(n, "", "target", target)
 					}
 				}
 				htmlnode.SetAttribute(n, "", "href", portableHref)
 			} else {
 				// Make a PortableUrl for any remaining tags with href.
 				in := htmlnode.IsDescendantOf(n, atom.Template)
-				htmlnode.SetAttribute(n, "", "href", rewriteURL(b.url, in, href.Val, false))
+				htmlnode.SetAttribute(n, "", "href", rewriteURL(e.BaseURL, in, href.Val, false))
 			}
 		}
 	}
 	return nil
 }
 
-// extractBase returns a baseInfo struct that encapsulates the base
-// URL and target values derived from the <base> tag, if it exists.
-//
-// The resulting baseInfo.url is an absolute URL using the document
-// URL as the absolute base URI and base href as the reference to
-// resolve.  baseInfo.target defaults to "_top" if not specified, or
-// if the target isn't allowed.
-func extractBase(n *html.Node, d *url.URL) *baseInfo {
-	b := baseInfo{d, "_top"}
-	if n, ok := htmlnode.FindNode(n, atom.Base); ok {
-		if v, ok := htmlnode.GetAttributeVal(n, "href"); ok {
-			u, err := url.Parse(v)
-			if err != nil {
-				b.url = u
-			}
-		}
+// extractBaseTarget returns the target value derived from the <base> tag, if it exists,
+// and is allowed. Otherwise, returns "_top".
+func extractBaseTarget(head *html.Node) string {
+	if n, ok := htmlnode.FindNode(head, atom.Base); ok {
 		if v, ok := htmlnode.GetAttributeVal(n, "target"); ok && isAllowedTarget(v) {
-			b.target = v
+			return v
 		}
 	}
-	return &b
+	return "_top"
 }
 
 // isAllowedTarget returns true if the given string is either "_blank" or "_top"
