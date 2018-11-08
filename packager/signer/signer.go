@@ -295,6 +295,10 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 		if err != nil {
 			return "", errors.Wrapf(err, "Invalid preload URL: %q\n", preload.Url)
 		}
+		// Percent-escape any characters in the query that aren't valid
+		// URL characters (but don't escape '=' or '&').
+		u.RawQuery = url.PathEscape(u.RawQuery)
+
 		if preload.As == "" {
 			return "", errors.Errorf("Missing `as` attribute for preload URL: %q\n", preload.Url)
 		}
