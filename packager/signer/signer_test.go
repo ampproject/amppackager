@@ -196,6 +196,22 @@ func (this *SignerSuite) TestParamsInPostBody() {
 	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI.String())
 }
 
+func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(".*"), false, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(".*"), false, boolPtr(true)},
+	}}
+	resp := this.get(this.T(), this.new(urlSets),
+		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath+"?<hi>")+
+			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath+"?<hi>"))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	this.Assert().Equal(fakePath+"?%3Chi%3E", this.lastRequestURL)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(this.httpSignURL()+fakePath+"?%3Chi%3E", exchange.RequestURI.String())
+}
+
 func (this *SignerSuite) TestNoFetchParam() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
