@@ -33,6 +33,9 @@ func parseURL(rawURL string, name string) (*url.URL, *util.HTTPError) {
 	// Evaluate "/..", by resolving the URL as a reference from itself.
 	// This prevents malformed URLs from eluding the PathRE protections.
 	ret = ret.ResolveReference(ret)
+	// Escape special characters in the query component such as "<" or "|"
+	// (but not "&" or "=").
+	ret.RawQuery = url.PathEscape(ret.RawQuery)
 	return ret, nil
 }
 
