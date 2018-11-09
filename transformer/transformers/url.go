@@ -75,8 +75,8 @@ func URL(e *Context) error {
 	target := extractBaseTarget(e.DOM.HeadNode)
 
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
-		// Skip text nodes
-		if n.Type == html.TextNode {
+		// Skip text nodes and anything inside mustache templates
+		if n.Type == html.TextNode || htmlnode.IsDescendantOf(n, atom.Template) {
 			continue
 		}
 
@@ -123,31 +123,23 @@ func URL(e *Context) error {
 			// 2) Other hrefs are absolutified in the document relative to the base
 			//    href. Thus, it is not necessary to maintain the base href for
 			//    browser URL resolution.
-			if n.DataAtom == atom.Base {
+			switch n.DataAtom {
+			case atom.Base:
 				htmlnode.RemoveAttribute(n, href)
 				if len(n.Attr) == 0 {
 					htmlnode.RemoveNode(&n)
 				}
-				continue
-			}
-
-			if htmlnode.IsDescendantOf(n, atom.Template) {
-				// For b/26741101, do not rewrite URLs within mustache templates
-				continue
-			}
-
-			switch n.DataAtom {
 			case atom.Link:
 				if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && v == "canonical" {
 					// If the origin doc is self-canonical, it should be an absolute URL
 					// and not portable (which would result in canonical = "#").
 					// Maintain the original canonical, and absolutify it. See b/36102624
-					htmlnode.SetAttribute(n, "", "href", amphtml.RewriteAbsoluteURL(e.BaseURL, false, href.Val))
+					htmlnode.SetAttribute(n, "", "href", amphtml.RewriteAbsoluteURL(e.BaseURL, href.Val))
 				} else {
-					htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, false, href.Val))
+					htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, href.Val))
 				}
 			case atom.A:
-				portableHref := amphtml.RewritePortableURL(e.BaseURL, false, href.Val)
+				portableHref := amphtml.RewritePortableURL(e.BaseURL, href.Val)
 				// Set a default target
 				// 1. If the href is not a fragment AND
 				// 2. If there is no target OR If there is a target and it is not an allowed target
@@ -159,7 +151,7 @@ func URL(e *Context) error {
 				htmlnode.SetAttribute(n, "", "href", portableHref)
 			default:
 				// Make a PortableUrl for any remaining tags with href.
-				htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, false, href.Val))
+				htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, href.Val))
 			}
 		}
 	}
@@ -185,12 +177,9 @@ func isAllowedTarget(t string) bool {
 // rewriteAbsoluteURLs rewrites URLs in the given slice of attributes
 // to be absolute for the base URL provided.
 func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
-	if htmlnode.IsDescendantOf(n, atom.Template) {
-		return
-	}
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
-			htmlnode.SetAttribute(n, "", attr, amphtml.RewriteAbsoluteURL(base, false, v))
+			htmlnode.SetAttribute(n, "", attr, amphtml.RewriteAbsoluteURL(base, v))
 		}
 	}
 }
@@ -198,12 +187,9 @@ func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
 // rewritePortableURLs rewrites URLs in the given slice of attributes
 // to be portable relative to the base URL provided.
 func rewritePortableURLs(n *html.Node, base *url.URL, tagAttrs []string) {
-	if htmlnode.IsDescendantOf(n, atom.Template) {
-		return
-	}
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
-			htmlnode.SetAttribute(n, "", attr, amphtml.RewritePortableURL(base, false, v))
+			htmlnode.SetAttribute(n, "", attr, amphtml.RewritePortableURL(base, v))
 		}
 	}
 }

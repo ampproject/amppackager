@@ -28,16 +28,7 @@ const (
 func TestRewriteURLs(t *testing.T) {
 	tcs := []struct {
 		desc, input, expectedPortable, expectedAbsolute, baseURL string
-		inTemplate                                               bool
 	}{
-		{
-			desc:             "in template",
-			input:            relativeURL,
-			expectedPortable: relativeURL,
-			expectedAbsolute: relativeURL,
-			baseURL:          fooBaseURL,
-			inTemplate:       true,
-		},
 		{
 			desc:             "Empty",
 			input:            "",
@@ -97,12 +88,12 @@ func TestRewriteURLs(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		baseParsed, _ := url.Parse(tc.baseURL)
-		actual := RewriteAbsoluteURL(baseParsed, tc.inTemplate, tc.input)
+		actual := RewriteAbsoluteURL(baseParsed, tc.input)
 		if actual != tc.expectedAbsolute {
 			t.Errorf("%s: RewriteAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
 		}
 
-		actual = RewritePortableURL(baseParsed, tc.inTemplate, tc.input)
+		actual = RewritePortableURL(baseParsed, tc.input)
 		if actual != tc.expectedPortable {
 			t.Errorf("%s: RewritePortableURL=%s want=%s", tc.desc, actual, tc.expectedPortable)
 		}

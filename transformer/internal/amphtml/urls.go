@@ -32,27 +32,21 @@ import (
 //
 // base is derived from the <base> tag and document URL for the origin document.
 //
-// inTemplate says whether the affected node is a descendant of a <template> tag.
-//
 // url is the original href value. It may be absolute, host-relative,
 // path-relative, or fragment-relative. It could be a data: URL, it could
 // be empty, it could be grotesquely malformed. It came from the internet.
 // If relative, it is relative to base.
-func RewriteAbsoluteURL(base *url.URL, inTemplate bool, url string) string {
-	return rewriteURL(base, inTemplate, url, true)
+func RewriteAbsoluteURL(base *url.URL, url string) string {
+	return rewriteURL(base, url, true)
 }
 
 // RewritePortableURL is similar to RewriteAbsoluteURL() except that it
 // preserves fragment-relative URLs when url points to the same document as base.
-func RewritePortableURL(base *url.URL, inTemplate bool, url string) string {
-	return rewriteURL(base, inTemplate, url, false)
+func RewritePortableURL(base *url.URL, url string) string {
+	return rewriteURL(base, url, false)
 }
 
-func rewriteURL(base *url.URL, inTemplate bool, url string, absolute bool) string {
-	if inTemplate {
-		// For b/26741101, do not rewrite URLs within mustache templates
-		return url
-	}
+func rewriteURL(base *url.URL, url string, absolute bool) string {
 	orig := url
 	url = strings.TrimSpace(url)
 	if url == "" {

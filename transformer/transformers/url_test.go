@@ -138,6 +138,12 @@ func TestURLTansformer(t *testing.T) {
 			baseURL:  fooBaseURL,
 		},
 		{
+			desc:     "AnchorTagTargetInTemplateNoop",
+			input:    "<template><a href=" + fooBaseURL + "/ target=popup>anchor</a></template>",
+			expected: "<template><a href=" + fooBaseURL + "/ target=popup>anchor</a></template>",
+			baseURL:  fooBaseURL,
+		},
+		{
 			desc:     "NonAnchorHrefUrlBecomePortable",
 			input:    "<link href=" + relativeURL + "/ itemprop=sameas/>",
 			expected: "<link href=" + fooBaseURL + "/ itemprop=sameas/>",
