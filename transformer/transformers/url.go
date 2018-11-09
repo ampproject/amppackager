@@ -111,8 +111,6 @@ func URL(e *Context) error {
 
 		// Tags with href attribute.
 		if href, ok := htmlnode.FindAttribute(n, "", "href"); ok {
-			in := htmlnode.IsDescendantOf(n, atom.Template)
-
 			// Remove the base tag href with the following rationale:
 			//
 			// 1) The <base href> can be harmful. When handling things like image
@@ -125,23 +123,31 @@ func URL(e *Context) error {
 			// 2) Other hrefs are absolutified in the document relative to the base
 			//    href. Thus, it is not necessary to maintain the base href for
 			//    browser URL resolution.
-			switch n.DataAtom {
-			case atom.Base:
+			if n.DataAtom == atom.Base {
 				htmlnode.RemoveAttribute(n, href)
 				if len(n.Attr) == 0 {
 					htmlnode.RemoveNode(&n)
 				}
+				continue
+			}
+
+			if htmlnode.IsDescendantOf(n, atom.Template) {
+				// For b/26741101, do not rewrite URLs within mustache templates
+				continue
+			}
+
+			switch n.DataAtom {
 			case atom.Link:
 				if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && v == "canonical" {
 					// If the origin doc is self-canonical, it should be an absolute URL
 					// and not portable (which would result in canonical = "#").
 					// Maintain the original canonical, and absolutify it. See b/36102624
-					htmlnode.SetAttribute(n, "", "href", amphtml.RewriteAbsoluteURL(e.BaseURL, in, href.Val))
+					htmlnode.SetAttribute(n, "", "href", amphtml.RewriteAbsoluteURL(e.BaseURL, false, href.Val))
 				} else {
-					htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, in, href.Val))
+					htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, false, href.Val))
 				}
 			case atom.A:
-				portableHref := amphtml.RewritePortableURL(e.BaseURL, in, href.Val)
+				portableHref := amphtml.RewritePortableURL(e.BaseURL, false, href.Val)
 				// Set a default target
 				// 1. If the href is not a fragment AND
 				// 2. If there is no target OR If there is a target and it is not an allowed target
@@ -153,7 +159,7 @@ func URL(e *Context) error {
 				htmlnode.SetAttribute(n, "", "href", portableHref)
 			default:
 				// Make a PortableUrl for any remaining tags with href.
-				htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, in, href.Val))
+				htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, false, href.Val))
 			}
 		}
 	}
