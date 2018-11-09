@@ -24,7 +24,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-var /* const */ anyTagAttrs = []string{"src"}
+var /* const */ anyTagAttrs = []string{"background", "src"}
 var /* const */ ampInstallServiceWorkerTagAttrs = []string{"data-iframe-src", "data-no-service-worker-fallback-shell-url"}
 var /* const */ ampStoryTagAttrs = []string{"background-audio", "bookend-config-src", "poster-landscape-src", "poster-square-src", "publisher-logo-src"}
 var /* const */ ampStoryPageTagAttrs = []string{"background-audio"}
