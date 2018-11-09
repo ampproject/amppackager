@@ -111,6 +111,8 @@ func URL(e *Context) error {
 
 		// Tags with href attribute.
 		if href, ok := htmlnode.FindAttribute(n, "", "href"); ok {
+			in := htmlnode.IsDescendantOf(n, atom.Template)
+
 			// Remove the base tag href with the following rationale:
 			//
 			// 1) The <base href> can be harmful. When handling things like image
@@ -123,21 +125,23 @@ func URL(e *Context) error {
 			// 2) Other hrefs are absolutified in the document relative to the base
 			//    href. Thus, it is not necessary to maintain the base href for
 			//    browser URL resolution.
-			if n.DataAtom == atom.Base {
+			switch n.DataAtom {
+			case atom.Base:
 				htmlnode.RemoveAttribute(n, href)
 				if len(n.Attr) == 0 {
 					htmlnode.RemoveNode(&n)
-					continue
 				}
-			} else if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && n.DataAtom == atom.Link && v == "canonical" {
-				// If the origin doc is self-canonical, it should be an absolute URL
-				// and not portable (which would result in canonical = "#").
-				// Maintain the original canonical, and absolutify it. See b/36102624
-				in := htmlnode.IsDescendantOf(n, atom.Template)
-				htmlnode.SetAttribute(n, "", "href", rewriteURL(e.BaseURL, in, href.Val, true))
-			} else if n.DataAtom == atom.A {
-				in := htmlnode.IsDescendantOf(n, atom.Template)
-				portableHref := rewriteURL(e.BaseURL, in, href.Val, false)
+			case atom.Link:
+				if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && v == "canonical" {
+					// If the origin doc is self-canonical, it should be an absolute URL
+					// and not portable (which would result in canonical = "#").
+					// Maintain the original canonical, and absolutify it. See b/36102624
+					htmlnode.SetAttribute(n, "", "href", amphtml.RewriteAbsoluteURL(e.BaseURL, in, href.Val))
+				} else {
+					htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, in, href.Val))
+				}
+			case atom.A:
+				portableHref := amphtml.RewritePortableURL(e.BaseURL, in, href.Val)
 				// Set a default target
 				// 1. If the href is not a fragment AND
 				// 2. If there is no target OR If there is a target and it is not an allowed target
@@ -147,10 +151,9 @@ func URL(e *Context) error {
 					}
 				}
 				htmlnode.SetAttribute(n, "", "href", portableHref)
-			} else {
+			default:
 				// Make a PortableUrl for any remaining tags with href.
-				in := htmlnode.IsDescendantOf(n, atom.Template)
-				htmlnode.SetAttribute(n, "", "href", rewriteURL(e.BaseURL, in, href.Val, false))
+				htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, in, href.Val))
 			}
 		}
 	}
@@ -176,66 +179,25 @@ func isAllowedTarget(t string) bool {
 // rewriteAbsoluteURLs rewrites URLs in the given slice of attributes
 // to be absolute for the base URL provided.
 func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
-	rewriteURLs(n, base, tagAttrs, true)
+	if htmlnode.IsDescendantOf(n, atom.Template) {
+		return
+	}
+	for _, attr := range tagAttrs {
+		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
+			htmlnode.SetAttribute(n, "", attr, amphtml.RewriteAbsoluteURL(base, false, v))
+		}
+	}
 }
 
 // rewritePortableURLs rewrites URLs in the given slice of attributes
 // to be portable relative to the base URL provided.
 func rewritePortableURLs(n *html.Node, base *url.URL, tagAttrs []string) {
-	rewriteURLs(n, base, tagAttrs, false)
-}
-
-func rewriteURLs(n *html.Node, base *url.URL, tagAttrs []string, absolute bool) {
+	if htmlnode.IsDescendantOf(n, atom.Template) {
+		return
+	}
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
-			in := htmlnode.IsDescendantOf(n, atom.Template)
-			if in {
-				return
-			}
-			htmlnode.SetAttribute(n, "", attr, rewriteURL(base, in, v, absolute))
+			htmlnode.SetAttribute(n, "", attr, amphtml.RewritePortableURL(base, false, v))
 		}
 	}
-}
-
-func rewriteURL(base *url.URL, inTemplate bool, url string, absolute bool) string {
-	if inTemplate {
-		// For b/26741101, do not rewrite URLs within mustache templates
-		return url
-	}
-	orig := url
-	url = strings.TrimSpace(url)
-	if url == "" {
-		return orig
-	}
-
-	// For b/27292423:
-	// In general, if the origin doc was fetched on http:// and has a relative
-	// URL to a resource, we must assume that the resource may only be
-	// available on http. However: if the subresource has a protocol-relative
-	// path (beginning with '//') this is a clear statement that either
-	// HTTP or HTTPS can work. Special-case the protocol-relative case.
-	if strings.HasPrefix(url, "//") {
-		return "https:" + url
-	}
-	u, err := base.Parse(url)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
-		return url
-	}
-
-	uVal := u.String()
-	if absolute {
-		return uVal
-	}
-
-	if uVal == base.String()+u.Fragment {
-		// Keep links to page-local fragments relative.
-		// Otherwise, we'll turn "#dogs" into "https://origin.com/page.html#dogs"
-		// and send the user away when we could have kept them on the page they
-		// already loaded for a better experience.
-		//
-		// This also handles the case where base == url, and neither has
-		// a fragment. In which case we emit '#' which links to the top of the page.
-		return "#" + u.Fragment
-	}
-	return uVal
 }
