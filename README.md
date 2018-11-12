@@ -75,7 +75,8 @@ container.
   3. Click the `click me` link.
   4. Watch the URL transmogrify! Verify it came from an SXG by switching
      DevTools to the Network tab and looking in the `Size` column for `(from
-     signed-exchange)` and in the `Type` column for `signed-exchange`.
+     signed-exchange)` and in the `Type` column for `signed-exchange`. Click on
+     that row and then click on the Preview tab, to see if there are any errors.
 
 #### Demonstrate privacy-preserving prefetch
 
