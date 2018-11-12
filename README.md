@@ -64,10 +64,7 @@ container.
 
 #### Test your config
 
-  1. Run Chrome M70 or later (as of 2018-09-18, this is
-     [Beta](https://www.google.com/chrome/beta/) or
-     [Dev](https://www.google.com/chrome/dev/)). On the
-     command-line, pass the following flags:
+  1. Run Chrome with the following commandline flags:
      ```
      --user-data-dir=/tmp/udd
      --ignore-certificate-errors-spki-list=$(openssl x509 -pubkey -noout -in path/to/fullchain.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
@@ -78,7 +75,8 @@ container.
   3. Click the `click me` link.
   4. Watch the URL transmogrify! Verify it came from an SXG by switching
      DevTools to the Network tab and looking in the `Size` column for `(from
-     signed-exchange)` and in the `Type` column for `signed-exchange`.
+     signed-exchange)` and in the `Type` column for `signed-exchange`. Click on
+     that row and then click on the Preview tab, to see if there are any errors.
 
 #### Demonstrate privacy-preserving prefetch
 
@@ -91,7 +89,7 @@ works with SXGs.
   3. Stop `amppkg` with Ctrl-C.
   4. `go get -u github.com/ampproject/amppackager/cmd/amppkg_test_cache`.
   5. `amppkg_test_cache`
-  6. Open Chrome and DevTools.
+  6. Open Chrome and DevTools, as above.
   7. Visit `https://localhost:8000/`. Observe the prefetch of `/test.sxg`.
   8. Click the link. Observe that the cached SXG is used.
 
@@ -154,6 +152,9 @@ recommendations](https://gist.github.com/sleevi/5efe9ef98961ecfb4da8).
 For now, the presence of the `Vary: AMP-Cache-Transform` response header on an
 AMP HTML page will allow the Google AMP Cache to make a second request with
 `AMP-Cache-Transform: google` for the SXG.
+
+The Google Search developer preview only runs on Chrome M71+ (as of 2018-11-12,
+Beta or Dev).
 
 In the future, Googlebot may make all requests with `AMP-Cache-Transform: google`,
 eliminating the double fetch.
