@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -88,6 +89,11 @@ var statusNotModifiedHeaders = map[string]bool{
 	"Expires":          true,
 	"Vary":             true,
 }
+
+// A comma, as would appear in a Connection header. Comma-separation is defined
+// in https://tools.ietf.org/html/rfc7230#section-7, with OWS defined in
+// https://tools.ietf.org/html/rfc7230#appendix-B.
+var comma *regexp.Regexp = regexp.MustCompile(`[ \t]*,[ \t]*`)
 
 // MICE requires the sender process its payload in reverse order
 // (https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.1).
@@ -158,6 +164,15 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Re
 	resp, err := this.client.Do(req)
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
+	}
+	// Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
+	if connections, ok := resp.Header[http.CanonicalHeaderKey("Connection")]; ok {
+		for _, connection := range connections {
+			headerNames := comma.Split(connection, -1)
+			for _, headerName := range headerNames {
+				resp.Header.Del(headerName)
+			}
+		}
 	}
 	return req, resp, nil
 }

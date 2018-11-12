@@ -319,6 +319,25 @@ func (this *SignerSuite) TestEscapesLinkHeaders() {
 	this.Assert().Equal("<https://foo.com/a,b%3Ec?d%3Ee%7Cf>;rel=preload;as=script", exchange.ResponseHeaders.Get("Link"))
 }
 
+func (this *SignerSuite) TestRemovesHopByHopHeaders() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Header().Set("Connection", "Transfer-Encoding, PROXY-AUTHENTICATE")
+		resp.Header().Set("Proxy-Authenticate", "Basic")
+		resp.Header().Set("Transfer-Encoding", "chunked")
+		resp.Write([]byte("<html amp><head><link rel=stylesheet href=foo><script src=bar>"))
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().NotContains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Proxy-Authenticate"))
+	this.Assert().NotContains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Transfer-Encoding"))
+}
+
 func (this *SignerSuite) TestErrorNoCache() {
 	urlSets := []util.URLSet{{
 		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, boolPtr(true)},

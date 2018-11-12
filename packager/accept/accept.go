@@ -29,13 +29,7 @@ var SxgVersion = version.Version1b2
 //   https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation/List_of_default_Accept_values
 // So we'll live with this deficiency for the sake of not forking
 // mime.ParseMediaType.
-var comma *regexp.Regexp = func() *regexp.Regexp {
-	re, err := regexp.Compile(`[ \t]*,[ \t]*`)
-	if err != nil {
-		panic(err)
-	}
-	return re
-}()
+var comma *regexp.Regexp = regexp.MustCompile(`[ \t]*,[ \t]*`)
 
 // True if the given Accept header is one that the packager can satisfy. It
 // must contain application/signed-exchange;v=$V so that the packager knows
