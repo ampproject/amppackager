@@ -64,10 +64,7 @@ container.
 
 #### Test your config
 
-  1. Run Chrome M70 or later (as of 2018-09-18, this is
-     [Beta](https://www.google.com/chrome/beta/) or
-     [Dev](https://www.google.com/chrome/dev/)). On the
-     command-line, pass the following flags:
+  1. Run Chrome with the following commandline flags:
      ```
      --user-data-dir=/tmp/udd
      --ignore-certificate-errors-spki-list=$(openssl x509 -pubkey -noout -in path/to/fullchain.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
@@ -154,6 +151,9 @@ recommendations](https://gist.github.com/sleevi/5efe9ef98961ecfb4da8).
 For now, the presence of the `Vary: AMP-Cache-Transform` response header on an
 AMP HTML page will allow the Google AMP Cache to make a second request with
 `AMP-Cache-Transform: google` for the SXG.
+
+The Google Search developer preview only runs on Chrome M71+ (as of 2018-11-12,
+Beta or Dev).
 
 In the future, Googlebot may make all requests with `AMP-Cache-Transform: google`,
 eliminating the double fetch.
