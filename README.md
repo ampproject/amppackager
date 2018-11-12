@@ -89,7 +89,7 @@ works with SXGs.
   3. Stop `amppkg` with Ctrl-C.
   4. `go get -u github.com/ampproject/amppackager/cmd/amppkg_test_cache`.
   5. `amppkg_test_cache`
-  6. Open Chrome and DevTools.
+  6. Open Chrome and DevTools, as above.
   7. Visit `https://localhost:8000/`. Observe the prefetch of `/test.sxg`.
   8. Click the link. Observe that the cached SXG is used.
 
