@@ -26,122 +26,128 @@ import (
 )
 
 const (
-	baseURL     = "https://www.example.com/foo"
+	fooBaseURL  = "https://www.example.com/foo"
 	barBaseURL  = "https://www.example.com/bar"
 	relativeURL = "/foo"
 )
 
 func TestURLTansformer(t *testing.T) {
 	tcs := []struct {
-		desc, input, expected, docURL string
+		desc, input, expected, baseURL string
 	}{
 		{
 			desc:     "AmpImgSrcUrlNotChanged",
 			input:    "<amp-img src=" + relativeURL + "></amp-img>",
 			expected: "<amp-img src=" + relativeURL + "></amp-img>",
-			docURL:   baseURL,
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "PortableUrlHasHash",
 			input:    "<div src=" + relativeURL + "></div>",
 			expected: "<div src=#></div>",
-			docURL:   baseURL,
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "AbsoluteUrlHasNoHash",
 			input:    "<form action=" + relativeURL + "></form>",
-			expected: "<form action=" + baseURL + "></form>",
-			docURL:   barBaseURL,
+			expected: "<form action=" + fooBaseURL + "></form>",
+			baseURL:  barBaseURL,
 		},
 		{
 			desc:     "AttributeUrlsOnAnyTagBecomePortable",
 			input:    "<div src=" + relativeURL + "></div>",
-			expected: "<div src=" + baseURL + "></div>",
-			docURL:   barBaseURL,
+			expected: "<div src=" + fooBaseURL + "></div>",
+			baseURL:  barBaseURL,
 		},
 		{
 			desc: "AttributeUrlsOnAmpInstallServiceworkerTagBecomePortable",
 			input: tt.Concat("<amp-install-serviceworker data-iframe-src=", relativeURL, " data-no-service-worker-fallback-shell-url=",
 				relativeURL, "></amp-install-serviceworker>"),
-			expected: tt.Concat("<amp-install-serviceworker data-iframe-src=", baseURL, " data-no-service-worker-fallback-shell-url=",
-				baseURL, "></amp-install-serviceworker>"),
-			docURL: barBaseURL,
+			expected: tt.Concat("<amp-install-serviceworker data-iframe-src=", fooBaseURL, " data-no-service-worker-fallback-shell-url=",
+				fooBaseURL, "></amp-install-serviceworker>"),
+			baseURL: barBaseURL,
 		},
 		{
 			desc: "AttributeUrlsOnAmpStoryTagBecomePortable",
 			input: tt.Concat("<amp-story background-audio=", relativeURL, " bookend-config-src=", relativeURL,
 				" poster-landscape-src=", relativeURL, " poster-square-src=", relativeURL,
 				" publisher-logo-src=", relativeURL, "></amp-story>"),
-			expected: tt.Concat("<amp-story background-audio=", baseURL, " bookend-config-src=", baseURL,
-				" poster-landscape-src=", baseURL, " poster-square-src=", baseURL,
-				" publisher-logo-src=", baseURL, "></amp-story>"),
-			docURL: barBaseURL,
+			expected: tt.Concat("<amp-story background-audio=", fooBaseURL, " bookend-config-src=", fooBaseURL,
+				" poster-landscape-src=", fooBaseURL, " poster-square-src=", fooBaseURL,
+				" publisher-logo-src=", fooBaseURL, "></amp-story>"),
+			baseURL: barBaseURL,
 		},
 		{
 			desc:     "AttributeUrlsOnAmpStoryPageTagBecomePortable",
 			input:    "<amp-story-page background-audio=" + relativeURL + "></amp-story-page>",
-			expected: "<amp-story-page background-audio=" + baseURL + "></amp-story-page>",
-			docURL:   barBaseURL,
+			expected: "<amp-story-page background-audio=" + fooBaseURL + "></amp-story-page>",
+			baseURL:  barBaseURL,
 		},
 		{
 			desc:     "AttributeUrlsOnFormTagBecomeAbsolute",
 			input:    tt.Concat("<form action=", relativeURL, " action-xhr=", relativeURL, "></form>"),
-			expected: tt.Concat("<form action=", baseURL, " action-xhr=", baseURL, "></form>"),
-			docURL:   barBaseURL,
+			expected: tt.Concat("<form action=", fooBaseURL, " action-xhr=", fooBaseURL, "></form>"),
+			baseURL:  barBaseURL,
 		},
 		{
 			desc:     "AttributeUrlsOnImageTagBecomePortable",
 			input:    "<img longdesc=" + relativeURL + "/>",
-			expected: "<img longdesc=" + baseURL + "/>",
-			docURL:   barBaseURL,
+			expected: "<img longdesc=" + fooBaseURL + "/>",
+			baseURL:  barBaseURL,
 		},
 		{
 			desc:     "BaseHrefRemoved",
-			input:    "<base href=" + baseURL + "/>",
+			input:    "<base href=" + fooBaseURL + "/>",
 			expected: "",
-			docURL:   baseURL,
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "Both tags parsed.",
-			input:    "<base href=" + baseURL + "/><link href=" + relativeURL + "/ rel=canonical>",
-			expected: "<link href=" + baseURL + "/ rel=canonical>",
-			docURL:   baseURL,
+			input:    "<base href=" + fooBaseURL + "/><link href=" + relativeURL + "/ rel=canonical>",
+			expected: "<link href=" + fooBaseURL + "/ rel=canonical>",
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "LinkCanonicalHrefBecomeAbsolute",
 			input:    "<link href=" + relativeURL + "/ rel=canonical>",
-			expected: "<link href=" + baseURL + "/ rel=canonical>",
-			docURL:   baseURL,
+			expected: "<link href=" + fooBaseURL + "/ rel=canonical>",
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "AnchorTagHrefBecomesFragmentAndNoTargetAdded",
 			input:    "<a href=" + relativeURL + ">anchor</a>",
 			expected: "<a href=#>anchor</a>",
-			docURL:   baseURL,
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "AnchorTagTargetDefaultsToTop",
-			input:    "<a href=" + baseURL + "/>anchor</a>",
-			expected: "<a href=" + baseURL + "/ target=_top>anchor</a>",
-			docURL:   baseURL,
+			input:    "<a href=" + fooBaseURL + "/>anchor</a>",
+			expected: "<a href=" + fooBaseURL + "/ target=_top>anchor</a>",
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "AnchorTagTargetStaysBlank",
-			input:    "<a href=" + baseURL + "/ target=_blank>anchor</a>",
-			expected: "<a href=" + baseURL + "/ target=_blank>anchor</a>",
-			docURL:   baseURL,
+			input:    "<a href=" + fooBaseURL + "/ target=_blank>anchor</a>",
+			expected: "<a href=" + fooBaseURL + "/ target=_blank>anchor</a>",
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "AnchorTagTargetOverridesToDefault",
-			input:    "<a href=" + baseURL + "/ target=popup>anchor</a>",
-			expected: "<a href=" + baseURL + "/ target=_top>anchor</a>",
-			docURL:   baseURL,
+			input:    "<a href=" + fooBaseURL + "/ target=popup>anchor</a>",
+			expected: "<a href=" + fooBaseURL + "/ target=_top>anchor</a>",
+			baseURL:  fooBaseURL,
+		},
+		{
+			desc:     "AnchorTagTargetInTemplateNoop",
+			input:    "<template><a href=" + fooBaseURL + "/ target=popup>anchor</a></template>",
+			expected: "<template><a href=" + fooBaseURL + "/ target=popup>anchor</a></template>",
+			baseURL:  fooBaseURL,
 		},
 		{
 			desc:     "NonAnchorHrefUrlBecomePortable",
 			input:    "<link href=" + relativeURL + "/ itemprop=sameas/>",
-			expected: "<link href=" + baseURL + "/ itemprop=sameas/>",
-			docURL:   barBaseURL,
+			expected: "<link href=" + fooBaseURL + "/ itemprop=sameas/>",
+			baseURL:  barBaseURL,
 		},
 	}
 	for _, tc := range tcs {
@@ -158,9 +164,9 @@ func TestURLTansformer(t *testing.T) {
 			continue
 		}
 		context := transformers.Context{DOM: inputDOM}
-		context.DocumentURL, err = url.Parse(tc.docURL)
+		context.BaseURL, err = url.Parse(tc.baseURL)
 		if err != nil {
-			t.Errorf("%s\nurl.Parse for %s failed %q", tc.desc, tc.docURL, err)
+			t.Errorf("%s\nurl.Parse for %s failed %q", tc.desc, tc.baseURL, err)
 			continue
 		}
 		transformers.URL(&context)

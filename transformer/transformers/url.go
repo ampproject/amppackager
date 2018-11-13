@@ -24,18 +24,12 @@ import (
 	"golang.org/x/net/html"
 )
 
-var /* const */ anyTagAttrs = []string{"src"}
+var /* const */ anyTagAttrs = []string{"background", "src"}
 var /* const */ ampInstallServiceWorkerTagAttrs = []string{"data-iframe-src", "data-no-service-worker-fallback-shell-url"}
 var /* const */ ampStoryTagAttrs = []string{"background-audio", "bookend-config-src", "poster-landscape-src", "poster-square-src", "publisher-logo-src"}
 var /* const */ ampStoryPageTagAttrs = []string{"background-audio"}
 var /* const */ formTagAttrs = []string{"action", "action-xhr"}
 var /* const */ imgTagAttrs = []string{"longdesc"}
-
-// baseInfo encapsulates data about the <base> tag of the document.
-type baseInfo struct {
-	url    *url.URL
-	target string
-}
 
 // URL operates on URL attributes, rewriting URLs as needed
 // depending on whether the document is being served from the AMP
@@ -78,11 +72,11 @@ type baseInfo struct {
 //     [1]. TODO(b/112417267): Handle amp-img rewriting.
 //
 func URL(e *Context) error {
-	b := extractBase(e.DOM.HeadNode, e.DocumentURL)
+	target := extractBaseTarget(e.DOM.HeadNode)
 
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
-		// Skip text nodes
-		if n.Type == html.TextNode {
+		// Skip text nodes and anything inside mustache templates
+		if n.Type == html.TextNode || htmlnode.IsDescendantOf(n, atom.Template) {
 			continue
 		}
 
@@ -92,26 +86,26 @@ func URL(e *Context) error {
 		}
 
 		// Make attributes with URLs portable on any tag
-		rewritePortableURLs(n, b.url, anyTagAttrs)
+		rewritePortableURLs(n, e.BaseURL, anyTagAttrs)
 
 		switch n.DataAtom {
 		case atom.Form:
 			// Make attributes with URLs absolute on <form> tag.
-			rewriteAbsoluteURLs(n, b.url, formTagAttrs)
+			rewriteAbsoluteURLs(n, e.BaseURL, formTagAttrs)
 		case atom.Img:
 			// Make attributes with URLs portable on <img> tag.
-			rewritePortableURLs(n, b.url, imgTagAttrs)
+			rewritePortableURLs(n, e.BaseURL, imgTagAttrs)
 		default:
 			switch n.Data {
 			case "amp-install-serviceworker":
 				// Make attributes with URLs portable on <amp-install-serviceworker> tag.
-				rewritePortableURLs(n, b.url, ampInstallServiceWorkerTagAttrs)
+				rewritePortableURLs(n, e.BaseURL, ampInstallServiceWorkerTagAttrs)
 			case amphtml.AMPStory:
 				// Make attributes with URLs portable on <amp-story> tag.
-				rewritePortableURLs(n, b.url, ampStoryTagAttrs)
+				rewritePortableURLs(n, e.BaseURL, ampStoryTagAttrs)
 			case "amp-story-page":
 				// Make attributes with URLs portable on <amp-story-page> tag.
-				rewritePortableURLs(n, b.url, ampStoryPageTagAttrs)
+				rewritePortableURLs(n, e.BaseURL, ampStoryPageTagAttrs)
 			}
 		}
 
@@ -129,61 +123,50 @@ func URL(e *Context) error {
 			// 2) Other hrefs are absolutified in the document relative to the base
 			//    href. Thus, it is not necessary to maintain the base href for
 			//    browser URL resolution.
-			if n.DataAtom == atom.Base {
+			switch n.DataAtom {
+			case atom.Base:
 				htmlnode.RemoveAttribute(n, href)
 				if len(n.Attr) == 0 {
 					htmlnode.RemoveNode(&n)
-					continue
 				}
-			} else if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && n.DataAtom == atom.Link && v == "canonical" {
-				// If the origin doc is self-canonical, it should be an absolute URL
-				// and not portable (which would result in canonical = "#").
-				// Maintain the original canonical, and absolutify it. See b/36102624
-				in := htmlnode.IsDescendantOf(n, atom.Template)
-				htmlnode.SetAttribute(n, "", "href", rewriteURL(b.url, in, href.Val, true))
-			} else if n.DataAtom == atom.A {
-				in := htmlnode.IsDescendantOf(n, atom.Template)
-				portableHref := rewriteURL(b.url, in, href.Val, false)
+			case atom.Link:
+				if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && v == "canonical" {
+					// If the origin doc is self-canonical, it should be an absolute URL
+					// and not portable (which would result in canonical = "#").
+					// Maintain the original canonical, and absolutify it. See b/36102624
+					htmlnode.SetAttribute(n, "", "href", amphtml.RewriteAbsoluteURL(e.BaseURL, href.Val))
+				} else {
+					htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, href.Val))
+				}
+			case atom.A:
+				portableHref := amphtml.RewritePortableURL(e.BaseURL, href.Val)
 				// Set a default target
 				// 1. If the href is not a fragment AND
 				// 2. If there is no target OR If there is a target and it is not an allowed target
 				if !strings.HasPrefix(portableHref, "#") {
 					if v, ok := htmlnode.GetAttributeVal(n, "target"); !ok || (ok && !isAllowedTarget(v)) {
-						htmlnode.SetAttribute(n, "", "target", b.target)
+						htmlnode.SetAttribute(n, "", "target", target)
 					}
 				}
 				htmlnode.SetAttribute(n, "", "href", portableHref)
-			} else {
+			default:
 				// Make a PortableUrl for any remaining tags with href.
-				in := htmlnode.IsDescendantOf(n, atom.Template)
-				htmlnode.SetAttribute(n, "", "href", rewriteURL(b.url, in, href.Val, false))
+				htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, href.Val))
 			}
 		}
 	}
 	return nil
 }
 
-// extractBase returns a baseInfo struct that encapsulates the base
-// URL and target values derived from the <base> tag, if it exists.
-//
-// The resulting baseInfo.url is an absolute URL using the document
-// URL as the absolute base URI and base href as the reference to
-// resolve.  baseInfo.target defaults to "_top" if not specified, or
-// if the target isn't allowed.
-func extractBase(n *html.Node, d *url.URL) *baseInfo {
-	b := baseInfo{d, "_top"}
-	if n, ok := htmlnode.FindNode(n, atom.Base); ok {
-		if v, ok := htmlnode.GetAttributeVal(n, "href"); ok {
-			u, err := url.Parse(v)
-			if err != nil {
-				b.url = u
-			}
-		}
+// extractBaseTarget returns the target value derived from the <base> tag, if it exists,
+// and is allowed. Otherwise, returns "_top".
+func extractBaseTarget(head *html.Node) string {
+	if n, ok := htmlnode.FindNode(head, atom.Base); ok {
 		if v, ok := htmlnode.GetAttributeVal(n, "target"); ok && isAllowedTarget(v) {
-			b.target = v
+			return v
 		}
 	}
-	return &b
+	return "_top"
 }
 
 // isAllowedTarget returns true if the given string is either "_blank" or "_top"
@@ -194,66 +177,19 @@ func isAllowedTarget(t string) bool {
 // rewriteAbsoluteURLs rewrites URLs in the given slice of attributes
 // to be absolute for the base URL provided.
 func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
-	rewriteURLs(n, base, tagAttrs, true)
+	for _, attr := range tagAttrs {
+		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
+			htmlnode.SetAttribute(n, "", attr, amphtml.RewriteAbsoluteURL(base, v))
+		}
+	}
 }
 
 // rewritePortableURLs rewrites URLs in the given slice of attributes
 // to be portable relative to the base URL provided.
 func rewritePortableURLs(n *html.Node, base *url.URL, tagAttrs []string) {
-	rewriteURLs(n, base, tagAttrs, false)
-}
-
-func rewriteURLs(n *html.Node, base *url.URL, tagAttrs []string, absolute bool) {
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
-			in := htmlnode.IsDescendantOf(n, atom.Template)
-			if in {
-				return
-			}
-			htmlnode.SetAttribute(n, "", attr, rewriteURL(base, in, v, absolute))
+			htmlnode.SetAttribute(n, "", attr, amphtml.RewritePortableURL(base, v))
 		}
 	}
-}
-
-func rewriteURL(base *url.URL, inTemplate bool, url string, absolute bool) string {
-	if inTemplate {
-		// For b/26741101, do not rewrite URLs within mustache templates
-		return url
-	}
-	orig := url
-	url = strings.TrimSpace(url)
-	if url == "" {
-		return orig
-	}
-
-	// For b/27292423:
-	// In general, if the origin doc was fetched on http:// and has a relative
-	// URL to a resource, we must assume that the resource may only be
-	// available on http. However: if the subresource has a protocol-relative
-	// path (beginning with '//') this is a clear statement that either
-	// HTTP or HTTPS can work. Special-case the protocol-relative case.
-	if strings.HasPrefix(url, "//") {
-		return "https:" + url
-	}
-	u, err := base.Parse(url)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
-		return url
-	}
-
-	uVal := u.String()
-	if absolute {
-		return uVal
-	}
-
-	if uVal == base.String()+u.Fragment {
-		// Keep links to page-local fragments relative.
-		// Otherwise, we'll turn "#dogs" into "https://origin.com/page.html#dogs"
-		// and send the user away when we could have kept them on the page they
-		// already loaded for a better experience.
-		//
-		// This also handles the case where base == url, and neither has
-		// a fragment. In which case we emit '#' which links to the top of the page.
-		return "#" + u.Fragment
-	}
-	return uVal
 }

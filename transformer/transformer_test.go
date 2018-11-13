@@ -86,6 +86,10 @@ func TestPreloads(t *testing.T) {
 			"<html ⚡><link rel=stylesheet href=foo>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}},
 		},
+		{ // case-insensitive
+			"<html ⚡><link rel=STYLEsheet href=foo>",
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}},
+		},
 		{
 			"<html ⚡><link rel=stylesheet href=foo><script src=bar>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}, {Url: "bar", As: "script"}},
@@ -288,6 +292,50 @@ func TestRequireAMPAttribute(t *testing.T) {
 		_, _, err = Process(&r)
 		if (err != nil) != test.expectedErrorInAMP4Email {
 			t.Errorf("%s: Process(AMP4Email) has error=%#v want=%t", test.desc, err, test.expectedErrorInAMP4Email)
+		}
+	}
+}
+
+func TestBaseURL(t *testing.T) {
+	docURL := "http://example.com/a/page.html"
+	tests := []struct {
+		desc, base, expected string
+	}{
+		{
+			"no base href",
+			"<base target=_top>",
+			docURL,
+		},
+		{
+			"absolute",
+			"<base href=https://www.foo.com>",
+			"https://www.foo.com",
+		},
+		{
+			"relative",
+			"<base href=\"./child/to/a\">",
+			"http://example.com/a/child/to/a",
+		},
+		{
+			"relative to root",
+			"<base href=\"/\">",
+			"http://example.com/",
+		},
+	}
+	for _, test := range tests {
+		// Remember the original function and reinstate after test
+		orig := runTransformers
+		defer func() { runTransformers = orig }()
+		runTransformers = func(e *transformers.Context, fs []func(*transformers.Context) error) error {
+			if e.BaseURL.String() != test.expected {
+				t.Errorf("%s : setBaseURL(%s)=%s, want=%s", test.desc, test.base, e.BaseURL, test.expected)
+			}
+			return nil
+		}
+		r := rpb.Request{Html: "<html amp><head>" + test.base + "</head></html>", DocumentUrl: docURL, Config: rpb.Request_NONE}
+		_, _, err := Process(&r)
+		if err != nil {
+			t.Fatalf("Process(%v) unexpectedly failed %v", test.desc, err)
 		}
 	}
 }
