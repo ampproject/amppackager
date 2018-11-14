@@ -25,7 +25,7 @@ const (
 	relativeURL = "/foo"
 )
 
-func TestRewriteURLs(t *testing.T) {
+func TestToURLs(t *testing.T) {
 	tcs := []struct {
 		desc, input, expectedPortable, expectedAbsolute, baseURL string
 	}{
@@ -88,14 +88,14 @@ func TestRewriteURLs(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		baseParsed, _ := url.Parse(tc.baseURL)
-		actual := RewriteAbsoluteURL(baseParsed, tc.input)
+		actual := ToAbsoluteURL(baseParsed, tc.input)
 		if actual != tc.expectedAbsolute {
-			t.Errorf("%s: RewriteAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
+			t.Errorf("%s: ToAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
 		}
 
-		actual = RewritePortableURL(baseParsed, tc.input)
+		actual = ToPortableURL(baseParsed, tc.input)
 		if actual != tc.expectedPortable {
-			t.Errorf("%s: RewritePortableURL=%s want=%s", tc.desc, actual, tc.expectedPortable)
+			t.Errorf("%s: ToPortableURL=%s want=%s", tc.desc, actual, tc.expectedPortable)
 		}
 	}
 }

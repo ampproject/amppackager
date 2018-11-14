@@ -21,7 +21,7 @@ import (
 	"strings"
 )
 
-// RewriteAbsoluteURL returns a URL string suitable for the AMP cache's
+// ToAbsoluteURL returns a URL string suitable for the AMP cache's
 // view of the given input URL. The resulting "absolute" URL, can be
 // one of two possibilies:
 //  - an absolute URL pointing to the same coordinates as the {url, base} tuple
@@ -36,17 +36,17 @@ import (
 // path-relative, or fragment-relative. It could be a data: URL, it could
 // be empty, it could be grotesquely malformed. It came from the internet.
 // If relative, it is relative to base.
-func RewriteAbsoluteURL(base *url.URL, url string) string {
-	return rewriteURL(base, url, true)
+func ToAbsoluteURL(base *url.URL, url string) string {
+	return convertToPortableOrAbsoluteURL(base, url, true)
 }
 
-// RewritePortableURL is similar to RewriteAbsoluteURL() except that it
+// ToPortableURL is similar to RewriteAbsoluteURL() except that it
 // preserves fragment-relative URLs when url points to the same document as base.
-func RewritePortableURL(base *url.URL, url string) string {
-	return rewriteURL(base, url, false)
+func ToPortableURL(base *url.URL, url string) string {
+	return convertToPortableOrAbsoluteURL(base, url, false)
 }
 
-func rewriteURL(base *url.URL, url string, absolute bool) string {
+func convertToPortableOrAbsoluteURL(base *url.URL, url string, absolute bool) string {
 	orig := url
 	url = strings.TrimSpace(url)
 	if url == "" {

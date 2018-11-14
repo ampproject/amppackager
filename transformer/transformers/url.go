@@ -134,12 +134,12 @@ func URL(e *Context) error {
 					// If the origin doc is self-canonical, it should be an absolute URL
 					// and not portable (which would result in canonical = "#").
 					// Maintain the original canonical, and absolutify it. See b/36102624
-					htmlnode.SetAttribute(n, "", "href", amphtml.RewriteAbsoluteURL(e.BaseURL, href.Val))
+					htmlnode.SetAttribute(n, "", "href", amphtml.ToAbsoluteURL(e.BaseURL, href.Val))
 				} else {
-					htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, href.Val))
+					htmlnode.SetAttribute(n, "", "href", amphtml.ToPortableURL(e.BaseURL, href.Val))
 				}
 			case atom.A:
-				portableHref := amphtml.RewritePortableURL(e.BaseURL, href.Val)
+				portableHref := amphtml.ToPortableURL(e.BaseURL, href.Val)
 				// Set a default target
 				// 1. If the href is not a fragment AND
 				// 2. If there is no target OR If there is a target and it is not an allowed target
@@ -151,7 +151,7 @@ func URL(e *Context) error {
 				htmlnode.SetAttribute(n, "", "href", portableHref)
 			default:
 				// Make a PortableUrl for any remaining tags with href.
-				htmlnode.SetAttribute(n, "", "href", amphtml.RewritePortableURL(e.BaseURL, href.Val))
+				htmlnode.SetAttribute(n, "", "href", amphtml.ToPortableURL(e.BaseURL, href.Val))
 			}
 		}
 	}
@@ -179,7 +179,7 @@ func isAllowedTarget(t string) bool {
 func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
-			htmlnode.SetAttribute(n, "", attr, amphtml.RewriteAbsoluteURL(base, v))
+			htmlnode.SetAttribute(n, "", attr, amphtml.ToAbsoluteURL(base, v))
 		}
 	}
 }
@@ -189,7 +189,7 @@ func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
 func rewritePortableURLs(n *html.Node, base *url.URL, tagAttrs []string) {
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
-			htmlnode.SetAttribute(n, "", attr, amphtml.RewritePortableURL(base, v))
+			htmlnode.SetAttribute(n, "", attr, amphtml.ToPortableURL(base, v))
 		}
 	}
 }
