@@ -19,15 +19,16 @@ import (
 	"testing"
 )
 
-const (
-	fooBaseURL  = "https://www.example.com/foo"
-	barBaseURL  = "https://www.example.com/bar"
-	relativeURL = "/foo"
-)
+const relativeURL = "/foo"
 
 func TestToURLs(t *testing.T) {
+	fooBaseURL, _ := url.Parse("https://www.example.com/foo")
+	barBaseURL, _ := url.Parse("https://www.example.com/bar")
+	otherURL, _ := url.Parse("http://otherdomain.com")
+
 	tcs := []struct {
-		desc, input, expectedPortable, expectedAbsolute, baseURL string
+		desc, input, expectedPortable, expectedAbsolute string
+		baseURL                                         *url.URL
 	}{
 		{
 			desc:             "Empty",
@@ -35,6 +36,13 @@ func TestToURLs(t *testing.T) {
 			expectedPortable: "",
 			expectedAbsolute: "",
 			baseURL:          barBaseURL,
+		},
+		{
+			desc:             "Null base",
+			input:            fooBaseURL.String(),
+			expectedPortable: fooBaseURL.String(),
+			expectedAbsolute: fooBaseURL.String(),
+			baseURL:          nil,
 		},
 		{
 			desc:             "protocol relative path",
@@ -52,48 +60,47 @@ func TestToURLs(t *testing.T) {
 		},
 		{
 			desc:             "valid absolute",
-			input:            fooBaseURL,
-			expectedPortable: fooBaseURL,
-			expectedAbsolute: fooBaseURL,
+			input:            fooBaseURL.String(),
+			expectedPortable: fooBaseURL.String(),
+			expectedAbsolute: fooBaseURL.String(),
 			baseURL:          barBaseURL,
 		},
 		{
 			desc:             "valid relative",
 			input:            relativeURL,
-			expectedPortable: fooBaseURL,
-			expectedAbsolute: fooBaseURL,
+			expectedPortable: fooBaseURL.String(),
+			expectedAbsolute: fooBaseURL.String(),
 			baseURL:          barBaseURL,
 		},
 		{
 			desc:             "same replaced with fragment",
-			input:            barBaseURL,
+			input:            barBaseURL.String(),
 			expectedPortable: "#",
-			expectedAbsolute: barBaseURL,
+			expectedAbsolute: barBaseURL.String(),
 			baseURL:          barBaseURL,
 		},
 		{
 			desc:             "fragment same base",
-			input:            barBaseURL + "#dogs",
+			input:            barBaseURL.String() + "#dogs",
 			expectedPortable: "#dogs",
-			expectedAbsolute: barBaseURL + "#dogs",
+			expectedAbsolute: barBaseURL.String() + "#dogs",
 			baseURL:          barBaseURL,
 		},
 		{
 			desc:             "fragment different base",
-			input:            barBaseURL + "#dogs",
-			expectedPortable: barBaseURL + "#dogs",
-			expectedAbsolute: barBaseURL + "#dogs",
-			baseURL:          "http://otherdomain.com",
+			input:            barBaseURL.String() + "#dogs",
+			expectedPortable: barBaseURL.String() + "#dogs",
+			expectedAbsolute: barBaseURL.String() + "#dogs",
+			baseURL:          otherURL,
 		},
 	}
 	for _, tc := range tcs {
-		baseParsed, _ := url.Parse(tc.baseURL)
-		actual := ToAbsoluteURL(baseParsed, tc.input)
+		actual := ToAbsoluteURL(tc.baseURL, tc.input)
 		if actual != tc.expectedAbsolute {
 			t.Errorf("%s: ToAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
 		}
 
-		actual = ToPortableURL(baseParsed, tc.input)
+		actual = ToPortableURL(tc.baseURL, tc.input)
 		if actual != tc.expectedPortable {
 			t.Errorf("%s: ToPortableURL=%s want=%s", tc.desc, actual, tc.expectedPortable)
 		}
