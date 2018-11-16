@@ -5,7 +5,7 @@
 > of it. Feel free to use it, but treat with care how you configure and deploy it.
 
 AMP Packager is a tool to [improve AMP
-URLs](https://amphtml.wordpress.com/2018/01/09/improving-urls-for-amp-pages/).
+URLs](https://www.ampproject.org/latest/blog/developer-preview-of-better-amp-urls-in-google-search).
 By running it in a proper configuration, web publishers may (eventually) have
 origin URLs appear in AMP search results.
 
