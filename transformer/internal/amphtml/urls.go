@@ -17,8 +17,13 @@
 package amphtml
 
 import (
+	"crypto/sha256"
+	"encoding/base32"
+	"log"
 	"net/url"
 	"strings"
+
+	"golang.org/x/net/idna"
 )
 
 // ToAbsoluteURL returns a URL string suitable for the AMP cache's
@@ -45,6 +50,61 @@ func ToAbsoluteURL(base *url.URL, in string) string {
 func ToPortableURL(base *url.URL, in string) string {
 	return convertToPortableOrAbsoluteURL(base, in, false)
 }
+
+// ToCacheURLDomain returns the domain (including scheme) corresponding to the given
+// publisher's origin on the AMP Cache.
+//
+// For example, example.com will return https://example-com.cdn.ampproject.org
+func ToCacheURLDomain(originHost string) string {
+	return "https://" + toCacheURLSubdomain(originHost) + "." + AMPCacheHostName
+}
+
+// toCacheURLSubdomain converts an origin domain name to a dot-free human-readable string,
+// that can be used in combination with an AMP Cache domain to identify the publisher's
+// subdomain within that cache. If problems are encountered, fallback to a one-way hash.
+//
+// 1. Converts the origin domain from IDN (Punycode) to UTF-8.
+// 2. Replaces every "-" (dash) with "--"(2 dashes).
+// 3. Replaces every "." (dot) with a "-" (dash).
+// 4. Converts back to IDN (Punycode).
+//
+// For example, if the origin is www.example.com, its cache prefix will be www-example-com.
+// On Google's AMP Cache, this will be prepended to the Google cache domain resulting in
+// www-example-com.cdn.ampproject.org .
+// See https://developers.google.com/amp/cache/overview for more info
+func toCacheURLSubdomain(originHost string) string {
+	p := idna.New(idna.MapForLookup(), idna.VerifyDNSLength(true), idna.Transitional(true), idna.BidiRule())
+	unicode, err := p.ToUnicode(originHost)
+	if err != nil {
+		return fallbackCacheURLSubdomain(originHost)
+	}
+	var sb strings.Builder
+	for _, rune := range unicode {
+		switch rune {
+		case '.':
+			sb.WriteRune('-')
+		case '-':
+			sb.WriteString("--")
+		default:
+			sb.WriteRune(rune)
+		}
+	}
+	if result, err := p.ToASCII(sb.String()); err == nil && strings.ContainsRune(sb.String(), '-') {
+		log.Println("toascii", err)
+		return result
+	}
+	return fallbackCacheURLSubdomain(originHost)
+}
+
+
+func fallbackCacheURLSubdomain(originHost string) string {
+	sha := sha256.New()
+	sha.Write([]byte(originHost))
+	result := base32.StdEncoding.EncodeToString(sha.Sum(nil))
+	// Remove the last four chars are always "====" which are not legal in a domain name.
+	return strings.ToLower(result[0:52])
+}
+
 
 func convertToPortableOrAbsoluteURL(base *url.URL, in string, absolute bool) string {
 	if base == nil {

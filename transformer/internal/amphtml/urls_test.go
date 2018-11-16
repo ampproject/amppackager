@@ -106,3 +106,82 @@ func TestToURLs(t *testing.T) {
 		}
 	}
 }
+
+func TestToCacheURLDomain(t *testing.T) {
+	tcs := []struct {
+		desc, input, expected string
+	}{
+		{
+			desc:     "simple case",
+			input:    "example.com",
+			expected: "example-com",
+		},
+		{
+			desc:     "simple case, case-insensitive",
+			input:    "ExAMpLE.Com",
+			expected: "example-com",
+		},
+		{
+			desc:     "origin has no dots or hyphes, use hash",
+			input:    "toplevelnohyphens",
+			expected: "qsgpfjzulvuaxb66z77vlhb5gu2irvcnyp6t67cz6tqo5ae6fysa",
+		},
+		{
+			desc:     "Human-readable form too long; use hash",
+			input:    "itwasadarkandstormynight.therainfellintorrents.exceptatoccasionalintervalswhenitwascheckedby.aviolentgustofwindwhichsweptupthestreets.com",
+			expected: "dgz4cnrxufaulnwku4ow5biptyqnenjievjht56hd7wqinbdbteq",
+		},
+		{
+			desc:     "IDN",
+			input:    "xn--bcher-kva.ch",
+			expected: "xn--bcher-ch-65a",
+		},
+		{
+			desc:     "RTL",
+			input:    "xn--4gbrim.xn----rmckbbajlc6dj7bxne2c.xn--wgbh1c",
+			expected: "xn-------i5fvcbaopc6fkc0de0d9jybegt6cd",
+		},
+		{
+			desc:     "Mixed Bidi, use hash",
+			input:    "hello.xn--4gbrim.xn----rmckbbajlc6dj7bxne2c.xn--wgbh1c",
+			expected: "a6h5moukddengbsjm77rvbosevwuduec2blkjva4223o4bgafgla",
+		},
+		{
+			desc:     "Punify(ز۰.ز٠) = xn--xgb49a.xn--xgb6g. Cannot mix two alternative Arabic ranges. Use hash",
+			input:    "xn--xgb49a.xn--xgb6g",
+			expected: "asdk26k2mfqxgc6cdx3oh3vlnx42rqwn6uvsuqrufnx622tguq6q",
+		},
+		{
+			desc:     "Same Arabic range is ok",
+			input:    "xn--xgb49a.xn--xgb49a",
+			expected: "xn----lncb27eca",
+		},
+		{
+			desc:     "R-LDH: cannot contain double hyphen in 3 and 4th char positions",
+			input:    "in--trouble.com",
+			expected: "r5s7rxu53tjelpr7ngbxkxpirbrylvbwcuueckh7gmn5mim5cjna",
+		},
+		{
+			desc:     "R-LDH #2",
+			input:    "in-trouble.com",
+			expected: "j7pweznglei73fva3bo6oidjt74j3hx4tfyncjsdwud7r7cci4va",
+		},
+		{
+			desc:     "R-LDH #3",
+			input:    "a--problem.com",
+			expected: "a47psvede4jpgjom2kzmuhop74zzmdpjzasoctyoqqaxbkdbsyiq",
+		},
+		{
+			desc:     "Transition mapping per UTS #46",
+			input:    "faß.de",
+			expected: "fass-de",
+		},
+	}
+	for _, tc := range tcs {
+		expected := "https://" + toCacheURLSubdomain(tc.input) + ".cdn.ampproject.org"
+		actual := ToCacheURLDomain(tc.input)
+		if actual != expected {
+			t.Errorf("ToCacheURLDomain(%s)=%s, want=%s", tc.desc, actual, expected)
+		}
+	}
+}
