@@ -25,23 +25,30 @@ import (
 	"golang.org/x/net/html"
 )
 
+type nodeContext struct {
+	node    *html.Node
+	baseURL *url.URL
+}
+
 // URLRewrite rewrites links to point to the AMP Cache.
 // Affected links:
 //  * <amp-img/amp-anim src>
 //  * <amp-img/amp-anim srcset>
 //  * <img src> / <img srcset> within <noscript>
-//  * TODO(alin04): <image href> / <image xlink:href> which are SVG-specific images.
-//  * TODO(alin04): <link rel=icon href>
-//  * TODO(alin04): <amp-video poster>
-//  * TODO(alin04): <use xlink:href>
+//  * <image href> / <image xlink:href> which are SVG-specific images.
+//  * <link rel=icon href>
+//  * <amp-video poster>
+//  * <use xlink:href>
 //  * TODO(alin04): a background image given in the <style amp-custom> tag / style attribute
 //  * TODO(alin04): any fonts given in the <style amp-custom> tag / style attribute
-//  * TODO(alin04): background attributes.
+//  * background attributes.
 func URLRewrite(e *Context) error {
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
 		if n.Type == html.TextNode {
 			continue
 		}
+
+		nc := nodeContext{n, e.BaseURL}
 
 		if n.DataAtom == atom.Style && htmlnode.HasAttribute(n, "", amphtml.AMPCustom) {
 			// TODO(alin04): parse url tokens in css
@@ -57,48 +64,43 @@ func URLRewrite(e *Context) error {
 			continue
 		}
 
+		// For b/78468289, rewrite the 'background' attribute on any element
+		// to point into the AMP Cache. At the time of writing this code, no
+		// validator rule actually allows this attribute, but we want to have
+		// this in place as defense in depth in case the attribute is added
+		// in the future.
+		nc.rewriteSimpleImgAttr("", "background")
+
 		switch n.Data {
 		case "link":
 			// Rewrite 'href' attribute within <link rel="icon" href=...> and variants
 			// to point into the AMP Cache.
 			if htmlnode.HasAttribute(n, "", "href") {
 				if v, ok := htmlnode.GetAttributeVal(n, "", "rel"); ok && fieldsContain(v, "icon") {
-					// TODO(alin04): finish this
+					nc.rewriteSimpleImgAttr("", "href")
 				}
 			}
 
 		case "amp-img", "amp-anim", "img":
-			rewriteImgTag(e.BaseURL, n)
+			nc.rewriteSimpleImgAttr("", "src")
+
+			if v, ok := htmlnode.GetAttributeVal(n, "", "srcset"); ok {
+				htmlnode.SetAttribute(n, "", "srcset", convertSrcset(e.BaseURL, v))
+			} else {
+				// TODO(alin04): Add srcset
+			}
 
 		case "amp-video", "video":
-			if _, ok := htmlnode.GetAttributeVal(n, "", "poster"); ok {
-				// TODO(alin04): rewrite poster attribute
-			}
+			nc.rewriteSimpleImgAttr("", "poster")
 
 		case "image":
 			// For b/78468289, rewrite the 'href' or `xlink:href` attribute on an
 			// svg <image> tag to point into the AMP Cache.
-			if htmlnode.HasAttribute(n, "", "href") {
-				// TODO(alin04): Rewrite href
-			}
-			if htmlnode.HasAttribute(n, "xlink", "href") {
-				// TODO(alin04): Rewrite xlink:href
-			}
+			nc.rewriteSimpleImgAttr("", "href")
+			nc.rewriteSimpleImgAttr("xlink", "href")
 
 		case "use":
-			if _, ok := htmlnode.GetAttributeVal(n, "xlink", "href"); ok {
-				// TODO(alin04): rewrite xlink attribute
-			}
-
-		default:
-			// For b/78468289, rewrite the 'background' attribute on any element
-			// to point into the AMP Cache. At the time of writing this code, no
-			// validator rule actually allows this attribute, but we want to have
-			// this in place as defense in depth in case the attribute is added
-			// in the future.
-			if htmlnode.HasAttribute(n, "", "background") {
-				// TODO(alin04): rewrite background
-			}
+			nc.rewriteSimpleImgAttr("xlink", "href")
 		}
 	}
 
@@ -117,17 +119,10 @@ func fieldsContain(haystack, needle string) bool {
 	return false
 }
 
-// rewriteImgTag rewrites the 'src' and 'srcset' attributes to point to the AMP Cache,
-// adding the latter if it is missing.
-func rewriteImgTag(base *url.URL, n *html.Node) {
-	if v, ok := htmlnode.GetAttributeVal(n, "", "src"); ok {
-		htmlnode.SetAttribute(n, "", "src", toCacheImageURL(amphtml.ToPortableURL(base, v)))
-	}
-
-	if v, ok := htmlnode.GetAttributeVal(n, "", "srcset"); ok {
-		htmlnode.SetAttribute(n, "", "srcset", convertSrcset(base, v))
-	} else {
-		// TODO(alin04): Add srcset
+// rewriteSimpleImgAttr rewrites the specified attribute value to point into the AMP cache.
+func (nc *nodeContext) rewriteSimpleImgAttr(namespace, attrName string) {
+	if v, ok := htmlnode.GetAttributeVal(nc.node, namespace, attrName); ok {
+		htmlnode.SetAttribute(nc.node, namespace, attrName, toCacheImageURL(amphtml.ToPortableURL(nc.baseURL, v)))
 	}
 }
 
@@ -139,12 +134,16 @@ func toCacheImageURL(orig string) string {
 		return orig
 	}
 	var path string
-	if origURL.Scheme == "https" {
+	switch origURL.Scheme {
+	case "https":
 		// Add the secure infix and drop the scheme.
 		path = "/s" + orig[7:]
-	} else {
+	case "http":
 		// Drop the scheme
 		path = orig[6:]
+	default:
+		// unsupported scheme
+		return orig
 	}
 
 	return amphtml.ToCacheURLDomain(origURL.Hostname()) + "/i" + path
