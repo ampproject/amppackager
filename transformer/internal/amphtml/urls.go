@@ -19,7 +19,6 @@ package amphtml
 import (
 	"crypto/sha256"
 	"encoding/base32"
-	"log"
 	"net/url"
 	"strings"
 
@@ -90,7 +89,6 @@ func toCacheURLSubdomain(originHost string) string {
 		}
 	}
 	if result, err := p.ToASCII(sb.String()); err == nil && strings.ContainsRune(sb.String(), '-') {
-		log.Println("toascii", err)
 		return result
 	}
 	return fallbackCacheURLSubdomain(originHost)
