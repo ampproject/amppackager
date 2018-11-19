@@ -28,7 +28,7 @@ func AMPBoilerplate(e *Context) error {
 	for n := e.DOM.HeadNode; n != nil && n.DataAtom != atom.Body; n = htmlnode.Next(n) {
 		switch n.DataAtom {
 		case atom.Style:
-			if !htmlnode.HasAttribute(n, amphtml.AMPCustom) {
+			if !htmlnode.HasAttribute(n, "", amphtml.AMPCustom) {
 				htmlnode.RemoveNode(&n)
 			}
 		case atom.Noscript:

@@ -143,7 +143,7 @@ func TestGetAttributeValOrNil(t *testing.T) {
 		{Element("p"), nil},
 	}
 	for _, tc := range testCases {
-		actual := GetAttributeValOrNil(tc.node, "id")
+		actual := GetAttributeValOrNil(tc.node, "", "id")
 		if tc.expected == nil {
 			if actual != nil {
 				t.Errorf("GetAttributeValOrNil(%v, \"id\") = %s, want nil", tc.node, *actual)

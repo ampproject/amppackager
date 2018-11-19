@@ -130,7 +130,7 @@ func URL(e *Context) error {
 					htmlnode.RemoveNode(&n)
 				}
 			case atom.Link:
-				if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && v == "canonical" {
+				if v, ok := htmlnode.GetAttributeVal(n, "", "rel"); ok && v == "canonical" {
 					// If the origin doc is self-canonical, it should be an absolute URL
 					// and not portable (which would result in canonical = "#").
 					// Maintain the original canonical, and absolutify it. See b/36102624
@@ -144,7 +144,7 @@ func URL(e *Context) error {
 				// 1. If the href is not a fragment AND
 				// 2. If there is no target OR If there is a target and it is not an allowed target
 				if !strings.HasPrefix(portableHref, "#") {
-					if v, ok := htmlnode.GetAttributeVal(n, "target"); !ok || (ok && !isAllowedTarget(v)) {
+					if v, ok := htmlnode.GetAttributeVal(n, "", "target"); !ok || (ok && !isAllowedTarget(v)) {
 						htmlnode.SetAttribute(n, "", "target", target)
 					}
 				}
@@ -162,7 +162,7 @@ func URL(e *Context) error {
 // and is allowed. Otherwise, returns "_top".
 func extractBaseTarget(head *html.Node) string {
 	if n, ok := htmlnode.FindNode(head, atom.Base); ok {
-		if v, ok := htmlnode.GetAttributeVal(n, "target"); ok && isAllowedTarget(v) {
+		if v, ok := htmlnode.GetAttributeVal(n, "", "target"); ok && isAllowedTarget(v) {
 			return v
 		}
 	}
@@ -178,7 +178,7 @@ func isAllowedTarget(t string) bool {
 // to be absolute for the base URL provided.
 func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
 	for _, attr := range tagAttrs {
-		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
+		if v, ok := htmlnode.GetAttributeVal(n, "", attr); ok {
 			htmlnode.SetAttribute(n, "", attr, amphtml.ToAbsoluteURL(base, v))
 		}
 	}
@@ -188,7 +188,7 @@ func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
 // to be portable relative to the base URL provided.
 func rewritePortableURLs(n *html.Node, base *url.URL, tagAttrs []string) {
 	for _, attr := range tagAttrs {
-		if v, ok := htmlnode.GetAttributeVal(n, attr); ok {
+		if v, ok := htmlnode.GetAttributeVal(n, "", attr); ok {
 			htmlnode.SetAttribute(n, "", attr, amphtml.ToPortableURL(base, v))
 		}
 	}

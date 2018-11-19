@@ -31,7 +31,7 @@ import (
 // attributes etc. And if possible, it removes the boilerplate.
 func ServerSideRendering(e *Context) error {
 	// Simple check to ensure server-side rendering is only applied once.
-	if htmlnode.HasAttribute(e.DOM.HTMLNode, amphtml.IAMPHTMLLayout) {
+	if htmlnode.HasAttribute(e.DOM.HTMLNode, "", amphtml.IAMPHTMLLayout) {
 		return nil
 	}
 	htmlnode.SetAttribute(e.DOM.HTMLNode, "", amphtml.IAMPHTMLLayout, "")
@@ -50,7 +50,7 @@ func ServerSideRendering(e *Context) error {
 			}
 
 			// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
-			if htmlnode.HasAttribute(n, "style") {
+			if htmlnode.HasAttribute(n, "", "style") {
 				continue
 			}
 
@@ -88,7 +88,7 @@ func isAmpExperimentUsed(n *html.Node) bool {
 	for c := n.FirstChild; c != nil; {
 		next := c.NextSibling
 		if c.DataAtom == atom.Script {
-			if v, ok := htmlnode.GetAttributeVal(c, "type"); ok {
+			if v, ok := htmlnode.GetAttributeVal(c, "", "type"); ok {
 				if strings.ToLower(v) == "application/json" {
 					s = c
 					break
@@ -143,17 +143,17 @@ func canRemoveBoilerplate(n *html.Node) bool {
 		if n.Data == amphtml.AMPAudio {
 			return false
 		}
-		if htmlnode.HasAttribute(n, "heights") {
+		if htmlnode.HasAttribute(n, "", "heights") {
 			return false
 		}
-		if htmlnode.HasAttribute(n, "media") {
+		if htmlnode.HasAttribute(n, "", "media") {
 			return false
 		}
-		if htmlnode.HasAttribute(n, "sizes") {
+		if htmlnode.HasAttribute(n, "", "sizes") {
 			return false
 		}
 		// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
-		if htmlnode.HasAttribute(n, "style") {
+		if htmlnode.HasAttribute(n, "", "style") {
 			return false
 		}
 	}
@@ -193,9 +193,9 @@ func removeBoilerplate(n *html.Node) {
 		case atom.Noscript:
 			n.RemoveChild(c)
 		case atom.Style:
-			if htmlnode.HasAttribute(c, amphtml.AMPBoilerplate) ||
-				htmlnode.HasAttribute(c, amphtml.AMP4AdsBoilerplate) ||
-				htmlnode.HasAttribute(c, amphtml.AMP4EmailBoilerplate) {
+			if htmlnode.HasAttribute(c, "", amphtml.AMPBoilerplate) ||
+				htmlnode.HasAttribute(c, "", amphtml.AMP4AdsBoilerplate) ||
+				htmlnode.HasAttribute(c, "", amphtml.AMP4EmailBoilerplate) {
 				n.RemoveChild(c)
 			}
 		}

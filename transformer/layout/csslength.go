@@ -116,7 +116,7 @@ func newCSSLength(input *string, allowAuto, allowFluid bool) (*cssLength, error)
 // as amp-analytics and amp-pixel, have natural dimensions (browser or
 // implemention-specific defaults for width/height).
 func getNormalizedWidth(n *html.Node, layout amppb.AmpLayout_Layout) (*cssLength, error) {
-	width, err := newCSSLength(htmlnode.GetAttributeValOrNil(n, "width"), true /*allow_auto*/, false /*allow_fluid*/)
+	width, err := newCSSLength(htmlnode.GetAttributeValOrNil(n, "", "width"), true /*allow_auto*/, false /*allow_fluid*/)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func getNormalizedWidth(n *html.Node, layout amppb.AmpLayout_Layout) (*cssLength
 // as amp-analytics or amp-pixel, have natural dimensions (browser or
 // implemention-specific defaults for width/height).
 func getNormalizedHeight(n *html.Node, layout amppb.AmpLayout_Layout) (*cssLength, error) {
-	height, err := newCSSLength(htmlnode.GetAttributeValOrNil(n, "height"), true /*allow_auto*/, layout == amppb.AmpLayout_FLUID /*allow_fluid*/)
+	height, err := newCSSLength(htmlnode.GetAttributeValOrNil(n, "", "height"), true /*allow_auto*/, layout == amppb.AmpLayout_FLUID /*allow_fluid*/)
 	if err != nil {
 		return nil, err
 	}

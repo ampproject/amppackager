@@ -43,12 +43,12 @@ func URLRewrite(e *Context) error {
 			continue
 		}
 
-		if n.DataAtom == atom.Style && htmlnode.HasAttribute(n, amphtml.AMPCustom) {
+		if n.DataAtom == atom.Style && htmlnode.HasAttribute(n, "", amphtml.AMPCustom) {
 			// TODO(alin04): parse url tokens in css
 			continue
 		}
 
-		if htmlnode.HasAttribute(n, "style") {
+		if htmlnode.HasAttribute(n, "", "style") {
 			// TODO(alin04): parse url tokens in css
 		}
 
@@ -61,8 +61,8 @@ func URLRewrite(e *Context) error {
 		case "link":
 			// Rewrite 'href' attribute within <link rel="icon" href=...> and variants
 			// to point into the AMP Cache.
-			if htmlnode.HasAttribute(n, "href") {
-				if v, ok := htmlnode.GetAttributeVal(n, "rel"); ok && fieldsContain(v, "icon") {
+			if htmlnode.HasAttribute(n, "", "href") {
+				if v, ok := htmlnode.GetAttributeVal(n, "", "rel"); ok && fieldsContain(v, "icon") {
 					// TODO(alin04): finish this
 				}
 			}
@@ -71,22 +71,22 @@ func URLRewrite(e *Context) error {
 			rewriteImgTag(e.BaseURL, n)
 
 		case "amp-video", "video":
-			if _, ok := htmlnode.GetAttributeVal(n, "poster"); ok {
+			if _, ok := htmlnode.GetAttributeVal(n, "", "poster"); ok {
 				// TODO(alin04): rewrite poster attribute
 			}
 
 		case "image":
 			// For b/78468289, rewrite the 'href' or `xlink:href` attribute on an
 			// svg <image> tag to point into the AMP Cache.
-			if htmlnode.HasAttribute(n, "href") {
+			if htmlnode.HasAttribute(n, "", "href") {
 				// TODO(alin04): Rewrite href
 			}
-			if htmlnode.HasAttribute(n, "xlink:href") {
+			if htmlnode.HasAttribute(n, "xlink", "href") {
 				// TODO(alin04): Rewrite xlink:href
 			}
 
 		case "use":
-			if _, ok := htmlnode.GetAttributeVal(n, "xlink:href"); ok {
+			if _, ok := htmlnode.GetAttributeVal(n, "xlink", "href"); ok {
 				// TODO(alin04): rewrite xlink attribute
 			}
 
@@ -96,7 +96,7 @@ func URLRewrite(e *Context) error {
 			// validator rule actually allows this attribute, but we want to have
 			// this in place as defense in depth in case the attribute is added
 			// in the future.
-			if htmlnode.HasAttribute(n, "background") {
+			if htmlnode.HasAttribute(n, "", "background") {
 				// TODO(alin04): rewrite background
 			}
 		}
@@ -120,11 +120,11 @@ func fieldsContain(haystack, needle string) bool {
 // rewriteImgTag rewrites the 'src' and 'srcset' attributes to point to the AMP Cache,
 // adding the latter if it is missing.
 func rewriteImgTag(base *url.URL, n *html.Node) {
-	if v, ok := htmlnode.GetAttributeVal(n, "src"); ok {
+	if v, ok := htmlnode.GetAttributeVal(n, "", "src"); ok {
 		htmlnode.SetAttribute(n, "", "src", toCacheImageURL(amphtml.ToPortableURL(base, v)))
 	}
 
-	if v, ok := htmlnode.GetAttributeVal(n, "srcset"); ok {
+	if v, ok := htmlnode.GetAttributeVal(n, "", "srcset"); ok {
 		htmlnode.SetAttribute(n, "", "srcset", convertSrcset(base, v))
 	} else {
 		// TODO(alin04): Add srcset

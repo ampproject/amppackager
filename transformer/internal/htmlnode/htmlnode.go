@@ -107,7 +107,7 @@ func FindAttribute(n *html.Node, namespace, key string) (*html.Attribute, bool) 
 
 // GetAttributeVal returns the value for the attribute named with
 // 'key' or ok=false if the attribute doesn't exist.
-func GetAttributeVal(n *html.Node, key string) (string, bool) {
+func GetAttributeVal(n *html.Node, namespace, key string) (string, bool) {
 	if a, ok := FindAttribute(n, "", key); ok {
 		return a.Val, true
 	}
@@ -118,15 +118,15 @@ func GetAttributeVal(n *html.Node, key string) (string, bool) {
 // attribute named with 'key' or nil if the attribute doesn't
 // exist. There are cases when it is necessary to differentiate
 // between nil versus empty (which is imposible from Go primitives).
-func GetAttributeValOrNil(n *html.Node, key string) *string {
-	if v, ok := GetAttributeVal(n, key); ok {
+func GetAttributeValOrNil(n *html.Node, namespace, key string) *string {
+	if v, ok := GetAttributeVal(n, "", key); ok {
 		return &v
 	}
 	return nil
 }
 
 // HasAttribute returns true if the node has the attribute named with 'key'.
-func HasAttribute(n *html.Node, key string) bool {
+func HasAttribute(n *html.Node, namespace, key string) bool {
 	_, ok := FindAttribute(n, "", key)
 	return ok
 }

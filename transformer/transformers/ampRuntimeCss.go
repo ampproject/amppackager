@@ -67,7 +67,7 @@ func findStyleAMPRuntime(n *html.Node) (*html.Node, bool) {
 		return nil, false
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if c.DataAtom == atom.Style && htmlnode.HasAttribute(c, amphtml.AMPRuntime) {
+		if c.DataAtom == atom.Style && htmlnode.HasAttribute(c, "", amphtml.AMPRuntime) {
 			return c, true
 		}
 	}

@@ -90,6 +90,7 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 // from an unnecessary number of fetches.
 const maxPreloads = 20
 
+
 // Override for tests.
 var runTransformers = func(c *transformers.Context, fns []func(*transformers.Context) error) error {
 	// Invoke the configured transformers
@@ -184,13 +185,13 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 	for child := dom.HeadNode.FirstChild; child != nil; child = child.NextSibling {
 		switch child.DataAtom {
 		case atom.Script:
-			if src, ok := htmlnode.GetAttributeVal(child, "src"); ok {
+			if src, ok := htmlnode.GetAttributeVal(child, "", "src"); ok {
 				preloads = append(preloads, &rpb.Metadata_Preload{Url: src, As: "script"})
 			}
 		case atom.Link:
-			if rel, ok := htmlnode.GetAttributeVal(child, "rel"); ok {
+			if rel, ok := htmlnode.GetAttributeVal(child, "", "rel"); ok {
 				if strings.EqualFold(rel, "stylesheet") {
-					if href, ok := htmlnode.GetAttributeVal(child, "href"); ok {
+					if href, ok := htmlnode.GetAttributeVal(child, "", "href"); ok {
 						preloads = append(preloads, &rpb.Metadata_Preload{Url: href, As: "style"})
 					}
 				}
@@ -209,7 +210,7 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 // This must run after DocumentURL is set on the context.
 func setBaseURL(c *transformers.Context) {
 	if n, ok := htmlnode.FindNode(c.DOM.HeadNode, atom.Base); ok {
-		if v, ok := htmlnode.GetAttributeVal(n, "href"); ok {
+		if v, ok := htmlnode.GetAttributeVal(n, "", "href"); ok {
 			if u, err := c.DocumentURL.Parse(v); err == nil {
 				c.BaseURL = u
 				return

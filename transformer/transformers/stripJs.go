@@ -44,14 +44,14 @@ func StripJS(e *Context) error {
 		}
 
 		if n.DataAtom == atom.Script {
-			srcVal, srcOk := htmlnode.GetAttributeVal(n, "src")
+			srcVal, srcOk := htmlnode.GetAttributeVal(n, "", "src")
 			if srcOk {
 				if !strings.HasPrefix(strings.ToLower(srcVal), amphtml.AMPCacheRootURL) {
 					htmlnode.RemoveNode(&n)
 					continue
 				}
 			}
-			typeVal, typeOk := htmlnode.GetAttributeVal(n, "type")
+			typeVal, typeOk := htmlnode.GetAttributeVal(n, "", "type")
 			if !srcOk && !typeOk {
 				htmlnode.RemoveNode(&n)
 				continue

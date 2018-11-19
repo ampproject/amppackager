@@ -76,10 +76,10 @@ func IsScriptAMPRuntime(n *html.Node) bool {
 	if n.DataAtom != atom.Script {
 		return false
 	}
-	if v, ok := htmlnode.GetAttributeVal(n, "src"); ok {
-		return htmlnode.HasAttribute(n, "async") &&
-			!htmlnode.HasAttribute(n, AMPCustomElement) &&
-			!htmlnode.HasAttribute(n, AMPCustomTemplate) &&
+	if v, ok := htmlnode.GetAttributeVal(n, "", "src"); ok {
+		return htmlnode.HasAttribute(n, "", "async") &&
+			!htmlnode.HasAttribute(n, "", AMPCustomElement) &&
+			!htmlnode.HasAttribute(n, "", AMPCustomTemplate) &&
 			strings.HasPrefix(v, AMPCacheRootURL) &&
 			(strings.HasSuffix(v, "/v0.js") ||
 				strings.HasSuffix(v, "/amp4ads-v0.js"))
@@ -94,12 +94,12 @@ func IsScriptAMPViewer(n *html.Node) bool {
 	}
 	a, ok := htmlnode.FindAttribute(n, "", "src")
 	return ok &&
-		!htmlnode.HasAttribute(n, AMPCustomTemplate) &&
+		!htmlnode.HasAttribute(n, "", AMPCustomTemplate) &&
 		strings.HasPrefix(a.Val,
 			AMPCacheSchemeAndHost+"/v0/amp-viewer-integration-") &&
 		strings.HasSuffix(a.Val, ".js") &&
-		htmlnode.HasAttribute(n, "async") &&
-		!htmlnode.HasAttribute(n, AMPCustomElement)
+		htmlnode.HasAttribute(n, "", "async") &&
+		!htmlnode.HasAttribute(n, "", AMPCustomElement)
 }
 
 // IsScriptRenderDelaying returns true if the node has one of these values for attribute 'custom-element': amp-dynamic-css-classes, amp-experiment, amp-story.
@@ -107,7 +107,7 @@ func IsScriptRenderDelaying(n *html.Node) bool {
 	if n.DataAtom != atom.Script {
 		return false
 	}
-	if v, ok := htmlnode.GetAttributeVal(n, AMPCustomElement); ok {
+	if v, ok := htmlnode.GetAttributeVal(n, "", AMPCustomElement); ok {
 		// TODO(b/77581738): Remove amp-story from this list.
 		return (v == AMPDynamicCSSClasses ||
 			v == AMPExperiment ||
