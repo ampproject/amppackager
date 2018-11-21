@@ -20,6 +20,7 @@ import (
 	"crypto/sha256"
 	"encoding/base32"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/idna"
@@ -50,11 +51,49 @@ func ToPortableURL(base *url.URL, in string) string {
 	return convertToPortableOrAbsoluteURL(base, in, false)
 }
 
-// ToCacheURLDomain returns the domain (including scheme) corresponding to the given
+// ImageURLRequest encapsulates the parameters for generating AMP Image Cache URLs.
+type ImageURLRequest struct {
+	// the original source image URL (must be an absolute URL)
+	Input string
+	// an optional width to convert the original image to.
+	desiredWidth int
+}
+
+// GetCacheImageURL returns the AMP Cache image URL for the given request.
+// The source input URL must be absolute. If there is a desired image width,
+// returns an AMP Cache URL that will generate the image to the correct dimensions.
+func (r *ImageURLRequest) GetCacheImageURL() string {
+	origURL, err := url.Parse(r.Input)
+	if err != nil {
+		return r.Input
+	}
+	var path string
+	switch origURL.Scheme {
+	case "https":
+		// Add the secure infix and drop the scheme.
+		path = "/s" + r.Input[len("https:/"):]
+	case "http":
+		// Drop the scheme
+		path = r.Input[len("http:/"):]
+	default:
+		// unsupported scheme
+		return r.Input
+	}
+	prefix, suffix := "/i", ""
+	if r.desiredWidth > 0 {
+		wStr := strconv.Itoa(r.desiredWidth)
+		prefix = "/ii/w" + wStr
+		suffix = " " + wStr + "w"
+	}
+
+	return toCacheURLDomain(origURL.Hostname()) + prefix + path + suffix
+}
+
+// toCacheURLDomain returns the domain (including scheme) corresponding to the given
 // publisher's origin on the AMP Cache.
 //
 // For example, example.com will return https://example-com.cdn.ampproject.org
-func ToCacheURLDomain(originHost string) string {
+func toCacheURLDomain(originHost string) string {
 	return "https://" + toCacheURLSubdomain(originHost) + "." + AMPCacheHostName
 }
 

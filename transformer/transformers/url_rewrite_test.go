@@ -25,11 +25,6 @@ func TestURLRewrite_images(t *testing.T) {
 			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"></%s>`,
 		},
 		{
-			Desc:     "%s secure src",
-			Input:    "<%s src=https://www.example.com/blah.jpg>",
-			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/s/www.example.com/blah.jpg"></%s>`,
-		},
-		{
 			Desc:     "%s adds srcset",
 			Input:    `<%s src=http://www.example.com/blah.jpg width=92 height=10>`,
 			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/ii/w100/www.example.com/blah.jpg 100w, https://www-example-com.cdn.ampproject.org/ii/w220/www.example.com/blah.jpg 220w, https://www-example-com.cdn.ampproject.org/ii/w330/www.example.com/blah.jpg 330w"></%s>`,
@@ -38,46 +33,6 @@ func TestURLRewrite_images(t *testing.T) {
 			Desc:     "%s src and srcset rewritten with baseURL",
 			Input:    `<%s src=blah.jpg width=92 height=10 srcset="blah.jpg 50w">`,
 			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"></%s>`,
-		},
-		{
-			Desc:     "%s srcset default density",
-			Input:    `<%s srcset="http://www.example.com/blah.jpg">`,
-			Expected: `<%s srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 1x"></%s>`,
-		},
-		{
-			Desc:     "%s srcset multiple",
-			Input:    `<%s srcset="image1 2x, image2, image3 3x, image4 4x ">`,
-			Expected: `<%s srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/image1 2x, https://www-example-com.cdn.ampproject.org/i/www.example.com/image2 1x, https://www-example-com.cdn.ampproject.org/i/www.example.com/image3 3x, https://www-example-com.cdn.ampproject.org/i/www.example.com/image4 4x"></%s>`,
-		},
-		{
-			Desc:     "%s srcset whitespace",
-			Input:    "<%s srcset=\"  \t\n http://www.example.com/blah.jpg  \n\t\t \">",
-			Expected: `<%s srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 1x"></%s>`,
-		},
-		{
-			Desc:     "%s srcset leading comma",
-			Input:    "<%s srcset=\" , http://www.example.com/blah.jpg \n\t\t \">",
-			Expected: `<%s srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 1x"></%s>`,
-		},
-		{
-			Desc:     "%s srcset comma in url",
-			Input:    "<%s srcset=\" , http://www.example.com/image,1 \n\t\t \">",
-			Expected: `<%s srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/image,1 1x"></%s>`,
-		},
-		{
-			Desc:     "%s srcset commas everywhehre",
-			Input:    `<%s srcset=",http://www.example.com/,/,/,/,50w,">`,
-			Expected: `<%s srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/,/,/,/,50w 1x"></%s>`,
-		},
-		{
-			Desc:     "%s srcset missing delimiter noop",
-			Input:    `<%s srcset="image1 100w image2 50w">`,
-			Expected: `<%s srcset="image1 100w image2 50w"></%s>`,
-		},
-		{
-			Desc:     "%s srcset negative value noop",
-			Input:    `<%s srcset="image1 100w, image2 -50w">`,
-			Expected: `<%s srcset="image1 100w, image2 -50w"></%s>`,
 		},
 		{
 			Desc:     "%s data:image noop",

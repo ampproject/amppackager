@@ -16,7 +16,6 @@ package transformers
 
 import (
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -90,7 +89,7 @@ func URLRewrite(e *Context) error {
 			}
 
 			if v, srcsetOk := htmlnode.GetAttributeVal(n, "", "srcset"); srcsetOk {
-				htmlnode.SetAttribute(n, "", "srcset", convertSrcset(e.BaseURL, v))
+				htmlnode.SetAttribute(n, "", "srcset", amphtml.ConvertSrcset(e.BaseURL, v))
 			} else if srcOk {
 				nc.addSrcset(src)
 			}
@@ -127,7 +126,8 @@ func fieldsContain(haystack, needle string) bool {
 // rewriteSimpleImgAttr rewrites the specified attribute value to point into the AMP cache.
 func (nc *nodeContext) rewriteSimpleImgAttr(namespace, attrName string) {
 	if v, ok := htmlnode.GetAttributeVal(nc.node, namespace, attrName); ok {
-		htmlnode.SetAttribute(nc.node, namespace, attrName, toCacheImageURL(amphtml.ToPortableURL(nc.baseURL, v), 0))
+		req := amphtml.ImageURLRequest{Input: amphtml.ToPortableURL(nc.baseURL, v)}
+		htmlnode.SetAttribute(nc.node, namespace, attrName, req.GetCacheImageURL())
 	}
 }
 
@@ -165,106 +165,8 @@ func (nc *nodeContext) addSrcset(src string) {
 		return
 	}
 
-	ssw, ok := amphtml.NewSrcsetWidth(width)
-	if !ok {
-		return
+	absolute := amphtml.ToPortableURL(nc.baseURL, src)
+	if sc, ok := amphtml.GetSrcsetFromSrc(absolute, width); ok {
+		htmlnode.SetAttribute(nc.node, "", "srcset", sc)
 	}
-	u := amphtml.ToPortableURL(nc.baseURL, src)
-	var ss []string
-	for _, w := range ssw {
-		ss = append(ss, toCacheImageURL(u, w))
-	}
-	htmlnode.SetAttribute(nc.node, "", "srcset", strings.Join(ss, ", "))
 }
-
-// toCacheImageURL takes the input URL (must be an absolute URL) and returns
-// the AMP Cache image URL equivalent of it. If the input URL cannot be parsed,
-// return it as-is. Non-negative widths indicate specific width is requested.
-func toCacheImageURL(orig string, w int) string {
-	origURL, err := url.Parse(orig)
-	if err != nil {
-		return orig
-	}
-	var path string
-	switch origURL.Scheme {
-	case "https":
-		// Add the secure infix and drop the scheme.
-		path = "/s" + orig[7:]
-	case "http":
-		// Drop the scheme
-		path = orig[6:]
-	default:
-		// unsupported scheme
-		return orig
-	}
-	prefix, suffix := "/i", ""
-	if w > 0 {
-		wStr := strconv.Itoa(w)
-		prefix = "/ii/w" + wStr
-		suffix = " " + wStr + "w"
-	}
-
-	return amphtml.ToCacheURLDomain(origURL.Hostname()) + prefix + path + suffix
-}
-
-const defaultDensity = "1x"
-
-// Regex for leading spaces, followed by an optional comma and whitespace,
-// followed by an URL*, followed by an optional space, followed by an
-// optional width or pixel density**, followed by spaces, followed by an
-// optional comma and whitespace.
-//
-// URL*: matches non-space, non-empty string which neither ends nor begins
-// with a comma. The set of space characters in the srcset attribute is
-// defined to include only ascii characters, so using \s, which is an
-// ascii only character set, is fine. See
-// https://html.spec.whatwg.org/multipage/infrastructure.html#space-character.
-//
-// Optional width or pixel density**: Matches the empty string or (one or
-// more spaces + a non empty string containing no space or commas).
-// Doesn't capture the initial space.
-//
-// \s*                       Match, but don't capture leading spaces
-// (?:,\s*)?                 Optionally match comma and trailing space,
-//                           but don't capture comma.
-// ([^,\s]\S*[^,\s])         Match something like "google.com/favicon.ico"
-//                           but not ",google.com/favicon.ico,"
-// \s*                       Match, but don't capture spaces.
-// ([\d]+.?[\d]*[w|x])?      e.g. "5w" or "5x" or "10.2x"
-// \s*                       Match, but don't capture space
-// (?:(,)\s*)?               Optionally match comma and trailing space,
-//                           capturing comma.
-var imageCandidateRE = regexp.MustCompile(`\s*(?:,\s*)?([^,\s]\S*[^,\s])\s*([\d]+.?[\d]*[w|x])?\s*(?:(,)\s*)?`)
-
-// convertSrcset returns a new string from the given srcset attribute value,
-// parsing the image candidates (as defined by
-// https://html.spec.whatwg.org/multipage/images.html#image-candidate-string
-// and rewriting any URLS to point to the AMP Cache. If there is no width or
-// pixel density, it defaults to 1x.
-// If any portion is unparseable, return the input, unconverted.
-func convertSrcset(base *url.URL, in string) string {
-	matches := imageCandidateRE.FindAllStringSubmatch(in, -1)
-	if len(matches) == 0 {
-		// if the input is completely unparseable, return the input unconverted.
-		return in
-	}
-	var sb strings.Builder
-	for i, m := range matches {
-		sb.WriteString(toCacheImageURL(amphtml.ToPortableURL(base, m[1]), 0))
-		sb.WriteRune(' ')
-		if len(m[2]) == 0 {
-			sb.WriteString(defaultDensity)
-		} else {
-			sb.WriteString(m[2])
-		}
-		if i < len(matches)-1 {
-			if len(m[3]) == 0 {
-				// missing expected comma delimiter
-				return in
-			}
-			sb.WriteString(", ")
-		}
-	}
-	return sb.String()
-}
-

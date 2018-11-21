@@ -107,6 +107,43 @@ func TestToURLs(t *testing.T) {
 	}
 }
 
+func TestGetCacheImageURL(t *testing.T) {
+	tcs := []struct {
+		desc, input, expected string
+		width                 int
+	}{
+		{
+			desc:     "image",
+			input:    "http://www.example.com/blah.jpg",
+			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+		},
+		{
+			desc:     "image with requested width",
+			input:    "http://www.example.com/blah.jpg",
+			width:    50,
+			expected: "https://www-example-com.cdn.ampproject.org/ii/w50/www.example.com/blah.jpg 50w",
+		},
+		{
+			desc:     "image negative width",
+			input:    "http://www.example.com/blah.jpg",
+			width:    -50,
+			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+		},
+		{
+			desc:     "unsupported scheme noop",
+			input:    "data:image/png.foo",
+			expected: "data:image/png.foo",
+		},
+	}
+	for _, tc := range tcs {
+		req := ImageURLRequest{tc.input, tc.width}
+		actual := req.GetCacheImageURL()
+		if actual != tc.expected {
+			t.Errorf("%s: ToCacheImageURL(%s, %d)=%s, want=%s", tc.desc, tc.input, tc.width, actual, tc.expected)
+		}
+	}
+}
+
 func TestToCacheURLDomain(t *testing.T) {
 	tcs := []struct {
 		desc, input, expected string
@@ -179,9 +216,9 @@ func TestToCacheURLDomain(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		expected := "https://" + toCacheURLSubdomain(tc.input) + ".cdn.ampproject.org"
-		actual := ToCacheURLDomain(tc.input)
+		actual := toCacheURLDomain(tc.input)
 		if actual != expected {
-			t.Errorf("ToCacheURLDomain(%s)=%s, want=%s", tc.desc, actual, expected)
+			t.Errorf("%s: ToCacheURLDomain(%s)=%s, want=%s", tc.desc, tc.input, actual, expected)
 		}
 	}
 }
