@@ -29,7 +29,11 @@ func TestURLRewrite_images(t *testing.T) {
 			Input:    "<%s src=https://www.example.com/blah.jpg>",
 			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/s/www.example.com/blah.jpg"></%s>`,
 		},
-
+		{
+			Desc:     "%s adds srcset",
+			Input:    `<%s src=http://www.example.com/blah.jpg width=92 height=10>`,
+			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/ii/w100/www.example.com/blah.jpg 100w, https://www-example-com.cdn.ampproject.org/ii/w220/www.example.com/blah.jpg 220w, https://www-example-com.cdn.ampproject.org/ii/w330/www.example.com/blah.jpg 330w"></%s>`,
+		},
 		{
 			Desc:     "%s src and srcset rewritten with baseURL",
 			Input:    `<%s src=blah.jpg width=92 height=10 srcset="blah.jpg 50w">`,

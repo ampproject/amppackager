@@ -17,6 +17,7 @@ package transformers
 import (
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
@@ -82,12 +83,16 @@ func URLRewrite(e *Context) error {
 			}
 
 		case "amp-img", "amp-anim", "img":
-			nc.rewriteSimpleImgAttr("", "src")
+			// Rewrite 'src' and 'srcset' attributes. Add 'srcset' if none.
+			src, srcOk := htmlnode.GetAttributeVal(nc.node, "", "src")
+			if srcOk {
+				nc.rewriteSimpleImgAttr("", "src")
+			}
 
-			if v, ok := htmlnode.GetAttributeVal(n, "", "srcset"); ok {
+			if v, srcsetOk := htmlnode.GetAttributeVal(n, "", "srcset"); srcsetOk {
 				htmlnode.SetAttribute(n, "", "srcset", convertSrcset(e.BaseURL, v))
-			} else {
-				// TODO(alin04): Add srcset
+			} else if srcOk {
+				nc.addSrcset(src)
 			}
 
 		case "amp-video", "video":
@@ -122,13 +127,60 @@ func fieldsContain(haystack, needle string) bool {
 // rewriteSimpleImgAttr rewrites the specified attribute value to point into the AMP cache.
 func (nc *nodeContext) rewriteSimpleImgAttr(namespace, attrName string) {
 	if v, ok := htmlnode.GetAttributeVal(nc.node, namespace, attrName); ok {
-		htmlnode.SetAttribute(nc.node, namespace, attrName, toCacheImageURL(amphtml.ToPortableURL(nc.baseURL, v)))
+		htmlnode.SetAttribute(nc.node, namespace, attrName, toCacheImageURL(amphtml.ToPortableURL(nc.baseURL, v), 0))
 	}
 }
 
+// Do not add srcset for responsive layout if the width attribute is smaller
+// than this value. In the responsive value, width and height might be used
+// for indicating the aspect ratio instead of the actual render dimension.
+// This happens often when the width and height have small values. Value of
+// 300 is chosen based on the assumption that it is large enough to be the
+// render dimension, however, we may need to adjust this value if the assumption
+// is found invalid later.
+const minWidthToAddSrcsetInResponsiveLayout = 300
+
+// addSrcset adds a srcset attribute, if applicable.
+func (nc *nodeContext) addSrcset(src string) {
+	if strings.HasPrefix(src, "data:image/") {
+		return
+	}
+	var width int
+	if widthVal, ok := htmlnode.GetAttributeVal(nc.node, "", "width"); ok {
+		var err error
+		if width, err = strconv.Atoi(widthVal); err != nil {
+			// TODO(b/113271759): Handle width values that include 'px' (probably others).
+			return
+		}
+	}
+	// Determine if the layout is "responsive".
+	// https://www.ampproject.org/docs/guides/responsive/control_layout.html
+	layout, layoutOk := htmlnode.GetAttributeVal(nc.node, "", "layout")
+	isResponsiveLayout := (layoutOk && layout == "responsive") ||
+		(!layoutOk && htmlnode.HasAttribute(nc.node, "", "height") && htmlnode.HasAttribute(nc.node, "", "sizes"))
+	// In responsive layout, width and height might be used for indicating
+	// the aspect ratio instead of the actual render dimensions. This usually
+	// happens for dimensions of small values.
+	if isResponsiveLayout && width < minWidthToAddSrcsetInResponsiveLayout {
+		return
+	}
+
+	ssw, ok := amphtml.NewSrcsetWidth(width)
+	if !ok {
+		return
+	}
+	u := amphtml.ToPortableURL(nc.baseURL, src)
+	var ss []string
+	for _, w := range ssw {
+		ss = append(ss, toCacheImageURL(u, w))
+	}
+	htmlnode.SetAttribute(nc.node, "", "srcset", strings.Join(ss, ", "))
+}
+
 // toCacheImageURL takes the input URL (must be an absolute URL) and returns
-// the AMP Cache image URL equivalent of it. If the input URL cannot be parse, return it as-is.
-func toCacheImageURL(orig string) string {
+// the AMP Cache image URL equivalent of it. If the input URL cannot be parsed,
+// return it as-is. Non-negative widths indicate specific width is requested.
+func toCacheImageURL(orig string, w int) string {
 	origURL, err := url.Parse(orig)
 	if err != nil {
 		return orig
@@ -145,8 +197,14 @@ func toCacheImageURL(orig string) string {
 		// unsupported scheme
 		return orig
 	}
+	prefix, suffix := "/i", ""
+	if w > 0 {
+		wStr := strconv.Itoa(w)
+		prefix = "/ii/w" + wStr
+		suffix = " " + wStr + "w"
+	}
 
-	return amphtml.ToCacheURLDomain(origURL.Hostname()) + "/i" + path
+	return amphtml.ToCacheURLDomain(origURL.Hostname()) + prefix + path + suffix
 }
 
 const defaultDensity = "1x"
@@ -192,7 +250,7 @@ func convertSrcset(base *url.URL, in string) string {
 	}
 	var sb strings.Builder
 	for i, m := range matches {
-		sb.WriteString(toCacheImageURL(amphtml.ToPortableURL(base, m[1])))
+		sb.WriteString(toCacheImageURL(amphtml.ToPortableURL(base, m[1]), 0))
 		sb.WriteRune(' ')
 		if len(m[2]) == 0 {
 			sb.WriteString(defaultDensity)

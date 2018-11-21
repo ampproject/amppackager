@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*
-Package amphtml contains common constants and utilies for working
-with AMP HTML.
-*/
 package amphtml
 
 import (
