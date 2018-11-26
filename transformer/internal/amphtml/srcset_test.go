@@ -95,6 +95,16 @@ func TestConvertSrcset(t *testing.T) {
 			input:    "image1 100w, image2 -50w",
 			expected: "image1 100w, image2 -50w",
 		},
+		{
+			desc:     "duplicate default no-op",
+			input:    "image1, image2, image3 3x, image4 4x ",
+			expected: "image1, image2, image3 3x, image4 4x ",
+		},
+		{
+			desc:     "duplicate explicit no-op",
+			input:    "image1 2x, image2, image3 2x, image4 4x ",
+			expected: "image1 2x, image2, image3 2x, image4 4x ",
+		},
 	}
 	baseURL, _ := url.Parse("http://www.example.com")
 	for _, tc := range tcs {

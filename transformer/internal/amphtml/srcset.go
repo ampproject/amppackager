@@ -111,22 +111,29 @@ var imageCandidateRE = regexp.MustCompile(`\s*(?:,\s*)?([^,\s]\S*[^,\s])\s*([\d]
 // https://html.spec.whatwg.org/multipage/images.html#image-candidate-string
 // and rewrites URLS to point to the AMP Cache. If there is no width or
 // pixel density, it defaults to 1x.
-// If any portion of the input is unparseable, return the input, unconverted.
+// If any portion of the input is unparseable, or if there are duplicate widths
+// or pixel densities, return the input, unconverted.
 func ConvertSrcset(base *url.URL, in string) string {
 	matches := imageCandidateRE.FindAllStringSubmatch(in, -1)
 	if len(matches) == 0 {
 		return in
 	}
 	var sb strings.Builder
+	seen := make(map[string]struct{})
 	for i, m := range matches {
+		d := defaultDensity
+		if len(m[2]) > 0 {
+			d = m[2]
+		}
+		if _, ok := seen[d]; ok {
+			// duplicate width or pixel density
+			return in
+		}
+		seen[d] = struct{}{}
 		req := ImageURLRequest{Input: ToPortableURL(base, m[1])}
 		sb.WriteString(req.GetCacheImageURL())
 		sb.WriteRune(' ')
-		if len(m[2]) == 0 {
-			sb.WriteString(defaultDensity)
-		} else {
-			sb.WriteString(m[2])
-		}
+		sb.WriteString(d)
 		if i < len(matches)-1 {
 			if len(m[3]) == 0 {
 				// missing expected comma delimiter
