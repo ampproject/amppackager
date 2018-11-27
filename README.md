@@ -119,6 +119,7 @@ For now, productionizing is a bit manual. The minimum steps are:
   5. Get an SXG cert from your CA. It must use an EC key with the prime256v1
      algorithm, and it must have a [CanSignHttpExchanges
      extension](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-cert-req).
+     One provider of SXG certs is [DigiCert](https://www.digicert.com/account/ietf/http-signed-exchange.php).
      You MUST use this in `amppkg.toml`, and MUST NOT use it in your frontend.
 
 You may also want to:
