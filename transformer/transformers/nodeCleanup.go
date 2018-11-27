@@ -131,7 +131,7 @@ func findAndFixStyleAMPCustom(h *html.Node) {
 		return
 	}
 	for c := h.FirstChild; c != nil; c = c.NextSibling {
-		if c.DataAtom == atom.Style && htmlnode.HasAttribute(c, amphtml.AMPCustom) {
+		if c.DataAtom == atom.Style && htmlnode.HasAttribute(c, "", amphtml.AMPCustom) {
 			// Strip empty nodes
 			if c.FirstChild == nil && c.LastChild == nil {
 				h.RemoveChild(c)

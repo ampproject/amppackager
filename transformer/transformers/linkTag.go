@@ -50,7 +50,7 @@ func isLinkGoogleFont(n *html.Node) bool {
 	if n.DataAtom != atom.Link {
 		return false
 	}
-	v, ok := htmlnode.GetAttributeVal(n, "href")
+	v, ok := htmlnode.GetAttributeVal(n, "", "href")
 	return ok && isGoogleFontHostname(v)
 }
 

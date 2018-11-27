@@ -134,8 +134,7 @@ func isSVGForeignObject(a atom.Atom) bool {
 // This should be equivalent to htmlIntegrationPoint in
 // https://github.com/golang/net/blob/master/html/foreign.go.
 func isHTMLIntegrationPoint(n *html.Node) bool {
-	return n.Type == html.ElementNode && (
-		(n.Namespace == "math" && n.DataAtom == atom.AnnotationXml && isHTMLType(htmlnode.GetAttributeValOrNil(n, "encoding"))) ||
+	return n.Type == html.ElementNode && ((n.Namespace == "math" && n.DataAtom == atom.AnnotationXml && isHTMLType(htmlnode.GetAttributeValOrNil(n, "", "encoding"))) ||
 		(n.Namespace == "svg" && isSVGForeignObject(n.DataAtom)))
 }
 

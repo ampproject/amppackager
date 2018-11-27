@@ -19,15 +19,16 @@ import (
 	"testing"
 )
 
-const (
-	fooBaseURL  = "https://www.example.com/foo"
-	barBaseURL  = "https://www.example.com/bar"
-	relativeURL = "/foo"
-)
+const relativeURL = "/foo"
 
-func TestRewriteURLs(t *testing.T) {
+func TestToURLs(t *testing.T) {
+	fooBaseURL, _ := url.Parse("https://www.example.com/foo")
+	barBaseURL, _ := url.Parse("https://www.example.com/bar")
+	otherURL, _ := url.Parse("http://otherdomain.com")
+
 	tcs := []struct {
-		desc, input, expectedPortable, expectedAbsolute, baseURL string
+		desc, input, expectedPortable, expectedAbsolute string
+		baseURL                                         *url.URL
 	}{
 		{
 			desc:             "Empty",
@@ -35,6 +36,13 @@ func TestRewriteURLs(t *testing.T) {
 			expectedPortable: "",
 			expectedAbsolute: "",
 			baseURL:          barBaseURL,
+		},
+		{
+			desc:             "Null base",
+			input:            fooBaseURL.String(),
+			expectedPortable: fooBaseURL.String(),
+			expectedAbsolute: fooBaseURL.String(),
+			baseURL:          nil,
 		},
 		{
 			desc:             "protocol relative path",
@@ -52,50 +60,165 @@ func TestRewriteURLs(t *testing.T) {
 		},
 		{
 			desc:             "valid absolute",
-			input:            fooBaseURL,
-			expectedPortable: fooBaseURL,
-			expectedAbsolute: fooBaseURL,
+			input:            fooBaseURL.String(),
+			expectedPortable: fooBaseURL.String(),
+			expectedAbsolute: fooBaseURL.String(),
 			baseURL:          barBaseURL,
 		},
 		{
 			desc:             "valid relative",
 			input:            relativeURL,
-			expectedPortable: fooBaseURL,
-			expectedAbsolute: fooBaseURL,
+			expectedPortable: fooBaseURL.String(),
+			expectedAbsolute: fooBaseURL.String(),
 			baseURL:          barBaseURL,
 		},
 		{
 			desc:             "same replaced with fragment",
-			input:            barBaseURL,
+			input:            barBaseURL.String(),
 			expectedPortable: "#",
-			expectedAbsolute: barBaseURL,
+			expectedAbsolute: barBaseURL.String(),
 			baseURL:          barBaseURL,
 		},
 		{
 			desc:             "fragment same base",
-			input:            barBaseURL + "#dogs",
+			input:            barBaseURL.String() + "#dogs",
 			expectedPortable: "#dogs",
-			expectedAbsolute: barBaseURL + "#dogs",
+			expectedAbsolute: barBaseURL.String() + "#dogs",
 			baseURL:          barBaseURL,
 		},
 		{
 			desc:             "fragment different base",
-			input:            barBaseURL + "#dogs",
-			expectedPortable: barBaseURL + "#dogs",
-			expectedAbsolute: barBaseURL + "#dogs",
-			baseURL:          "http://otherdomain.com",
+			input:            barBaseURL.String() + "#dogs",
+			expectedPortable: barBaseURL.String() + "#dogs",
+			expectedAbsolute: barBaseURL.String() + "#dogs",
+			baseURL:          otherURL,
 		},
 	}
 	for _, tc := range tcs {
-		baseParsed, _ := url.Parse(tc.baseURL)
-		actual := RewriteAbsoluteURL(baseParsed, tc.input)
+		actual := ToAbsoluteURL(tc.baseURL, tc.input)
 		if actual != tc.expectedAbsolute {
-			t.Errorf("%s: RewriteAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
+			t.Errorf("%s: ToAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
 		}
 
-		actual = RewritePortableURL(baseParsed, tc.input)
+		actual = ToPortableURL(tc.baseURL, tc.input)
 		if actual != tc.expectedPortable {
-			t.Errorf("%s: RewritePortableURL=%s want=%s", tc.desc, actual, tc.expectedPortable)
+			t.Errorf("%s: ToPortableURL=%s want=%s", tc.desc, actual, tc.expectedPortable)
+		}
+	}
+}
+
+func TestGetCacheImageURL(t *testing.T) {
+	tcs := []struct {
+		desc, input, expected string
+		width                 int
+	}{
+		{
+			desc:     "image",
+			input:    "http://www.example.com/blah.jpg",
+			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+		},
+		{
+			desc:     "image with requested width",
+			input:    "http://www.example.com/blah.jpg",
+			width:    50,
+			expected: "https://www-example-com.cdn.ampproject.org/ii/w50/www.example.com/blah.jpg 50w",
+		},
+		{
+			desc:     "image negative width",
+			input:    "http://www.example.com/blah.jpg",
+			width:    -50,
+			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+		},
+		{
+			desc:     "unsupported scheme noop",
+			input:    "data:image/png.foo",
+			expected: "data:image/png.foo",
+		},
+	}
+	for _, tc := range tcs {
+		req := ImageURLRequest{tc.input, tc.width}
+		actual := req.GetCacheImageURL()
+		if actual != tc.expected {
+			t.Errorf("%s: ToCacheImageURL(%s, %d)=%s, want=%s", tc.desc, tc.input, tc.width, actual, tc.expected)
+		}
+	}
+}
+
+func TestToCacheURLDomain(t *testing.T) {
+	tcs := []struct {
+		desc, input, expected string
+	}{
+		{
+			desc:     "simple case",
+			input:    "example.com",
+			expected: "example-com",
+		},
+		{
+			desc:     "simple case, case-insensitive",
+			input:    "ExAMpLE.Com",
+			expected: "example-com",
+		},
+		{
+			desc:     "origin has no dots or hyphes, use hash",
+			input:    "toplevelnohyphens",
+			expected: "qsgpfjzulvuaxb66z77vlhb5gu2irvcnyp6t67cz6tqo5ae6fysa",
+		},
+		{
+			desc:     "Human-readable form too long; use hash",
+			input:    "itwasadarkandstormynight.therainfellintorrents.exceptatoccasionalintervalswhenitwascheckedby.aviolentgustofwindwhichsweptupthestreets.com",
+			expected: "dgz4cnrxufaulnwku4ow5biptyqnenjievjht56hd7wqinbdbteq",
+		},
+		{
+			desc:     "IDN",
+			input:    "xn--bcher-kva.ch",
+			expected: "xn--bcher-ch-65a",
+		},
+		{
+			desc:     "RTL",
+			input:    "xn--4gbrim.xn----rmckbbajlc6dj7bxne2c.xn--wgbh1c",
+			expected: "xn-------i5fvcbaopc6fkc0de0d9jybegt6cd",
+		},
+		{
+			desc:     "Mixed Bidi, use hash",
+			input:    "hello.xn--4gbrim.xn----rmckbbajlc6dj7bxne2c.xn--wgbh1c",
+			expected: "a6h5moukddengbsjm77rvbosevwuduec2blkjva4223o4bgafgla",
+		},
+		{
+			desc:     "Punify(ز۰.ز٠) = xn--xgb49a.xn--xgb6g. Cannot mix two alternative Arabic ranges. Use hash",
+			input:    "xn--xgb49a.xn--xgb6g",
+			expected: "asdk26k2mfqxgc6cdx3oh3vlnx42rqwn6uvsuqrufnx622tguq6q",
+		},
+		{
+			desc:     "Same Arabic range is ok",
+			input:    "xn--xgb49a.xn--xgb49a",
+			expected: "xn----lncb27eca",
+		},
+		{
+			desc:     "R-LDH: cannot contain double hyphen in 3 and 4th char positions",
+			input:    "in--trouble.com",
+			expected: "r5s7rxu53tjelpr7ngbxkxpirbrylvbwcuueckh7gmn5mim5cjna",
+		},
+		{
+			desc:     "R-LDH #2",
+			input:    "in-trouble.com",
+			expected: "j7pweznglei73fva3bo6oidjt74j3hx4tfyncjsdwud7r7cci4va",
+		},
+		{
+			desc:     "R-LDH #3",
+			input:    "a--problem.com",
+			expected: "a47psvede4jpgjom2kzmuhop74zzmdpjzasoctyoqqaxbkdbsyiq",
+		},
+		{
+			desc:     "Transition mapping per UTS #46",
+			input:    "faß.de",
+			expected: "fass-de",
+		},
+	}
+	for _, tc := range tcs {
+		expected := "https://" + toCacheURLSubdomain(tc.input) + ".cdn.ampproject.org"
+		actual := toCacheURLDomain(tc.input)
+		if actual != expected {
+			t.Errorf("%s: ToCacheURLDomain(%s)=%s, want=%s", tc.desc, tc.input, actual, expected)
 		}
 	}
 }

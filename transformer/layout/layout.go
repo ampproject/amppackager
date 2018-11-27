@@ -86,8 +86,8 @@ func ApplyLayout(n *html.Node) error {
 	}
 	actualLayout, err := getNormalizedLayout(
 		inputLayout, dimensions,
-		htmlnode.GetAttributeValOrNil(n, "sizes"),
-		htmlnode.GetAttributeValOrNil(n, "heights"))
+		htmlnode.GetAttributeValOrNil(n, "", "sizes"),
+		htmlnode.GetAttributeValOrNil(n, "", "heights"))
 	if err != nil {
 		return err
 	}
@@ -98,11 +98,11 @@ func ApplyLayout(n *html.Node) error {
 // Parses the layout attribute value of the given node and returns the
 // corresponding AmpLayout_Layout enum.
 func parseAMPLayout(n *html.Node) amppb.AmpLayout_Layout {
-	a, ok := htmlnode.FindAttribute(n, "", "layout")
-	if !ok || a.Val == "" {
+	v, ok := htmlnode.GetAttributeVal(n, "", "layout")
+	if !ok || v == "" {
 		return amppb.AmpLayout_UNKNOWN
 	}
-	key := strings.Replace(strings.ToUpper(a.Val), attributeSeparator, enumSeparator, -1)
+	key := strings.Replace(strings.ToUpper(v), attributeSeparator, enumSeparator, -1)
 	if val, ok := amppb.AmpLayout_Layout_value[key]; ok {
 		return amppb.AmpLayout_Layout(val)
 	}

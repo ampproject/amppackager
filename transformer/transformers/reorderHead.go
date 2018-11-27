@@ -133,7 +133,7 @@ func registerLink(n *html.Node, hn *headNodes) {
 			return
 		case "stylesheet":
 			// The AmpRuntimeCss inserts a stylesheet for the AMP Runtime CSS. It must remain early in the head immediately before <style amp-custom>.
-			if v, ok := htmlnode.GetAttributeVal(n, "href"); ok &&
+			if v, ok := htmlnode.GetAttributeVal(n, "", "href"); ok &&
 				strings.HasPrefix(v, amphtml.AMPCacheRootURL) &&
 				strings.HasSuffix(v, "/v0.css") {
 				hn.linkStylesheetRuntimeCSS = n
@@ -150,7 +150,7 @@ func registerLink(n *html.Node, hn *headNodes) {
 
 // registerMeta registers <meta> tags to different variables depending on the attributes on the <meta> tag. These are (1) the required <meta charset> and (2) all other <meta> tags.
 func registerMeta(n *html.Node, hn *headNodes) {
-	if htmlnode.HasAttribute(n, "charset") {
+	if htmlnode.HasAttribute(n, "", "charset") {
 		hn.metaCharset = n
 		return
 	}
@@ -167,7 +167,7 @@ func registerScript(n *html.Node, hn *headNodes) {
 		hn.scriptAMPViewer = n
 		return
 	}
-	if htmlnode.HasAttribute(n, amphtml.AMPCustomElement) {
+	if htmlnode.HasAttribute(n, "", amphtml.AMPCustomElement) {
 		if amphtml.IsScriptRenderDelaying(n) {
 			hn.scriptRenderDelaying = append(hn.scriptRenderDelaying, n)
 			return
@@ -175,7 +175,7 @@ func registerScript(n *html.Node, hn *headNodes) {
 		hn.scriptNonRenderDelaying = append(hn.scriptNonRenderDelaying, n)
 		return
 	}
-	if htmlnode.HasAttribute(n, amphtml.AMPCustomTemplate) {
+	if htmlnode.HasAttribute(n, "", amphtml.AMPCustomTemplate) {
 		hn.scriptNonRenderDelaying = append(hn.scriptNonRenderDelaying, n)
 		return
 	}
@@ -184,15 +184,15 @@ func registerScript(n *html.Node, hn *headNodes) {
 
 // registerStyle registers <style> tags to different variables depending on the attributes on the <style> tag. These are the (1) AMP or AMP4Ads Boilerplate, (2)the AMP Custom stylesheet, (3) the AMP Runtime stylesheet and (4) all other <style> tags.
 func registerStyle(n *html.Node, hn *headNodes) {
-	if htmlnode.HasAttribute(n, amphtml.AMPBoilerplate) || htmlnode.HasAttribute(n, amphtml.AMP4AdsBoilerplate) {
+	if htmlnode.HasAttribute(n, "", amphtml.AMPBoilerplate) || htmlnode.HasAttribute(n, "", amphtml.AMP4AdsBoilerplate) {
 		hn.styleAMPBoilerplate = n
 		return
 	}
-	if htmlnode.HasAttribute(n, amphtml.AMPCustom) {
+	if htmlnode.HasAttribute(n, "", amphtml.AMPCustom) {
 		hn.styleAMPCustom = n
 		return
 	}
-	if htmlnode.HasAttribute(n, amphtml.AMPRuntime) {
+	if htmlnode.HasAttribute(n, "", amphtml.AMPRuntime) {
 		hn.styleAMPRuntime = n
 		return
 	}
