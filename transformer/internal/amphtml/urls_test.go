@@ -134,6 +134,12 @@ func TestGetCacheImageURL(t *testing.T) {
 			input:    "data:image/png.foo",
 			expected: "data:image/png.foo",
 		},
+		{
+			desc:     "unsupported scheme with width",
+			input:    "itshappening.gif",
+			width:    100,
+			expected: "itshappening.gif 100w",
+		},
 	}
 	for _, tc := range tcs {
 		req := ImageURLRequest{tc.input, tc.width}

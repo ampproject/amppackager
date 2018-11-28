@@ -80,7 +80,7 @@ func URL(e *Context) error {
 			continue
 		}
 
-		// TODO(b/112417267): Handle amp-img rewriting.
+		// amp-img rewriting is done by URLRewrite transformer
 		if strings.EqualFold(n.Data, "amp-img") {
 			continue
 		}

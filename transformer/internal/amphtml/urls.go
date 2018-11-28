@@ -67,26 +67,24 @@ func (r *ImageURLRequest) GetCacheImageURL() string {
 	if err != nil {
 		return r.Input
 	}
-	var path string
+	path, suffix := "/i", ""
+	if r.desiredWidth > 0 {
+		wStr := strconv.Itoa(r.desiredWidth)
+		path = "/ii/w" + wStr
+		suffix = " " + wStr + "w"
+	}
 	switch origURL.Scheme {
 	case "https":
 		// Add the secure infix and drop the scheme.
-		path = "/s" + r.Input[len("https:/"):]
+		path = path + "/s" + r.Input[len("https:/"):]
 	case "http":
 		// Drop the scheme
-		path = r.Input[len("http:/"):]
+		path = path + r.Input[len("http:/"):]
 	default:
 		// unsupported scheme
-		return r.Input
+		return r.Input + suffix
 	}
-	prefix, suffix := "/i", ""
-	if r.desiredWidth > 0 {
-		wStr := strconv.Itoa(r.desiredWidth)
-		prefix = "/ii/w" + wStr
-		suffix = " " + wStr + "w"
-	}
-
-	return toCacheURLDomain(origURL.Hostname()) + prefix + path + suffix
+	return toCacheURLDomain(origURL.Hostname()) + path + suffix
 }
 
 // toCacheURLDomain returns the domain (including scheme) corresponding to the given
