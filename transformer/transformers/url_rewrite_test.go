@@ -25,6 +25,16 @@ func TestURLRewrite_images(t *testing.T) {
 			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"></%s>`,
 		},
 		{
+			Desc:     "%s does not add srcset with no width",
+			Input:    `<%s src=http://www.example.com/blah.jpg height=10>`,
+			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" height="10"></%s>`,
+		},
+		{
+			Desc:     "%s does not add srcset with 0 width",
+			Input:    `<%s src=http://www.example.com/blah.jpg height=10 width=0>`,
+			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" height="10" width="0"></%s>`,
+		},
+		{
 			Desc:     "%s adds srcset",
 			Input:    `<%s src=http://www.example.com/blah.jpg width=92 height=10>`,
 			Expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/ii/w100/www.example.com/blah.jpg 100w, https://www-example-com.cdn.ampproject.org/ii/w220/www.example.com/blah.jpg 220w, https://www-example-com.cdn.ampproject.org/ii/w330/www.example.com/blah.jpg 330w"></%s>`,

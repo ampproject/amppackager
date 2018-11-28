@@ -30,7 +30,7 @@ type nodeContext struct {
 	baseURL *url.URL
 }
 
-// URLRewrite rewrites links to point to the AMP Cache.
+// URLRewrite rewrites links to point to the AMP Cache and (TODO) adds DNS preconnects to the <head>
 // Affected links:
 //  * <amp-img/amp-anim src>
 //  * <amp-img/amp-anim srcset>
@@ -43,6 +43,8 @@ type nodeContext struct {
 //  * TODO(alin04): any fonts given in the <style amp-custom> tag / style attribute
 //  * background attributes.
 func URLRewrite(e *Context) error {
+	// TODO(alin04): Populate the preconnects
+	var preconnects []string
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
 		if n.Type == html.TextNode {
 			continue
@@ -108,6 +110,11 @@ func URLRewrite(e *Context) error {
 		}
 	}
 
+	for _, preconnect := range preconnects {
+		n := htmlnode.Element("link", html.Attribute{Key: "href", Val: preconnect}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
+		e.DOM.HeadNode.AppendChild(n)
+	}
+
 	return nil
 }
 
@@ -148,10 +155,14 @@ func (nc *nodeContext) addSrcset(src string) {
 	var width int
 	if widthVal, ok := htmlnode.GetAttributeVal(nc.node, "", "width"); ok {
 		var err error
+		// TODO(b/113271759): Handle width values that include 'px' (probably others).
 		if width, err = strconv.Atoi(widthVal); err != nil {
-			// TODO(b/113271759): Handle width values that include 'px' (probably others).
+			// invalid width
 			return
 		}
+	} else {
+		// no width
+		return
 	}
 	// Determine if the layout is "responsive".
 	// https://www.ampproject.org/docs/guides/responsive/control_layout.html
