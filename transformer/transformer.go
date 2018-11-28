@@ -49,6 +49,7 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"stripjs":               transformers.StripJS,
 	"transformedidentifier": transformers.TransformedIdentifier,
 	"url":                   transformers.URL,
+	"urlrewrite":            transformers.URLRewrite,
 }
 
 // The map of config to the list of transformers, in the order in
@@ -76,6 +77,7 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		// ReorderHead should run after all transformers that modify the
 		// <head>, as they may do so without preserving the proper order.
 		transformers.ReorderHead,
+		transformers.URLRewrite,
 	},
 	rpb.Request_NONE: {},
 	rpb.Request_VALIDATION: {
