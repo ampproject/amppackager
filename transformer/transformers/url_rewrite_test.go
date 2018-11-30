@@ -103,7 +103,12 @@ func TestURLRewrite_link(t *testing.T) {
 func TestURLRewrite_background(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
-			Desc:     "background",
+			Desc:     "insecure",
+			Input:    `<body background=http://leak.com></body>`,
+			Expected: `<body background="https://leak-com.cdn.ampproject.org/i/leak.com">`,
+		},
+		{
+			Desc:     "secure ",
 			Input:    `<body background=https://leak.com></body>`,
 			Expected: `<body background="https://leak-com.cdn.ampproject.org/i/s/leak.com">`,
 		},
@@ -171,6 +176,22 @@ func TestURLRewrite_poster(t *testing.T) {
 			}
 			tcs = append(tcs, tc)
 		}
+	}
+	runURLRewriteTestcases(t, tcs)
+}
+
+func TestURLRewrite_preconnect(t *testing.T) {
+	tcs := []tt.TestCase{
+		{
+			Desc:     "preconnects added",
+			Input:    `<amp-img src=http://notexample.com/blah.jpg width=92 height=10 srcset="http://alsonotexample.com/blah.jpg 50w">`,
+			Expected: `<link href="https://notexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/><link href="https://alsonotexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/>`,
+		},
+		{
+			Desc:     "preconnects not added",
+			Input:    `<amp-img src=http://www.example.com/blah.jpg width=92 height=10 srcset="http://www.example.com/blah.jpg 50w">`,
+			Expected: `<head></head>`,
+		},
 	}
 	runURLRewriteTestcases(t, tcs)
 }

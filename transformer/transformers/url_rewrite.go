@@ -15,7 +15,6 @@
 package transformers
 
 import (
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -25,12 +24,15 @@ import (
 	"golang.org/x/net/html"
 )
 
+type urlRewriteContext []nodeContext
+
 type nodeContext struct {
-	node    *html.Node
-	baseURL *url.URL
+	node             *html.Node
+	attrNS, attrName string
+	subresources     []amphtml.SubresourceURL
 }
 
-// URLRewrite rewrites links to point to the AMP Cache and (TODO) adds DNS preconnects to the <head>
+// URLRewrite rewrites links to point to the AMP Cache and adds DNS preconnects to the <head>
 // Affected links:
 //  * <amp-img/amp-anim src>
 //  * <amp-img/amp-anim srcset>
@@ -43,14 +45,12 @@ type nodeContext struct {
 //  * TODO(alin04): any fonts given in the <style amp-custom> tag / style attribute
 //  * background attributes.
 func URLRewrite(e *Context) error {
-	// TODO(alin04): Populate the preconnects
-	var preconnects []string
+	var ctx urlRewriteContext
+
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
 		if n.Type == html.TextNode {
 			continue
 		}
-
-		nc := nodeContext{n, e.BaseURL}
 
 		if n.DataAtom == atom.Style && htmlnode.HasAttribute(n, "", amphtml.AMPCustom) {
 			// TODO(alin04): parse url tokens in css
@@ -71,7 +71,7 @@ func URLRewrite(e *Context) error {
 		// validator rule actually allows this attribute, but we want to have
 		// this in place as defense in depth in case the attribute is added
 		// in the future.
-		nc.rewriteSimpleImgAttr("", "background")
+		ctx.tokenizeSimpleImageAttr(n, "", "background")
 
 		switch n.Data {
 		case "link":
@@ -79,40 +79,58 @@ func URLRewrite(e *Context) error {
 			// to point into the AMP Cache.
 			if htmlnode.HasAttribute(n, "", "href") {
 				if v, ok := htmlnode.GetAttributeVal(n, "", "rel"); ok && fieldsContain(v, "icon") {
-					nc.rewriteSimpleImgAttr("", "href")
+					ctx.tokenizeSimpleImageAttr(n, "", "href")
 				}
 			}
 
 		case "amp-img", "amp-anim", "img":
 			// Rewrite 'src' and 'srcset' attributes. Add 'srcset' if none.
-			src, srcOk := htmlnode.GetAttributeVal(nc.node, "", "src")
+			src, srcOk := htmlnode.GetAttributeVal(n, "", "src")
 			if srcOk {
-				nc.rewriteSimpleImgAttr("", "src")
+				ctx.tokenizeSimpleImageAttr(n, "", "src")
 			}
 
 			if v, srcsetOk := htmlnode.GetAttributeVal(n, "", "srcset"); srcsetOk {
-				htmlnode.SetAttribute(n, "", "srcset", amphtml.ConvertSrcset(e.BaseURL, v))
+				nc := nodeContext{n, "", "srcset", amphtml.TokenizeSrcset(v)}
+				ctx = append(ctx, nc)
 			} else if srcOk {
-				nc.addSrcset(src)
+				ctx.tokenizeNewSrcset(n, src)
 			}
 
 		case "amp-video", "video":
-			nc.rewriteSimpleImgAttr("", "poster")
+			ctx.tokenizeSimpleImageAttr(n, "", "poster")
 
 		case "image":
 			// For b/78468289, rewrite the 'href' or `xlink:href` attribute on an
 			// svg <image> tag to point into the AMP Cache.
-			nc.rewriteSimpleImgAttr("", "href")
-			nc.rewriteSimpleImgAttr("xlink", "href")
+			ctx.tokenizeSimpleImageAttr(n, "", "href")
+			ctx.tokenizeSimpleImageAttr(n, "xlink", "href")
 
 		case "use":
-			nc.rewriteSimpleImgAttr("xlink", "href")
+			ctx.tokenizeSimpleImageAttr(n, "xlink", "href")
 		}
 	}
-
-	for _, preconnect := range preconnects {
-		n := htmlnode.Element("link", html.Attribute{Key: "href", Val: preconnect}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
-		e.DOM.HeadNode.AppendChild(n)
+	// Rewrite all the subresource tokens for each node, adding preconnects if necessary
+	mainSubdomain := amphtml.ToCacheURLSubdomain(e.BaseURL.Hostname())
+	for _, nc := range ctx {
+		if len(nc.attrName) == 0 {
+			continue
+		}
+		var ss []string
+		for _, subresource := range nc.subresources {
+			subresource.URLString = amphtml.ToPortableURL(e.BaseURL, subresource.URLString)
+			cu, err := subresource.ToCacheURL()
+			if err != nil {
+				// noop
+				continue
+			}
+			ss = append(ss, cu.String())
+			if mainSubdomain != cu.Subdomain {
+				n := htmlnode.Element("link", html.Attribute{Key: "href", Val: cu.OriginDomain()}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
+				e.DOM.HeadNode.AppendChild(n)
+			}
+		}
+		htmlnode.SetAttribute(nc.node, nc.attrNS, nc.attrName, strings.Join(ss, ", "))
 	}
 
 	return nil
@@ -130,11 +148,11 @@ func fieldsContain(haystack, needle string) bool {
 	return false
 }
 
-// rewriteSimpleImgAttr rewrites the specified attribute value to point into the AMP cache.
-func (nc *nodeContext) rewriteSimpleImgAttr(namespace, attrName string) {
-	if v, ok := htmlnode.GetAttributeVal(nc.node, namespace, attrName); ok {
-		req := amphtml.ImageURLRequest{Input: amphtml.ToPortableURL(nc.baseURL, v)}
-		htmlnode.SetAttribute(nc.node, namespace, attrName, req.GetCacheImageURL())
+// tokenizeSimpleImageAttr tokenizes the specified attribute value.
+func (ctx *urlRewriteContext) tokenizeSimpleImageAttr(n *html.Node, namespace, attrName string) {
+	if v, ok := htmlnode.GetAttributeVal(n, namespace, attrName); ok {
+		nc := nodeContext{n, namespace, attrName, []amphtml.SubresourceURL{amphtml.SubresourceURL{URLString: v}}}
+		*ctx = append(*ctx, nc)
 	}
 }
 
@@ -147,13 +165,13 @@ func (nc *nodeContext) rewriteSimpleImgAttr(namespace, attrName string) {
 // is found invalid later.
 const minWidthToAddSrcsetInResponsiveLayout = 300
 
-// addSrcset adds a srcset attribute, if applicable.
-func (nc *nodeContext) addSrcset(src string) {
-	if strings.HasPrefix(src, "data:image/") {
+// tokenizeNewSrcset tokenizes a new srcset derived from the src.
+func (ctx *urlRewriteContext) tokenizeNewSrcset(n *html.Node, src string) {
+	if len(src) == 0 || strings.HasPrefix(src, "data:image/") {
 		return
 	}
 	var width int
-	if widthVal, ok := htmlnode.GetAttributeVal(nc.node, "", "width"); ok {
+	if widthVal, ok := htmlnode.GetAttributeVal(n, "", "width"); ok {
 		var err error
 		// TODO(b/113271759): Handle width values that include 'px' (probably others).
 		if width, err = strconv.Atoi(widthVal); err != nil {
@@ -166,9 +184,9 @@ func (nc *nodeContext) addSrcset(src string) {
 	}
 	// Determine if the layout is "responsive".
 	// https://www.ampproject.org/docs/guides/responsive/control_layout.html
-	layout, layoutOk := htmlnode.GetAttributeVal(nc.node, "", "layout")
+	layout, layoutOk := htmlnode.GetAttributeVal(n, "", "layout")
 	isResponsiveLayout := (layoutOk && layout == "responsive") ||
-		(!layoutOk && htmlnode.HasAttribute(nc.node, "", "height") && htmlnode.HasAttribute(nc.node, "", "sizes"))
+		(!layoutOk && htmlnode.HasAttribute(n, "", "height") && htmlnode.HasAttribute(n, "", "sizes"))
 	// In responsive layout, width and height might be used for indicating
 	// the aspect ratio instead of the actual render dimensions. This usually
 	// happens for dimensions of small values.
@@ -176,8 +194,11 @@ func (nc *nodeContext) addSrcset(src string) {
 		return
 	}
 
-	absolute := amphtml.ToPortableURL(nc.baseURL, src)
-	if sc, ok := amphtml.GetSrcsetFromSrc(absolute, width); ok {
-		htmlnode.SetAttribute(nc.node, "", "srcset", sc)
+	if widths, ok := amphtml.GetSrcsetWidths(width); ok {
+		nc := nodeContext{node: n, attrName: "srcset"}
+		for _, w := range widths {
+			nc.subresources = append(nc.subresources, amphtml.SubresourceURL{URLString: src, DesiredWidth: w})
+		}
+		*ctx = append(*ctx, nc)
 	}
 }
