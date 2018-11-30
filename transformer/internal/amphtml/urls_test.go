@@ -137,6 +137,16 @@ func TestGetCacheURL(t *testing.T) {
 			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
 		},
 		{
+			desc:     "fragment",
+			input:    "https://localhost.test/icons/below.svg#icon-whatsapp",
+			expected: "https://localhost-test.cdn.ampproject.org/i/s/localhost.test/icons/below.svg#icon-whatsapp",
+		},
+		{
+			desc:     "port is dropped",
+			input:    "http://www.example.com:8080/blah.jpg",
+			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+		},
+		{
 			desc:     "unsupported scheme noop",
 			input:    "data:image/png.foo",
 			expected: "data:image/png.foo",

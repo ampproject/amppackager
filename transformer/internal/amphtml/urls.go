@@ -92,29 +92,28 @@ func (r *SubresourceURL) ToCacheURL() (*CacheURL, error) {
 		return nil, errors.Wrap(err, "error parsing URL")
 	}
 	c := CacheURL{URL: origURL}
-	path := "/i"
+	path := "/i/"
 	if r.DesiredWidth > 0 {
 		wStr := strconv.Itoa(r.DesiredWidth)
-		path = "/ii/w" + wStr
+		path = "/ii/w" + wStr + "/"
 		c.descriptor = wStr + "w"
 	} else {
 		c.descriptor = r.descriptor
 	}
 	switch c.Scheme {
 	case "https":
-		// Add the secure infix and drop the scheme.
-		path = path + "/s" + r.URLString[len("https:/"):]
+		// Add the secure infix
+		path = path + "s/"
 	case "http":
-		// Drop the scheme
-		path = path + r.URLString[len("http:/"):]
+		// Supported, no change in path
 	default:
 		// unsupported scheme
 		return &c, nil
 	}
+	c.Path = path + c.Hostname() + c.Path
 	c.Scheme = "https"
 	c.Subdomain = ToCacheURLSubdomain(c.Hostname())
 	c.Host = c.Subdomain + "." + AMPCacheHostName
-	c.Path = path
 	return &c, nil
 }
 
