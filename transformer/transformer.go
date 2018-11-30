@@ -74,10 +74,10 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		// transformers.AMPRuntimeCSS,
 		// transformers.TransformedIdentifier,
 		// end TODO
+		transformers.URLRewrite,
 		// ReorderHead should run after all transformers that modify the
 		// <head>, as they may do so without preserving the proper order.
 		transformers.ReorderHead,
-		transformers.URLRewrite,
 	},
 	rpb.Request_NONE: {},
 	rpb.Request_VALIDATION: {
