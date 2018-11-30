@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
 	"golang.org/x/net/idna"
 )
 
@@ -51,51 +52,73 @@ func ToPortableURL(base *url.URL, in string) string {
 	return convertToPortableOrAbsoluteURL(base, in, false)
 }
 
-// ImageURLRequest encapsulates the parameters for generating AMP Image Cache URLs.
-type ImageURLRequest struct {
-	// the original source image URL (must be an absolute URL)
-	Input string
-	// an optional width to convert the original image to.
-	desiredWidth int
+// SubresourceURL stores information about a subresource.
+type SubresourceURL struct {
+	// the URL string for the subresource. It could be relative or absolute.
+	URLString string
+	// If the subresource is an image, an optional width to convert the image to.
+	DesiredWidth int
+	// Optional descriptor (used for image candidates), representing width or pixel density. This is only
+	// used if DesiredWidth is not set.
+	descriptor string
 }
 
-// GetCacheImageURL returns the AMP Cache image URL for the given request.
-// The source input URL must be absolute. If there is a desired image width,
-// returns an AMP Cache URL that will generate the image to the correct dimensions.
-func (r *ImageURLRequest) GetCacheImageURL() string {
-	origURL, err := url.Parse(r.Input)
+// CacheURL represents an AMP Cache URL
+type CacheURL struct {
+	Subdomain  string // publisher's subdomain within the cache. e.g. "example-com"
+	descriptor string // Optional descriptor (used for image candidates), representing width or pixel density.
+	*url.URL
+}
+
+// OriginDomain returns the scheme and host name, ignoring any path info.
+func (c *CacheURL) OriginDomain() string {
+	return "https://" + c.Subdomain + "." + AMPCacheHostName
+}
+
+// String reassembles the URL into a URL string
+func (c *CacheURL) String() string {
+	s := c.URL.String()
+	if len(c.descriptor) > 0 {
+		s = s + " " + c.descriptor
+	}
+	return s
+}
+
+// ToCacheURL returns an AMP Cache URL structure for the given subresource, or an error if the input
+// could not be parsed.
+func (r *SubresourceURL) ToCacheURL() (*CacheURL, error) {
+	origURL, err := url.Parse(r.URLString)
 	if err != nil {
-		return r.Input
+		return nil, errors.Wrap(err, "error parsing URL")
 	}
-	path, suffix := "/i", ""
-	if r.desiredWidth > 0 {
-		wStr := strconv.Itoa(r.desiredWidth)
+	c := CacheURL{URL: origURL}
+	path := "/i"
+	if r.DesiredWidth > 0 {
+		wStr := strconv.Itoa(r.DesiredWidth)
 		path = "/ii/w" + wStr
-		suffix = " " + wStr + "w"
+		c.descriptor = wStr + "w"
+	} else {
+		c.descriptor = r.descriptor
 	}
-	switch origURL.Scheme {
+	switch c.Scheme {
 	case "https":
 		// Add the secure infix and drop the scheme.
-		path = path + "/s" + r.Input[len("https:/"):]
+		path = path + "/s" + r.URLString[len("https:/"):]
 	case "http":
 		// Drop the scheme
-		path = path + r.Input[len("http:/"):]
+		path = path + r.URLString[len("http:/"):]
 	default:
 		// unsupported scheme
-		return r.Input + suffix
+		return &c, nil
 	}
-	return toCacheURLDomain(origURL.Hostname()) + path + suffix
+	c.Scheme = "https"
+	c.Subdomain = ToCacheURLSubdomain(c.Hostname())
+	c.Host = c.Subdomain + "." + AMPCacheHostName
+	c.Path = path
+	return &c, nil
 }
 
-// toCacheURLDomain returns the domain (including scheme) corresponding to the given
-// publisher's origin on the AMP Cache.
-//
-// For example, example.com will return https://example-com.cdn.ampproject.org
-func toCacheURLDomain(originHost string) string {
-	return "https://" + toCacheURLSubdomain(originHost) + "." + AMPCacheHostName
-}
-
-// toCacheURLSubdomain converts an origin domain name to a dot-free human-readable string,
+// ToCacheURLSubdomain converts an origin domain name to a dot-free human-readable string,
 // that can be used in combination with an AMP Cache domain to identify the publisher's
 // subdomain within that cache. If problems are encountered, fallback to a one-way hash.
 //
@@ -108,7 +131,7 @@ func toCacheURLDomain(originHost string) string {
 // On Google's AMP Cache, this will be prepended to the Google cache domain resulting in
 // www-example-com.cdn.ampproject.org .
 // See https://developers.google.com/amp/cache/overview for more info
-func toCacheURLSubdomain(originHost string) string {
+func ToCacheURLSubdomain(originHost string) string {
 	p := idna.New(idna.MapForLookup(), idna.VerifyDNSLength(true), idna.Transitional(true), idna.BidiRule())
 	unicode, err := p.ToUnicode(originHost)
 	if err != nil {

@@ -14,27 +14,7 @@
 
 package amphtml
 
-import (
-	"net/url"
-	"regexp"
-	"strings"
-)
-
-// GetSrcsetFromSrc returns a srcset attribute value of image candidate strings
-// of various sizes generated from the given src absolute URL and a starting width.
-func GetSrcsetFromSrc(src string, width int) (string, bool) {
-	widths, ok := getWidths(width)
-	if !ok {
-		return "", false
-	}
-	req := ImageURLRequest{Input: src}
-	var ss []string
-	for _, w := range widths {
-		req.desiredWidth = w
-		ss = append(ss, req.GetCacheImageURL())
-	}
-	return strings.Join(ss, ", "), true
-}
+import "regexp"
 
 const defaultDensity = "1x"
 
@@ -46,9 +26,9 @@ var (
 	dprs = [3]float32{1.0, 2.0, 3.0}
 )
 
-// getWidths returns a slice of widths based on the input width, or false if there are
+// GetSrcsetWidths returns a slice of widths based on the input width, or false if there are
 // not at least two legitimate widths.
-func getWidths(w int) ([]int, bool) {
+func GetSrcsetWidths(w int) ([]int, bool) {
 	if w < 0 {
 		return nil, false
 	}
@@ -106,19 +86,19 @@ func roundUp(w int) int {
 //                           capturing comma.
 var imageCandidateRE = regexp.MustCompile(`\s*(?:,\s*)?([^,\s]\S*[^,\s])\s*([\d]+.?[\d]*[w|x])?\s*(?:(,)\s*)?`)
 
-// ConvertSrcset returns a new string from the given srcset attribute value,
-// parsing the image candidates (as defined by
-// https://html.spec.whatwg.org/multipage/images.html#image-candidate-string
-// and rewrites URLS to point to the AMP Cache. If there is no width or
+// TokenizeSrcset parses the given srcset attribute value of its
+// image candidates (as defined by
+// https://html.spec.whatwg.org/multipage/images.html#image-candidate-string)
+// and returns a slice of SubresourceURL structs. If there is no width or
 // pixel density, it defaults to 1x.
 // If any portion of the input is unparseable, or if there are duplicate widths
-// or pixel densities, return the input, unconverted.
-func ConvertSrcset(base *url.URL, in string) string {
+// or pixel densities, return an empty slice.
+func TokenizeSrcset(in string) []SubresourceURL {
 	matches := imageCandidateRE.FindAllStringSubmatch(in, -1)
 	if len(matches) == 0 {
-		return in
+		return []SubresourceURL{}
 	}
-	var sb strings.Builder
+	var ret []SubresourceURL
 	seen := make(map[string]struct{})
 	for i, m := range matches {
 		d := defaultDensity
@@ -127,21 +107,17 @@ func ConvertSrcset(base *url.URL, in string) string {
 		}
 		if _, ok := seen[d]; ok {
 			// duplicate width or pixel density
-			return in
+			return []SubresourceURL{}
 		}
 		seen[d] = struct{}{}
-		req := ImageURLRequest{Input: ToPortableURL(base, m[1])}
-		sb.WriteString(req.GetCacheImageURL())
-		sb.WriteRune(' ')
-		sb.WriteString(d)
+		ret = append(ret, SubresourceURL{URLString: m[1], descriptor: d})
 		if i < len(matches)-1 {
 			if len(m[3]) == 0 {
 				// missing expected comma delimiter
-				return in
+				return []SubresourceURL{}
 			}
-			sb.WriteString(", ")
 		}
 	}
-	return sb.String()
+	return ret
 }
 

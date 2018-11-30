@@ -73,6 +73,13 @@ func TestToURLs(t *testing.T) {
 			baseURL:          barBaseURL,
 		},
 		{
+			desc:             "absolute with different base",
+			input:            fooBaseURL.String(),
+			expectedPortable: fooBaseURL.String(),
+			expectedAbsolute: fooBaseURL.String(),
+			baseURL:          otherURL,
+		},
+		{
 			desc:             "same replaced with fragment",
 			input:            barBaseURL.String(),
 			expectedPortable: "#",
@@ -107,7 +114,7 @@ func TestToURLs(t *testing.T) {
 	}
 }
 
-func TestGetCacheImageURL(t *testing.T) {
+func TestGetCacheURL(t *testing.T) {
 	tcs := []struct {
 		desc, input, expected string
 		width                 int
@@ -142,10 +149,10 @@ func TestGetCacheImageURL(t *testing.T) {
 		},
 	}
 	for _, tc := range tcs {
-		req := ImageURLRequest{tc.input, tc.width}
-		actual := req.GetCacheImageURL()
-		if actual != tc.expected {
-			t.Errorf("%s: ToCacheImageURL(%s, %d)=%s, want=%s", tc.desc, tc.input, tc.width, actual, tc.expected)
+		req := SubresourceURL{URLString: tc.input, DesiredWidth: tc.width}
+		cu, _ := req.ToCacheURL()
+		if cu.String() != tc.expected {
+			t.Errorf("%s: ToCacheImageURL(%s, %d)=%s, want=%s", tc.desc, tc.input, tc.width, cu.String(), tc.expected)
 		}
 	}
 }
@@ -221,10 +228,9 @@ func TestToCacheURLDomain(t *testing.T) {
 		},
 	}
 	for _, tc := range tcs {
-		expected := "https://" + toCacheURLSubdomain(tc.input) + ".cdn.ampproject.org"
-		actual := toCacheURLDomain(tc.input)
-		if actual != expected {
-			t.Errorf("%s: ToCacheURLDomain(%s)=%s, want=%s", tc.desc, tc.input, actual, expected)
+		actual := ToCacheURLSubdomain(tc.input)
+		if actual != tc.expected {
+			t.Errorf("%s: ToCacheURLDomain(%s)=%s, want=%s", tc.desc, tc.input, actual, tc.expected)
 		}
 	}
 }
