@@ -49,6 +49,11 @@ func TestURLRewrite_images(t *testing.T) {
 			Input:    `<%s src="data:image/png,foo">`,
 			Expected: `<%s src="data:image/png,foo"></%s>`,
 		},
+		{
+			Desc:     "%s empty src noop",
+			Input:    `<%s src="">`,
+			Expected: `<%s src=""></%s>`,
+		},
 	}
 	tcs := []tt.TestCase{}
 	for _, tag := range []string{"amp-img", "amp-anim"} {
@@ -183,9 +188,14 @@ func TestURLRewrite_poster(t *testing.T) {
 func TestURLRewrite_preconnect(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
-			Desc:     "preconnects added",
+			Desc:     "preconnects added and sorted",
 			Input:    `<amp-img src=http://notexample.com/blah.jpg width=92 height=10 srcset="http://alsonotexample.com/blah.jpg 50w">`,
-			Expected: `<link href="https://notexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/><link href="https://alsonotexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/>`,
+			Expected: `<head><link href="https://alsonotexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/><link href="https://notexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/></head>`,
+		},
+		{
+			Desc:     "no dupes",
+			Input:    `<amp-img src=http://notexample.com/blah.jpg width=92 height=10 srcset="http://notexample.com/another.jpg 50w">`,
+			Expected: `<head><link href="https://notexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/></head>`,
 		},
 		{
 			Desc:     "preconnects not added",
