@@ -87,15 +87,18 @@ func (c *CacheURL) String() string {
 // ToCacheURL returns an AMP Cache URL structure for the given subresource, or an error if the input
 // could not be parsed.
 func (r *SubresourceURL) ToCacheURL() (*CacheURL, error) {
+	if len(r.URLString) == 0 {
+		return nil, errors.New("unable to convert empty URL string")
+	}
 	origURL, err := url.Parse(r.URLString)
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing URL")
 	}
 	c := CacheURL{URL: origURL}
-	path := "/i/"
+	prefix := "/i/"
 	if r.DesiredWidth > 0 {
 		wStr := strconv.Itoa(r.DesiredWidth)
-		path = "/ii/w" + wStr + "/"
+		prefix = "/ii/w" + wStr + "/"
 		c.descriptor = wStr + "w"
 	} else {
 		c.descriptor = r.descriptor
@@ -103,14 +106,14 @@ func (r *SubresourceURL) ToCacheURL() (*CacheURL, error) {
 	switch c.Scheme {
 	case "https":
 		// Add the secure infix
-		path = path + "s/"
+		prefix = prefix + "s/"
 	case "http":
-		// Supported, no change in path
+		// Supported, no change in prefix
 	default:
 		// unsupported scheme
-		return &c, nil
+		return nil, errors.New("unsupported scheme")
 	}
-	c.Path = path + c.Hostname() + c.Path
+	c.Path = prefix + c.Hostname() + c.Path
 	c.Scheme = "https"
 	c.Subdomain = ToCacheURLSubdomain(c.Hostname())
 	c.Host = c.Subdomain + "." + AMPCacheHostName

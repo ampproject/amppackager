@@ -118,7 +118,13 @@ func TestGetCacheURL(t *testing.T) {
 	tcs := []struct {
 		desc, input, expected string
 		width                 int
+		expectError           bool
 	}{
+		{
+			desc:        "empty string",
+			input:       "",
+			expectError: true,
+		},
 		{
 			desc:     "image",
 			input:    "http://www.example.com/blah.jpg",
@@ -147,21 +153,25 @@ func TestGetCacheURL(t *testing.T) {
 			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
 		},
 		{
-			desc:     "unsupported scheme noop",
-			input:    "data:image/png.foo",
-			expected: "data:image/png.foo",
+			desc:        "unsupported scheme noop",
+			input:       "data:image/png.foo",
+			expectError: true,
 		},
 		{
-			desc:     "unsupported scheme with width",
-			input:    "itshappening.gif",
-			width:    100,
-			expected: "itshappening.gif 100w",
+			desc:        "unsupported scheme with width",
+			input:       "itshappening.gif",
+			width:       100,
+			expectError: true,
 		},
 	}
 	for _, tc := range tcs {
 		req := SubresourceURL{URLString: tc.input, DesiredWidth: tc.width}
-		cu, _ := req.ToCacheURL()
-		if cu.String() != tc.expected {
+		cu, err := req.ToCacheURL()
+		if tc.expectError {
+			if err == nil {
+				t.Errorf("%s: ToCacheImageURL(%s, %d) expected error. Got none", tc.desc, tc.input, tc.width)
+			}
+		} else if cu.String() != tc.expected {
 			t.Errorf("%s: ToCacheImageURL(%s, %d)=%s, want=%s", tc.desc, tc.input, tc.width, cu.String(), tc.expected)
 		}
 	}

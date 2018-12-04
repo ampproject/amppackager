@@ -69,7 +69,7 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 //   * Any <img> tag with attribute:
 //     * longdesc
 //
-//     [1]. TODO(b/112417267): Handle amp-img rewriting.
+//     [1]. amp-img rewriting is handled by UrlRewrite
 //
 func URL(e *Context) error {
 	target := extractBaseTarget(e.DOM.HeadNode)

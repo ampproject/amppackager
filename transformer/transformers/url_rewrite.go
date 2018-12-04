@@ -15,6 +15,8 @@
 package transformers
 
 import (
+	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -111,29 +113,48 @@ func URLRewrite(e *Context) error {
 		}
 	}
 	// Rewrite all the subresource tokens for each node, adding preconnects if necessary
-	mainSubdomain := amphtml.ToCacheURLSubdomain(e.BaseURL.Hostname())
+	preconnects := convertToAMPCacheURLs(ctx, e.BaseURL)
+	for _, k := range preconnects {
+		n := htmlnode.Element("link", html.Attribute{Key: "href", Val: k}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
+		e.DOM.HeadNode.AppendChild(n)
+	}
+
+	return nil
+}
+
+// convertToAMPCacheURLs examines the generated context and rewrites all the necessary
+// URLs to point to the AMP Cache, returning a list of preconnects that need to be added.
+func convertToAMPCacheURLs(ctx urlRewriteContext, base *url.URL) []string {
+	preconnects := make(map[string]struct{})
+	mainSubdomain := amphtml.ToCacheURLSubdomain(base.Hostname())
 	for _, nc := range ctx {
 		if len(nc.attrName) == 0 {
 			continue
 		}
 		var ss []string
+
 		for _, subresource := range nc.subresources {
-			subresource.URLString = amphtml.ToPortableURL(e.BaseURL, subresource.URLString)
+			subresource.URLString = amphtml.ToPortableURL(base, subresource.URLString)
 			cu, err := subresource.ToCacheURL()
 			if err != nil {
 				// noop
 				continue
 			}
 			ss = append(ss, cu.String())
-			if mainSubdomain != cu.Subdomain {
-				n := htmlnode.Element("link", html.Attribute{Key: "href", Val: cu.OriginDomain()}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
-				e.DOM.HeadNode.AppendChild(n)
+			if len(mainSubdomain) > 0 && mainSubdomain != cu.Subdomain {
+				preconnects[cu.OriginDomain()] = struct{}{}
 			}
 		}
-		htmlnode.SetAttribute(nc.node, nc.attrNS, nc.attrName, strings.Join(ss, ", "))
+		if len(ss) > 0 {
+			htmlnode.SetAttribute(nc.node, nc.attrNS, nc.attrName, strings.Join(ss, ", "))
+		}
 	}
-
-	return nil
+	sortedPreconnects := make([]string, 0, len(preconnects))
+	for k := range preconnects {
+		sortedPreconnects = append(sortedPreconnects, k)
+	}
+	sort.Strings(sortedPreconnects)
+	return sortedPreconnects
 }
 
 // fieldsContain returns true if needle is a field in the haystack (case-insensitive).
