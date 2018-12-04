@@ -59,6 +59,6 @@ func addLinkGoogleFontPreconnect(n *html.Node) {
 	if n.DataAtom != atom.Link {
 		return
 	}
-	preconnect := htmlnode.Element("link", html.Attribute{Key: "crossorigin"}, html.Attribute{Key: "href", Val: "https://fonts.gstatic.com"}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
+	preconnect := htmlnode.Element("link", html.Attribute{Key: "crossorigin"}, html.Attribute{Key: "href", Val: "https://fonts.gstatic.com/"}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
 	n.Parent.InsertBefore(preconnect, n)
 }
