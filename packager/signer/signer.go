@@ -115,6 +115,26 @@ var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 		AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP}}
 }
 
+// The following hop-by-hop headers should be removed even when not specified
+// in Connection, for backwards compatibility with downstream servers that
+// still follow RFC 2616:
+var legacyHeaders = []string{"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailers", "Transfer-Encoding", "Upgrade"}
+
+// Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
+func removeHopByHopHeaders(resp *http.Response) {
+	if connections, ok := resp.Header[http.CanonicalHeaderKey("Connection")]; ok {
+		for _, connection := range connections {
+			headerNames := comma.Split(connection, -1)
+			for _, headerName := range headerNames {
+				resp.Header.Del(headerName)
+			}
+		}
+	}
+	for _, headerName := range legacyHeaders {
+		resp.Header.Del(headerName)
+	}
+}
+
 type Signer struct {
 	// TODO(twifkak): Support multiple certs. This will require generating
 	// a signature for each one. Note that Chrome only supports 1 signature
@@ -165,15 +185,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Re
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
 	}
-	// Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
-	if connections, ok := resp.Header[http.CanonicalHeaderKey("Connection")]; ok {
-		for _, connection := range connections {
-			headerNames := comma.Split(connection, -1)
-			for _, headerName := range headerNames {
-				resp.Header.Del(headerName)
-			}
-		}
-	}
+	removeHopByHopHeaders(resp)
 	return req, resp, nil
 }
 
