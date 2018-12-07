@@ -48,6 +48,7 @@ type URLPattern struct {
 	SamePath               *bool
 }
 
+var emptyRegexp = ""
 var dotStarRegexp = ".*"
 
 // Also sets defaults.
@@ -63,7 +64,7 @@ func validateURLPattern(pattern *URLPattern) error {
 		}
 	}
 	if pattern.QueryRE == nil {
-		pattern.QueryRE = &dotStarRegexp
+		pattern.QueryRE = &emptyRegexp
 	} else if _, err := regexp.Compile(*pattern.QueryRE); err != nil {
 		return errors.New("QueryRE must be a valid regexp")
 	}

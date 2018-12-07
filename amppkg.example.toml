@@ -101,9 +101,9 @@ OCSPCache = '/tmp/amppkg-ocsp'
     # PathExcludeRE = []
 
     # A full-match regexp on the query portion of the URL, excluding the initial
-    # "?". Defaults to ".*". The below example disallows non-empty query strings
-    # (though a single "?" is allowed).
-    # QueryRE = ""
+    # "?". Defaults to "" (though a single "?" is allowed). The below example
+    # allows non-empty query strings.
+    # QueryRE = ".*"
 
     # The fragment portion of the URL (i.e. the '#' and everything after) must
     # be empty. There is no way to configure this.
