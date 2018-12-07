@@ -57,7 +57,7 @@ type SignerSuite struct {
 	httpsClient           *http.Client
 	shouldPackage         bool
 	fakeHandler           func(resp http.ResponseWriter, req *http.Request)
-	lastRequestURL        string
+	lastRequest           *http.Request
 }
 
 func (this *SignerSuite) new(urlSets []util.URLSet) *Signer {
@@ -132,7 +132,7 @@ func (this *SignerSuite) TearDownSuite() {
 func (this *SignerSuite) SetupTest() {
 	this.shouldPackage = true
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
-		this.lastRequestURL = req.URL.String()
+		this.lastRequest = req
 		resp.Header().Set("Content-Type", "text/html")
 		resp.Write(fakeBody)
 	}
@@ -151,10 +151,13 @@ func (this *SignerSuite) TestSimple() {
 	resp := this.get(this.T(), this.new(urlSets),
 		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath)+
 			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath))
+
+	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
+	this.Assert().Equal(userAgent, this.lastRequest.Header.Get("User-Agent"))
+	this.Assert().Equal("1.1 amppkg", this.lastRequest.Header.Get("Via"))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal(fmt.Sprintf(`google;v="%d"`, transformer.SupportedVersions[0].Max), resp.Header.Get("AMP-Cache-Transform"))
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
-	this.Assert().Equal(fakePath, this.lastRequestURL)
 	this.Assert().Equal("Accept, AMP-Cache-Transform", resp.Header.Get("Vary"))
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
@@ -189,7 +192,7 @@ func (this *SignerSuite) TestParamsInPostBody() {
 		"fetch="+url.QueryEscape(this.httpURL()+fakePath)+
 			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
-	this.Assert().Equal(fakePath, this.lastRequestURL)
+	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
@@ -205,7 +208,7 @@ func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
 		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath+"?<hi>")+
 			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath+"?<hi>"))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
-	this.Assert().Equal(fakePath+"?%3Chi%3E", this.lastRequestURL)
+	this.Assert().Equal(fakePath+"?%3Chi%3E", this.lastRequest.URL.String())
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
@@ -220,7 +223,7 @@ func (this *SignerSuite) TestNoFetchParam() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal(fakePath, this.lastRequestURL)
+	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
 	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI.String())
 }
 
@@ -233,7 +236,7 @@ func (this *SignerSuite) TestSignAsPathParam() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal(fakePath, this.lastRequestURL)
+	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
 	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI.String())
 }
 
@@ -324,9 +327,10 @@ func (this *SignerSuite) TestRemovesHopByHopHeaders() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, nil}}}
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
-		resp.Header().Set("Connection", "Transfer-Encoding, PROXY-AUTHENTICATE")
+		resp.Header().Set("Connection", "PROXY-AUTHENTICATE, Server")
 		resp.Header().Set("Proxy-Authenticate", "Basic")
-		resp.Header().Set("Transfer-Encoding", "chunked")
+		resp.Header().Set("Server", "thing")
+		resp.Header().Set("Transfer-Encoding", "chunked")  // Also removed, per RFC 2616.
 		resp.Write([]byte("<html amp><head><link rel=stylesheet href=foo><script src=bar>"))
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
@@ -334,7 +338,10 @@ func (this *SignerSuite) TestRemovesHopByHopHeaders() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
+	this.Assert().Contains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Content-Type"))
+	this.Assert().NotContains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Connection"))
 	this.Assert().NotContains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Proxy-Authenticate"))
+	this.Assert().NotContains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Server"))
 	this.Assert().NotContains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Transfer-Encoding"))
 }
 

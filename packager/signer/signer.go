@@ -115,6 +115,37 @@ var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 		AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP}}
 }
 
+// Roughly matches the protocol grammar
+// (https://tools.ietf.org/html/rfc7230#section-6.7), which is defined in terms
+// of token (https://tools.ietf.org/html/rfc7230#section-3.2.6). This differs
+// in that it allows multiple slashes, as well as initial and terminal slashes.
+var protocol = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9a-zA-Z/]+$")
+
+// The following hop-by-hop headers should be removed even when not specified
+// in Connection, for backwards compatibility with downstream servers that were
+// written against RFC 2616, and expect gateways to behave according to
+// https://tools.ietf.org/html/rfc2616#section-13.5.1. (Note: "Trailers" is a
+// typo there; should be "Trailer".)
+//
+// Connection header should also be removed per
+// https://tools.ietf.org/html/rfc7230#section-6.1.
+var legacyHeaders = []string{"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailer", "Transfer-Encoding", "Upgrade"}
+
+// Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
+func removeHopByHopHeaders(resp *http.Response) {
+	if connections, ok := resp.Header[http.CanonicalHeaderKey("Connection")]; ok {
+		for _, connection := range connections {
+			headerNames := comma.Split(connection, -1)
+			for _, headerName := range headerNames {
+				resp.Header.Del(headerName)
+			}
+		}
+	}
+	for _, headerName := range legacyHeaders {
+		resp.Header.Del(headerName)
+	}
+}
+
 type Signer struct {
 	// TODO(twifkak): Support multiple certs. This will require generating
 	// a signature for each one. Note that Chrome only supports 1 signature
@@ -146,7 +177,7 @@ func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
 }
 
-func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Request, *http.Response, *util.HTTPError) {
+func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
 	ampURL := fetch.String()
 
 	log.Printf("Fetching URL: %q\n", ampURL)
@@ -155,25 +186,27 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq http.Header) (*http.Re
 		return nil, nil, util.NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
+	// Golang's HTTP parser appears not to validate the protocol it parses
+	// from the request line, so we do so here.
+	if protocol.MatchString(serveHTTPReq.Proto) {
+		// Set Via per https://tools.ietf.org/html/rfc7230#section-5.7.1.
+		via := strings.TrimPrefix(serveHTTPReq.Proto, "HTTP/") + " " + "amppkg"
+		if upstreamVia := req.Header.Get("Via"); upstreamVia != "" {
+			via = upstreamVia + ", " + via
+		}
+		req.Header.Set("Via", via)
+	}
 	// Set conditional headers that were included in ServeHTTP's Request.
 	for header := range conditionalRequestHeaders {
-		if serveHTTPReq.Get(header) != "" {
-			req.Header.Set(header, serveHTTPReq.Get(header))
+		if serveHTTPReq.Header.Get(header) != "" {
+			req.Header.Set(header, serveHTTPReq.Header.Get(header))
 		}
 	}
 	resp, err := this.client.Do(req)
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
 	}
-	// Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
-	if connections, ok := resp.Header[http.CanonicalHeaderKey("Connection")]; ok {
-		for _, connection := range connections {
-			headerNames := comma.Split(connection, -1)
-			for _, headerName := range headerNames {
-				resp.Header.Del(headerName)
-			}
-		}
-	}
+	removeHopByHopHeaders(resp)
 	return req, resp, nil
 }
 
@@ -224,7 +257,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		return
 	}
 
-	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req.Header)
+	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
