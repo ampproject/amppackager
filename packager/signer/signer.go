@@ -115,6 +115,12 @@ var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 		AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP}}
 }
 
+// Roughly matches the protocol grammar
+// (https://tools.ietf.org/html/rfc7230#section-6.7), which is defined in terms
+// of token (https://tools.ietf.org/html/rfc7230#section-3.2.6). This differs
+// in that it allows multiple slashes, as well as initial and terminal slashes.
+var protocol = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9a-zA-Z/]+$")
+
 // The following hop-by-hop headers should be removed even when not specified
 // in Connection, for backwards compatibility with downstream servers that were
 // written against RFC 2616, and expect gateways to behave according to
@@ -180,12 +186,16 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		return nil, nil, util.NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
-	// Set Via per https://tools.ietf.org/html/rfc7230#section-5.7.1.
-	via := strings.TrimPrefix(serveHTTPReq.Proto, "HTTP/") + " " + "amppkg"
-	if upstreamVia := req.Header.Get("Via"); upstreamVia != "" {
-		via = upstreamVia + ", " + via
+	// Golang's HTTP parser appears not to validate the protocol it parses
+	// from the request line, so we do so here.
+	if protocol.MatchString(serveHTTPReq.Proto) {
+		// Set Via per https://tools.ietf.org/html/rfc7230#section-5.7.1.
+		via := strings.TrimPrefix(serveHTTPReq.Proto, "HTTP/") + " " + "amppkg"
+		if upstreamVia := req.Header.Get("Via"); upstreamVia != "" {
+			via = upstreamVia + ", " + via
+		}
+		req.Header.Set("Via", via)
 	}
-	req.Header.Set("Via", via)
 	// Set conditional headers that were included in ServeHTTP's Request.
 	for header := range conditionalRequestHeaders {
 		if serveHTTPReq.Header.Get(header) != "" {
