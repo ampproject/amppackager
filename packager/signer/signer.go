@@ -146,6 +146,20 @@ func removeHopByHopHeaders(resp *http.Response) {
 	}
 }
 
+// Gets all values of the named header, joined on comma.
+func GetJoined(h http.Header, name string) string {
+	if values, ok := h[http.CanonicalHeaderKey(name)]; ok {
+		// See Note on https://tools.ietf.org/html/rfc7230#section-3.2.2.
+		if http.CanonicalHeaderKey(name) == "Set-Cookie" && len(values) > 0 {
+			return values[0]
+		} else {
+			return strings.Join(values, ", ")
+		}
+	} else {
+		return ""
+	}
+}
+
 type Signer struct {
 	// TODO(twifkak): Support multiple certs. This will require generating
 	// a signature for each one. Note that Chrome only supports 1 signature
@@ -191,15 +205,15 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 	if protocol.MatchString(serveHTTPReq.Proto) {
 		// Set Via per https://tools.ietf.org/html/rfc7230#section-5.7.1.
 		via := strings.TrimPrefix(serveHTTPReq.Proto, "HTTP/") + " " + "amppkg"
-		if upstreamVia := req.Header.Get("Via"); upstreamVia != "" {
+		if upstreamVia := GetJoined(req.Header, "Via"); upstreamVia != "" {
 			via = upstreamVia + ", " + via
 		}
 		req.Header.Set("Via", via)
 	}
 	// Set conditional headers that were included in ServeHTTP's Request.
 	for header := range conditionalRequestHeaders {
-		if serveHTTPReq.Header.Get(header) != "" {
-			req.Header.Set(header, serveHTTPReq.Header.Get(header))
+		if value := GetJoined(serveHTTPReq.Header, header); value != "" {
+			req.Header.Set(header, value)
 		}
 	}
 	resp, err := this.client.Do(req)
@@ -276,7 +290,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 	}
 	var transformVersion int64
 	if this.requireHeaders {
-		header_value := req.Header.Get("AMP-Cache-Transform")
+		header_value := GetJoined(req.Header, "AMP-Cache-Transform")
 		var act string
 		act, transformVersion = amp_cache_transform.ShouldSendSXG(header_value)
 		if act == "" {
@@ -293,7 +307,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 			proxy(resp, fetchResp, nil)
 		}
 	}
-	if this.requireHeaders && !accept.CanSatisfy(req.Header.Get("Accept")) {
+	if this.requireHeaders && !accept.CanSatisfy(GetJoined(req.Header, "Accept")) {
 		log.Printf("Not packaging because Accept request header lacks application/signed-exchange;v=%s.\n", accept.AcceptedSxgVersion)
 		proxy(resp, fetchResp, nil)
 		return
@@ -308,7 +322,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 			return
 		}
 		for header := range statefulResponseHeaders {
-			if errorOnStatefulHeaders && fetchResp.Header.Get(header) != "" {
+			if errorOnStatefulHeaders && GetJoined(fetchResp.Header, header) != "" {
 				log.Println("Not packaging because ErrorOnStatefulHeaders = True and fetch response contains stateful header: ", header)
 				proxy(resp, fetchResp, nil)
 				return
@@ -324,8 +338,8 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 	case 304:
 		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
 		for header := range statusNotModifiedHeaders {
-			if fetchResp.Header.Get(header) != "" {
-				resp.Header().Set(header, fetchResp.Header.Get(header))
+			if value := GetJoined(fetchResp.Header, header); value != "" {
+				resp.Header().Set(header, value)
 			}
 		}
 		resp.WriteHeader(http.StatusNotModified)
