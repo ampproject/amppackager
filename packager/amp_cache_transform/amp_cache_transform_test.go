@@ -54,11 +54,6 @@ func TestShouldSendSXG(t *testing.T) {
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="1..2"`)))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="1,2..3,5"`)))
 	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google ; v="1"`)))
-	// Technically these two are false positives -- surrounding whitespace
-	// is not allowed by the spec. This is a consequence of using
-	// strings.FieldsFunc. Meh, close enough:
-	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v=" 1"`)))
-	assert.Equal(t, `google;v="1"`, header(ShouldSendSXG(`google;v="1 "`)))
 
 	// Version spec parse failure.
 	assert.Equal(t, "", header(ShouldSendSXG(`google;`)))
@@ -67,6 +62,9 @@ func TestShouldSendSXG(t *testing.T) {
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v=`)))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v="`)))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v="\`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v=" 1"`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v="1 "`)))
+	assert.Equal(t, "", header(ShouldSendSXG(`google;v="1 2"`)))
 	assert.Equal(t, "", header(ShouldSendSXG("google;v=1,any")))
 	assert.Equal(t, "", header(ShouldSendSXG(`google,v="1",any`)))
 	assert.Equal(t, "", header(ShouldSendSXG(`google;v ="1",any`)))

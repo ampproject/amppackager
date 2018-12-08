@@ -90,11 +90,6 @@ var statusNotModifiedHeaders = map[string]bool{
 	"Vary":             true,
 }
 
-// A comma, as would appear in a Connection header. Comma-separation is defined
-// in https://tools.ietf.org/html/rfc7230#section-7, with OWS defined in
-// https://tools.ietf.org/html/rfc7230#appendix-B.
-var comma *regexp.Regexp = regexp.MustCompile(`[ \t]*,[ \t]*`)
-
 // MICE requires the sender process its payload in reverse order
 // (https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.1).
 // In an HTTP reverse proxy, this could be done using range requests, but would
@@ -135,7 +130,7 @@ var legacyHeaders = []string{"Connection", "Keep-Alive", "Proxy-Authenticate", "
 func removeHopByHopHeaders(resp *http.Response) {
 	if connections, ok := resp.Header[http.CanonicalHeaderKey("Connection")]; ok {
 		for _, connection := range connections {
-			headerNames := comma.Split(connection, -1)
+			headerNames := util.Comma.Split(connection, -1)
 			for _, headerName := range headerNames {
 				resp.Header.Del(headerName)
 			}

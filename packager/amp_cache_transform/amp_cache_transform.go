@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/pkg/errors"
@@ -227,10 +228,8 @@ func parseIdentifier(reader *strings.Reader) (string, error) {
 var vRangeRE = regexp.MustCompile(`[ \t]*\.\.[ \t]*`)
 
 // https://github.com/ampproject/amphtml/blob/master/spec/amp-cache-transform.md#version-negotation
-func parseVersions(v_spec string) ([]*rpb.VersionRange, error) {
-	vRanges := strings.FieldsFunc(v_spec, func(c rune) bool {
-		return c == ',' || c == ' ' || c == '\t'
-	})
+func parseVersions(vSpec string) ([]*rpb.VersionRange, error) {
+	vRanges := util.Comma.Split(vSpec, -1)
 	ret := []*rpb.VersionRange{}
 	for _, vRange := range vRanges {
 		bounds := vRangeRE.Split(vRange, -1)
