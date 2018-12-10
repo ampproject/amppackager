@@ -43,7 +43,7 @@ func TestMinimalValidConfig(t *testing.T) {
 		URLSet: []URLSet{{
 			Sign: &URLPattern{
 				Domain:  "example.com",
-				PathRE:  stringPtr(".{,1000}"),
+				PathRE:  stringPtr(".{,2000}"),
 				QueryRE: stringPtr(""),
 			},
 		}},

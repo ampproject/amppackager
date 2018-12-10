@@ -49,7 +49,7 @@ type URLPattern struct {
 }
 
 var emptyRegexp = ""
-var defaultPathRegexp = ".{,1000}"
+var defaultPathRegexp = ".{,2000}"
 
 // Also sets defaults.
 func validateURLPattern(pattern *URLPattern) error {
