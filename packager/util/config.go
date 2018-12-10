@@ -49,12 +49,12 @@ type URLPattern struct {
 }
 
 var emptyRegexp = ""
-var dotStarRegexp = ".*"
+var defaultPathRegexp = ".{,2000}"
 
 // Also sets defaults.
 func validateURLPattern(pattern *URLPattern) error {
 	if pattern.PathRE == nil {
-		pattern.PathRE = &dotStarRegexp
+		pattern.PathRE = &defaultPathRegexp
 	} else if _, err := regexp.Compile(*pattern.PathRE); err != nil {
 		return errors.New("PathRE must be a valid regexp")
 	}

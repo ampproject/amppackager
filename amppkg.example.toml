@@ -84,8 +84,18 @@ OCSPCache = '/tmp/amppkg-ocsp'
     # certificate must cover this domain.
     Domain = "amppackageexample.com"
 
-    # A full-match regexp on the path (not including the ?query).
-    # Defaults to ".*". The below example allows paths starting with /world/.
+    # A full-match regexp on the path (not including the ?query). Defaults to
+    # ".{,2000}" -- that is, any path <= 2000 chars long.
+    #
+    # The length limit is to mitigate the risk of a content-sniffing attack
+    # (per https://github.com/WICG/webpackage/pull/348) against downstream
+    # servers that serve 200 responses regardless of some of the path
+    # components (e.g. looking up by id and not validating the slug in the
+    # requested URL). If your server only serves 200 responses on a limited set
+    # of valid URLs, and some of those URLs are >2000 chars, then it's safe to
+    # modify this default.
+    #
+    # The below example allows paths starting with /world/.
     # PathRE = "/world/.*"
 
     # A list of full-match regexps, carving out exclusions to the above PathRE.

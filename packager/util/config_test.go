@@ -43,7 +43,7 @@ func TestMinimalValidConfig(t *testing.T) {
 		URLSet: []URLSet{{
 			Sign: &URLPattern{
 				Domain:  "example.com",
-				PathRE:  stringPtr(".*"),
+				PathRE:  stringPtr(".{,2000}"),
 				QueryRE: stringPtr(""),
 			},
 		}},
@@ -186,7 +186,7 @@ func TestFetchDefaults(t *testing.T) {
 	assert.ElementsMatch(t, []string{"http", "https"}, fetch.Scheme)
 	assert.Equal(t, "", fetch.DomainRE)
 	assert.Equal(t, "example.com", fetch.Domain)
-	assert.Equal(t, stringPtr(".*"), fetch.PathRE)
+	assert.Equal(t, stringPtr(".{,2000}"), fetch.PathRE)
 	assert.Nil(t, fetch.PathExcludeRE)
 	assert.Equal(t, stringPtr(""), fetch.QueryRE)
 	assert.Equal(t, false, fetch.ErrorOnStatefulHeaders)
