@@ -14,7 +14,11 @@
 
 package amphtml
 
-import "regexp"
+import (
+	"regexp"
+	"sort"
+	"strings"
+)
 
 const defaultDensity = "1x"
 
@@ -86,20 +90,22 @@ func roundUp(w int) int {
 //                           capturing comma.
 var imageCandidateRE = regexp.MustCompile(`\s*(?:,\s*)?([^,\s]\S*[^,\s])\s*([\d]+.?[\d]*[w|x])?\s*(?:(,)\s*)?`)
 
-// TokenizeSrcset parses the given srcset attribute value of its
+// ParseSrcset parses the given srcset attribute value of its
 // image candidates (as defined by
 // https://html.spec.whatwg.org/multipage/images.html#image-candidate-string)
-// and returns a slice of SubresourceURL structs. If there is no width or
+// and returns the normalized srcset value, and a slice of SubresourceOffset structs
+// corresponding to the normalized value. If there is no width or
 // pixel density, it defaults to 1x.
 // If any portion of the input is unparseable, or if there are duplicate widths
-// or pixel densities, return an empty slice.
-func TokenizeSrcset(in string) []SubresourceURL {
+// or pixel densities, return input unparsed.
+func ParseSrcset(in string) (string, []SubresourceOffset) {
 	matches := imageCandidateRE.FindAllStringSubmatch(in, -1)
 	if len(matches) == 0 {
-		return []SubresourceURL{}
+		return in, []SubresourceOffset{}
 	}
-	var ret []SubresourceURL
-	seen := make(map[string]struct{})
+	var keys []string
+	// map of density to url
+	seen := make(map[string]string)
 	for i, m := range matches {
 		d := defaultDensity
 		if len(m[2]) > 0 {
@@ -107,17 +113,35 @@ func TokenizeSrcset(in string) []SubresourceURL {
 		}
 		if _, ok := seen[d]; ok {
 			// duplicate width or pixel density
-			return []SubresourceURL{}
+			return in, []SubresourceOffset{}
 		}
-		seen[d] = struct{}{}
-		ret = append(ret, SubresourceURL{URLString: m[1], descriptor: d})
+		seen[d] = m[1]
+		keys = append(keys, d)
 		if i < len(matches)-1 {
 			if len(m[3]) == 0 {
 				// missing expected comma delimiter
-				return []SubresourceURL{}
+				return in, []SubresourceOffset{}
 			}
 		}
 	}
-	return ret
+
+	// Sort the keys of our map (for deterministic behavior)
+	sort.Strings(keys)
+
+	// Reconstitute the input and build the offsets.
+	var ret []SubresourceOffset
+	var pos int
+	var sb strings.Builder
+	for i, key := range keys {
+		src := seen[key]
+		slen, _ := sb.WriteString(src + " " + key)
+		ret = append(ret, SubresourceOffset{Start: pos, End: pos + len(src)})
+		pos += slen
+		if i < len(seen)-1 {
+			slen, _ := sb.WriteString(", ")
+			pos += slen
+		}
+	}
+	return sb.String(), ret
 }
 
