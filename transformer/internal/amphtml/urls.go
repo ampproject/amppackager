@@ -52,15 +52,27 @@ func ToPortableURL(base *url.URL, in string) string {
 	return convertToPortableOrAbsoluteURL(base, in, false)
 }
 
-// SubresourceURL stores information about a subresource.
-type SubresourceURL struct {
-	// the URL string for the subresource. It could be relative or absolute.
-	URLString string
-	// If the subresource is an image, an optional width to convert the image to.
-	DesiredWidth int
-	// Optional descriptor (used for image candidates), representing width or pixel density. This is only
-	// used if DesiredWidth is not set.
-	descriptor string
+// SubresourceType describes the type of subresource
+type SubresourceType int8
+
+const (
+	// ImageType is a subresource for an image
+	ImageType SubresourceType = iota
+	// OtherType is a subresource for everything besides an image.
+	OtherType
+)
+
+// SubresourceOffset describes the location of a subresource URL within some text.
+// For example, if the text value is ".a {background-image:url(foo.jpg)}", then
+// Start === 25 and End === 32
+type SubresourceOffset struct {
+	SubType SubresourceType
+	// The offset position denoting the start of the substring (inclusive)
+	Start int
+	// The offset position denoting the end of the substring (exclusive)
+	End int
+	// If the type is an image, an optional width to convert the image so.
+	DesiredImageWidth int
 }
 
 // CacheURL represents an AMP Cache URL
@@ -84,36 +96,40 @@ func (c *CacheURL) String() string {
 	return s
 }
 
-// ToCacheURL returns an AMP Cache URL structure for the given subresource, or an error if the input
-// could not be parsed.
-func (r *SubresourceURL) ToCacheURL() (*CacheURL, error) {
-	if len(r.URLString) == 0 {
+// GetCacheURL returns an AMP Cache URL structure for the URL identified by the given offset (relative to 'input')
+// or an error if the URL could not be parsed.
+func (so *SubresourceOffset) GetCacheURL(base *url.URL, input string) (*CacheURL, error) {
+	portable := ToPortableURL(base, input[so.Start:so.End])
+	if len(portable) == 0 {
 		return nil, errors.New("unable to convert empty URL string")
 	}
-	origURL, err := url.Parse(r.URLString)
+	origURL, err := url.Parse(portable)
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing URL")
 	}
-	c := CacheURL{URL: origURL}
-	prefix := "/i/"
-	if r.DesiredWidth > 0 {
-		wStr := strconv.Itoa(r.DesiredWidth)
-		prefix = "/ii/w" + wStr + "/"
-		c.descriptor = wStr + "w"
-	} else {
-		c.descriptor = r.descriptor
-	}
-	switch c.Scheme {
+	secureInfix := ""
+	switch origURL.Scheme {
 	case "https":
 		// Add the secure infix
-		prefix = prefix + "s/"
+		secureInfix = "s/"
 	case "http":
-		// Supported, no change in prefix
+		// Supported
 	default:
-		// unsupported scheme
+		// Unsupported scheme
 		return nil, errors.New("unsupported scheme")
 	}
-	c.Path = prefix + c.Hostname() + c.Path
+
+	c := CacheURL{URL: origURL}
+	prefix := "/r/"
+	if so.SubType == ImageType {
+		prefix = "/i/"
+		if so.DesiredImageWidth > 0 {
+			wStr := strconv.Itoa(so.DesiredImageWidth)
+			prefix = "/ii/w" + wStr + "/"
+			c.descriptor = wStr + "w"
+		}
+	}
+	c.Path = prefix + secureInfix + c.Hostname() + c.Path
 	c.Scheme = "https"
 	c.Subdomain = ToCacheURLSubdomain(c.Hostname())
 	c.Host = c.Subdomain + "." + AMPCacheHostName

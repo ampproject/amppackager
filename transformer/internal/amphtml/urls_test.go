@@ -116,9 +116,9 @@ func TestToURLs(t *testing.T) {
 
 func TestGetCacheURL(t *testing.T) {
 	tcs := []struct {
-		desc, input, expected string
-		width                 int
-		expectError           bool
+		desc, input, expectedImage, expectedOther string
+		width                                     int
+		expectError                               bool
 	}{
 		{
 			desc:        "empty string",
@@ -126,31 +126,42 @@ func TestGetCacheURL(t *testing.T) {
 			expectError: true,
 		},
 		{
-			desc:     "image",
-			input:    "http://www.example.com/blah.jpg",
-			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			desc:          "image",
+			input:         "http://www.example.com/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/www.example.com/blah.jpg",
 		},
 		{
-			desc:     "image with requested width",
-			input:    "http://www.example.com/blah.jpg",
-			width:    50,
-			expected: "https://www-example-com.cdn.ampproject.org/ii/w50/www.example.com/blah.jpg 50w",
+			desc:          "secure",
+			input:         "https://www.example.com/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/i/s/www.example.com/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/s/www.example.com/blah.jpg",
 		},
 		{
-			desc:     "image negative width",
-			input:    "http://www.example.com/blah.jpg",
-			width:    -50,
-			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			desc:          "image with requested width",
+			input:         "http://www.example.com/blah.jpg",
+			width:         50,
+			expectedImage: "https://www-example-com.cdn.ampproject.org/ii/w50/www.example.com/blah.jpg 50w",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/www.example.com/blah.jpg",
 		},
 		{
-			desc:     "fragment",
-			input:    "https://localhost.test/icons/below.svg#icon-whatsapp",
-			expected: "https://localhost-test.cdn.ampproject.org/i/s/localhost.test/icons/below.svg#icon-whatsapp",
+			desc:          "image negative width",
+			input:         "http://www.example.com/blah.jpg",
+			width:         -50,
+			expectedImage: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/www.example.com/blah.jpg",
 		},
 		{
-			desc:     "port is dropped",
-			input:    "http://www.example.com:8080/blah.jpg",
-			expected: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			desc:          "fragment",
+			input:         "https://localhost.test/icons/below.svg#icon-whatsapp",
+			expectedImage: "https://localhost-test.cdn.ampproject.org/i/s/localhost.test/icons/below.svg#icon-whatsapp",
+			expectedOther: "https://localhost-test.cdn.ampproject.org/r/s/localhost.test/icons/below.svg#icon-whatsapp",
+		},
+		{
+			desc:          "port is dropped",
+			input:         "http://www.example.com:8080/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/www.example.com/blah.jpg",
 		},
 		{
 			desc:        "unsupported scheme noop",
@@ -164,15 +175,22 @@ func TestGetCacheURL(t *testing.T) {
 			expectError: true,
 		},
 	}
+	base, _ := url.Parse("")
 	for _, tc := range tcs {
-		req := SubresourceURL{URLString: tc.input, DesiredWidth: tc.width}
-		cu, err := req.ToCacheURL()
-		if tc.expectError {
-			if err == nil {
-				t.Errorf("%s: ToCacheImageURL(%s, %d) expected error. Got none", tc.desc, tc.input, tc.width)
+		for _, subtype := range []SubresourceType{OtherType, ImageType} {
+			expected := tc.expectedOther
+			if subtype == ImageType {
+				expected = tc.expectedImage
 			}
-		} else if cu.String() != tc.expected {
-			t.Errorf("%s: ToCacheImageURL(%s, %d)=%s, want=%s", tc.desc, tc.input, tc.width, cu.String(), tc.expected)
+			so := SubresourceOffset{SubType: subtype, Start: 0, End: len(tc.input), DesiredImageWidth: tc.width}
+			cu, err := so.GetCacheURL(base, tc.input)
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("%s: ToCacheImageURL(%s, %d) expected error. Got none", tc.desc, tc.input, tc.width)
+				}
+			} else if cu.String() != expected {
+				t.Errorf("%s: ToCacheImageURL(%s, %d)=%s, want=%s", tc.desc, tc.input, tc.width, cu.String(), expected)
+			}
 		}
 	}
 }
