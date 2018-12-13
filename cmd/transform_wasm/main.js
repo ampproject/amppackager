@@ -34,17 +34,15 @@ function getRecursive(dir = process.env.TESTDIR || '/tmp/amps') {
 global.begin = async function(transform, done) {
   const htmlPaths = getRecursive().filter((file) => file.endsWith('.html'));
   let num = 0;
-  let outs = [];
-  for (path of htmlPaths) {
-    const html = fs.readFileSync(path);
-    outs.push(new Promise((resolve) => {
+  let outs = htmlPaths.map((path) =>
+    new Promise((resolve) => {
+      const html = fs.readFileSync(path);
       transform('https://example.com/', html, (amphtml) => {
           if (++num % 100 == 0) console.log('num = ', num);
           assert(amphtml.length > 1000);  // "Minimum valid AMP" is larger than 1K.
           resolve(amphtml);
       });
     }));
-  }
   console.log('Pushed all %d thunks.', htmlPaths.length);
   const start = process.hrtime.bigint();
   await Promise.all(outs);
