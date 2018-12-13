@@ -26,13 +26,14 @@ const assert = require('assert');
 const { join } = require('path');
 const { spawnSync } = require('child_process');
 
-function getRecursive(dir = process.env.TESTDIR || '/tmp/amps') {
+function listRecursive(dir) {
   return [].concat(...fs.readdirSync(dir, {withFileTypes: true}).map((dirent) =>
-      dirent.isDirectory() ? getRecursive(join(dir, dirent.name)) : join(dir, dirent.name)));
+      dirent.isDirectory() ? listRecursive(join(dir, dirent.name)) : join(dir, dirent.name)));
 }
 
 global.begin = async function(transform, done) {
-  const htmlPaths = getRecursive().filter((file) => file.endsWith('.html'));
+  const baseDir = process.env.TESTDIR || '/tmp/amps';
+  const htmlPaths = listRecursive(baseDir).filter((file) => file.endsWith('.html'));
   let num = 0;
   let outs = htmlPaths.map((path) =>
     new Promise((resolve) => {
