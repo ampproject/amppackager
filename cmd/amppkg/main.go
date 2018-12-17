@@ -114,10 +114,7 @@ func main() {
 	if err != nil {
 		die(errors.Wrap(err, "initializing rtv cache"))
 	}
-	err = rtvCache.StartCron("")
-	if err != nil {
-		die(errors.Wrap(err, "starting rtv cron"))
-	}
+	rtvCache.StartCron()
 	defer rtvCache.StopCron()
 
 	var overrideBaseURL *url.URL

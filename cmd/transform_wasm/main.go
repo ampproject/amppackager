@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build go1.11
+// +build js,wasm
 
 /*
 Binary wrapper for the transformer lib, to be run via main.js.
