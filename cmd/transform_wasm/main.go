@@ -30,7 +30,8 @@ func transform(args []js.Value /* url, html, cb(htmlout) */) {
 	r := &rpb.Request{Html: args[1].String(), DocumentUrl: args[0].String(), Config: rpb.Request_DEFAULT}
 	o, _, err := t.Process(r)
 	if err != nil {
-		panic(err)
+		js.Global().Get("console").Call("log", err.Error())  // println doesn't go anywhere.
+		o = ""  // Need to invoke the done callback with something well-defined.
 	}
 	args[2].Invoke(o + "\n")
 }
@@ -40,6 +41,7 @@ func main() {
 	defer cb.Release()
 	done := make(chan struct{})
 	donecb := js.NewCallback(func(args []js.Value) { done <- struct{}{} })
+	defer donecb.Release()
 	js.Global().Get("begin").Invoke(cb, donecb)
 	<-done
 }
