@@ -32,9 +32,7 @@ import (
 // one of two possibilies:
 //  - an absolute URL pointing to the same coordinates as the {in, base} tuple
 //  - the exact text passed into in if the input was malformed,
-//    a data: URL, or if we are inside a mustache template. The runtime must
-//    fix-up URLs inside mustache templates on the client, as only the runtime
-//    knows how to expand the templates.
+//    a data: URL, or another non-http/https protocol URL.
 //
 // base is derived from the <base> tag and document URL for the origin document.
 //
