@@ -163,10 +163,3 @@ func (t *RTVTestSuite) TestBadJSON() {
 		assert.Contains(t.T(), err.Error(), tc.expectedErr)
 	}
 }
-
-func (t *RTVTestSuite) TestBadCronSpec() {
-	r, err := New()
-	assert.NoError(t.T(), err)
-	err = r.StartCron("unparseable")
-	assert.Error(t.T(), err)
-}

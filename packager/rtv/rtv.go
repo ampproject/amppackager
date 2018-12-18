@@ -10,13 +10,11 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	// TODO(twifkak): Replace this with time.NewTicker.
-	"github.com/robfig/cron"
 )
 
 const (
 	defaultHTTPTimeout  = 1 * time.Minute
-	defaultPollInterval = "@every 1h"
+	defaultPollInterval = 1 * time.Hour
 )
 
 // not a const for testing purposes
@@ -34,36 +32,40 @@ type RTVCache struct {
 	d  *rtvData
 	c  http.Client
 	lk sync.Mutex
-	cr *cron.Cron
+	stop chan struct{}
 }
 
 // New returns a new cache for storing AMP runtime values, or an
 // error if there was a problem initializing. To have it auto-refresh,
 // call StartCron().
 func New() (*RTVCache, error) {
-	r := &RTVCache{c: http.Client{Timeout: defaultHTTPTimeout}, d: &rtvData{}, cr: cron.New()}
+	r := &RTVCache{c: http.Client{Timeout: defaultHTTPTimeout}, d: &rtvData{}, stop: make(chan struct{})}
 	if err := r.poll(); err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-// StartCron starts a cron job to periodically re-fill the RTVCache,
-// based on the given cron expression format. If empty, defaults to hourly.
-func (r *RTVCache) StartCron(spec string) error {
-	if spec == "" {
-		spec = defaultPollInterval
-	}
-	if err := r.cr.AddFunc(spec, func() { r.poll() }); err != nil {
-		return err
-	}
-	r.cr.Start()
-	return nil
+// StartCron starts a cron job to re-fill the RTVCache hourly.
+func (r *RTVCache) StartCron() {
+	go func() {
+		ticker := time.NewTicker(defaultPollInterval)
+
+		for {
+			select {
+			case <-ticker.C:
+				r.poll()  // Ignores error return.
+			case <-r.stop:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 }
 
 // StopCron stops the cron job.
 func (r *RTVCache) StopCron() {
-	r.cr.Stop()
+	r.stop <- struct{}{}
 }
 
 // getRTVData returns the cached rtvData.

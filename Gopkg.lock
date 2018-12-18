@@ -78,12 +78,6 @@
   revision = "525d0eb5f91d30e3b1548de401b7ef9ea6898520"
 
 [[projects]]
-  name = "github.com/robfig/cron"
-  packages = ["."]
-  revision = "b41be1df696709bb6395fe435af20370037c0b4c"
-  version = "v1.1"
-
-[[projects]]
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
@@ -139,6 +133,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b2a6234e60a81591c38a72cf7123fd58d9ed6595e14fc54fc9732551548f0a39"
+  inputs-digest = "aaa3110dfffff4ef24d5ce30efeb2e876f99bf3bd561adda033399cd9fddf976"
   solver-name = "gps-cdcl"
   solver-version = 1
