@@ -157,6 +157,19 @@ func (z *Tokenizer) Next() Token {
 	return z.consumeAToken()
 }
 
+// All returns all the tokens
+func (z *Tokenizer) All() []Token {
+	ret := []Token{}
+	for {
+		token := z.Next()
+		ret = append(ret, token)
+		if token.Type == EOFToken || token.Type == ErrorToken {
+			break
+		}
+	}
+	return ret
+}
+
 // consumeWhitespace returns a whitespace Token.
 func (z *Tokenizer) consumeWhitespace() Token {
 	start := z.pos

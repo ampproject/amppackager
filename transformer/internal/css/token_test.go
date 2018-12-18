@@ -337,12 +337,11 @@ func TestSingleToken(t *testing.T) {
 			input:    "u+0025-00FF",
 			expected: Token{Type: UnicodeRangeToken, Value: "U+0025-00FF"},
 		},
-				{
+		{
 			desc:     "unicode range wild",
 			input:    "u+4??",
 			expected: Token{Type: UnicodeRangeToken, Value: "U+0400-04FF"},
 		},
-
 	}
 	for _, tc := range tcs {
 		z := NewTokenizer(tc.input)
@@ -435,14 +434,7 @@ func TestTokenization(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		z := NewTokenizer(tc.input)
-		actual := []Token{}
-		for {
-			token := z.Next()
-			actual = append(actual, token)
-			if token.Type == EOFToken || token.Type == ErrorToken {
-				break
-			}
-		}
+		actual := z.All()
 		if diff := pretty.Compare(tc.expected, actual); diff != "" {
 			t.Errorf("%s returned diff (-want, +got):\n%s", tc.desc, diff)
 		}
@@ -456,26 +448,14 @@ func TestSerialization(t *testing.T) {
 		"format('woff'),url('http://b.com/1.ttf') format('truetype')," +
 		"src:url('') format('embedded-opentype');}"
 	z := NewTokenizer(css)
-	tokens := []Token{}
 	var sb strings.Builder
-	for {
-		token := z.Next()
-		tokens = append(tokens, token)
+	first := z.All()
+	for _, token := range first {
 		sb.WriteString(token.String())
-		if token.Type == EOFToken || token.Type == ErrorToken {
-			break
-		}
 	}
 	z = NewTokenizer(sb.String())
-	secondRound := []Token{}
-	for {
-		token := z.Next()
-		secondRound = append(secondRound, token)
-		if token.Type == EOFToken || token.Type == ErrorToken {
-			break
-		}
-	}
-	if diff := pretty.Compare(tokens, secondRound); diff != "" {
+	second := z.All()
+	if diff := pretty.Compare(first, second); diff != "" {
 		t.Errorf("returned diff (-want, +got):\n%s", diff)
 	}
 }
