@@ -268,6 +268,11 @@ func TestSingleToken(t *testing.T) {
 			expected: Token{Type: IdentToken, Value: "foo"},
 		},
 		{
+			desc:     "hash",
+			input:    "#p1",
+			expected: Token{Type: HashToken, Value: "p1"},
+		},
+		{
 			desc:     "dash match",
 			input:    "|=",
 			expected: Token{Type: DashMatchToken, Value: "|="},
