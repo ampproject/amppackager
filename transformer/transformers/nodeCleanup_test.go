@@ -24,46 +24,64 @@ import (
 	"golang.org/x/net/html"
 )
 
+// BuildHTML returns AMPHTML with the given body string. Everything
+// in the head tag is the minimum required for a valid AMP document
+// except it is missing NoscriptAMPBoilerplate as noscript tags are
+// stripped by this transformer (see b/79415817).
+func BuildHTML(body string) string {
+        return tt.Concat(
+                "<!doctype html><html ⚡><head>",
+                tt.MetaCharset,
+                tt.MetaViewport,
+                tt.ScriptAMPRuntime,
+                tt.LinkFavicon,
+                tt.LinkCanonical,
+                tt.StyleAMPBoilerplate,
+                "</head><body>",
+                body,
+                "</body></html>")
+}
+
 func TestNodeCleanup_Strip(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
-			Desc: "strips comments",
-			Input: tt.Concat("<!-- comment -->",
-				tt.BuildHTML("<foo><!-- comment --></foo>")),
-			Expected: tt.BuildHTML("<foo></foo>"),
+			Desc:     "strips comments",
+			Input:    tt.Concat("<!-- comment -->",
+				  BuildHTML("<foo><!-- comment --></foo>")),
+			Expected: BuildHTML("<foo></foo>"),
 		},
 		{
 			Desc:     "strip duplicate attributes",
-			Input:    tt.BuildHTML("<a class=foo class=foo></a>"),
-			Expected: tt.BuildHTML("<a class=foo></a>"),
+			Input:    BuildHTML("<a class=foo class=foo></a>"),
+			Expected: BuildHTML("<a class=foo></a>"),
 		},
 		{
 			Desc:     "verify first attr is kept",
-			Input:    tt.BuildHTML("<a class=bar href='#' class=foo></a>"),
-			Expected: tt.BuildHTML("<a class=bar href='#'></a>"),
+			Input:    BuildHTML("<a class=bar href='#' class=foo></a>"),
+			Expected: BuildHTML("<a class=bar href='#'></a>"),
 		},
 		{
 			Desc:     "dedupe attr, case-insensitive",
-			Input:    tt.BuildHTML("<a CLASS=foo class=foo></a>"),
-			Expected: tt.BuildHTML("<a class=foo></a>"),
+			Input:    BuildHTML("<a CLASS=foo class=foo></a>"),
+			Expected: BuildHTML("<a class=foo></a>"),
 		},
 		{
 			Desc:     "dedupe attr, case-insensitive, order irrelevant",
-			Input:    tt.BuildHTML("<a class=foo CLASS=bar></a>"),
-			Expected: tt.BuildHTML("<a class=foo></a>"),
+			Input:    BuildHTML("<a class=foo CLASS=bar></a>"),
+			Expected: BuildHTML("<a class=foo></a>"),
 		},
 		{
-			Desc: "Strips child whitespace nodes from <html> and <head>",
-			Input: tt.Concat(
-				"<!doctype html><html ⚡>  <head>\n",
-				"\t\t",
-				tt.ScriptAMPRuntime,
-				"  ",
-				tt.LinkFavicon,
-				"</head>\n<body>\n",
-				"    foo<b> </b>bar\n\n",
-				"</body></html>"),
-			Expected: tt.BuildHTML("\n    foo<b> </b>bar\n\n"),
+			Desc:     "strips child whitespace nodes from <html> and <head>",
+			Input:    tt.Concat(
+				  "<!doctype html><html ⚡>  <head>\n",
+				  "\t\t",
+				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				  "  ",
+				  tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				  "</head>\n<body>\n",
+				  "    foo<b> </b>bar\n\n",
+				  "</body></html>"),
+			Expected: BuildHTML("\n    foo<b> </b>bar\n\n"),
 		},
 		{
 			// Stray text in head will automatically start a body tag, (and will
