@@ -308,6 +308,11 @@ func TestSingleToken(t *testing.T) {
 			expected: Token{Type: URLToken, Value: "foo.gif"},
 		},
 		{
+			desc:     "url with html chars",
+			input:    "url(  &#39;&#39;)",
+			expected: Token{Type: URLToken, Value: "&#39;&#39;"},
+		},
+		{
 			desc:     "url as escaped code points",
 			input:    "\\75 \\72 \\6c('foo.gif')",
 			expected: Token{Type: URLToken, Value: "foo.gif"},
