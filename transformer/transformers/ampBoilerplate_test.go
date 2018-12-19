@@ -50,27 +50,6 @@ func TestAMPBoilerplate(t *testing.T) {
 				tt.LinkFavicon, "</head><body></body></html>"),
 			Expected: canonicalExpected,
 		},
-		{
-			Desc: "Upgrades old boilerplate",
-			Input: tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
-				tt.LinkFavicon,
-				"<style>body {opacity: 0}</style>",
-				"<noscript><style>body {opacity: 1}</style></noscript></head>",
-				"<body></body></html>"),
-			Expected: canonicalExpected,
-		},
-		{
-			// The validator actually allows both old and new boilerplate to be present.
-			// This test ensures we always strip multiple instances and end up
-			// with just the new boilerplate.
-			Desc: "Strips old and new if both present",
-			Input: tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
-				tt.NoscriptAMPBoilerplate, tt.LinkFavicon,
-				"<style>body {opacity: 0}</style>", tt.StyleAMPBoilerplate,
-				"<noscript><style>body {opacity: 1}</style></noscript></head>",
-				"</head><body></body></html>"),
-			Expected: canonicalExpected,
-		},
 	}
 
 	runAMPBoilerplateTestcases(t, testCases)
