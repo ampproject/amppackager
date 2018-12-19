@@ -121,6 +121,8 @@ func (t *Token) String() string {
 		return t.Value + t.Extra
 	case FunctionToken:
 		return t.Value + "("
+	case HashToken:
+		return "#" + t.Value
 	case PercentageToken:
 		return t.Value + "%"
 	case StringToken:

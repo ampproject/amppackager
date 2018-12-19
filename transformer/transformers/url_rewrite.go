@@ -63,8 +63,8 @@ type textNodeContext struct {
 //  * <link rel=icon href>
 //  * <amp-video poster>
 //  * <use xlink:href>
-//  * TODO(alin04): a background image given in the <style amp-custom> tag / style attribute
-//  * TODO(alin04): any fonts given in the <style amp-custom> tag / style attribute
+//  * a background image given in the <style amp-custom> tag / style attribute
+//  * any fonts given in the <style amp-custom> tag / style attribute
 //  * background attributes.
 func URLRewrite(e *Context) error {
 	var ctx urlRewriteContext
@@ -77,8 +77,8 @@ func URLRewrite(e *Context) error {
 			continue
 		}
 
-		if n.DataAtom == atom.Style && htmlnode.HasAttribute(n, "", amphtml.AMPCustom) {
-			// TODO(alin04): parse url tokens in css
+		if n.DataAtom == atom.Style && htmlnode.HasAttribute(n, "", amphtml.AMPCustom) && n.FirstChild != nil {
+			ctx.parseStyleText(n.FirstChild)
 			continue
 		}
 
@@ -162,7 +162,7 @@ func convertToAMPCacheURLs(ctx urlRewriteContext, base *url.URL) []string {
 	return sortedPreconnects
 }
 
-// rewrite the URLs described by the elementNodeContext
+// rewrite the URLs described by the elementNodeContext. rewriteable implementation.
 func (nc *elementNodeContext) rewrite(base *url.URL, mainSubdomain string, preconnects map[string]struct{}) {
 	if len(nc.attrName) == 0 || len(nc.offsets) == 0 {
 		return
@@ -171,14 +171,29 @@ func (nc *elementNodeContext) rewrite(base *url.URL, mainSubdomain string, preco
 	if !ok {
 		return
 	}
+	replaced := replaceURLs(attrVal, nc.offsets, base, mainSubdomain, preconnects)
+	htmlnode.SetAttribute(nc.node, nc.attrNS, nc.attrName, replaced)
+}
+
+// rewrite the URLs described by the textNodeContext. rewriteable implementation.
+func (nc *textNodeContext) rewrite(base *url.URL, mainSubdomain string, preconnects map[string]struct{}) {
+	nc.node.Data = replaceURLs(nc.node.Data, nc.offsets, base, mainSubdomain, preconnects)
+}
+
+// replaceURLs replaces all the URLs in the data string with their AMP Cache equivalent, returning a new string.
+func replaceURLs(data string, offsets []amphtml.SubresourceOffset, base *url.URL, mainSubdomain string, preconnects map[string]struct{}) string {
+	if len(offsets) == 0 {
+		// noop
+		return data
+	}
 	var sb strings.Builder
 	pos := 0
-	for _, so := range nc.offsets {
+	for _, so := range offsets {
 		if pos < so.Start {
 			// Add any non-URL text
-			sb.WriteString(attrVal[pos:so.Start])
+			sb.WriteString(data[pos:so.Start])
 		}
-		cu, err := so.GetCacheURL(base, attrVal)
+		cu, err := so.GetCacheURL(base, data)
 		if err != nil {
 			// noop
 			continue
@@ -190,12 +205,13 @@ func (nc *elementNodeContext) rewrite(base *url.URL, mainSubdomain string, preco
 		}
 	}
 	// Append any remaining non-URL text
-	if pos < len(attrVal) {
-		sb.WriteString(attrVal[pos:])
+	if pos < len(data) {
+		sb.WriteString(data[pos:])
 	}
 	if sb.Len() > 0 {
-		htmlnode.SetAttribute(nc.node, nc.attrNS, nc.attrName, sb.String())
+		return sb.String()
 	}
+	return data
 }
 
 // fieldsContain returns true if needle is a field in the haystack (case-insensitive).
@@ -210,7 +226,7 @@ func fieldsContain(haystack, needle string) bool {
 	return false
 }
 
-// parseSimpleImageAttr parses the specified attribute value, deriving the offset to the
+// parseSimpleImageAttr parses the specified attribute value, calculating the offset to the
 // referenced subresource.
 func (ctx *urlRewriteContext) parseSimpleImageAttr(n *html.Node, namespace, attrName string) {
 	if v, ok := htmlnode.GetAttributeVal(n, namespace, attrName); ok {
@@ -220,11 +236,31 @@ func (ctx *urlRewriteContext) parseSimpleImageAttr(n *html.Node, namespace, attr
 	}
 }
 
+// parseStyleText parses the text node that contains stylesheet text.
+func (ctx *urlRewriteContext) parseStyleText(n *html.Node) {
+	if n.Type != html.TextNode {
+		return
+	}
+	parsed, offsets := parseCSS(n.Data)
+	if len(offsets) > 0 {
+		*ctx = append(*ctx, &textNodeContext{n, offsets})
+		n.Data = parsed
+	}
+}
+
 // parseInlineStyle parses an inline style attribute, deriving the offsets for any URLs
 func (ctx *urlRewriteContext) parseInlineStyle(n *html.Node, style string) {
+	parsed, offsets := parseCSS(style)
+	if len(offsets) > 0 {
+		*ctx = append(*ctx, &elementNodeContext{n, "", "style", offsets})
+		htmlnode.SetAttribute(n, "", "style", parsed)
+	}
+}
+
+func parseCSS(style string) (string, []amphtml.SubresourceOffset) {
 	segments, err := css.ParseURLs(style)
 	if err != nil {
-		return
+		return style, []amphtml.SubresourceOffset{}
 	}
 	var sb strings.Builder
 	pos := 0
@@ -246,9 +282,7 @@ func (ctx *urlRewriteContext) parseInlineStyle(n *html.Node, style string) {
 		}
 		writeAndMark(&sb, &pos, "')")
 	}
-	nc := elementNodeContext{n, "", "style", offsets}
-	*ctx = append(*ctx, &nc)
-	htmlnode.SetAttribute(n, "", "style", sb.String())
+	return sb.String(), offsets
 }
 
 func writeAndMark(sb *strings.Builder, pos *int, s string) {
