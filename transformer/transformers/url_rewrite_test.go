@@ -212,23 +212,57 @@ func TestURLRewrite_preconnect(t *testing.T) {
 }
 
 func TestURLRewrite_style(t *testing.T) {
-	tcs := []tt.TestCase{
+	baseTcs := []struct{ desc, input, replacement string }{
 		{
-			Desc: "inline",
-			Input: "<div style=\"background: url(&#39;&#39;) url(&#39;&#39;) " +
+			desc: "stylesheet with images",
+			input: "<head><style amp-custom=\"\">" +
+				"a:after {content: url('https://leak.com')} " +
+				"a::after {content: url('https://leak.com')} " +
+				"a:before {content: url('https://leak.com')} " +
+				"a::before {content: url('https://leak.com')} " +
+				"big {" +
+				"  list-style: url('https://leak.com'); " +
+				"  list-style-image: url('https://leak.com'); " +
+				"  background: url('https://leak.com'); " +
+				"  background-image: url('https://leak.com'); " +
+				"  border-image: url('https://leak.com'); " +
+				"  -moz-border-image: url('https://leak.com'); " +
+				"  -webkit-border-image: url('https://leak.com'); " +
+				"  border-image-source: url('https://leak.com'); " +
+				"  shape-outside: url('https://leak.com'); " +
+				"  cursor: url('https://leak.com'), auto; " +
+				"}" +
+				"</style>",
+			replacement: "https://leak-com.cdn.ampproject.org/i/s/leak.com",
+		},
+		{
+			desc: "stylesheet with fonts",
+			input: "<head><style amp-custom=\"\">" +
+				"@font-face { " +
+				" font-family: 'leak'; " +
+				" src: url('https://leak.com') format('eot'), url('https://leak.com') " +
+				"format('woff'), url('https://leak.com') format('truetype'); " +
+				"} " +
+				"@font-face { " +
+				"  font-family: 'leak'; " +
+				"  src: url('https://leak.com') format('eot'), url('https://leak.com') " +
+				"format('woff'), url('https://leak.com') format('truetype'); " +
+				"} " +
+				"</style>",
+			replacement: "https://leak-com.cdn.ampproject.org/r/s/leak.com",
+		},
+		{
+			desc: "inline div",
+			input: "<div style=\"background: url(&#39;&#39;) url(&#39;&#39;) " +
 				"url(&#39;&#39;) " +
 				"url(&#39;https://leak.com&#39;);\"></div>\n" +
 				"<div style=\"behavior: url(&#39;https://leak.com&#39;);\"></div>\n" +
 				"<div style=\"-ms-behavior: url(&#39;https://leak.com&#39;);\"></div>\n",
-			Expected: "<div style=\"background: url(&#39;&#39;) url(&#39;&#39;) " +
-				"url(&#39;&#39;) " +
-				"url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;);\"></div>\n" +
-				"<div style=\"behavior: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;);\"></div>\n" +
-				"<div style=\"-ms-behavior: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;);\"></div>",
+			replacement: "https://leak-com.cdn.ampproject.org/i/s/leak.com",
 		},
 		{
-			Desc: "another inline",
-			Input: "<b style=\"\n" +
+			desc: "another inline",
+			input: "<b style=\"\n" +
 				"  list-style: url(&#39;https://leak.com&#39;); \n" +
 				"  list-style-image: url(&#39;https://leak.com&#39;); \n" +
 				"  background: url(&#39;https://leak.com&#39;); \n" +
@@ -240,18 +274,48 @@ func TestURLRewrite_style(t *testing.T) {
 				"  shape-outside: url(&#39;https://leak.com&#39;); \n" +
 				"  cursor: url(&#39;https://leak.com&#39;), auto; \n" +
 				"\">MNO</b>",
-			Expected: "<b style=\"\n" +
-				"  list-style: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  list-style-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  background: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  background-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  border-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  -moz-border-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  -webkit-border-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  border-image-source: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  shape-outside: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
-				"  cursor: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;), auto; \n" +
-				"\">MNO</b>",
+			replacement: "https://leak-com.cdn.ampproject.org/i/s/leak.com",
+		},
+		{
+			desc: "URLs reused as variables",
+			input: "<style amp-custom=\"\">s {\n  --leak: url('https://leak.com');\n" +
+				"}\ns{\n  background: var(--leak);\n}\n</style>",
+			replacement: "https://leak-com.cdn.ampproject.org/i/s/leak.com",
+		},
+	}
+	tcs := []tt.TestCase{}
+	for _, baseTc := range baseTcs {
+		tc := tt.TestCase{
+			Desc:     baseTc.desc,
+			Input:    baseTc.input,
+			Expected: strings.Replace(baseTc.input, "https://leak.com", baseTc.replacement, -1)}
+		tcs = append(tcs, tc)
+	}
+	runURLRewriteTestcases(t, tcs)
+}
+
+func TestURLRewrite_styleEdgeCases(t *testing.T) {
+	tcs := []tt.TestCase{
+		{
+			Desc: "escaped code points",
+			Input: "<head><style amp-custom>" +
+				"p#p1 {\n" +
+				"  background-image: \\75 \\72 \\6C (https://leak.com);\n" +
+				"}\n" +
+				"p#p2 {\n" +
+				"  background-image: \\000075\\000072\\00006C (https://leak.com);\n" +
+				"}\n" +
+				"</style>",
+			Expected: "<style amp-custom=\"\">" +
+				"p#p1 {\n" +
+				"  background-image: " +
+				"url('https://leak-com.cdn.ampproject.org/i/s/leak.com');\n" +
+				"}\n" +
+				"p#p2 {\n" +
+				"  background-image: " +
+				"url('https://leak-com.cdn.ampproject.org/i/s/leak.com');\n" +
+				"}\n" +
+				"</style>",
 		},
 	}
 	runURLRewriteTestcases(t, tcs)
