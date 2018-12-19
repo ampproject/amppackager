@@ -29,6 +29,9 @@ type TestCase struct {
 
 // AMPHTML constants.
 const (
+	// LinkCanonical is a link to the canonical document.
+	LinkCanonical = "<link href=self.html rel=canonical>"
+
 	// LinkFavicon is an example link tag.
 	LinkFavicon = "<link href=https://example.com/favicon.ico rel=icon>"
 
@@ -44,7 +47,7 @@ const (
 	// MetaCharset is a required tag for an AMP document.
 	MetaCharset = "<meta charset=utf-8>"
 
-	// MetaViewpoert is a required tag for an AMP document.
+	// MetaViewport is a required tag for an AMP document.
 	MetaViewport = "<meta content=width=device-width,minimum-scale=1,initial-scale=1 name=viewport>"
 
 	// NoscriptAMPBoilerplate is the standard style for <noscript> tag.
@@ -96,16 +99,4 @@ const (
 // Concat concatenates the given strings together.
 func Concat(strs ...string) string {
 	return strings.Join(strs, "")
-}
-
-// BuildHTML returns AMPHTML with the given body string. Note this isn't
-// a valid AMP document.
-func BuildHTML(body string) string {
-	return Concat(
-		"<!doctype html><html ⚡><head>",
-		ScriptAMPRuntime,
-		LinkFavicon,
-		"</head><body>",
-		body,
-		"</body></html>")
 }

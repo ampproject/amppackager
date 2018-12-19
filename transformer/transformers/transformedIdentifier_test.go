@@ -29,10 +29,12 @@ func TestTransformedIdentifier(t *testing.T) {
 		{
 			Desc: "Adds identifier to html tag",
 			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
 				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
 			Expected: tt.Concat("<!doctype html><html ⚡=\"\" transformed=google><head>",
-				tt.ScriptAMPRuntime, tt.MetaCharset, tt.StyleAMPBoilerplate,
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
 				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
 		},
 	}
