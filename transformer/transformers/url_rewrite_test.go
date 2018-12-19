@@ -92,6 +92,11 @@ func TestURLRewrite_link(t *testing.T) {
 			Expected: `<link rel="icon" href="https://www-example-com.cdn.ampproject.org/i/www.example.com/foo"/>`,
 		},
 		{
+			Desc:     "fragment",
+			Input:    `<link rel=icon href=foo#bar>`,
+			Expected: `<link rel="icon" href="https://www-example-com.cdn.ampproject.org/i/www.example.com/foo#bar"/>`,
+		},
+		{
 			Desc:     `link rel="shortcut icon"`,
 			Input:    `<link rel="shortcut icon" href=foo>`,
 			Expected: `<link rel="shortcut icon" href="https://www-example-com.cdn.ampproject.org/i/www.example.com/foo"/>`,
@@ -201,6 +206,52 @@ func TestURLRewrite_preconnect(t *testing.T) {
 			Desc:     "preconnects not added",
 			Input:    `<amp-img src=http://www.example.com/blah.jpg width=92 height=10 srcset="http://www.example.com/blah.jpg 50w">`,
 			Expected: `<head></head>`,
+		},
+	}
+	runURLRewriteTestcases(t, tcs)
+}
+
+func TestURLRewrite_style(t *testing.T) {
+	tcs := []tt.TestCase{
+		{
+			Desc: "inline",
+			Input: "<div style=\"background: url(&#39;&#39;) url(&#39;&#39;) " +
+				"url(&#39;&#39;) " +
+				"url(&#39;https://leak.com&#39;);\"></div>\n" +
+				"<div style=\"behavior: url(&#39;https://leak.com&#39;);\"></div>\n" +
+				"<div style=\"-ms-behavior: url(&#39;https://leak.com&#39;);\"></div>\n",
+			Expected: "<div style=\"background: url(&#39;&#39;) url(&#39;&#39;) " +
+				"url(&#39;&#39;) " +
+				"url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;);\"></div>\n" +
+				"<div style=\"behavior: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;);\"></div>\n" +
+				"<div style=\"-ms-behavior: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;);\"></div>",
+		},
+		{
+			Desc: "another inline",
+			Input: "<b style=\"\n" +
+				"  list-style: url(&#39;https://leak.com&#39;); \n" +
+				"  list-style-image: url(&#39;https://leak.com&#39;); \n" +
+				"  background: url(&#39;https://leak.com&#39;); \n" +
+				"  background-image: url(&#39;https://leak.com&#39;); \n" +
+				"  border-image: url(&#39;https://leak.com&#39;); \n" +
+				"  -moz-border-image: url(&#39;https://leak.com&#39;); \n" +
+				"  -webkit-border-image: url(&#39;https://leak.com&#39;); \n" +
+				"  border-image-source: url(&#39;https://leak.com&#39;); \n" +
+				"  shape-outside: url(&#39;https://leak.com&#39;); \n" +
+				"  cursor: url(&#39;https://leak.com&#39;), auto; \n" +
+				"\">MNO</b>",
+			Expected: "<b style=\"\n" +
+				"  list-style: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  list-style-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  background: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  background-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  border-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  -moz-border-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  -webkit-border-image: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  border-image-source: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  shape-outside: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;); \n" +
+				"  cursor: url(&#39;https://leak-com.cdn.ampproject.org/i/s/leak.com&#39;), auto; \n" +
+				"\">MNO</b>",
 		},
 	}
 	runURLRewriteTestcases(t, tcs)
