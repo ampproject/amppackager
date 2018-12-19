@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
+	"github.com/ampproject/amppackager/transformer/internal/css"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
@@ -81,8 +82,9 @@ func URLRewrite(e *Context) error {
 			continue
 		}
 
-		if htmlnode.HasAttribute(n, "", "style") {
-			// TODO(alin04): parse url tokens in css
+		if v, ok := htmlnode.GetAttributeVal(n, "", "style"); ok {
+			ctx.parseInlineStyle(n, v)
+			continue
 		}
 
 		// Do not rewrite links within mustache templates.
@@ -218,6 +220,42 @@ func (ctx *urlRewriteContext) parseSimpleImageAttr(n *html.Node, namespace, attr
 	}
 }
 
+// parseInlineStyle parses an inline style attribute, deriving the offsets for any URLs
+func (ctx *urlRewriteContext) parseInlineStyle(n *html.Node, style string) {
+	segments, err := css.ParseURLs(style)
+	if err != nil {
+		return
+	}
+	var sb strings.Builder
+	pos := 0
+	var offsets []amphtml.SubresourceOffset
+	for _, segment := range segments {
+		if segment.Type == css.ByteType {
+			writeAndMark(&sb, &pos, segment.Data)
+			continue
+		}
+		writeAndMark(&sb, &pos, "url('")
+		if len(segment.Data) > 0 {
+			slen, _ := sb.WriteString(segment.Data)
+			subtype := amphtml.ImageType
+			if segment.Type == css.FontURLType {
+				subtype = amphtml.OtherType
+			}
+			offsets = append(offsets, amphtml.SubresourceOffset{SubType: subtype, Start: pos, End: pos + slen})
+			pos += slen
+		}
+		writeAndMark(&sb, &pos, "')")
+	}
+	nc := elementNodeContext{n, "", "style", offsets}
+	*ctx = append(*ctx, &nc)
+	htmlnode.SetAttribute(n, "", "style", sb.String())
+}
+
+func writeAndMark(sb *strings.Builder, pos *int, s string) {
+	slen, _ := sb.WriteString(s)
+	*pos += slen
+}
+
 // parseExistingSrcset normalizes and parses the srcset attribute.
 func (ctx *urlRewriteContext) parseExistingSrcset(n *html.Node, srcset string) {
 	normalized, offsets := amphtml.ParseSrcset(srcset)
@@ -273,8 +311,7 @@ func (ctx *urlRewriteContext) parseNewSrcset(n *html.Node, src string) {
 			nc.offsets = append(nc.offsets, amphtml.SubresourceOffset{Start: pos, End: pos + slen, DesiredImageWidth: w})
 			pos += slen
 			if i < len(widths)-1 {
-				slen, _ = sb.WriteString(", ")
-				pos += slen
+				writeAndMark(&sb, &pos, ", ")
 			}
 		}
 		*ctx = append(*ctx, &nc)

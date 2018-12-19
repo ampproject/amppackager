@@ -150,6 +150,23 @@ func TestParseURLs(t *testing.T) {
 				Segment{ByteType, " }"},
 			},
 		},
+		{
+			desc: "html characters",
+			input: ".x{background: url(&#39;&#39;) url(&#39;&#39;) " +
+				"url(&#39;&#39;) " +
+				"url(&#39;https://leak.com&#39;)};",
+			expected: Segments{
+				Segment{ByteType, ".x{background: "},
+				Segment{ImageURLType, "&#39;&#39;"},
+				Segment{ByteType, " "},
+				Segment{ImageURLType, "&#39;&#39;"},
+				Segment{ByteType, " "},
+				Segment{ImageURLType, "&#39;&#39;"},
+				Segment{ByteType, " "},
+				Segment{ImageURLType, "&#39;https://leak.com&#39;"},
+				Segment{ByteType, "};"},
+			},
+		},
 	}
 
 	for _, tc := range tcs {
