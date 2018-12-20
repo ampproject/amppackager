@@ -15,6 +15,7 @@
 package transformers_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -45,9 +46,9 @@ func BuildHTML(body string) string {
 func TestNodeCleanup_Strip(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
-			Desc:     "strips comments",
-			Input:    tt.Concat("<!-- comment -->",
-								BuildHTML("<foo><!-- comment --></foo>")),
+			Desc: "strips comments",
+			Input: tt.Concat("<!-- comment -->",
+				BuildHTML("<foo><!-- comment --></foo>")),
 			Expected: BuildHTML("<foo></foo>"),
 		},
 		{
@@ -71,16 +72,16 @@ func TestNodeCleanup_Strip(t *testing.T) {
 			Expected: BuildHTML("<a class=foo></a>"),
 		},
 		{
-			Desc:     "strips child whitespace nodes from <html> and <head>",
-			Input:    tt.Concat(
-				  "<!doctype html><html ⚡>  <head>\n",
-				  "\t\t",
-				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				  "  ",
-				  tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
-				  "</head>\n<body>\n",
-				  "    foo<b> </b>bar\n\n",
-				  "</body></html>"),
+			Desc: "strips child whitespace nodes from <html> and <head>",
+			Input: tt.Concat(
+				"<!doctype html><html ⚡>  <head>\n",
+				"\t\t",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				"  ",
+				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				"</head>\n<body>\n",
+				"    foo<b> </b>bar\n\n",
+				"</body></html>"),
 			Expected: BuildHTML("\n    foo<b> </b>bar\n\n"),
 		},
 		{
@@ -254,6 +255,53 @@ func TestNodeCleanup_NoScriptRemoved(t *testing.T) {
 			Input:    "<body><noscript/></noscript></body>",
 			Expected: `<body></body>`,
 		},
+	}
+	runNodeCleanupTestCases(t, tcs)
+}
+
+func TestNodeCleanup_ReescapeText(t *testing.T) {
+	basetcs := []tt.TestCase{
+		{
+			Desc:     "escape <",
+			Input:    "<body>3 < 4</body>",
+			Expected: "<body>3 &lt; 4</body>",
+		},
+		{
+			Desc:     "&lt; noop",
+			Input:    "<body>3 &lt; 4</body>",
+			Expected: "<body>3 &lt; 4</body>",
+		},
+		{
+			Desc:     "escape double quote",
+			Input:    "<body>foo \" bar</body>",
+			Expected: "<body>foo &#34; bar</body>",
+		},
+		{
+			Desc:     "crazy",
+			Input:    "<body><<!---->script>alert(42)<<!---->/script></body>",
+			Expected: "<body>&lt;script&gt;alert(42)&lt;/script&gt;</body>",
+		},
+		{
+			Desc:     "utf-8",
+			Input:    "<body>\u00A0<body>",
+			Expected: "<body>&nbsp;</body>",
+		},
+		{
+			Desc:     "hex encoded",
+			Input:    "<body>&#x61;</body>",
+			Expected: "<body>a</body>",
+		},
+	}
+	tcs := []tt.TestCase{}
+	for _, tag := range []string{"body, title"} {
+		for _, basetc := range basetcs {
+			tc := tt.TestCase{
+				Desc:     basetc.Desc,
+				Input:    fmt.Sprintf("<%s>%s</%s>", tag, basetc.Input, tag),
+				Expected: fmt.Sprintf("<%s>%s</%s>", tag, basetc.Expected, tag),
+			}
+			tcs = append(tcs, tc)
+		}
 	}
 	runNodeCleanupTestCases(t, tcs)
 }
