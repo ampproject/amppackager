@@ -3,7 +3,7 @@ package css
 import (
 	"testing"
 
-	"google3/third_party/golang/godebug/pretty"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestParseURLs(t *testing.T) {
@@ -171,7 +171,7 @@ func TestParseURLs(t *testing.T) {
 
 	for _, tc := range tcs {
 		if actual, err := ParseURLs(tc.input); err == nil {
-			if diff := pretty.Compare(tc.expected, actual); diff != "" {
+			if diff := cmp.Diff(tc.expected, actual); diff != "" {
 				t.Errorf("%s: Segment() returned diff (-want +got):\n%s", tc.desc, diff)
 			}
 		} else {

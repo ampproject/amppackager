@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"google3/third_party/golang/godebug/pretty"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestNewTokenizer(t *testing.T) {
@@ -356,7 +356,7 @@ func TestSingleToken(t *testing.T) {
 	for _, tc := range tcs {
 		z := NewTokenizer(tc.input)
 		actual := z.Next()
-		if diff := pretty.Compare(tc.expected, actual); diff != "" {
+		if diff := cmp.Diff(tc.expected, actual); diff != "" {
 			t.Errorf("%s returned diff (-want, +got):\n%s", tc.desc, diff)
 		}
 	}
@@ -445,7 +445,7 @@ func TestTokenization(t *testing.T) {
 	for _, tc := range tcs {
 		z := NewTokenizer(tc.input)
 		actual := z.All()
-		if diff := pretty.Compare(tc.expected, actual); diff != "" {
+		if diff := cmp.Diff(tc.expected, actual); diff != "" {
 			t.Errorf("%s returned diff (-want, +got):\n%s", tc.desc, diff)
 		}
 	}
@@ -465,7 +465,7 @@ func TestSerialization(t *testing.T) {
 	}
 	z = NewTokenizer(sb.String())
 	second := z.All()
-	if diff := pretty.Compare(first, second); diff != "" {
+	if diff := cmp.Diff(first, second); diff != "" {
 		t.Errorf("returned diff (-want, +got):\n%s", diff)
 	}
 }
