@@ -112,11 +112,11 @@ func URLRewrite(e *Context) error {
 		case "amp-img", "amp-anim", "img":
 			// Rewrite 'src' and 'srcset' attributes. Add 'srcset' if none.
 			src, srcOk := htmlnode.GetAttributeVal(n, "", "src")
-			if srcOk {
+			if srcOk && len(src) > 0 {
 				ctx.parseSimpleImageAttr(n, "", "src")
 			}
 
-			if v, srcsetOk := htmlnode.GetAttributeVal(n, "", "srcset"); srcsetOk {
+			if v, srcsetOk := htmlnode.GetAttributeVal(n, "", "srcset"); srcsetOk && len(v) > 0 {
 				ctx.parseExistingSrcset(n, v)
 			} else if srcOk {
 				ctx.parseNewSrcset(n, src)
@@ -192,6 +192,7 @@ func replaceURLs(data string, offsets []amphtml.SubresourceOffset, base *url.URL
 		if pos < so.Start {
 			// Add any non-URL text
 			sb.WriteString(data[pos:so.Start])
+			pos = so.Start
 		}
 		cu, err := so.GetCacheURL(base, data)
 		if err != nil {
@@ -344,6 +345,7 @@ func (ctx *urlRewriteContext) parseNewSrcset(n *html.Node, src string) {
 			slen, _ := sb.WriteString(src)
 			nc.offsets = append(nc.offsets, amphtml.SubresourceOffset{Start: pos, End: pos + slen, DesiredImageWidth: w})
 			pos += slen
+			writeAndMark(&sb, &pos, " "+strconv.Itoa(w)+"w")
 			if i < len(widths)-1 {
 				writeAndMark(&sb, &pos, ", ")
 			}
