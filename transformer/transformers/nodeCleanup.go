@@ -30,11 +30,17 @@ const (
 	unsanitaryURIChars = "\t\n\r"
 )
 
+var (
+	scriptJSPReplacer = strings.NewReplacer("<%", "\\u3c%", "%>", "%\\u3e")
+	styleJSPReplacer  = strings.NewReplacer("<%", "\\3c%", "%>", "%\\3e")
+)
+
 // NodeCleanup cleans up the DOM tree, including, but not limited to:
 //  - stripping comment nodes.
 //  - stripping noscript elements.
 //  - removing duplicate attributes
 //  - stripping nonce attributes
+//  - Escape JSP/ASP characters in <script> and <style>
 //  - sanitizing URI values
 //  - removing extra <title> elements
 func NodeCleanup(e *Context) error {
@@ -80,6 +86,12 @@ func NodeCleanup(e *Context) error {
 			if len(strings.TrimLeft(n.Data, whitespace)) == 0 && !htmlnode.IsDescendantOf(n, atom.Body) && !htmlnode.IsChildOf(n, atom.Title) {
 				htmlnode.RemoveNode(&n)
 				continue
+			}
+			// Escape JSP/ASP characters
+			if htmlnode.IsChildOf(n, atom.Script) {
+				n.Data = scriptJSPReplacer.Replace(n.Data)
+			} else if htmlnode.IsChildOf(n, atom.Style) {
+				n.Data = styleJSPReplacer.Replace(n.Data)
 			}
 		}
 	}
