@@ -306,6 +306,33 @@ func TestNodeCleanup_ReescapeText(t *testing.T) {
 	runNodeCleanupTestCases(t, tcs)
 }
 
+func TestNodeCleanup_EscapeJspCharactersInScriptAndStyle(t *testing.T) {
+	tcs := []tt.TestCase{
+		{
+			Desc: "escape jsp",
+			Input: `<head><style amp-custom>
+           a { color: "<% %>" }
+           b { color: "<% %>" }
+         </style><script type=application/json>
+           {
+             "foo": "<% %>",
+             "bar": "<% %>"
+           }
+         </script></head>`,
+			Expected: `<head><style amp-custom>
+           a { color: "\3c% %\3e" }
+           b { color: "\3c% %\3e" }
+         </style><script type=application/json>
+           {
+             "foo": "\u3c% %\u3e",
+             "bar": "\u3c% %\u3e"
+           }
+         </script></head>`,
+		},
+	}
+	runNodeCleanupTestCases(t, tcs)
+}
+
 func runNodeCleanupTestCases(t *testing.T, tcs []tt.TestCase) {
 	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
