@@ -31,7 +31,7 @@ var /* const */ ampStoryPageTagAttrs = []string{"background-audio"}
 var /* const */ formTagAttrs = []string{"action", "action-xhr"}
 var /* const */ imgTagAttrs = []string{"longdesc"}
 
-// URL operates on URL attributes, rewriting URLs as needed
+// AbsoluteURL operates on URL attributes, rewriting URLs as needed
 // depending on whether the document is being served from the AMP
 // Cache or not, relative to the base URL (which is derived from the
 // document URL and the <base> tag).
@@ -71,7 +71,7 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 //
 //     [1]. amp-img rewriting is handled by UrlRewrite
 //
-func URL(e *Context) error {
+func AbsoluteURL(e *Context) error {
 	target := extractBaseTarget(e.DOM.HeadNode)
 
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {

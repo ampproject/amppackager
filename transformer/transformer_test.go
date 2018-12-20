@@ -159,7 +159,8 @@ func TestCustom(t *testing.T) {
 		"reorderHead",
 		"serverSideRendering",
 		"transformedIdentifier",
-		"uRl",
+		"aBsolUTEuRl",
+		"urlRewriTE",
 	}
 	for _, tc := range tests {
 		r := rpb.Request{Html: "<html ⚡><lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{tc}}
