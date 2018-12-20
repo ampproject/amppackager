@@ -124,7 +124,6 @@ func (so *SubresourceOffset) GetCacheURL(base *url.URL, input string) (*CacheURL
 		if so.DesiredImageWidth > 0 {
 			wStr := strconv.Itoa(so.DesiredImageWidth)
 			prefix = "/ii/w" + wStr + "/"
-			c.descriptor = wStr + "w"
 		}
 	}
 	c.Path = prefix + secureInfix + c.Hostname() + c.Path

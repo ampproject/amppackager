@@ -141,7 +141,7 @@ func TestGetCacheURL(t *testing.T) {
 			desc:          "image with requested width",
 			input:         "http://www.example.com/blah.jpg",
 			width:         50,
-			expectedImage: "https://www-example-com.cdn.ampproject.org/ii/w50/www.example.com/blah.jpg 50w",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/ii/w50/www.example.com/blah.jpg",
 			expectedOther: "https://www-example-com.cdn.ampproject.org/r/www.example.com/blah.jpg",
 		},
 		{
