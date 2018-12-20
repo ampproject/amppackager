@@ -34,8 +34,6 @@
 //   node --max-old-space-size=4000 cmd/transform_wasm/main.js transform.wasm \
 //     path/to/test/files*
 
-// TODO(twifkak): Pass lengths via typedarrays as well, as a uint32 prefix.
-
 const fs = require('fs');
 const util = require('util');
 
@@ -77,10 +75,9 @@ async function readTestFiles() {
   }
 
   // Parse the URL from each test case.
-  const encoder = new util.TextEncoder();
   htmls.forEach((html, i) => {
     let newline = html.indexOf('\n');
-    htmls[i] = [encoder.encode(html.substring(0, newline)), encoder.encode(html.substring(newline + 1))];
+    htmls[i] = [html.substring(0, newline), html.substring(newline + 1)];
   });
 
   console.log('Pushed all %d tests.', htmls.length);
@@ -89,53 +86,93 @@ async function readTestFiles() {
 }
 
 function dumpHeap(name) {
-  console.log('%s: %o', name, process.memoryUsage());
+  console.log('%s: %s', name, util.inspect(process.memoryUsage(), {colors: true, breakLength: Infinity}))
 }
 
-// Calls getter to generate a new TypedArray, then calls fun on it, then
-// releases it.
-//
-// TODO(twifkak): This accounts for about 15% of walltime, and probably leaks
-// some memory too. Consider a hybrid approach, wherein the TypedArray is reused
-// until we get a 'detached ArrayBuffer' error, at which point we ask Go for a
-// new one.
-async function withTypedArray(getter, fun) {
-  const [ta, release] = await new Promise((resolve) => getter((u, r) => resolve([u, r])));
-  try {
-    return fun(ta);
-  } finally {
-    await new Promise((resolve) => release(() => resolve()));
+// Wraps a TypedArray as received by Go, taking care of:
+// - Length-prefix and UTF-8 decoding/encoding in the get()/set() methods.
+// - Checking that the given string will fit in the buffer, in set().
+// - Getting a new TypedArray from Go, if the old one detaches due to WASM
+//   memory growth.
+class GoBytes {
+  constructor(wrapper) {
+    this._wrapper = wrapper;
+    this._typedArray = null;
+    this._releaser = null;
+    this._decoder = new util.TextDecoder();
+    this._encoder = new util.TextEncoder();
+  }
+
+  async /*int*/ length() {
+    let ta = await this._buf();
+    return new DataView(ta.slice(0, 4).buffer).getUint32(0);
+  }
+
+  async /*string*/ get() {
+    let ta = await this._buf();
+    let buf = ta.slice(0, 4).buffer;
+    let len = new DataView(buf).getUint32(0);
+    return this._decoder.decode(new DataView(buf, 4, len));
+  }
+
+  async set(str /*string*/) {
+    let buf = this._encoder.encode(str);
+    if (buf.length > this._wrapper.maxLen) throw new Error("str too big: ", buf.length);
+    let ta = await this._buf();
+    let tmpBuf = new Uint8Array(4);
+    new DataView(tmpBuf.buffer).setUint32(0, buf.length);
+    ta.set(tmpBuf);
+    ta.set(buf, 4);
+  }
+
+  // Returns a Uint8Array backed by a Go slice. For some reason you can access
+  // the Uint8Array through most methods, but not its buffer property. As a
+  // workaround, use slice to make a shallow copy, so you can get a Uint8Array
+  // with a working buffer property.
+  async _buf() {
+    if (!this._typedArray /* first use */ || !this._typedArray.length /* detached */) {
+      if (this._releaser) await new Promise((resolve) => this._releaser(() => resolve()));
+      await new Promise((resolve) =>
+          this._wrapper.getter((ta, rel) => {
+            this._typedArray = ta;
+            this._releaser = rel;
+            resolve();
+          }));
+    }
+    return this._typedArray;
   }
 }
 
-global.begin = async function(transform, done, urlInCB, htmlInCB, htmlOutCB, maxLen) {
+global.begin = async function(transform, done, urlIn, htmlIn, htmlOut) {
   dumpHeap('compile.after');
   let num = 0;
-  const decoder = new util.TextDecoder();
+  urlIn = new GoBytes(urlIn);
+  htmlIn = new GoBytes(htmlIn);
+  htmlOut = new GoBytes(htmlOut);
   dumpHeap('transform.before');
   const start = process.hrtime.bigint();
   for (const [url, html] of tests) {
-    if (++num % 100 === 0) console.log('num = ', num);
+    if (++num % 100 === 0) console.log('num =', num);
     if (num % 2000 === 0) dumpHeap('transform.' + num);
-    if (url.length > 2000) {
-      console.log("url too big: ", decoder.decode(url));
+
+    try {
+      await urlIn.set(url);
+      await htmlIn.set(html);
+    } catch(err) {
+      console.error("error for", url, err);
       continue;
     }
-    if (html.length > maxLen) {
-      console.log("html too big (", html.length, ") for url: ", decoder.decode(url));
-      continue;
-    }
-    await withTypedArray(urlInCB, (urlIn) => urlIn.set(url));
-    await withTypedArray(htmlInCB, (htmlIn) => htmlIn.set(html));
 
     await new Promise((resolve) =>
-      transform(url.length, html.length, (htmlOutLen) => {
+      transform(() => {
         // Minimum valid AMP is larger than 1K.
-        if (htmlOutLen < 1000) {
-          withTypedArray(htmlOutCB, (htmlOut) => decoder.decode(htmlOut.slice(htmlOutLen))).then((htmlOut) =>
-            console.log('URL ', decoder.decode(url), ' output is invalid: ', htmlOut));
-        }
-        resolve();
+        htmlOut.length().then((len) => {
+          if (len < 1000) {
+            htmlOut.get().then((str) =>
+              console.log('URL', url, 'output is invalid: ', str));
+          }
+          resolve();
+        });
       }));
   }
   const total = process.hrtime.bigint() - start;
