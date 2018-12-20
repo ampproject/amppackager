@@ -33,21 +33,25 @@ const ampBoilerplateNoscriptWithAttr = "<noscript><style amp-boilerplate=\"\">bo
 
 func TestAMPBoilerplate(t *testing.T) {
 	canonicalExpected := tt.Concat("<!doctype html><html ⚡><head>",
-		tt.ScriptAMPRuntime, tt.LinkFavicon, tt.StyleAMPBoilerplate,
+		tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+		tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
 		ampBoilerplateNoscriptWithAttr, "</head><body></body></html>")
 
 	testCases := []tt.TestCase{
 		{
-			Desc: "Keeps boilerplate",
-			Input: tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
-				"</head><body></body></html>"),
+			Desc:     "Keeps boilerplate",
+			Input:    tt.Concat("<!doctype html><html ⚡><head>",
+				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
+				  tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				  "</head><body></body></html>"),
 			Expected: canonicalExpected,
 		},
 		{
-			Desc: "Adds boilerplate if missing",
-			Input: tt.Concat("<!doctype html><html ⚡><head>", tt.ScriptAMPRuntime,
-				tt.LinkFavicon, "</head><body></body></html>"),
+			Desc:     "Adds boilerplate if missing",
+			Input:    tt.Concat("<!doctype html><html ⚡><head>",
+				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				  tt.LinkFavicon, tt.LinkCanonical,
+				  "</head><body></body></html>"),
 			Expected: canonicalExpected,
 		},
 	}
@@ -58,7 +62,7 @@ func TestAMPBoilerplate(t *testing.T) {
 func TestAMP4Ads(t *testing.T) {
 	expected := func(attr string) string {
 		return tt.Concat("<!doctype html><html ", attr, "><head>",
-			tt.ScriptAMPRuntime, tt.LinkFavicon,
+			tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 			"<style amp4ads-boilerplate>body{visibility:hidden}</style></head>",
 			"<body></body></html>")
 	}
@@ -75,15 +79,17 @@ func TestAMP4Ads(t *testing.T) {
 			Expected: expected("⚡4ads"),
 		},
 		{
-			Desc: "Adds boilerplate if missing",
-			Input: tt.Concat("<!doctype html><html amp4ads><head>", tt.ScriptAMPRuntime,
-				tt.LinkFavicon, "</head><body></body></html>"),
+			Desc:     "Adds boilerplate if missing",
+			Input:    tt.Concat("<!doctype html><html amp4ads><head>",
+				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				  "</head><body></body></html>"),
 			Expected: expected("amp4ads"),
 		},
 		{
-			Desc: "Adds boilerplate for ⚡4ads if missing",
-			Input: tt.Concat("<!doctype html><html ⚡4ads><head>", tt.ScriptAMPRuntime,
-				tt.LinkFavicon, "</head><body></body></html>"),
+			Desc:     "Adds boilerplate for ⚡4ads if missing",
+			Input:    tt.Concat("<!doctype html><html ⚡4ads><head>",
+				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				  "</head><body></body></html>"),
 			Expected: expected("⚡4ads"),
 		},
 	}
@@ -94,7 +100,7 @@ func TestAMP4Ads(t *testing.T) {
 func TestAMP4Email(t *testing.T) {
 	expected := func(attr string) string {
 		return tt.Concat("<!doctype html><html ", attr, "><head>",
-			tt.ScriptAMPRuntime, tt.LinkFavicon,
+			tt.MetaCharset, tt.ScriptAMPRuntime,
 			"<style amp4email-boilerplate>body{visibility:hidden}</style></head>",
 			"<body></body></html>")
 	}
@@ -111,15 +117,17 @@ func TestAMP4Email(t *testing.T) {
 			Expected: expected("⚡4email"),
 		},
 		{
-			Desc: "Adds boilerplate if missing",
-			Input: tt.Concat("<!doctype html><html amp4email><head>", tt.ScriptAMPRuntime,
-				tt.LinkFavicon, "</head><body></body></html>"),
+			Desc:     "Adds boilerplate if missing",
+			Input:    tt.Concat("<!doctype html><html amp4email><head>",
+				  tt.MetaCharset, tt.ScriptAMPRuntime,
+				  "</head><body></body></html>"),
 			Expected: expected("amp4email"),
 		},
 		{
-			Desc: "Adds boilerplate for ⚡4email if missing",
-			Input: tt.Concat("<!doctype html><html ⚡4email><head>", tt.ScriptAMPRuntime,
-				tt.LinkFavicon, "</head><body></body></html>"),
+			Desc:     "Adds boilerplate for ⚡4email if missing",
+			Input:    tt.Concat("<!doctype html><html ⚡4email><head>",
+				  tt.MetaCharset, tt.ScriptAMPRuntime,
+				  "</head><body></body></html>"),
 			Expected: expected("⚡4email"),
 		},
 	}
