@@ -12,19 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Bootstrapper for transform_wasm. Transforms all html in the test files
-// specified on the commandline.
+// JS runtime for transform_wasm. Transforms all html in the test files
+// specified on the commandline. This employs several tricks to get reasonable
+// performance out of Go-WASM:
+//
+// 1. To eliminate Go bootstrapping costs: Keep a long-running Go process open
+//    and communicate with it via continuation-passing style.
+// 2. To eliminate memory leaks of data passed between Go/JS due to lack of
+//    cross-heap GC: Communicate large data by mutating persistent TypedArrays
+//    created from the Go side.
+// 3. To eliminate the 1G hard-coded minimum Go heap size: use the third-party
+//    wams tool to hack the wasm binary. This requires more cruft because
+//    `memory.grow` requests from the Go runtime cause TypedArrays to
+//    invalidate as the memory underneath them moves.
 //
 // Build dependency: go get github.com/termonio/wams
 //
 // To use:
 //   GOOS=js GOARCH=wasm go build -o transform.wasm ./cmd/transform_wasm/ &&
-//   wams -pages 12288 -write transform.wasm &&
+//   wams -pages 2048 -write transform.wasm &&
 //   node --max-old-space-size=4000 cmd/transform_wasm/main.js transform.wasm \
 //     path/to/test/files*
 
-// TODO(twifkak): Figure out how to reduce Go heap size from 768M.
-// TODO(twifkak): Pass lengths via typedarrays as well.
+// TODO(twifkak): Pass lengths via typedarrays as well, as a uint32 prefix.
 
 const fs = require('fs');
 const util = require('util');
@@ -82,8 +92,23 @@ function dumpHeap(name) {
   console.log('%s: %o', name, process.memoryUsage());
 }
 
-// Copies inp plus NUL-terminator into out.
-global.begin = async function(transform, done, urlIn, htmlIn, htmlOut, maxLen) {
+// Calls getter to generate a new TypedArray, then calls fun on it, then
+// releases it.
+//
+// TODO(twifkak): This accounts for about 15% of walltime, and probably leaks
+// some memory too. Consider a hybrid approach, wherein the TypedArray is reused
+// until we get a 'detached ArrayBuffer' error, at which point we ask Go for a
+// new one.
+async function withTypedArray(getter, fun) {
+  const [ta, release] = await new Promise((resolve) => getter((u, r) => resolve([u, r])));
+  try {
+    return fun(ta);
+  } finally {
+    await new Promise((resolve) => release(() => resolve()));
+  }
+}
+
+global.begin = async function(transform, done, urlInCB, htmlInCB, htmlOutCB, maxLen) {
   dumpHeap('compile.after');
   let num = 0;
   const decoder = new util.TextDecoder();
@@ -100,21 +125,18 @@ global.begin = async function(transform, done, urlIn, htmlIn, htmlOut, maxLen) {
       console.log("html too big (", html.length, ") for url: ", decoder.decode(url));
       continue;
     }
-    urlIn.set(url);
-    htmlIn.set(html);
+    await withTypedArray(urlInCB, (urlIn) => urlIn.set(url));
+    await withTypedArray(htmlInCB, (htmlIn) => htmlIn.set(html));
 
-    if (true /* go1.11 */) {
-      await new Promise((resolve) =>
-        transform(url.length, html.length, (htmlOutLen) => {
-          // Minimum valid AMP is larger than 1K.
-          if (htmlOutLen < 1000) console.log('URL ', decoder.decode(url), ' output is invalid: ', decoder.decode(htmlOut.slice(htmlOutLen)));
-          resolve();
-        }));
-    } else /* go1.12 */ {
-      const htmlOutLen = transform(url.length, html.length);
-      // Minimum valid AMP is larger than 1K.
-      if (htmlOutLen < 1000) console.log('URL ', decoder.decode(url), ' output is invalid: ', decoder.decode(htmlOut.slice(htmlOutLen)));
-    }
+    await new Promise((resolve) =>
+      transform(url.length, html.length, (htmlOutLen) => {
+        // Minimum valid AMP is larger than 1K.
+        if (htmlOutLen < 1000) {
+          withTypedArray(htmlOutCB, (htmlOut) => decoder.decode(htmlOut.slice(htmlOutLen))).then((htmlOut) =>
+            console.log('URL ', decoder.decode(url), ' output is invalid: ', htmlOut));
+        }
+        resolve();
+      }));
   }
   const total = process.hrtime.bigint() - start;
   dumpHeap('transform.after');

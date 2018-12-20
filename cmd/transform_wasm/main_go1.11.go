@@ -56,6 +56,25 @@ func transform(args []js.Value) {
 	args[2].Invoke(len(o))
 }
 
+// Takes a slice. Returns a JS function that takes a JS function cb1, calls cb1
+// with a new TypedArray for the slice and a release function. The release
+// function takes a JS function cb2, releases the TypedArray and itself, and
+// calls cb2. Oh, the joys of continuation-passing style.
+//
+// The caller is responsible for releasing this function.
+func typedArrayGetter(slice interface{}) js.Callback {
+	return js.NewCallback(func(args []js.Value) {
+		ta := js.TypedArrayOf(slice)
+		var release js.Callback
+		release = js.NewCallback(func(args []js.Value) {
+			ta.Release()
+			release.Release()
+			args[0].Invoke()
+		})
+		args[0].Invoke(ta, release)
+	})
+}
+
 func main() {
 	transformCB := js.NewCallback(transform)
 	defer transformCB.Release()
@@ -64,15 +83,15 @@ func main() {
 	doneCB := js.NewCallback(func(args []js.Value) { done <- struct{}{} })
 	defer doneCB.Release()
 
-	urlInTA := js.TypedArrayOf(urlIn)
-	defer urlInTA.Release()
+	urlInCB := typedArrayGetter(urlIn)
+	defer urlInCB.Release()
 
-	htmlInTA := js.TypedArrayOf(htmlIn)
-	defer htmlInTA.Release()
+	htmlInCB := typedArrayGetter(htmlIn)
+	defer htmlInCB.Release()
 
-	htmlOutTA := js.TypedArrayOf(htmlOut)
-	defer htmlOutTA.Release()
+	htmlOutCB := typedArrayGetter(htmlOut)
+	defer htmlOutCB.Release()
 
-	js.Global().Get("begin").Invoke(transformCB, doneCB, urlInTA, htmlInTA, htmlOutTA, maxLen)
+	js.Global().Get("begin").Invoke(transformCB, doneCB, urlInCB, htmlInCB, htmlOutCB, maxLen)
 	<-done
 }
