@@ -31,7 +31,7 @@ const (
 	relativeURL = "/foo"
 )
 
-func TestURLTansformer(t *testing.T) {
+func TestAbsoluteURLTansformer(t *testing.T) {
 	tcs := []struct {
 		desc, input, expected, baseURL string
 	}{
@@ -169,7 +169,7 @@ func TestURLTansformer(t *testing.T) {
 			t.Errorf("%s\nurl.Parse for %s failed %q", tc.desc, tc.baseURL, err)
 			continue
 		}
-		transformers.URL(&context)
+		transformers.AbsoluteURL(&context)
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {

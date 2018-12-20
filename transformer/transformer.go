@@ -39,6 +39,7 @@ import (
 // NOTE: The string mapping is necessary as a language cross-over to
 // allow explicit transformer invocation (via the CUSTOM config).
 var transformerFunctionMap = map[string]func(*transformers.Context) error{
+	"absoluteurl":           transformers.AbsoluteURL,
 	"ampboilerplate":        transformers.AMPBoilerplate,
 	"ampruntimecss":         transformers.AMPRuntimeCSS,
 	"linktag":               transformers.LinkTag,
@@ -48,7 +49,6 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"serversiderendering":   transformers.ServerSideRendering,
 	"stripjs":               transformers.StripJS,
 	"transformedidentifier": transformers.TransformedIdentifier,
-	"url":                   transformers.URL,
 	"urlrewrite":            transformers.URLRewrite,
 }
 
@@ -63,7 +63,7 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		// TODO(alin04): Reenable LinkTag once validation is done.
 		// transformers.LinkTag,
 		// end TODO
-		transformers.URL,
+		transformers.AbsoluteURL,
 		transformers.AMPBoilerplate,
 		// TODO(alin04): Reenable SSR once validation is done.
 		// transformers.ServerSideRendering,
