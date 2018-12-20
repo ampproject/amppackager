@@ -29,17 +29,17 @@ import (
 // except it is missing NoscriptAMPBoilerplate as noscript tags are
 // stripped by this transformer (see b/79415817).
 func BuildHTML(body string) string {
-        return tt.Concat(
-                "<!doctype html><html ⚡><head>",
-                tt.MetaCharset,
-                tt.MetaViewport,
-                tt.ScriptAMPRuntime,
-                tt.LinkFavicon,
-                tt.LinkCanonical,
-                tt.StyleAMPBoilerplate,
-                "</head><body>",
-                body,
-                "</body></html>")
+	return tt.Concat(
+		"<!doctype html><html ⚡><head>",
+		tt.MetaCharset,
+		tt.MetaViewport,
+		tt.ScriptAMPRuntime,
+		tt.LinkFavicon,
+		tt.LinkCanonical,
+		tt.StyleAMPBoilerplate,
+		"</head><body>",
+		body,
+		"</body></html>")
 }
 
 func TestNodeCleanup_Strip(t *testing.T) {
@@ -47,7 +47,7 @@ func TestNodeCleanup_Strip(t *testing.T) {
 		{
 			Desc:     "strips comments",
 			Input:    tt.Concat("<!-- comment -->",
-				  BuildHTML("<foo><!-- comment --></foo>")),
+								BuildHTML("<foo><!-- comment --></foo>")),
 			Expected: BuildHTML("<foo></foo>"),
 		},
 		{
