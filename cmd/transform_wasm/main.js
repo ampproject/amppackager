@@ -120,12 +120,13 @@ class GoBytes {
     let ta = await this._buf();
     let buf = ta.slice(0, 4).buffer;
     let len = new DataView(buf).getUint32(0);
-    return this._decoder.decode(new DataView(buf, 4, len));
+    if (len > this._wrapper.maxLen) throw new Error("str is corrupted; unexpected len " + len);
+    return this._decoder.decode(new DataView(ta.slice(4, 4 + len).buffer));
   }
 
   async set(str /*string*/) {
     let buf = this._encoder.encode(str);
-    if (buf.length > this._wrapper.maxLen) throw new Error("str too big: ", buf.length);
+    if (buf.length > this._wrapper.maxLen) throw new Error("str too big: " + buf.length);
     let ta = await this._buf();
     let tmpBuf = new Uint8Array(4);
     new DataView(tmpBuf.buffer).setUint32(0, buf.length);
@@ -175,11 +176,8 @@ global.begin = async function(transform, done, urlIn, htmlIn, htmlOut) {
     await new Promise((resolve) =>
       transform(() => {
         // Minimum valid AMP is larger than 1K.
-        htmlOut.length().then((len) => {
-          if (len < 1000) {
-            htmlOut.get().then((str) =>
-              console.log('URL', url, 'output is invalid: ', str));
-          }
+        htmlOut.get().then((str) => {
+          if (str.length < 1000) console.log('URL', url, 'output is invalid: ', str);
           resolve();
         });
       }));
