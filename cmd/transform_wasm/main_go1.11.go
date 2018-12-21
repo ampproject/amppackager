@@ -130,14 +130,15 @@ func main() {
 	doneCB := js.NewCallback(func(args []js.Value) { done <- struct{}{} })
 	defer doneCB.Release()
 
+	// Expose a bunch of globals for use by lib.js.
+	js.Global().Set("transformCB", transformCB)
+	js.Global().Set("urlIn", typedArray(urlInMaxLen, urlIn))
+	js.Global().Set("htmlIn", typedArray(htmlInMaxLen, htmlIn))
+	js.Global().Set("htmlOut", typedArray(htmlOutMaxLen, htmlOut))
+
 	// Invoke the JS callback, hardcoded as {global,window}.begin, once the
 	// Go is ready to receive transform requests.
-	js.Global().Get("begin").Invoke(
-		transformCB,
-		doneCB,
-		typedArray(urlInMaxLen, urlIn),
-		typedArray(htmlInMaxLen, htmlIn),
-		typedArray(htmlOutMaxLen, htmlOut))
+	js.Global().Get("begin").Invoke(doneCB)
 
 	// Keep the Go process running until the JS calls the done callback.
 	<-done
