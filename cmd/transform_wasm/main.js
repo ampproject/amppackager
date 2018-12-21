@@ -26,13 +26,19 @@
 //    `memory.grow` requests from the Go runtime cause TypedArrays to
 //    invalidate as the memory underneath them moves.
 //
+// This runtime leaks ~603 bytes per call to transform, associated with the
+// flyweight arrow functions that are passed to getter() and transform(). I
+// could engineer away these leaks by adding more global state, but ultimately
+// they will go away with Go 1.12, which replaces the asynchronous js.Callback
+// with a synchronous js.Func: https://tip.golang.org/pkg/syscall/js/#Func.
+//
 // Build dependency: go get github.com/termonio/wams
 //
 // To use:
 //   GOOS=js GOARCH=wasm go build -o transform.wasm ./cmd/transform_wasm/ &&
 //   wams -pages 2048 -write transform.wasm &&
 //   node --max-old-space-size=4000 cmd/transform_wasm/main.js transform.wasm \
-//     path/to/test/files*
+//     cmd/transform_wasm/testfile
 
 const fs = require('fs');
 const util = require('util');
@@ -85,8 +91,10 @@ async function readTestFiles() {
   return htmls;
 }
 
-function dumpHeap(name) {
+const heapdump = (() => { try { return require('heapdump') } catch { } })(); // npm install heapdump
+function dumpHeap(name, full) {
   console.log('%s: %s', name, util.inspect(process.memoryUsage(), {colors: true, breakLength: Infinity}))
+  if (full && heapdump) heapdump.writeSnapshot('wasm.' + name + '.heapsnapshot');
 }
 
 // Wraps a TypedArray as received by Go, taking care of:
@@ -149,8 +157,9 @@ global.begin = async function(transform, done, urlIn, htmlIn, htmlOut) {
   urlIn = new GoBytes(urlIn);
   htmlIn = new GoBytes(htmlIn);
   htmlOut = new GoBytes(htmlOut);
-  dumpHeap('transform.before');
+  dumpHeap('transform.before', true);
   const start = process.hrtime.bigint();
+
   for (const [url, html] of tests) {
     if (++num % 100 === 0) console.log('num =', num);
     if (num % 2000 === 0) dumpHeap('transform.' + num);
@@ -176,7 +185,7 @@ global.begin = async function(transform, done, urlIn, htmlIn, htmlOut) {
       }));
   }
   const total = process.hrtime.bigint() - start;
-  dumpHeap('transform.after');
+  dumpHeap('transform.after', true);
   console.log(`Took ${total} nanoseconds, or ${Number(total) / tests.length / 1000000} millis per doc.`);
   done();
 }
