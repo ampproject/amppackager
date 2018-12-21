@@ -79,6 +79,9 @@ func urlMatches(url *url.URL, pattern util.URLPattern) error {
 	if !regexpFullMatch(*pattern.QueryRE, url.RawQuery) {
 		return errors.New("QueryRE doesn't match")
 	}
+	if len(url.String()) > pattern.MaxLength {
+		return errors.New("URL too long")
+	}
 	return nil
 }
 
