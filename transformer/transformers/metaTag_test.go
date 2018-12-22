@@ -25,10 +25,10 @@ import (
 )
 
 func TestMetaTag(t *testing.T) {
-	testCases := []tt.TestCase{
+	tcs := []tt.TestCase{
 		{
 			Desc: "Moves some meta tags",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				"<meta content=experiment-a name=amp-experiments-opt-in>",
 				"<meta content=experiment-b name=amp-experiments-opt-in>",
@@ -37,7 +37,7 @@ func TestMetaTag(t *testing.T) {
 				"</head><body>",
 				"<meta content=experiment-c name=amp-experiments-opt-in>", // moves to head
 				"</body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				"<meta content=experiment-a name=amp-experiments-opt-in>",
 				"<meta content=experiment-b name=amp-experiments-opt-in>",
@@ -47,7 +47,7 @@ func TestMetaTag(t *testing.T) {
 				"</head><body></body></html>"),
 		},
 	}
-	for _, tc := range testCases {
+	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s: html.Parse on %s failed %q", tc.Desc, tc.Input, err)

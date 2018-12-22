@@ -25,10 +25,10 @@ import (
 )
 
 func TestReorderHead(t *testing.T) {
-	testCases := []tt.TestCase{
+	tcs := []tt.TestCase{
 		{
 			Desc: "Reorders head children for AMP document",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.Title, tt.StyleAMPBoilerplate,
 				tt.ScriptAMPExperiment, tt.ScriptAMPAudio,
 				tt.NoscriptAMPBoilerplate, tt.StyleAMPRuntime,
@@ -37,7 +37,7 @@ func TestReorderHead(t *testing.T) {
 				tt.MetaViewport, tt.StyleAMPCustom, tt.LinkCanonical,
 				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
 				// (1) <style amp-runtime> (inserted by ServerSideRendering)
@@ -70,12 +70,12 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "Reorders head children for AMP4Ads document",
-			Input: tt.Concat("<!doctype html><html ⚡4ads><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡4ads><head>",
 				tt.Title, tt.StyleAMP4AdsBoilerplate, tt.ScriptAMPAudio,
 				tt.ScriptAMP4AdsRuntime, tt.LinkStylesheetGoogleFont,
 				tt.LinkGoogleFontPreconnect, tt.MetaCharset, tt.MetaViewport, tt.StyleAMPCustom,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡4ads><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡4ads><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
 				// (1) <style amp-runtime> (inserted by ServerSideRendering)
@@ -104,13 +104,13 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "Preserves style sheet ordering",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.LinkStylesheetGoogleFont, tt.StyleAMPCustom,
 				"<link href=another-font rel=stylesheet>",
 				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.LinkStylesheetGoogleFont, tt.StyleAMPCustom,
 				"<link href=another-font rel=stylesheet>",
@@ -119,13 +119,13 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "AMP Runtime script is reordered as first script",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPAudio, tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.LinkCanonical,
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPAudio,
 				tt.LinkFavicon, tt.LinkCanonical,
@@ -134,13 +134,13 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "Render delaying scripts before non-render delaying scripts",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPAudio, tt.ScriptAMPExperiment,
 				tt.LinkFavicon, tt.LinkCanonical,
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPExperiment, tt.ScriptAMPAudio,
 				tt.LinkFavicon, tt.LinkCanonical,
@@ -149,13 +149,13 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "Removes duplicate custom element script",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPAudio, tt.ScriptAMPAudio,
 				tt.LinkFavicon, tt.LinkCanonical,
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPAudio,
 				tt.LinkFavicon, tt.LinkCanonical,
@@ -164,13 +164,13 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "Sorts custom element scripts",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPExperiment, tt.ScriptAMPDynamicCSSClasses,
 				tt.LinkFavicon, tt.LinkCanonical,
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPDynamicCSSClasses, tt.ScriptAMPExperiment,
 				tt.LinkFavicon, tt.LinkCanonical,
@@ -179,13 +179,13 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "Removes duplicate custom template script",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPMustache, tt.ScriptAMPMustache,
 				tt.LinkFavicon, tt.LinkCanonical,
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPMustache,
 				tt.LinkFavicon, tt.LinkCanonical,
@@ -194,13 +194,13 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "Preserves multiple favicons",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPAudio,
 				tt.LinkFavicon, tt.LinkFavicon, tt.LinkCanonical,
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPAudio,
 				tt.LinkFavicon, tt.LinkFavicon, tt.LinkCanonical,
@@ -209,13 +209,13 @@ func TestReorderHead(t *testing.T) {
 		},
 		{
 			Desc: "Case insensitive rel value",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPAudio, tt.LinkCanonical,
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				`<link href=https://example.com/favicon.ico rel="Shortcut Icon">`,
 				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport,
 				tt.ScriptAMPRuntime, tt.ScriptAMPAudio,
 				`<link href=https://example.com/favicon.ico rel="Shortcut Icon">`,
@@ -223,11 +223,11 @@ func TestReorderHead(t *testing.T) {
 				"</head><body></body></html>"),
 		},
 	}
-	runReorderHeadTestcases(t, testCases)
+	runReorderHeadTestcases(t, tcs)
 }
 
-func runReorderHeadTestcases(t *testing.T, testCases []tt.TestCase) {
-	for _, tc := range testCases {
+func runReorderHeadTestcases(t *testing.T, tcs []tt.TestCase) {
+	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)

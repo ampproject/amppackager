@@ -29,6 +29,9 @@ type TestCase struct {
 
 // AMPHTML constants.
 const (
+	// Doctype is the doctype expected for AMP documents.
+	Doctype = "<!doctype html>"
+
 	// LinkCanonical is a link to the canonical document.
 	LinkCanonical = "<link href=self.html rel=canonical>"
 

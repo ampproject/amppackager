@@ -25,121 +25,185 @@ import (
 )
 
 func TestServerSideRendering(t *testing.T) {
-	testCases := []tt.TestCase{
+	tcs := []tt.TestCase{
 		{
 			Desc: "Modifies document only once",
 			// The expected output is actually not correctly server-side
 			// rendered, but the presence of i-amphtml-layout attribute halts
 			// processing, so this is effectively a no-op.
-			Input:    "<html i-amphtml-layout><body><amp-img layout=container></amp-img></body>",
-			Expected: "<html i-amphtml-layout><body><amp-img layout=container></amp-img></body>",
+			Input:    tt.Concat(tt.Doctype,
+				"<html ⚡ i-amphtml-layout><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body>",
+				"<amp-img layout=container></amp-img>",
+				"</body></html>"),
+			Expected: tt.Concat(tt.Doctype,
+				"<html ⚡ i-amphtml-layout><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body>",
+				"<amp-img layout=container></amp-img>",
+				"</body></html>"),
 		},
 		{
-			Desc:     "Preserves noscript in body",
-			Input:    "<body><noscript><img src=lemur.png></noscript></body>",
-			Expected: `<html i-amphtml-layout="" i-amphtml-no-boilerplate=""><head><style amp-runtime=""></style></head><body><noscript><img src=lemur.png></noscript></body></html>`,
-		},
-		{
-			Desc:     "No changes within template tag",
-			Input:    "<body><template><amp-img height=42 layout=responsive width=42></amp-img></template></body>",
-			Expected: `<html i-amphtml-layout="" i-amphtml-no-boilerplate=""><head><style amp-runtime=""></style></head><body><template><amp-img height="42" layout="responsive" width="42"></amp-img></template></body></html>`,
-		},
-		{
-			Desc: "Boilerplate removed and layout applied",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.LinkFavicon, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, "</head>",
-				"<body><amp-img layout=container></amp-img></body></html>"),
-			Expected: tt.Concat(`<!doctype html><html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
+			Desc:     "Boilerplate removed and preserves noscript in body",
+			Input:    tt.Concat(tt.Doctype,
+				"<html  ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body><noscript><img src=lemur.png></noscript></body></html>"),
+			Expected: tt.Concat(tt.Doctype,
+				`<html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
 				`<style amp-runtime=""></style>`,
-				tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkCanonical,
+				"</head><body>",
+				"<noscript><img src=lemur.png></noscript>",
+				"</body></html>"),
+		},
+		{
+			Desc:     "Boilerplate removed and no changes within template tag",
+			Input:    tt.Concat(tt.Doctype,
+				"<html ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body>",
+				"<template><amp-img height=42 layout=responsive width=42></amp-img></template>",
+				"</body></html>"),
+			Expected: tt.Concat(tt.Doctype,
+				`<html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
+				`<style amp-runtime=""></style>`,
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkCanonical,
+				"</head><body>",
+				`<template><amp-img height="42" layout="responsive" width="42"></amp-img></template>`,
+				"</body></html>"),
+		},
+		{
+			Desc:     "Boilerplate removed and layout applied",
+			Input:    tt.Concat(tt.Doctype,
+				"<html ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
+        tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body>",
+				"<amp-img layout=container></amp-img>",
+				"</body></html>"),
+			Expected: tt.Concat(tt.Doctype,
+				`<html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
+				`<style amp-runtime=""></style>`,
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkCanonical,
 				"</head><body>",
 				`<amp-img layout="container" class="i-amphtml-layout-container" i-amphtml-layout="container"></amp-img>`,
 				"</body></html>"),
 		},
 		{
-			Desc: "Amp4Email Boilerplate removed and layout applied",
-			Input: tt.Concat("<!doctype html><html ⚡4email><head>",
-				tt.ScriptAMPRuntime, tt.StyleAMP4EmailBoilerplate,
-				tt.MetaCharset, "</head>",
-				"<body><amp-img layout=container></amp-img></body></html>"),
-			Expected: tt.Concat(`<!doctype html><html ⚡4email i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
+			Desc:     "Amp4Email Boilerplate removed and layout applied",
+			Input:    tt.Concat(tt.Doctype,
+				"<html ⚡4email><head>",
+				tt.MetaCharset, tt.ScriptAMPRuntime, tt.StyleAMP4EmailBoilerplate,
+				"</head><body>",
+				"<amp-img layout=container></amp-img>",
+				"</body></html>"),
+			Expected: tt.Concat(tt.Doctype,
+				`<html ⚡4email i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
 				`<style amp-runtime=""></style>`,
-				tt.ScriptAMPRuntime, tt.MetaCharset,
+				tt.MetaCharset, tt.ScriptAMPRuntime,
 				"</head><body>",
 				`<amp-img layout="container" class="i-amphtml-layout-container" i-amphtml-layout="container"></amp-img>`,
 				"</body></html>"),
 		},
 		{
-			Desc: "Amp4Ads Boilerplate removed and layout applied",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.ScriptAMPRuntime, tt.LinkFavicon, tt.StyleAMP4AdsBoilerplate,
-				tt.NoscriptAMPBoilerplate, "</head>",
-				"<body><amp-img layout=container></amp-img></body></html>"),
-			Expected: tt.Concat(`<!doctype html><html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
+			Desc:     "Amp4Ads Boilerplate removed and layout applied",
+			Input:    tt.Concat(tt.Doctype,
+				"<html ⚡4ads><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.StyleAMP4AdsBoilerplate,
+				"</head><body>",
+				"<amp-img layout=container></amp-img>",
+				"</body></html>"),
+			Expected: tt.Concat(tt.Doctype,
+				`<html ⚡4ads i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
 				`<style amp-runtime=""></style>`,
-				tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				"</head><body>",
 				`<amp-img layout="container" class="i-amphtml-layout-container" i-amphtml-layout="container"></amp-img>`,
 				"</body></html>"),
 		},
 		{
-			Desc: "Boilerplate removed despite sizes (in head tho)",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Desc:     "Boilerplate removed despite sizes (in head tho)",
+			Input:    tt.Concat(tt.Doctype,
+				"<html ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
 				`<link rel="shortcut icon" type="a" href="b" sizes="c">`,
-				tt.ScriptAMPRuntime, tt.LinkFavicon, tt.StyleAMP4AdsBoilerplate,
-				tt.NoscriptAMPBoilerplate, "</head>",
-				"<body><amp-img layout=container></amp-img></body></html>"),
-			Expected: tt.Concat(`<!doctype html><html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
+        tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body>",
+				"<amp-img layout=container></amp-img>",
+				"</body></html>"),
+			Expected: tt.Concat(tt.Doctype,
+				`<html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
 				`<style amp-runtime=""></style>`,
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
 				`<link rel="shortcut icon" type="a" href="b" sizes="c">`,
-				tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.LinkCanonical,
 				"</head><body>",
 				`<amp-img layout="container" class="i-amphtml-layout-container" i-amphtml-layout="container"></amp-img>`,
 				"</body></html>"),
 		},
 		{
-      Desc: "Boilerplate removed when amp-experiment is present but empty",
-      Input: tt.Concat("<!doctype html><html ⚡><head>",
-        tt.ScriptAMPRuntime, tt.LinkFavicon, tt.StyleAMPBoilerplate,
-        tt.NoscriptAMPBoilerplate, "</head>",
-        `<body><amp-experiment><script type="application/json">{ }</script></amp-experiment></body></html>`),
-      Expected: tt.Concat(`<!doctype html><html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
+      Desc:     "Boilerplate removed when amp-experiment is present but empty",
+      Input:    tt.Concat(tt.Doctype,
+				"<html ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+        "</head><body>",
+				`<amp-experiment><script type="application/json">{ }</script></amp-experiment>`,
+				"</body></html>"),
+      Expected: tt.Concat(tt.Doctype,
+				`<html ⚡ i-amphtml-layout="" i-amphtml-no-boilerplate=""><head>`,
         `<style amp-runtime=""></style>`,
-        tt.ScriptAMPRuntime, tt.LinkFavicon,
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkCanonical,
         "</head><body>",
 				`<amp-experiment class=i-amphtml-layout-container i-amphtml-layout=container><script type="application/json">{ }</script></amp-experiment>`,
         "</body></html>"),
     },
 
 	}
-	runServerSideRenderingTestcases(t, testCases)
+	runServerSideRenderingTestcases(t, tcs)
 }
 
 func TestBoilerplatePreserved(t *testing.T) {
 	input := func(extrahead, body string) string {
-		return tt.Concat("<!doctype html><html ⚡><head>",
-			tt.ScriptAMPRuntime, tt.LinkFavicon, tt.StyleAMPBoilerplate,
-			tt.NoscriptAMPBoilerplate, extrahead, "</head><body>",
-			body, "</body></html>")
+		return tt.Concat(tt.Doctype,
+			"<html ⚡><head>",
+			tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+			extrahead,
+			tt.LinkFavicon, tt.LinkCanonical,
+			tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+			"</head><body>", body, "</body></html>")
 	}
 	expected := func(extrahead, body string) string {
-		return tt.Concat(`<!doctype html><html ⚡ i-amphtml-layout=""><head>`,
+		return tt.Concat(tt.Doctype,
+			`<html ⚡ i-amphtml-layout=""><head>`,
 			`<style amp-runtime=""></style>`,
-			tt.ScriptAMPRuntime, tt.LinkFavicon, tt.StyleAMPBoilerplate,
-			tt.NoscriptAMPBoilerplate, extrahead, "</head><body>",
-			body, "</body></html>")
+			tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+			extrahead,
+			tt.LinkFavicon, tt.LinkCanonical,
+			tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+			"</head><body>", body, "</body></html>")
 	}
 
-	testCases := []tt.TestCase{
+	tcs := []tt.TestCase{
 		{
 			Desc:     "amp-audio",
 			Input:    input("", "<amp-audio></amp-audio>"),
 			Expected: expected("", "<amp-audio></amp-audio>"),
 		},
 		{
-			Desc: "amp-experiment is non-empty",
-			Input: input("", `<amp-experiment><script type="application/json">{ "exp": { "variants": { "a": 25, "b": 25 } } }</script></amp-experiment>`),
+			Desc:     "amp-experiment is non-empty",
+			Input:    input("", `<amp-experiment><script type="application/json">{ "exp": { "variants": { "a": 25, "b": 25 } } }</script></amp-experiment>`),
 			Expected: expected("", `<amp-experiment class="i-amphtml-layout-container" i-amphtml-layout="container"><script type="application/json">{ "exp": { "variants": { "a": 25, "b": 25 } } }</script></amp-experiment>`),
 		},
 		{
@@ -173,11 +237,11 @@ func TestBoilerplatePreserved(t *testing.T) {
 			Expected: expected("", `<amp-img height=300 layout=fixed src=https://acme.org/image1.png style=position:relative width=400></amp-img>`),
 		},
 	}
-	runServerSideRenderingTestcases(t, testCases)
+	runServerSideRenderingTestcases(t, tcs)
 }
 
-func runServerSideRenderingTestcases(t *testing.T, testCases []tt.TestCase) {
-	for _, tc := range testCases {
+func runServerSideRenderingTestcases(t *testing.T, tcs []tt.TestCase) {
+	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)

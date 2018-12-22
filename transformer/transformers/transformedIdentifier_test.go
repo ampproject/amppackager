@@ -25,20 +25,20 @@ import (
 )
 
 func TestTransformedIdentifier(t *testing.T) {
-	testCases := []tt.TestCase{
+	tcs := []tt.TestCase{
 		{
 			Desc: "Adds identifier to html tag",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
 				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡=\"\" transformed=google><head>",
+			Expected: tt.Concat(tt.Doctype, "<html ⚡=\"\" transformed=google><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
 				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
 		},
 	}
-	for _, tc := range testCases {
+	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)
