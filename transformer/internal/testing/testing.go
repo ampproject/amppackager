@@ -56,15 +56,6 @@ const (
 	// NoscriptAMPBoilerplate is the standard style for <noscript> tag.
 	NoscriptAMPBoilerplate = "<noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>"
 
-	// ScriptAMPAccess is the script for amp-access.
-	ScriptAMPAccess = "<script async custom-element=amp-access src=https://cdn.ampproject.org/v0/amp-accesss-0.1.js></script>"
-
-	// ScriptAMPAd is the script for amp-ad.
-	ScriptAMPAd = "<script async custom-element=amp-ad src=https://cdn.ampproject.org/v0/amp-ad-0.1.js></script>"
-
-	// ScriptAMPAnalytics is the script for amp-analytics.
-	ScriptAMPAnalytics = "<script async custom-element=amp-analytics src=https://cdn.ampproject.org/v0/amp-analytics-0.1.js></script>"
-
 	// ScriptAMPAudio is the script for amp-audio.
 	ScriptAMPAudio = "<script async custom-element=amp-audio src=https://cdn.ampproject.org/v0/amp-audio-0.1.js></script>"
 
@@ -73,9 +64,6 @@ const (
 
 	// ScriptAMPExperiment is the script for amp-experiment.
 	ScriptAMPExperiment = "<script async custom-element=amp-experiment src=https://cdn.ampproject.org/v0/amp-experiment-0.1.js></script>"
-
-	// ScriptAMPForm is the script for amp-form.
-	ScriptAMPForm = "<script async custom-element=amp-form src=https://cdn.ampproject.org/v0/amp-form-0.1.js></script>"
 
 	// ScriptAMPMustache is the script for amp-mustache.
 	ScriptAMPMustache = "<script async custom-template=amp-mustache src=https://cdn.ampproject.org/v0/amp-mustache-0.1.js></script>"

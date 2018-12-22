@@ -19,23 +19,29 @@ import (
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
+	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
 
 // AMPRuntimeCSS inlines the contents of the AMP HTML CSS RTV, or
 // inserts a link into the appropriately revisioned v0.css (e.g. 102992221).
 func AMPRuntimeCSS(e *Context) error {
-	// Create <style amp-runtime> tag.
-	n := htmlnode.Element("style", html.Attribute{Key: "amp-runtime"})
-	// Annotate it with the AMP Runtime version that is either being inlined
-	// or loaded with a link tag.
+	// If server side rendering is active, then look for the
+	// <style amp-runtime> added by ServerSideRendering into
+	// <head>.
+	n, ok := findStyleAMPRuntime(e.DOM.HeadNode)
+	if !ok {
+		// No Server Side Rendering.
+		return nil
+	}
+
+	// Annotate the <style amp-runtime> tag with the version that is being
+	// inlined or loaded with tag link.
 	rtv := "latest"
 	if e.Request.GetRtv() != "" {
 		rtv = e.Request.GetRtv()
 	}
 	htmlnode.SetAttribute(n, "", "i-amphtml-version", rtv)
-	// Place it first in the document <head>.
-	e.DOM.HeadNode.InsertBefore(n, e.DOM.HeadNode.FirstChild)
 
 	// The contents of the runtime css are available, so inline it.
 	if e.Request.GetCss() != "" {
@@ -43,7 +49,7 @@ func AMPRuntimeCSS(e *Context) error {
 		return nil
 	}
 
-	// Otherwise: it can't be inlined, so add a link to the versioned v0.css.
+	// Otherwise: add a link to the versioned v0.css.
 	link := amphtml.AMPCacheSchemeAndHost
 	if e.Request.GetRtv() != "" {
 		link = link + "/rtv/" + e.Request.GetRtv()
@@ -53,4 +59,17 @@ func AMPRuntimeCSS(e *Context) error {
 		html.Attribute{Key: "href", Val: link})
 	e.DOM.HeadNode.AppendChild(l)
 	return nil
+}
+
+// findStyleAMPRuntime returns the <style amp-runtime> element or false
+func findStyleAMPRuntime(n *html.Node) (*html.Node, bool) {
+	if n.DataAtom != atom.Head {
+		return nil, false
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.DataAtom == atom.Style && htmlnode.HasAttribute(c, "", amphtml.AMPRuntime) {
+			return c, true
+		}
+	}
+	return nil, false
 }
