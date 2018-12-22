@@ -49,6 +49,10 @@ type URLPattern struct {
 	SamePath               *bool
 }
 
+// TODO(twifkak): Extract default values into a function separate from the one
+// that does the parsing and validation. This would make signer_test and
+// validation_test less brittle.
+
 var emptyRegexp = ""
 var defaultPathRegexp = ".*"
 
