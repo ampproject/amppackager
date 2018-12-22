@@ -45,11 +45,16 @@ type URLPattern struct {
 	PathExcludeRE          []string
 	QueryRE                *string
 	ErrorOnStatefulHeaders bool
+	MaxLength              int
 	SamePath               *bool
 }
 
+// TODO(twifkak): Extract default values into a function separate from the one
+// that does the parsing and validation. This would make signer_test and
+// validation_test less brittle.
+
 var emptyRegexp = ""
-var defaultPathRegexp = ".{,2000}"
+var defaultPathRegexp = ".*"
 
 // Also sets defaults.
 func validateURLPattern(pattern *URLPattern) error {
@@ -67,6 +72,9 @@ func validateURLPattern(pattern *URLPattern) error {
 		pattern.QueryRE = &emptyRegexp
 	} else if _, err := regexp.Compile(*pattern.QueryRE); err != nil {
 		return errors.New("QueryRE must be a valid regexp")
+	}
+	if pattern.MaxLength == 0 {
+		pattern.MaxLength = 2000
 	}
 	return nil
 }

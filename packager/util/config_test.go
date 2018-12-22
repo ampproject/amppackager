@@ -43,8 +43,9 @@ func TestMinimalValidConfig(t *testing.T) {
 		URLSet: []URLSet{{
 			Sign: &URLPattern{
 				Domain:  "example.com",
-				PathRE:  stringPtr(".{,2000}"),
+				PathRE:  stringPtr(".*"),
 				QueryRE: stringPtr(""),
+				MaxLength: 2000,
 			},
 		}},
 	}, *config)
@@ -156,6 +157,7 @@ func TestSignOverrides(t *testing.T) {
 		    PathExcludeRE = ["/amp/signin", "/amp/settings(/.*)?"]
 		    QueryRE = ""
 		    ErrorOnStatefulHeaders = true
+		    MaxLength = 8000
 	`))
 	require.NoError(t, err)
 	require.Equal(t, 1, len(config.URLSet))
@@ -166,6 +168,7 @@ func TestSignOverrides(t *testing.T) {
 		PathExcludeRE:          []string{"/amp/signin", "/amp/settings(/.*)?"},
 		QueryRE:                stringPtr(""),
 		ErrorOnStatefulHeaders: true,
+		MaxLength:              8000,
 	}, *config.URLSet[0].Sign)
 }
 
@@ -186,10 +189,11 @@ func TestFetchDefaults(t *testing.T) {
 	assert.ElementsMatch(t, []string{"http", "https"}, fetch.Scheme)
 	assert.Equal(t, "", fetch.DomainRE)
 	assert.Equal(t, "example.com", fetch.Domain)
-	assert.Equal(t, stringPtr(".{,2000}"), fetch.PathRE)
+	assert.Equal(t, stringPtr(".*"), fetch.PathRE)
 	assert.Nil(t, fetch.PathExcludeRE)
 	assert.Equal(t, stringPtr(""), fetch.QueryRE)
 	assert.Equal(t, false, fetch.ErrorOnStatefulHeaders)
+	assert.Equal(t, 2000, fetch.MaxLength)
 	assert.Equal(t, boolPtr(true), fetch.SamePath)
 }
 
@@ -207,6 +211,7 @@ func TestFetchOverrides(t *testing.T) {
 		    PathRE = "/amp/.*"
 		    PathExcludeRE = ["/amp/signin", "/amp/settings(/.*)?"]
 		    QueryRE = ""
+		    MaxLength = 8000
 		    SamePath = false
 	`))
 	require.NoError(t, err)
@@ -217,6 +222,7 @@ func TestFetchOverrides(t *testing.T) {
 		PathRE:        stringPtr("/amp/.*"),
 		PathExcludeRE: []string{"/amp/signin", "/amp/settings(/.*)?"},
 		QueryRE:       stringPtr(""),
+		MaxLength:     8000,
 		SamePath:      boolPtr(false),
 	}, *config.URLSet[0].Fetch)
 }
