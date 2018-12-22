@@ -431,15 +431,15 @@ func (z *Tokenizer) consumeAToken() Token {
 // 4.3.2 https://www.w3.org/TR/css-syntax-3/#consume-a-numeric-token
 func (z *Tokenizer) consumeANumeric() Token {
 	repr, _ := z.consumeANumber()
-	r := z.peek()
+	r, _ := z.consume()
 	if r == utf8.RuneError {
 		return Token{Type: NumberToken, Value: repr}
 	}
-	if isAnIdentifier(r, z.peekAt(1), z.peekAt(2)) {
+	if isAnIdentifier(r, z.peek(), z.peekAt(1)) {
+		z.reconsume()
 		return Token{DimensionToken, repr, z.consumeAName()}
 	}
 	if r == '%' {
-		z.consume()
 		return Token{Type: PercentageToken, Value: repr}
 	}
 	return Token{Type: NumberToken, Value: repr}

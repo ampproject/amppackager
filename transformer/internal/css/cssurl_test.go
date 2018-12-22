@@ -167,13 +167,6 @@ func TestParseURLs(t *testing.T) {
 				Segment{ByteType, "};"},
 			},
 		},
-		{
-			desc:  "function pass through",
-			input: "amp-lightbox {  background-color: rgba(0, 0, 0, 0.9); }",
-			expected: Segments{
-				Segment{ByteType, "amp-lightbox {  background-color: rgba(0, 0, 0, 0.9); }"},
-			},
-		},
 	}
 
 	for _, tc := range tcs {

@@ -26,7 +26,7 @@ func TestProcess(t *testing.T) {
 		config      rpb.Request_TransformersConfig
 		expectedLen int
 	}{
-		{rpb.Request_DEFAULT, 8},
+		{rpb.Request_DEFAULT, 7},
 		{rpb.Request_NONE, 0},
 		{rpb.Request_VALIDATION, 1},
 		{rpb.Request_CUSTOM, 0},

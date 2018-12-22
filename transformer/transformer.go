@@ -49,7 +49,6 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"serversiderendering":   transformers.ServerSideRendering,
 	"stripjs":               transformers.StripJS,
 	"transformedidentifier": transformers.TransformedIdentifier,
-	"unusedextensions":      transformers.UnusedExtensions,
 	"urlrewrite":            transformers.URLRewrite,
 }
 
@@ -66,7 +65,6 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		// end TODO
 		transformers.AbsoluteURL,
 		transformers.AMPBoilerplate,
-		transformers.UnusedExtensions,
 		// TODO(alin04): Reenable SSR once validation is done.
 		// transformers.ServerSideRendering,
 		// end TODO

@@ -368,35 +368,6 @@ func TestTokenization(t *testing.T) {
 		expected    []Token
 	}{
 		{
-			desc:  "function",
-			input: "amp-lightbox {  background-color: rgba(0, 0, 0, 0.9); }",
-			expected: []Token{
-				Token{Type: IdentToken, Value: "amp-lightbox"},
-				Token{Type: WhitespaceToken, Value: " "},
-				Token{Type: OpenCurlyToken, Value: "{"},
-				Token{Type: WhitespaceToken, Value: "  "},
-				Token{Type: IdentToken, Value: "background-color"},
-				Token{Type: ColonToken, Value: ":"},
-				Token{Type: WhitespaceToken, Value: " "},
-				Token{Type: FunctionToken, Value: "rgba"},
-				Token{Type: NumberToken, Value: "0"},
-				Token{Type: CommaToken, Value: ","},
-				Token{Type: WhitespaceToken, Value: " "},
-				Token{Type: NumberToken, Value: "0"},
-				Token{Type: CommaToken, Value: ","},
-				Token{Type: WhitespaceToken, Value: " "},
-				Token{Type: NumberToken, Value: "0"},
-				Token{Type: CommaToken, Value: ","},
-				Token{Type: WhitespaceToken, Value: " "},
-				Token{Type: NumberToken, Value: "0.9"},
-				Token{Type: CloseParenToken, Value: ")"},
-				Token{Type: SemicolonToken, Value: ";"},
-				Token{Type: WhitespaceToken, Value: " "},
-				Token{Type: CloseCurlyToken, Value: "}"},
-				Token{Type: EOFToken},
-			},
-		},
-		{
 			desc: "longer case",
 			input: ".a { color:red; background-image:url(4.png) }" +
 				".b { color:black; background-image:url('http://a.com/b.png') } " +
