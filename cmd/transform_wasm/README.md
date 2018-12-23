@@ -19,8 +19,9 @@ To run the test:
 ```bash
 git clone https://github.com/ampproject/amppackager.git
 cd amppackager
-node --max-old-space-size=4000 cmd/transform_wasm/main.js \
-  ${GOROOT:-~/.go}/bin/js_wasm/transform_wasm cmd/transform_wasm/testfile
+node cmd/transform_wasm/main.js ${GOROOT:-~/.go}/bin/js_wasm/transform_wasm cmd/transform_wasm/testfile
 ```
+
+For a bigger testfile, pass `node` something like `--max-old-space-size=4000`.
 
 lib.js can be reused for other purposes. See main.js for an example use.

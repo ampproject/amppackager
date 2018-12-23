@@ -8,34 +8,37 @@ const util = require('util');
  * @return {string} The transformed HTML.
  */
 async function transform(url, html) {
-  if (!(urlIn instanceof GoBytes)) {
-    urlIn = new GoBytes(urlIn);
-    htmlIn = new GoBytes(htmlIn);
-    htmlOut = new GoBytes(htmlOut);
-  }
-
   await urlIn.set(url);
   await htmlIn.set(html);
 
-  return await new Promise((resolve) =>
+  await new Promise((resolve) =>
     transformCB(() => {
       // Minimum valid AMP is larger than 1K.
       htmlOut.get().then((str) => {
         if (str.length < 1000) console.log('URL', url, 'output is invalid: ', str);
-        resolve(str);
+        // Set a global instead of resolving the value into the Promise, in
+        // order to prevent a memory leak. Go-wasm eternally holds a reference
+        // to values passed into it. In this case, it holds a reference to the
+        // lambda passed to transformCB, which in turn closes over the resolve
+        // parameter, which holds a reference to the promise, which holds a
+        // reference to its resolved value.
+        returnValue = str;
+        resolve();
       });
     }));
+  return returnValue;
 }
 exports.transform = transform;
 
-// Wraps a TypedArray as received by Go, taking care of:
+// Internal class for use by the Go runtime. Wraps a TypedArray, taking care of:
 // - Length-prefix and UTF-8 decoding/encoding in the get()/set() methods.
 // - Checking that the given string will fit in the buffer, in set().
 // - Getting a new TypedArray from Go, if the old one detaches due to WASM
 //   memory growth.
 class GoBytes {
-  constructor(wrapper) {
-    this._wrapper = wrapper;
+  constructor(getter, maxLen) {
+    this._getter = getter;
+    this._maxLen = maxLen;
     this._typedArray = null;
     this._releaser = null;
     this._decoder = new util.TextDecoder();
@@ -51,13 +54,13 @@ class GoBytes {
     let ta = await this._buf();
     let buf = ta.slice(0, 4).buffer;
     let len = new DataView(buf).getUint32(0);
-    if (len > this._wrapper.maxLen) throw new Error("str is corrupted; unexpected len " + len);
+    if (len > this._maxLen) throw new Error("str is corrupted; unexpected len " + len);
     return this._decoder.decode(new DataView(ta.slice(4, 4 + len).buffer));
   }
 
   async set(str /*string*/) {
     let buf = this._encoder.encode(str);
-    if (buf.length > this._wrapper.maxLen) throw new Error("str too big: " + buf.length);
+    if (buf.length > this._maxLen) throw new Error("str too big: " + buf.length);
     let ta = await this._buf();
     let tmpBuf = new Uint8Array(4);
     new DataView(tmpBuf.buffer).setUint32(0, buf.length);
@@ -73,7 +76,7 @@ class GoBytes {
     if (!this._typedArray /* first use */ || !this._typedArray.length /* detached */) {
       if (this._releaser) await new Promise((resolve) => this._releaser(() => resolve()));
       await new Promise((resolve) =>
-          this._wrapper.getter((ta, rel) => {
+          this._getter((ta, rel) => {
             this._typedArray = ta;
             this._releaser = rel;
             resolve();
@@ -82,4 +85,4 @@ class GoBytes {
     return this._typedArray;
   }
 }
-
+global.GoBytes = GoBytes;

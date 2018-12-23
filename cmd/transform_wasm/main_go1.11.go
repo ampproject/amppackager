@@ -22,12 +22,18 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"os"
+	"runtime"
+	"runtime/pprof"
 	"syscall/js"
 
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	t "github.com/ampproject/amppackager/transformer"
 	"github.com/pkg/errors"
 )
+
+var num = 0
+var stats runtime.MemStats
 
 // Max length of a URL. Based on the de facto limit per
 // https://stackoverflow.com/a/417184.
@@ -55,14 +61,39 @@ func bufferToString(buf []byte) (string, error) {
 	return string(buf[4:length+4]), nil
 }
 
+// A replacement for println(), which doesn't go anywhere in wasm.
+func consoleLog(args... interface{}) {
+	js.Global().Get("console").Call("log", args...)
+}
+
+func heapStats() {
+	runtime.ReadMemStats(&stats)
+	inUse := stats.HeapInuse + stats.StackInuse + stats.MSpanInuse + stats.MCacheInuse
+	consoleLog("go mem: alloc =", stats.Alloc, "inUse =", inUse)
+}
+
+func heapProfile(name string) {
+	f, err := os.OpenFile("wasm.go." + name + ".pprof", os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0660)
+	if err != nil {
+		consoleLog("err:", err.Error())
+		return
+	}
+	defer f.Close()
+	pprof.WriteHeapProfile(f)
+}
+
 func errorOut(msg string) {
-	js.Global().Get("console").Call("log", msg)  // Useful since println() doesn't go anywhere.
+	consoleLog(msg)
 	copy(htmlOut, []byte{0, 0, 0, 0})  // Set htmlOut to empty string.
 }
 
 // Transforms the doc specified in url/htmlIn into htmlOut. Takes a nullary
 // done callback as its only argument.
 func transform(args []js.Value) {
+	num++
+	if (num % 2000 == 0) {
+		heapStats()
+	}
 	var url, html string
 	var err error
 	if url, err = bufferToString(urlIn); err != nil {
@@ -116,10 +147,7 @@ func typedArray(maxLen uint32, slice interface{}) js.Value {
 		})
 		args[0].Invoke(ta, release)
 	})
-	return js.ValueOf(map[string]interface{}{
-		"maxLen": maxLen,
-		"getter": getter,
-	})
+	return js.Global().Get("GoBytes").New(getter, maxLen)
 }
 
 func main() {
@@ -136,10 +164,16 @@ func main() {
 	js.Global().Set("htmlIn", typedArray(htmlInMaxLen, htmlIn))
 	js.Global().Set("htmlOut", typedArray(htmlOutMaxLen, htmlOut))
 
+	heapStats()
+	heapProfile("before")
+
 	// Invoke the JS callback, hardcoded as {global,window}.begin, once the
 	// Go is ready to receive transform requests.
 	js.Global().Get("begin").Invoke(doneCB)
 
 	// Keep the Go process running until the JS calls the done callback.
 	<-done
+
+	heapStats()
+	heapProfile("after")
 }

@@ -96,7 +96,7 @@ async function readTestFiles() {
 const heapdump = (() => { try { return require('heapdump') } catch { } })(); // npm install heapdump
 function dumpHeap(name, full) {
   console.log('%s: %s', name, util.inspect(process.memoryUsage(), {colors: true, breakLength: Infinity}))
-  if (full && heapdump) heapdump.writeSnapshot('wasm.' + name + '.heapsnapshot');
+  if (full && heapdump) heapdump.writeSnapshot('wasm.js.' + name + '.heapsnapshot');
 }
 
 global.begin = async function(done) {
