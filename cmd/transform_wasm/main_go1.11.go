@@ -125,14 +125,13 @@ func transform(args []js.Value) {
 	args[0].Invoke()
 }
 
-// Takes a max len and a slice.
+// Takes a max len and a slice. Returns a JS Bytes object wrapping them.
 //
-// Returns an object with two attributes:
-//   maxLen: the max len
-//   getter: JS function that takes a JS function cb1, calls cb1 with a new
-//     TypedArray for the slice and a release function. The release function
-//     takes a JS function cb2, releases the TypedArray and itself, and calls
-//     cb2. Oh, the joys of continuation-passing style.
+// The getter is:
+//   A JS function that takes a JS function cb1, calls cb1 with a new
+//   TypedArray for the slice and a release function. The release function
+//   takes a JS function cb2, releases the TypedArray and itself, and calls
+//   cb2. Oh, the joys of continuation-passing style.
 //
 // The getter is never released. It is presumed that this object will live for
 // the entire duration of the WASM process.
@@ -147,7 +146,7 @@ func typedArray(maxLen uint32, slice interface{}) js.Value {
 		})
 		args[0].Invoke(ta, release)
 	})
-	return js.Global().Get("GoBytes").New(getter, maxLen)
+	return js.Global().Get("GoBridge").Get("Bytes").New(getter, maxLen)
 }
 
 func main() {
@@ -164,16 +163,23 @@ func main() {
 	js.Global().Set("htmlIn", typedArray(htmlInMaxLen, htmlIn))
 	js.Global().Set("htmlOut", typedArray(htmlOutMaxLen, htmlOut))
 
-	heapStats()
-	heapProfile("before")
+	bridge := js.Global().Get("GoBridge")
+	test := bridge.Get("test").Bool()
+
+	if test {
+		heapStats()
+		heapProfile("before")
+	}
 
 	// Invoke the JS callback, hardcoded as {global,window}.begin, once the
 	// Go is ready to receive transform requests.
-	js.Global().Get("begin").Invoke(doneCB)
+	bridge.Get("begin").Invoke(doneCB)
 
 	// Keep the Go process running until the JS calls the done callback.
 	<-done
 
-	heapStats()
-	heapProfile("after")
+	if test {
+		heapStats()
+		heapProfile("after")
+	}
 }

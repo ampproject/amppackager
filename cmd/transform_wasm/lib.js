@@ -2,7 +2,30 @@
 
 const util = require('util');
 
+const { join } = require('path');
+const { spawnSync } = require('child_process');
+
 /**
+ * The main entry point.
+ *
+ * @param callback {function()} The async function to call once setup is done.
+ *   All calls to transform should happen while this function is running.
+ * @param opt_test {boolean=} whether to output heap stats for testing
+ */
+async function start(callback, opt_test) {
+  GoBridge.begin = async function(done) {
+    await callback();
+    done();
+  };
+  GoBridge.test = !!opt_test;
+  const goroot = process.env.GOROOT || spawnSync('go', ['env', 'GOROOT']).stdout.toString().trim();
+  require(join(goroot, 'misc/wasm/wasm_exec.js'));
+}
+exports.start = start;
+
+/**
+ * Transforms a doc. Can only be called within the callback to start().
+ *
  * @param url {string}
  * @param html {string}
  * @return {string} The transformed HTML.
@@ -22,20 +45,23 @@ async function transform(url, html) {
         // lambda passed to transformCB, which in turn closes over the resolve
         // parameter, which holds a reference to the promise, which holds a
         // reference to its resolved value.
-        returnValue = str;
+        GoBridge.returnValue = str;
         resolve();
       });
     }));
-  return returnValue;
+  return GoBridge.returnValue;
 }
 exports.transform = transform;
+
+// Internal communication between lib.js and the Go runtime.
+global.GoBridge = {};
 
 // Internal class for use by the Go runtime. Wraps a TypedArray, taking care of:
 // - Length-prefix and UTF-8 decoding/encoding in the get()/set() methods.
 // - Checking that the given string will fit in the buffer, in set().
 // - Getting a new TypedArray from Go, if the old one detaches due to WASM
 //   memory growth.
-class GoBytes {
+class Bytes {
   constructor(getter, maxLen) {
     this._getter = getter;
     this._maxLen = maxLen;
@@ -55,7 +81,7 @@ class GoBytes {
     let buf = ta.slice(0, 4).buffer;
     let len = new DataView(buf).getUint32(0);
     if (len > this._maxLen) throw new Error("str is corrupted; unexpected len " + len);
-    return this._decoder.decode(new DataView(ta.slice(4, 4 + len).buffer));
+    return this._decoder.decode(ta.slice(4, 4 + len).buffer);
   }
 
   async set(str /*string*/) {
@@ -85,4 +111,4 @@ class GoBytes {
     return this._typedArray;
   }
 }
-global.GoBytes = GoBytes;
+GoBridge.Bytes = Bytes;

@@ -46,7 +46,6 @@ const fs = require('fs');
 const util = require('util');
 
 const { join } = require('path');
-const { spawnSync } = require('child_process');
 
 // Polyfill to flatten an array by one level.
 const flat = [].flat ? (arr) => arr.flat() : (arr) => [].concat(...arr);
@@ -99,35 +98,29 @@ function dumpHeap(name, full) {
   if (full && heapdump) heapdump.writeSnapshot('wasm.js.' + name + '.heapsnapshot');
 }
 
-global.begin = async function(done) {
-  dumpHeap('compile.after', true);
-
-  const start = process.hrtime.bigint();
-  let num = 0;
-  for (const [url, html] of tests) {
-    if (++num % 100 === 0) console.log('num =', num);
-    if (num % 2000 === 0) dumpHeap('transform.' + num);
-
-    try {
-      let out = await lib.transform(url, html);
-    } catch(err) {
-      console.error("error for", url, err);
-      continue;
-    }
-  }
-  const total = process.hrtime.bigint() - start;
-
-  dumpHeap('transform.after', true);
-  console.log(`Took ${total} nanoseconds, or ${Number(total) / tests.length / 1000000} millis per doc.`);
-  done();
-}
-
-async function main() {
+(async function() {
   global.tests = await readTestFiles();
 
   dumpHeap('compile.before');
-  const goroot = process.env.GOROOT || spawnSync('go', ['env', 'GOROOT']).stdout.toString().trim();
-  require(join(goroot, 'misc/wasm/wasm_exec.js'));
-}
+  lib.start(async function() {
+    dumpHeap('compile.after', true);
 
-main();
+    const start = process.hrtime.bigint();
+    let num = 0;
+    for (const [url, html] of tests) {
+      if (++num % 100 === 0) console.log('num =', num);
+      if (num % 2000 === 0) dumpHeap('transform.' + num);
+
+      try {
+        let out = await lib.transform(url, html);
+      } catch(err) {
+        console.error("error for", url, err);
+        continue;
+      }
+    }
+    const total = process.hrtime.bigint() - start;
+
+    dumpHeap('transform.after', true);
+    console.log(`Took ${total} nanoseconds, or ${Number(total) / tests.length / 1000000} millis per doc.`);
+  }, true);
+})();
