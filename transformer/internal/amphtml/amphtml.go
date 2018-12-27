@@ -67,6 +67,14 @@ func IsAMPCustomElement(n *html.Node) bool {
 	return n.Type == html.ElementNode && strings.HasPrefix(n.Data, "amp-")
 }
 
+// IsScriptAMPExtension returns true if the node is a script tag with either attribute `custom-element` or `custom-template` present.
+func IsScriptAMPExtension(n *html.Node) bool {
+	if n.DataAtom != atom.Script {
+		return false
+	}
+	return htmlnode.HasAttribute(n, "", AMPCustomElement) || htmlnode.HasAttribute(n, "", AMPCustomTemplate)
+}
+
 // IsScriptAMPRuntime returns true if the node is of the form <script async src=https://cdn.ampproject.org...v0.js></script>
 func IsScriptAMPRuntime(n *html.Node) bool {
 	if n.DataAtom != atom.Script {
