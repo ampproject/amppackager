@@ -62,12 +62,7 @@ func ServerSideRendering(e *Context) error {
 		}
 	}
 
-	// Emit the amp-runtime marker to indicate that server side
-	// rendering has been applied.
-	ampRuntimeMarker := htmlnode.Element("style", html.Attribute{Key: "amp-runtime"})
-	e.DOM.HeadNode.InsertBefore(ampRuntimeMarker, e.DOM.HeadNode.FirstChild)
-
-	// Also check the <head> tag if boilerplate is needed or not.
+	// Check the <head> tag if boilerplate is needed or not.
 	remove = remove && canRemoveBoilerplateRecursive(e.DOM.HeadNode)
 	if remove {
 		htmlnode.SetAttribute(e.DOM.HTMLNode, "", "i-amphtml-no-boilerplate", "")
