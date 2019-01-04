@@ -28,20 +28,8 @@ import (
 func TestAMPRuntimeCSS(t *testing.T) {
 	tcs := []struct{ desc, input, expected, css string }{
 		{
-			desc:     "Empty doc",
-			input:    "",
-			expected: "<html><head></head><body></body></html>",
-			css:      "",
-		},
-		{
-			desc:     "no ssr",
-			input:    "<html></html>",
-			expected: "<html><head></head><body></body></html>",
-			css:      "",
-		},
-		{
 			desc:  "link to css",
-			input: "<html><head><style amp-runtime></style></head></html>",
+			input: "<html><head></head></html>",
 			expected: tt.Concat("<html><head>",
 				"<style amp-runtime=\"\" i-amphtml-version=\"42\"></style>",
 				"<link rel=\"stylesheet\" href=\"https://cdn.ampproject.org/rtv/42/v0.css\"/>",
@@ -50,20 +38,18 @@ func TestAMPRuntimeCSS(t *testing.T) {
 		},
 		{
 			desc:  "inline css",
-			input: "<html><head><style amp-runtime></style></head></html>",
+			input: "<html><head></head></html>",
 			expected: tt.Concat("<html><head>",
-				"<style amp-runtime=\"\" i-amphtml-version=\"42\">",
-				"CSS contents to inline</style></head>",
-				"<body></body></html>"),
+				"<style amp-runtime=\"\" i-amphtml-version=\"42\">CSS contents to inline</style>",
+				"</head><body></body></html>"),
 			css: "CSS contents to inline",
 		},
 		{
-			desc:  "trim css",
-			input: "<html><head><style amp-runtime></style></head></html>",
+			desc:  "inline trimmed css",
+			input: "<html><head></head></html>",
 			expected: tt.Concat("<html><head>",
-				"<style amp-runtime=\"\" i-amphtml-version=\"42\">",
-				"CSS contents to inline</style></head>",
-				"<body></body></html>"),
+				"<style amp-runtime=\"\" i-amphtml-version=\"42\">CSS contents to inline</style>",
+				"</head><body></body></html>"),
 			css: " \t\n CSS contents to inline \n\t\r\n",
 		},
 	}
