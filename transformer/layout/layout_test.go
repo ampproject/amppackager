@@ -166,6 +166,13 @@ func TestApplyLayout(t *testing.T) {
 			htmlnode.Element("img"),
 			"<img/>",
 		},
+		{
+			"Style attributes preserved and added",
+			htmlnode.Element(
+				"amp-img",
+				html.Attribute{Key: "height", Val: "400"}, html.Attribute{Key: "layout", Val: "fixed"}, html.Attribute{Key: "style", Val: "display:none;height:200px;position:relative;width:150px"}, html.Attribute{Key: "width", Val: "300"}),
+			`<amp-img height="400" layout="fixed" style="display:none;height:200px;position:relative;width:150px;width:300px;height:400px;" width="300" class="i-amphtml-layout-fixed i-amphtml-layout-size-defined" i-amphtml-layout="fixed"></amp-img>`,
+		},
 	}
 	for _, tc := range testCases {
 		if err := ApplyLayout(tc.node); err != nil {

@@ -190,11 +190,13 @@ func apply(n *html.Node, layout amppb.AmpLayout_Layout, dimensions cssDimensions
 	case amppb.AmpLayout_FILL, amppb.AmpLayout_CONTAINER:
 		// Do nothing
 	}
-
-	// Prepend the style in case an existing value doesn't end with ';'.
+	// Appends the given styles so they take precedence over any
+	// user-defined styles (!important is reserved for AMP Runtime). Currently
+	// the only potential properties added are `display`, `height`, and `width`.
 	if styles != "" {
-		htmlnode.PrependAttribute(n, "", "style", styles)
+		htmlnode.AppendAttributeWithSeparator(n, "", "style", styles, ";")
 	}
+
 	if a, ok := htmlnode.FindAttribute(n, "", "style"); ok && a.Val == "" {
 		// Remove empty style attribute
 		htmlnode.RemoveAttribute(n, a)
