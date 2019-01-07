@@ -50,7 +50,7 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 //
 // * The following attributes may be rewritten:
 //   * Any tag (except amp-img [1]) with attribute:
-//     * href
+//     * background
 //     * src
 //   * Any <amp-install-serviceworker> with attribute:
 //     * data-iframe-src
@@ -68,6 +68,10 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 //     * action-xhr
 //   * Any <img> tag with attribute:
 //     * longdesc
+//   * Any tag with the `href` attribute, with special handling for:
+//     * <base href=...>
+//     * <link rel=canonical href=...>
+//     * <a href=...>
 //
 //     [1]. amp-img rewriting is handled by UrlRewrite
 //
