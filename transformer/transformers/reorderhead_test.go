@@ -40,18 +40,17 @@ func TestReorderHead(t *testing.T) {
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
-				// (1) <style amp-runtime> (inserted by ServerSideRendering)
+				// (1) <style amp-runtime> (inserted by ampruntimecss.go)
 				tt.StyleAMPRuntime,
-				// (2) remaining <meta> tags
+				// (2) remaining <meta> tags (those other than <meta charset>)
 				tt.MetaViewport,
 				// (3) AMP runtime .js <script> tag
 				tt.ScriptAMPRuntime,
-				// (4) AMP viewer runtime .js <script> tag
-				// (inserted by AmpViewerScript)
+				// (4) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
 				tt.ScriptAMPViewerRuntime,
 				// (5) <script> tags that are render delaying
 				tt.ScriptAMPExperiment,
-				// (6) remaining <script> tags
+				// (6) <script> tags for remaining extensions
 				tt.ScriptAMPAudio,
 				// (7) <link> tag for favicons
 				tt.LinkFavicon,
@@ -69,7 +68,7 @@ func TestReorderHead(t *testing.T) {
 				"</head><body></body></html>"),
 		},
 		{
-			Desc: "Reorders head children for AMP4Ads document",
+			Desc: "Reorders head children for AMP4ADS document",
 			Input: tt.Concat(tt.Doctype, "<html ⚡4ads><head>",
 				tt.Title, tt.StyleAMP4AdsBoilerplate, tt.ScriptAMPAudio,
 				tt.ScriptAMP4AdsRuntime, tt.LinkStylesheetGoogleFont,
@@ -78,27 +77,29 @@ func TestReorderHead(t *testing.T) {
 			Expected: tt.Concat(tt.Doctype, "<html ⚡4ads><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
-				// (1) <style amp-runtime> (inserted by ServerSideRendering)
-				// n/a for AMP4Ads, no ServerSideRendering
-				// (2) remaining <meta> tags
+				// (1) <style amp-runtime> (inserted by ampruntimecss.go)
+				// n/a for AMP4ADS
+				// (2) remaining <meta> tags (those other than <meta charset>)
 				tt.MetaViewport,
 				// (3) AMP runtime .js <script> tag
 				tt.ScriptAMP4AdsRuntime,
-				// (4) <script> tags that are render delaying
-				// n/a for AMP4Ads, no render delaying <script> tags allowed
-				// (5) remaining <script> tags
+				// (4) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
+				// n/a for AMP4ADS, no viewer
+				// (5) <script> tags that are render delaying
+				// n/a for AMP4ADS, no render delaying <script> tags allowed
+				// (6) <script tags> for remaining extensions
 				tt.ScriptAMPAudio,
-				// (6) <link> tag for favicons
-				// n/a for AMP4Ads, no favicons allowed
-				// (7) <link> tag for resource hints
+				// (7) <link> tag for favicons
+				// n/a for AMP4ADS, no favicons allowed
+				// (8) <link> tag for resource hints
 				tt.LinkGoogleFontPreconnect,
-				// (8) <link rel=stylesheet> tags before <style amp-custom>
+				// (9) <link rel=stylesheet> tags before <style amp-custom>
 				tt.LinkStylesheetGoogleFont,
-				// (9) <style amp-custom>
+				// (10) <style amp-custom>
 				tt.StyleAMPCustom,
-				// (10) any other tags allowed in <head>
+				// (11) any other tags allowed in <head>
 				tt.Title,
-				// (11) amp boilerplate (first style amp-boilerplate, then noscript)
+				// (12) amp boilerplate (first style amp-boilerplate, then noscript)
 				tt.StyleAMP4AdsBoilerplate,
 				"</head><body></body></html>"),
 		},
