@@ -24,30 +24,37 @@ import (
 	"golang.org/x/net/html"
 )
 
-func TestMetaTag(t *testing.T) {
-	testCases := []tt.TestCase{
+func TestLinkTag(t *testing.T) {
+	tcs := []tt.TestCase{
 		{
-			Desc: "Moves some meta tags",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Desc: "Adds link for Google Font Preconnect",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				"<meta content=experiment-a name=amp-experiments-opt-in>",
-				"<meta content=experiment-b name=amp-experiments-opt-in>",
-				tt.LinkFavicon, tt.LinkCanonical,
+				tt.LinkFavicon, tt.LinkGoogleFont, tt.LinkCanonical,
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
-				"</head><body>",
-				"<meta content=experiment-c name=amp-experiments-opt-in>", // moves to head
-				"</body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡><head>",
+				"</head><body></body></html>"),
+			Expected: tt.Concat(tt.Doctype, "<html ⚡=\"\"><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				"<meta content=experiment-a name=amp-experiments-opt-in>",
-				"<meta content=experiment-b name=amp-experiments-opt-in>",
-				tt.LinkFavicon, tt.LinkCanonical,
-                                tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
-				"<meta content=experiment-c name=amp-experiments-opt-in>",
+				tt.LinkFavicon, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
+				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body></body></html>"),
+		},
+		{
+			Desc: "Adds link for Google Font Preconnect only once",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkGoogleFont, tt.LinkGoogleFont,
+				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body></body></html>"),
+			Expected: tt.Concat(tt.Doctype, "<html ⚡=\"\"><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
+				tt.LinkGoogleFont, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
 		},
 	}
-	for _, tc := range testCases {
+	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s: html.Parse on %s failed %q", tc.Desc, tc.Input, err)
@@ -58,7 +65,7 @@ func TestMetaTag(t *testing.T) {
 			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.MetaTag(&transformers.Context{DOM: inputDOM})
+		transformers.LinkTag(&transformers.Context{DOM: inputDOM})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
@@ -77,7 +84,7 @@ func TestMetaTag(t *testing.T) {
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: MetaTag=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
+			t.Errorf("%s: LinkTag=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }

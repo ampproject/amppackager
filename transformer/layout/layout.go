@@ -185,6 +185,10 @@ func apply(n *html.Node, layout amppb.AmpLayout_Layout, dimensions cssDimensions
 			getCSSLengthStyle(dimensions.height, "height")
 	case amppb.AmpLayout_FIXED_HEIGHT:
 		styles = getCSSLengthStyle(dimensions.height, "height")
+	case amppb.AmpLayout_RESPONSIVE:
+		// Do nothing here but emit <i-amphtml-sizer> later.
+	case amppb.AmpLayout_FILL, amppb.AmpLayout_CONTAINER:
+		// Do nothing
 	}
 
 	// Prepend the style in case an existing value doesn't end with ';'.

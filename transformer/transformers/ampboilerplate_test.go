@@ -32,15 +32,15 @@ import (
 const ampBoilerplateNoscriptWithAttr = "<noscript><style amp-boilerplate=\"\">body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>"
 
 func TestAMPBoilerplate(t *testing.T) {
-	canonicalExpected := tt.Concat("<!doctype html><html ⚡><head>",
+	canonicalExpected := tt.Concat(tt.Doctype, "<html ⚡><head>",
 		tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 		tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
 		ampBoilerplateNoscriptWithAttr, "</head><body></body></html>")
 
-	testCases := []tt.TestCase{
+	tcs := []tt.TestCase{
 		{
 			Desc:     "Keeps boilerplate",
-			Input:    tt.Concat("<!doctype html><html ⚡><head>",
+			Input:    tt.Concat(tt.Doctype, "<html ⚡><head>",
 				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
 				  tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				  "</head><body></body></html>"),
@@ -48,7 +48,7 @@ func TestAMPBoilerplate(t *testing.T) {
 		},
 		{
 			Desc:     "Adds boilerplate if missing",
-			Input:    tt.Concat("<!doctype html><html ⚡><head>",
+			Input:    tt.Concat(tt.Doctype, "<html ⚡><head>",
 				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				  tt.LinkFavicon, tt.LinkCanonical,
 				  "</head><body></body></html>"),
@@ -56,18 +56,18 @@ func TestAMPBoilerplate(t *testing.T) {
 		},
 	}
 
-	runAMPBoilerplateTestcases(t, testCases)
+	runAMPBoilerplateTestcases(t, tcs)
 }
 
 func TestAMP4Ads(t *testing.T) {
 	expected := func(attr string) string {
-		return tt.Concat("<!doctype html><html ", attr, "><head>",
+		return tt.Concat(tt.Doctype, "<html ", attr, "><head>",
 			tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 			"<style amp4ads-boilerplate>body{visibility:hidden}</style></head>",
 			"<body></body></html>")
 	}
 
-	testCases := []tt.TestCase{
+	tcs := []tt.TestCase{
 		{
 			Desc:     "Keeps boilerplate",
 			Input:    expected("amp4ads"),
@@ -80,32 +80,32 @@ func TestAMP4Ads(t *testing.T) {
 		},
 		{
 			Desc:     "Adds boilerplate if missing",
-			Input:    tt.Concat("<!doctype html><html amp4ads><head>",
+			Input:    tt.Concat(tt.Doctype, "<html amp4ads><head>",
 				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				  "</head><body></body></html>"),
 			Expected: expected("amp4ads"),
 		},
 		{
 			Desc:     "Adds boilerplate for ⚡4ads if missing",
-			Input:    tt.Concat("<!doctype html><html ⚡4ads><head>",
+			Input:    tt.Concat(tt.Doctype, "<html ⚡4ads><head>",
 				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				  "</head><body></body></html>"),
 			Expected: expected("⚡4ads"),
 		},
 	}
 
-	runAMPBoilerplateTestcases(t, testCases)
+	runAMPBoilerplateTestcases(t, tcs)
 }
 
 func TestAMP4Email(t *testing.T) {
 	expected := func(attr string) string {
-		return tt.Concat("<!doctype html><html ", attr, "><head>",
+		return tt.Concat(tt.Doctype, "<html ", attr, "><head>",
 			tt.MetaCharset, tt.ScriptAMPRuntime,
 			"<style amp4email-boilerplate>body{visibility:hidden}</style></head>",
 			"<body></body></html>")
 	}
 
-	testCases := []tt.TestCase{
+	tcs := []tt.TestCase{
 		{
 			Desc:     "Keeps boilerplate",
 			Input:    expected("amp4email"),
@@ -118,25 +118,25 @@ func TestAMP4Email(t *testing.T) {
 		},
 		{
 			Desc:     "Adds boilerplate if missing",
-			Input:    tt.Concat("<!doctype html><html amp4email><head>",
+			Input:    tt.Concat(tt.Doctype, "<html amp4email><head>",
 				  tt.MetaCharset, tt.ScriptAMPRuntime,
 				  "</head><body></body></html>"),
 			Expected: expected("amp4email"),
 		},
 		{
 			Desc:     "Adds boilerplate for ⚡4email if missing",
-			Input:    tt.Concat("<!doctype html><html ⚡4email><head>",
+			Input:    tt.Concat(tt.Doctype, "<html ⚡4email><head>",
 				  tt.MetaCharset, tt.ScriptAMPRuntime,
 				  "</head><body></body></html>"),
 			Expected: expected("⚡4email"),
 		},
 	}
 
-	runAMPBoilerplateTestcases(t, testCases)
+	runAMPBoilerplateTestcases(t, tcs)
 }
 
-func runAMPBoilerplateTestcases(t *testing.T, testCases []tt.TestCase) {
-	for _, tc := range testCases {
+func runAMPBoilerplateTestcases(t *testing.T, tcs []tt.TestCase) {
+	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
 			t.Errorf("%s\nhtml.Parse for %s failed %q", tc.Desc, tc.Input, err)

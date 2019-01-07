@@ -31,7 +31,8 @@ import (
 // stripped by this transformer (see b/79415817).
 func BuildHTML(body string) string {
 	return tt.Concat(
-		"<!doctype html><html ⚡><head>",
+		tt.Doctype,
+		"<html ⚡><head>",
 		tt.MetaCharset,
 		tt.MetaViewport,
 		tt.ScriptAMPRuntime,
@@ -74,7 +75,7 @@ func TestNodeCleanup_Strip(t *testing.T) {
 		{
 			Desc: "strips child whitespace nodes from <html> and <head>",
 			Input: tt.Concat(
-				"<!doctype html><html ⚡>  <head>\n",
+				tt.Doctype, "<html ⚡>  <head>\n",
 				"\t\t",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				"  ",
@@ -176,28 +177,28 @@ func TestNodeCleanup_Doctype(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
 			Desc:     "doctype no-op",
-			Input:    "<!doctype html>",
-			Expected: "<!doctype html>",
+			Input:    tt.Doctype,
+			Expected: tt.Doctype,
 		},
 		{
 			Desc:     "doctype add html",
 			Input:    "<!doctype>",
-			Expected: "<!doctype html>",
+			Expected: tt.Doctype,
 		},
 		{
 			Desc:     "doctype strip all",
 			Input:    `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">`,
-			Expected: "<!doctype html>",
+			Expected: tt.Doctype,
 		},
 		{
 			Desc:     "doctype strip bogus",
 			Input:    `<!DOCTYPE HTML PUBLIC "bogus" "notreal">`,
-			Expected: "<!doctype html>",
+			Expected: tt.Doctype,
 		},
 		{
 			Desc:     "doctype ignore non-html",
 			Input:    `<!DOCTYPE document SYSTEM "subjects.dtd">`,
-			Expected: "<!doctype html>",
+			Expected: tt.Doctype,
 		},
 	}
 	runNodeCleanupTestCases(t, tcs)
@@ -207,7 +208,7 @@ func TestNodeCleanup_WellFormedHtml(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
 			Desc: "wellformed",
-			Input: tt.Concat("<!doctype html><html ⚡>",
+			Input: tt.Concat(tt.Doctype, "<html ⚡>",
 				tt.ScriptAMPRuntime,
 				tt.LinkFavicon,
 				"<foo>"),

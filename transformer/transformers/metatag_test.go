@@ -24,24 +24,33 @@ import (
 	"golang.org/x/net/html"
 )
 
-func TestTransformedIdentifier(t *testing.T) {
-	testCases := []tt.TestCase{
+func TestMetaTag(t *testing.T) {
+	tcs := []tt.TestCase{
 		{
-			Desc: "Adds identifier to html tag",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Desc: "Moves some meta tags",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡=\"\" transformed=google><head>",
+				"<meta content=experiment-a name=amp-experiments-opt-in>",
+				"<meta content=experiment-b name=amp-experiments-opt-in>",
+				tt.LinkFavicon, tt.LinkCanonical,
+				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body>",
+				"<meta content=experiment-c name=amp-experiments-opt-in>", // moves to head
+				"</body></html>"),
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
+				"<meta content=experiment-a name=amp-experiments-opt-in>",
+				"<meta content=experiment-b name=amp-experiments-opt-in>",
+				tt.LinkFavicon, tt.LinkCanonical,
+                                tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"<meta content=experiment-c name=amp-experiments-opt-in>",
+				"</head><body></body></html>"),
 		},
 	}
-	for _, tc := range testCases {
+	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
-			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)
+			t.Errorf("%s: html.Parse on %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
 		inputDOM, err := amphtml.NewDOM(inputDoc)
@@ -49,11 +58,11 @@ func TestTransformedIdentifier(t *testing.T) {
 			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.TransformedIdentifier(&transformers.Context{DOM: inputDOM})
+		transformers.MetaTag(&transformers.Context{DOM: inputDOM})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
-			t.Errorf("%s: html.Render for %s failed %q", tc.Desc, tc.Input, err)
+			t.Errorf("%s: html.Render on %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
 
@@ -68,7 +77,7 @@ func TestTransformedIdentifier(t *testing.T) {
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: TransformedIdentifier=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
+			t.Errorf("%s: MetaTag=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }

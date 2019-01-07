@@ -24,40 +24,24 @@ import (
 	"golang.org/x/net/html"
 )
 
-func TestLinkTag(t *testing.T) {
-	testCases := []tt.TestCase{
+func TestTransformedIdentifier(t *testing.T) {
+	tcs := []tt.TestCase{
 		{
-			Desc: "Adds link for Google Font Preconnect",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
+			Desc: "Adds identifier to html tag",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.LinkGoogleFont, tt.LinkCanonical,
-				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
-				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡=\"\"><head>",
+				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
+			Expected: tt.Concat(tt.Doctype, "<html ⚡=\"\" transformed=google><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
-				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
-				"</head><body></body></html>"),
-		},
-		{
-			Desc: "Adds link for Google Font Preconnect only once",
-			Input: tt.Concat("<!doctype html><html ⚡><head>",
-				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.LinkGoogleFont, tt.LinkGoogleFont,
-				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
-				"</head><body></body></html>"),
-			Expected: tt.Concat("<!doctype html><html ⚡=\"\"><head>",
-				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
-				tt.LinkGoogleFont, tt.LinkCanonical, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate,
-				"</head><body></body></html>"),
+				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
 		},
 	}
-	for _, tc := range testCases {
+	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))
 		if err != nil {
-			t.Errorf("%s: html.Parse on %s failed %q", tc.Desc, tc.Input, err)
+			t.Errorf("%s: html.Parse for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
 		inputDOM, err := amphtml.NewDOM(inputDoc)
@@ -65,11 +49,11 @@ func TestLinkTag(t *testing.T) {
 			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.LinkTag(&transformers.Context{DOM: inputDOM})
+		transformers.TransformedIdentifier(&transformers.Context{DOM: inputDOM})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
-			t.Errorf("%s: html.Render on %s failed %q", tc.Desc, tc.Input, err)
+			t.Errorf("%s: html.Render for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
 
@@ -84,7 +68,7 @@ func TestLinkTag(t *testing.T) {
 			continue
 		}
 		if input.String() != expected.String() {
-			t.Errorf("%s: LinkTag=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
+			t.Errorf("%s: TransformedIdentifier=\n%q\nwant=\n%q", tc.Desc, &input, &expected)
 		}
 	}
 }
