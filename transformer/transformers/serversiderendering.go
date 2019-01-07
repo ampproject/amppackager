@@ -49,11 +49,6 @@ func ServerSideRendering(e *Context) error {
 				remove = canRemoveBoilerplate(n)
 			}
 
-			// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
-			if htmlnode.HasAttribute(n, "", "style") {
-				continue
-			}
-
 			// If ApplyLayout encounters any unsupported layout, the
 			// boilerplate cannot be removed.
 			if err := layout.ApplyLayout(n); err != nil {
@@ -145,10 +140,6 @@ func canRemoveBoilerplate(n *html.Node) bool {
 			return false
 		}
 		if htmlnode.HasAttribute(n, "", "sizes") {
-			return false
-		}
-		// TODO(honeybadgerdontcare): remove when SSR overwrites declarations.
-		if htmlnode.HasAttribute(n, "", "style") {
 			return false
 		}
 	}

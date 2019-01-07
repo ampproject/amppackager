@@ -175,7 +175,13 @@ func addAttributeValue(n *html.Node, namespace, key, val string, prepend bool, s
 		if prepend {
 			a.Val = val + sep + a.Val
 		} else {
-			a.Val = a.Val + sep + val
+			// Strips whitespace and does not add separator if not needed.
+			a.Val = strings.TrimSpace(a.Val)
+			if strings.EqualFold(a.Val[len(a.Val)-1:], sep) {
+				a.Val = a.Val + val
+			} else {
+				a.Val = a.Val + sep + val
+			}
 		}
 	} else {
 		n.Attr = append(n.Attr, html.Attribute{

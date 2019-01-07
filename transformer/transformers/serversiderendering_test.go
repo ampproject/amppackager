@@ -223,11 +223,6 @@ func TestBoilerplatePreserved(t *testing.T) {
 			Input:    input("", `<amp-img height=300 layout=responsive sizes="(min-width: 320px) 320px, 100vw" src=https://acme.org/image1.png width=400></amp-img>`),
 			Expected: expected("", `<amp-img height=300 layout=responsive sizes="(min-width: 320px) 320px, 100vw" src=https://acme.org/image1.png width=400 class="i-amphtml-layout-responsive i-amphtml-layout-size-defined" i-amphtml-layout="responsive"><i-amphtml-sizer style="display:block;padding-top:75.0000%;"></i-amphtml-sizer></amp-img>`),
 		},
-		{
-			Desc:     "style attr",
-			Input:    input("", `<amp-img height=300 layout=fixed src=https://acme.org/image1.png style=position:relative width=400></amp-img>`),
-			Expected: expected("", `<amp-img height=300 layout=fixed src=https://acme.org/image1.png style=position:relative width=400></amp-img>`),
-		},
 	}
 	runServerSideRenderingTestcases(t, tcs)
 }
