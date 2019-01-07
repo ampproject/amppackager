@@ -45,17 +45,18 @@ type headNodes struct {
 // ReorderHead reorders the children of <head>. Specifically, it
 // orders the <head> like so:
 // (0) <meta charset> tag
-// (1) <style amp-runtime> (inserted by ServerSideRendering)
-// (2) remaining <meta> tags
+// (1) <style amp-runtime> (inserted by ampruntimecss.go)
+// (2) remaining <meta> tags (those other than <meta charset>)
 // (3) AMP runtime .js <script> tag
-// (4) <script> tags that are render delaying
-// (5) remaining <script> tags
-// (6) <link> tag for favicons
-// (7) <link> tag for resource hints
-// (8) <link rel=stylesheet> tags before <style amp-custom>
-// (9) <style amp-custom>
-// (10) any other tags allowed in <head>
-// (11) AMP boilerplate (first <style amp-boilerplate>, then <noscript>)
+// (4) AMP viewer runtime .js <script> tag
+// (5) <script> tags that are render delaying
+// (6) <script> tags for remaining extensions
+// (7) <link> tag for favicons
+// (8) <link> tag for resource hints
+// (9) <link rel=stylesheet> tags before <style amp-custom>
+// (10) <style amp-custom>
+// (11) any other tags allowed in <head>
+// (12) AMP boilerplate (first style amp-boilerplate, then noscript)
 func ReorderHead(e *Context) error {
 	hn := new(headNodes)
 
@@ -182,7 +183,7 @@ func registerScript(n *html.Node, hn *headNodes) {
 	hn.other = append(hn.other, n)
 }
 
-// registerStyle registers <style> tags to different variables depending on the attributes on the <style> tag. These are the (1) AMP or AMP4Ads Boilerplate, (2)the AMP Custom stylesheet, (3) the AMP Runtime stylesheet and (4) all other <style> tags.
+// registerStyle registers <style> tags to different variables depending on the attributes on the <style> tag. These are the (1) AMP or AMP4ADS Boilerplate, (2)the AMP Custom stylesheet, (3) the AMP Runtime stylesheet and (4) all other <style> tags.
 func registerStyle(n *html.Node, hn *headNodes) {
 	if htmlnode.HasAttribute(n, "", amphtml.AMPBoilerplate) || htmlnode.HasAttribute(n, "", amphtml.AMP4AdsBoilerplate) {
 		hn.styleAMPBoilerplate = n
