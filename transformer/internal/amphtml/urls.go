@@ -27,27 +27,73 @@ import (
 	"golang.org/x/net/idna"
 )
 
-// ToAbsoluteURL returns a URL string suitable for the AMP cache's
-// view of the given input URL. The resulting "absolute" URL, can be
-// one of two possibilies:
-//  - an absolute URL pointing to the same coordinates as the {in, base} tuple
-//  - the exact text passed into in if the input was malformed,
-//    a data: URL, or another non-http/https protocol URL.
-//
-// base is derived from the <base> tag and document URL for the origin document.
-//
-// in is the original href value. It may be absolute, host-relative,
-// path-relative, or fragment-relative. It could be a data: URL, it could
-// be empty, it could be grotesquely malformed. It came from the internet.
-// If relative, it is relative to base.
-func ToAbsoluteURL(base *url.URL, in string) string {
-	return convertToPortableOrAbsoluteURL(base, in, true)
+// sameURLIgnoringFragment is a helper for AbsoluteUrlValue below.
+// Returns true if |base| is the same as |u| with the exception that |u| may
+// also have an additional fragment component.
+func sameURLIgnoringFragment(base *string, u *url.URL) bool {
+	// Due to https://github.com/golang/go/issues/29603 we have an extra check
+	// for the empty fragment case.
+	if u.Fragment == "" {
+		return *base == u.String()
+	}
+
+	return *base+"#"+u.Fragment == u.String()
 }
 
-// ToPortableURL is similar to ToAbsoluteURL() except that it
-// preserves fragment-relative URLs when url points to the same document as base.
-func ToPortableURL(base *url.URL, in string) string {
-	return convertToPortableOrAbsoluteURL(base, in, false)
+// isProtocolRelative is a mostly correct parse for protocol relative inputs
+// by looking for a "//" prefix after stripping any leading whitespace and
+// control characters.
+func isProtocolRelative(urlParam *string) bool {
+	for *urlParam != "" && (*urlParam)[0] <= 0x20 {
+		*urlParam = (*urlParam)[1 : len(*urlParam)-1]
+	}
+	return strings.HasPrefix(*urlParam, "//")
+}
+
+// ToAbsoluteURL absolute-ifies |urlParam|, using |baseURL| as the base if
+// |urlParam| is relative. If |urlParam| contains a fragment, this method
+// will return only a fragment if it's absolute URL matches |documentURL|,
+// which prevents changing an in-document navigation to a out-of-document
+// navigation.
+func ToAbsoluteURL(documentURL *string, baseURL *url.URL,
+	urlParam *string) string {
+	if *urlParam == "" {
+		return ""
+	}
+
+	absoluteURL, err := baseURL.Parse(*urlParam)
+	// TODO(gregable): Should we strip this URL instead (ie: return "").
+	if err != nil {
+		return *urlParam
+	}
+
+	// TODO(gregable): We should probably assemble data: / mailto: / etc URLs,
+	// which will force them to be URL encoded, but this was left to maintain
+	// the old behavior for now.
+	if absoluteURL.Scheme != "http" && absoluteURL.Scheme != "https" {
+		return *urlParam
+	}
+
+	// Check for a specific case of protocol relative URL (ex: "//foo.com/")
+	// which specifies the host, but not the protocol. For b/27292423.
+	// Essentially we use protocol relative as a hint that this resource will
+	// be available on https even if it's resolved path was http. In this hinted
+	// case, we always prefer https.
+	if isProtocolRelative(urlParam) {
+		absoluteURL.Scheme = "https"
+	}
+
+	// Avoid rewriting a local fragment such as "#top" to a remote absolute URL
+	// of "http://example.com/#top" if it wasn't a remote URL already.
+	// Note that we also try to identify empty fragments (ex: href="#").
+	// net/url doesn't support these (https://github.com/golang/go/issues/29603)
+	// so we try to detect them heuristically.
+	if (absoluteURL.Fragment != "" || strings.HasPrefix(*urlParam, "#")) &&
+		sameURLIgnoringFragment(documentURL, absoluteURL) {
+		return "#" + absoluteURL.Fragment
+	}
+
+	return absoluteURL.String()
 }
 
 // SubresourceType describes the type of subresource
@@ -94,14 +140,17 @@ func (c *CacheURL) String() string {
 	return s
 }
 
-// GetCacheURL returns an AMP Cache URL structure for the URL identified by the given offset (relative to 'input')
-// or an error if the URL could not be parsed.
-func (so *SubresourceOffset) GetCacheURL(base *url.URL, input string) (*CacheURL, error) {
-	portable := ToPortableURL(base, input[so.Start:so.End])
-	if len(portable) == 0 {
+// GetCacheURL returns an AMP Cache URL structure for the URL identified by
+// the given offset (relative to 'input') or an error if the URL could not be
+// parsed.
+func (so *SubresourceOffset) GetCacheURL(documentURL *string, base *url.URL,
+	input *string) (*CacheURL, error) {
+	urlStr := (*input)[so.Start:so.End]
+	absolute := ToAbsoluteURL(documentURL, base, &urlStr)
+	if len(absolute) == 0 {
 		return nil, errors.New("unable to convert empty URL string")
 	}
-	origURL, err := url.Parse(portable)
+	origURL, err := url.Parse(absolute)
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing URL")
 	}
@@ -176,49 +225,5 @@ func fallbackCacheURLSubdomain(originHost string) string {
 	result := base32.StdEncoding.EncodeToString(sha.Sum(nil))
 	// Remove the last four chars are always "====" which are not legal in a domain name.
 	return strings.ToLower(result[0:52])
-}
-
-
-func convertToPortableOrAbsoluteURL(base *url.URL, in string, absolute bool) string {
-	if base == nil {
-		base, _ = url.Parse("")
-	}
-	orig := in
-	in = strings.TrimSpace(in)
-	if in == "" {
-		return orig
-	}
-
-	// For b/27292423:
-	// In general, if the origin doc was fetched on http:// and has a relative
-	// URL to a resource, we must assume that the resource may only be
-	// available on http. However: if the subresource has a protocol-relative
-	// path (beginning with '//') this is a clear statement that either
-	// HTTP or HTTPS can work. Special-case the protocol-relative case.
-	if strings.HasPrefix(in, "//") {
-		return "https:" + in
-	}
-	u, err := base.Parse(in)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
-		return in
-	}
-
-	uVal := u.String()
-	if absolute {
-		return uVal
-	}
-
-	switch uVal {
-	case base.String(), base.String() + "#" + u.Fragment:
-		// Keep links to page-local fragments relative.
-		// Otherwise, we'll turn "#dogs" into "https://origin.com/page.html#dogs"
-		// and send the user away when we could have kept them on the page they
-		// already loaded for a better experience.
-		//
-		// This also handles the case where base == in, and neither has
-		// a fragment. In which case we emit '#' which links to the top of the page.
-		return "#" + u.Fragment
-	}
-	return uVal
 }
 

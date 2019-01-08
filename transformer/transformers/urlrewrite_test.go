@@ -351,6 +351,7 @@ func TestURLRewrite_styleEdgeCases(t *testing.T) {
 }
 
 func runURLRewriteTestcases(t *testing.T, tcs []urlRewriteTestCase) {
+	documentURL, _ := url.Parse("https://example.com/")
 	for _, tc := range tcs {
 		baseURL, _ := url.Parse(tc.base)
 		inputDoc, err := html.Parse(strings.NewReader(tc.input))
@@ -363,7 +364,11 @@ func runURLRewriteTestcases(t *testing.T, tcs []urlRewriteTestCase) {
 			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.desc, tc.input, err)
 			continue
 		}
-		transformers.URLRewrite(&transformers.Context{DOM: inputDOM, BaseURL: baseURL})
+		transformers.URLRewrite(&transformers.Context{
+			DOM:         inputDOM,
+			BaseURL:     baseURL,
+			DocumentURL: documentURL,
+		})
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
 			t.Errorf("%s: html.Render failed %q", tc.input, err)

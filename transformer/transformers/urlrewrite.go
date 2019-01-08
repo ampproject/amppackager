@@ -29,7 +29,7 @@ import (
 
 type rewritable interface {
 	// Rewrite the URLs within
-	rewrite(*url.URL, string, map[string]struct{})
+	rewrite(*string, *url.URL, *string, map[string]struct{})
 }
 
 type urlRewriteContext []rewritable
@@ -137,7 +137,8 @@ func URLRewrite(e *Context) error {
 	}
 	// After the contextual information has been gathered, use it to rewrite the appropriate URLs
 	// and adding any preconnects if necessary.
-	preconnects := convertToAMPCacheURLs(ctx, e.BaseURL)
+	documentURL := e.DocumentURL.String()
+	preconnects := convertToAMPCacheURLs(ctx, &documentURL, e.BaseURL)
 	for _, k := range preconnects {
 		n := htmlnode.Element("link", html.Attribute{Key: "href", Val: k}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
 		e.DOM.HeadNode.AppendChild(n)
@@ -148,11 +149,11 @@ func URLRewrite(e *Context) error {
 
 // convertToAMPCacheURLs examines the generated context and rewrites all the necessary
 // URLs to point to the AMP Cache, returning a list of preconnects that need to be added.
-func convertToAMPCacheURLs(ctx urlRewriteContext, base *url.URL) []string {
+func convertToAMPCacheURLs(ctx urlRewriteContext, documentURL *string, base *url.URL) []string {
 	preconnects := make(map[string]struct{})
 	mainSubdomain := amphtml.ToCacheURLSubdomain(base.Hostname())
 	for _, rw := range ctx {
-		rw.rewrite(base, mainSubdomain, preconnects)
+		rw.rewrite(documentURL, base, &mainSubdomain, preconnects)
 	}
 	sortedPreconnects := make([]string, 0, len(preconnects))
 	for k := range preconnects {
@@ -163,7 +164,9 @@ func convertToAMPCacheURLs(ctx urlRewriteContext, base *url.URL) []string {
 }
 
 // rewrite the URLs described by the elementNodeContext. rewriteable implementation.
-func (nc *elementNodeContext) rewrite(base *url.URL, mainSubdomain string, preconnects map[string]struct{}) {
+func (nc *elementNodeContext) rewrite(documentURL *string, baseURL *url.URL,
+	mainSubdomain *string,
+	preconnects map[string]struct{}) {
 	if len(nc.attrName) == 0 || len(nc.offsets) == 0 {
 		return
 	}
@@ -171,17 +174,24 @@ func (nc *elementNodeContext) rewrite(base *url.URL, mainSubdomain string, preco
 	if !ok {
 		return
 	}
-	replaced := replaceURLs(attrVal, nc.offsets, base, mainSubdomain, preconnects)
+	replaced := replaceURLs(attrVal, nc.offsets, documentURL, baseURL,
+		mainSubdomain, preconnects)
 	htmlnode.SetAttribute(nc.node, nc.attrNS, nc.attrName, replaced)
 }
 
 // rewrite the URLs described by the textNodeContext. rewriteable implementation.
-func (nc *textNodeContext) rewrite(base *url.URL, mainSubdomain string, preconnects map[string]struct{}) {
-	nc.node.Data = replaceURLs(nc.node.Data, nc.offsets, base, mainSubdomain, preconnects)
+func (nc *textNodeContext) rewrite(documentURL *string, baseURL *url.URL,
+	mainSubdomain *string,
+	preconnects map[string]struct{}) {
+	nc.node.Data = replaceURLs(nc.node.Data, nc.offsets, documentURL, baseURL,
+		mainSubdomain, preconnects)
 }
 
-// replaceURLs replaces all the URLs in the data string with their AMP Cache equivalent, returning a new string.
-func replaceURLs(data string, offsets []amphtml.SubresourceOffset, base *url.URL, mainSubdomain string, preconnects map[string]struct{}) string {
+// replaceURLs replaces all the URLs in the data string found at the various
+// offsets with their AMP Cache equivalent, returning a new data string.
+func replaceURLs(data string, offsets []amphtml.SubresourceOffset,
+	documentURL *string, baseURL *url.URL, mainSubdomain *string,
+	preconnects map[string]struct{}) string {
 	if len(offsets) == 0 {
 		// noop
 		return data
@@ -194,14 +204,14 @@ func replaceURLs(data string, offsets []amphtml.SubresourceOffset, base *url.URL
 			sb.WriteString(data[pos:so.Start])
 			pos = so.Start
 		}
-		cu, err := so.GetCacheURL(base, data)
+		cu, err := so.GetCacheURL(documentURL, baseURL, &data)
 		if err != nil {
 			// noop
 			continue
 		}
 		sb.WriteString(cu.String())
 		pos = so.End
-		if len(mainSubdomain) > 0 && mainSubdomain != cu.Subdomain {
+		if len(*mainSubdomain) > 0 && *mainSubdomain != cu.Subdomain {
 			preconnects[cu.OriginDomain()] = struct{}{}
 		}
 	}

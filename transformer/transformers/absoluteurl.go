@@ -31,26 +31,18 @@ var /* const */ ampStoryPageTagAttrs = []string{"background-audio"}
 var /* const */ formTagAttrs = []string{"action", "action-xhr"}
 var /* const */ imgTagAttrs = []string{"longdesc"}
 
-// AbsoluteURL operates on URL attributes, rewriting URLs as needed
-// depending on whether the document is being served from the AMP
-// Cache or not, relative to the base URL (which is derived from the
-// document URL and the <base> tag).
-//
-// TODO(b/112361534): Handle the final URL of the document after all
-// redirects.
-//
-// URLs will be rewritten to either be absolute (i.e. point to the
-// origin document when served from the AMP Cache.) or not. In the
-// latter case (aka portable), the URL could be absolute (yes
-// confusing), a fragment-relative URL, or the exact text of a data
-// URL.
+// AbsoluteURL operates on URL attributes. It rewrites URLs as Absolute URLs.
+// These are based on the URL in the attribute and the base url of the
+// document. A base URL is the final URL of the document after all redirects.
+// If the attribute URL is relative, then it is relative to the base_url.
+// There is special handling for URLs that contain fragments.
 //
 // URLs are also canonicalized:
 // * leading and trailing whitespace are trimmed.
 //
 // * The following attributes may be rewritten:
 //   * Any tag (except amp-img [1]) with attribute:
-//     * background
+//     * href
 //     * src
 //   * Any <amp-install-serviceworker> with attribute:
 //     * data-iframe-src
@@ -68,15 +60,12 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 //     * action-xhr
 //   * Any <img> tag with attribute:
 //     * longdesc
-//   * Any tag with the `href` attribute, with special handling for:
-//     * <base href=...>
-//     * <link rel=canonical href=...>
-//     * <a href=...>
 //
 //     [1]. amp-img rewriting is handled by UrlRewrite
 //
 func AbsoluteURL(e *Context) error {
 	target := extractBaseTarget(e.DOM.HeadNode)
+	documentURL := e.DocumentURL.String()
 
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
 		// Skip text nodes and anything inside mustache templates
@@ -90,26 +79,26 @@ func AbsoluteURL(e *Context) error {
 		}
 
 		// Make attributes with URLs portable on any tag
-		rewritePortableURLs(n, e.BaseURL, anyTagAttrs)
+		rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, anyTagAttrs)
 
 		switch n.DataAtom {
 		case atom.Form:
 			// Make attributes with URLs absolute on <form> tag.
-			rewriteAbsoluteURLs(n, e.BaseURL, formTagAttrs)
+			rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, formTagAttrs)
 		case atom.Img:
 			// Make attributes with URLs portable on <img> tag.
-			rewritePortableURLs(n, e.BaseURL, imgTagAttrs)
+			rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, imgTagAttrs)
 		default:
 			switch n.Data {
 			case "amp-install-serviceworker":
 				// Make attributes with URLs portable on <amp-install-serviceworker> tag.
-				rewritePortableURLs(n, e.BaseURL, ampInstallServiceWorkerTagAttrs)
+				rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, ampInstallServiceWorkerTagAttrs)
 			case amphtml.AMPStory:
 				// Make attributes with URLs portable on <amp-story> tag.
-				rewritePortableURLs(n, e.BaseURL, ampStoryTagAttrs)
+				rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, ampStoryTagAttrs)
 			case "amp-story-page":
 				// Make attributes with URLs portable on <amp-story-page> tag.
-				rewritePortableURLs(n, e.BaseURL, ampStoryPageTagAttrs)
+				rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, ampStoryPageTagAttrs)
 			}
 		}
 
@@ -135,27 +124,39 @@ func AbsoluteURL(e *Context) error {
 				}
 			case atom.Link:
 				if v, ok := htmlnode.GetAttributeVal(n, "", "rel"); ok && v == "canonical" {
-					// If the origin doc is self-canonical, it should be an absolute URL
-					// and not portable (which would result in canonical = "#").
-					// Maintain the original canonical, and absolutify it. See b/36102624
-					htmlnode.SetAttribute(n, "", "href", amphtml.ToAbsoluteURL(e.BaseURL, href.Val))
+					// Some users set <link rel=canonical href=#> which is silly, but
+					// can lead the cache to leave this as "#" which means that canonical
+					// is not preserved correctly. Fragments don't make any sense for
+					// canonical, so we handle this case specially.
+					//
+					// Protocol relative is also silly for canonical but we don't want to
+					// try to second guess the publisher here.
+					absoluteURL, err := e.BaseURL.Parse(href.Val)
+					if err == nil {
+						absoluteURL.Fragment = ""
+						htmlnode.SetAttribute(n, "", "href", absoluteURL.String())
+					}
 				} else {
-					htmlnode.SetAttribute(n, "", "href", amphtml.ToPortableURL(e.BaseURL, href.Val))
+					htmlnode.SetAttribute(n, "", "href",
+						amphtml.ToAbsoluteURL(&documentURL, e.BaseURL, &href.Val))
 				}
 			case atom.A:
-				portableHref := amphtml.ToPortableURL(e.BaseURL, href.Val)
+				newValue := amphtml.ToAbsoluteURL(
+					&documentURL, e.BaseURL, &href.Val)
 				// Set a default target
 				// 1. If the href is not a fragment AND
-				// 2. If there is no target OR If there is a target and it is not an allowed target
-				if !strings.HasPrefix(portableHref, "#") {
+				// 2. If there is no target OR
+				// 3. If there is a target and it is not an allowed target
+				if !strings.HasPrefix(newValue, "#") {
 					if v, ok := htmlnode.GetAttributeVal(n, "", "target"); !ok || (ok && !isAllowedTarget(v)) {
 						htmlnode.SetAttribute(n, "", "target", target)
 					}
 				}
-				htmlnode.SetAttribute(n, "", "href", portableHref)
+				htmlnode.SetAttribute(n, "", "href", newValue)
 			default:
-				// Make a PortableUrl for any remaining tags with href.
-				htmlnode.SetAttribute(n, "", "href", amphtml.ToPortableURL(e.BaseURL, href.Val))
+				// Absoluteify any remaining tags with an href attribute.
+				htmlnode.SetAttribute(n, "", "href",
+					amphtml.ToAbsoluteURL(&documentURL, e.BaseURL, &href.Val))
 			}
 		}
 	}
@@ -180,20 +181,12 @@ func isAllowedTarget(t string) bool {
 
 // rewriteAbsoluteURLs rewrites URLs in the given slice of attributes
 // to be absolute for the base URL provided.
-func rewriteAbsoluteURLs(n *html.Node, base *url.URL, tagAttrs []string) {
+func rewriteAbsoluteURLs(n *html.Node, documentURL *string, baseURL *url.URL,
+	tagAttrs []string) {
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, "", attr); ok {
-			htmlnode.SetAttribute(n, "", attr, amphtml.ToAbsoluteURL(base, v))
-		}
-	}
-}
-
-// rewritePortableURLs rewrites URLs in the given slice of attributes
-// to be portable relative to the base URL provided.
-func rewritePortableURLs(n *html.Node, base *url.URL, tagAttrs []string) {
-	for _, attr := range tagAttrs {
-		if v, ok := htmlnode.GetAttributeVal(n, "", attr); ok {
-			htmlnode.SetAttribute(n, "", attr, amphtml.ToPortableURL(base, v))
+			htmlnode.SetAttribute(n, "", attr,
+				amphtml.ToAbsoluteURL(documentURL, baseURL, &v))
 		}
 	}
 }

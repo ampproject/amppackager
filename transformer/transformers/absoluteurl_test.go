@@ -26,132 +26,170 @@ import (
 )
 
 const (
-	fooBaseURL  = "https://www.example.com/foo"
-	barBaseURL  = "https://www.example.com/bar"
+	fooURL      = "https://www.example.com/foo"
+	barURL      = "https://www.example.com/bar"
+	httpURL     = "http://www.example.com/"
 	relativeURL = "/foo"
 )
 
 func TestAbsoluteURLTansformer(t *testing.T) {
 	tcs := []struct {
-		desc, input, expected, baseURL string
+		desc        string
+		input       string
+		expected    string
+		baseURL     string
+		documentURL string
 	}{
 		{
-			desc:     "AmpImgSrcUrlNotChanged",
-			input:    "<amp-img src=" + relativeURL + "></amp-img>",
-			expected: "<amp-img src=" + relativeURL + "></amp-img>",
-			baseURL:  fooBaseURL,
+			desc:        "Amp img src URL not changed",
+			input:       "<amp-img src=" + relativeURL + "></amp-img>",
+			expected:    "<amp-img src=" + relativeURL + "></amp-img>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "PortableUrlHasHash",
-			input:    "<div src=" + relativeURL + "></div>",
-			expected: "<div src=#></div>",
-			baseURL:  fooBaseURL,
+			desc: "Self URL not changed to fragment",
+			// In this case the URL is the same as the document and base URL, but we
+			// don't want it to be changed to be a fragment ("#").
+			input:       "<div src=" + fooURL + "></div>",
+			expected:    "<div src=" + fooURL + "></div>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AbsoluteUrlHasNoHash",
-			input:    "<form action=" + relativeURL + "></form>",
-			expected: "<form action=" + fooBaseURL + "></form>",
-			baseURL:  barBaseURL,
+			desc:        "Non-http protocol preserved",
+			input:       "<a href=mailto:devnull@example.com>mail</a>",
+			expected:    "<a href=mailto:devnull@example.com target=_top>mail</a>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AttributeUrlsOnAnyTagBecomePortable",
-			input:    "<div src=" + relativeURL + "></div>",
-			expected: "<div src=" + fooBaseURL + "></div>",
-			baseURL:  barBaseURL,
+			desc: "Empty fragment preserved",
+			// An URL of the current document with an empty fragment should not lose
+			// the fragment, as this means that the link does nothing, rather than
+			// reload the page.
+			input:       "<a href=#>link</a>",
+			expected:    "<a href=#>link</a>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc: "AttributeUrlsOnAmpInstallServiceworkerTagBecomePortable",
-			input: tt.Concat("<amp-install-serviceworker data-iframe-src=", relativeURL, " data-no-service-worker-fallback-shell-url=",
-				relativeURL, "></amp-install-serviceworker>"),
-			expected: tt.Concat("<amp-install-serviceworker data-iframe-src=", fooBaseURL, " data-no-service-worker-fallback-shell-url=",
-				fooBaseURL, "></amp-install-serviceworker>"),
-			baseURL: barBaseURL,
+			desc:        "Simple fragment preserved",
+			input:       "<a href=#top>link</a>",
+			expected:    "<a href=#top>link</a>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc: "AttributeUrlsOnAmpStoryTagBecomePortable",
-			input: tt.Concat("<amp-story background-audio=", relativeURL, " bookend-config-src=", relativeURL,
-				" poster-landscape-src=", relativeURL, " poster-square-src=", relativeURL,
-				" publisher-logo-src=", relativeURL, "></amp-story>"),
-			expected: tt.Concat("<amp-story background-audio=", fooBaseURL, " bookend-config-src=", fooBaseURL,
-				" poster-landscape-src=", fooBaseURL, " poster-square-src=", fooBaseURL,
-				" publisher-logo-src=", fooBaseURL, "></amp-story>"),
-			baseURL: barBaseURL,
+			desc:        "No fragment preserved",
+			input:       "<form action=" + fooURL + "></form>",
+			expected:    "<form action=" + fooURL + "></form>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AttributeUrlsOnAmpStoryPageTagBecomePortable",
-			input:    "<amp-story-page background-audio=" + relativeURL + "></amp-story-page>",
-			expected: "<amp-story-page background-audio=" + fooBaseURL + "></amp-story-page>",
-			baseURL:  barBaseURL,
+			desc:        "Empty URL preserved",
+			input:       "<foo action></form>",
+			expected:    "<foo action></form>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AttributeUrlsOnFormTagBecomeAbsolute",
-			input:    tt.Concat("<form action=", relativeURL, " action-xhr=", relativeURL, "></form>"),
-			expected: tt.Concat("<form action=", fooBaseURL, " action-xhr=", fooBaseURL, "></form>"),
-			baseURL:  barBaseURL,
+			desc:        "Matching fragment simplified",
+			input:       "<div src=/foo#dogs></div>",
+			expected:    "<div src=#dogs></a>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AttributeUrlsOnImageTagBecomePortable",
-			input:    "<img longdesc=" + relativeURL + "/>",
-			expected: "<img longdesc=" + fooBaseURL + "/>",
-			baseURL:  barBaseURL,
+			desc:        "Non-matching fragment made absolute",
+			input:       "<div src=/bar#dogs></div>",
+			expected:    "<div src=" + barURL + "#dogs></a>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "BaseHrefRemoved",
-			input:    "<base href=" + fooBaseURL + "/>",
-			expected: "",
-			baseURL:  fooBaseURL,
+			desc:        "Full relative preserves http",
+			input:       "<div src=/></div>",
+			expected:    "<div src=" + httpURL + "></a>",
+			baseURL:     httpURL,
+			documentURL: httpURL,
 		},
 		{
-			desc:     "Both tags parsed.",
-			input:    "<base href=" + fooBaseURL + "/><link href=" + relativeURL + "/ rel=canonical>",
-			expected: "<link href=" + fooBaseURL + "/ rel=canonical>",
-			baseURL:  fooBaseURL,
+			desc:        "Protocol relative forces https",
+			input:       "<div src=//www.example.com/foo></div>",
+			expected:    "<div src=" + fooURL + "></a>",
+			baseURL:     httpURL,
+			documentURL: httpURL,
 		},
 		{
-			desc:     "LinkCanonicalHrefBecomeAbsolute",
-			input:    "<link href=" + relativeURL + "/ rel=canonical>",
-			expected: "<link href=" + fooBaseURL + "/ rel=canonical>",
-			baseURL:  fooBaseURL,
+			desc:        "Base href removed",
+			input:       "<base href='/'>",
+			expected:    "",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AnchorTagHrefBecomesFragmentAndNoTargetAdded",
-			input:    "<a href=" + relativeURL + ">anchor</a>",
-			expected: "<a href=#>anchor</a>",
-			baseURL:  fooBaseURL,
+			desc:        "Link canonical href become absolute",
+			input:       "<link href=" + relativeURL + " rel=canonical>",
+			expected:    "<link href=" + fooURL + " rel=canonical>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AnchorTagTargetDefaultsToTop",
-			input:    "<a href=" + fooBaseURL + "/>anchor</a>",
-			expected: "<a href=" + fooBaseURL + "/ target=_top>anchor</a>",
-			baseURL:  fooBaseURL,
+			desc:        "Link canonical ignores fragment",
+			input:       "<link href=# rel=canonical>",
+			expected:    "<link href=" + fooURL + " rel=canonical>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AnchorTagTargetStaysBlank",
-			input:    "<a href=" + fooBaseURL + "/ target=_blank>anchor</a>",
-			expected: "<a href=" + fooBaseURL + "/ target=_blank>anchor</a>",
-			baseURL:  fooBaseURL,
+			desc:        "Anchor tag target defaults to top",
+			input:       "<a href=" + fooURL + "/>anchor</a>",
+			expected:    "<a href=" + fooURL + "/ target=_top>anchor</a>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AnchorTagTargetOverridesToDefault",
-			input:    "<a href=" + fooBaseURL + "/ target=popup>anchor</a>",
-			expected: "<a href=" + fooBaseURL + "/ target=_top>anchor</a>",
-			baseURL:  fooBaseURL,
+			desc:        "Anchor tag target stays blank",
+			input:       "<a href=" + fooURL + "/ target=_blank>anchor</a>",
+			expected:    "<a href=" + fooURL + "/ target=_blank>anchor</a>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "AnchorTagTargetInTemplateNoop",
-			input:    "<template><a href=" + fooBaseURL + "/ target=popup>anchor</a></template>",
-			expected: "<template><a href=" + fooBaseURL + "/ target=popup>anchor</a></template>",
-			baseURL:  fooBaseURL,
+			desc:        "Anchor tag target overrides to default",
+			input:       "<a href=" + fooURL + "/ target=popup>anchor</a>",
+			expected:    "<a href=" + fooURL + "/ target=_top>anchor</a>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
 		},
 		{
-			desc:     "NonAnchorHrefUrlBecomePortable",
-			input:    "<link href=" + relativeURL + "/ itemprop=sameas/>",
-			expected: "<link href=" + fooBaseURL + "/ itemprop=sameas/>",
-			baseURL:  barBaseURL,
+			desc:        "Anchor tag target in template no-op",
+			input:       "<template><a href=" + fooURL + "/ target=popup>anchor</a></template>",
+			expected:    "<template><a href=" + fooURL + "/ target=popup>anchor</a></template>",
+			baseURL:     fooURL,
+			documentURL: fooURL,
+		},
+		{
+			desc:        "Non-anchor href URL becomes absolute",
+			input:       "<link href=" + relativeURL + " itemprop=sameas/>",
+			expected:    "<link href=" + fooURL + " itemprop=sameas/>",
+			baseURL:     barURL,
+			documentURL: barURL,
+		},
+		{
+			// https://github.com/ampproject/amphtml/issues/19688
+			desc:        "Base URL matches anchor",
+			input:       "<a href='/'>foo</a>",
+			expected:    "<a href=https://example.com/ target=_top>foo</a>",
+			baseURL:     "https://example.com/",
+			documentURL: barURL,
 		},
 	}
 	for _, tc := range tcs {
-		rawInput := tt.Concat("<html><head>", tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+		rawInput := tt.Concat(
+			"<html><head>", tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 			"</head><body>", tc.input, "</body></html>")
 		inputDoc, err := html.Parse(strings.NewReader(rawInput))
 		if err != nil {
@@ -165,6 +203,11 @@ func TestAbsoluteURLTansformer(t *testing.T) {
 		}
 		context := transformers.Context{DOM: inputDOM}
 		context.BaseURL, err = url.Parse(tc.baseURL)
+		if err != nil {
+			t.Errorf("%s\nurl.Parse for %s failed %q", tc.desc, tc.baseURL, err)
+			continue
+		}
+		context.DocumentURL, err = url.Parse(tc.documentURL)
 		if err != nil {
 			t.Errorf("%s\nurl.Parse for %s failed %q", tc.desc, tc.baseURL, err)
 			continue
@@ -192,5 +235,54 @@ func TestAbsoluteURLTansformer(t *testing.T) {
 		if input.String() != expected.String() {
 			t.Errorf("%s: URL=\n%q\nwant=\n%q", tc.desc, &input, &expected)
 		}
+	}
+}
+
+func TestSpecificTagsAreAbsoluted(t *testing.T) {
+	rawInput := tt.Concat(
+		"<html><head>", tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+		`</head><body>
+		<amp-install-serviceworker
+       data-iframe-src=/foo
+       data-no-service-worker-fallback-shell-url=/foo>
+    </amp-install-serviceworker>
+    <amp-story
+       background-audio=/foo
+       bookend-config-src=/foo
+       poster-landscape-src=/foo
+       poster-square-src=/foo
+       publisher-logo-src=/foo>
+    </amp-story>
+    <amp-story-page background-audio=/foo></amp-story-page>
+    <form action=/foo></form>
+    <form action-xhr=/foo></form>
+		</body></html>`)
+	// TODO(gregable): Another good test would be:
+	//   <noscript><img longdesc=/foo></form></noscript>
+	// but net/url currently doesn't parse noscript contents.
+	inputDoc, err := html.Parse(strings.NewReader(rawInput))
+	if err != nil {
+		t.Errorf("html.Parse for %s failed %q", rawInput, err)
+		return
+	}
+	inputDOM, err := amphtml.NewDOM(inputDoc)
+	if err != nil {
+		t.Errorf("amphtml.NewDOM failed %q", err)
+		return
+	}
+	context := transformers.Context{DOM: inputDOM}
+	context.BaseURL, _ = url.Parse(fooURL)
+	context.DocumentURL, _ = url.Parse(fooURL)
+	transformers.AbsoluteURL(&context)
+	var seen strings.Builder
+	if err := html.Render(&seen, inputDoc); err != nil {
+		t.Errorf("html.Render for %s failed %q", rawInput, err)
+		return
+	}
+
+	if strings.Contains(seen.String(), "=/foo") ||
+		strings.Contains(seen.String(), "\"/foo") ||
+		strings.Contains(seen.String(), "'/foo") {
+		t.Errorf("Relative URL found: %s", seen.String())
 	}
 }
