@@ -19,97 +19,120 @@ import (
 	"testing"
 )
 
-const relativeURL = "/foo"
+const relativeFooURL = "/foo"
 
-func TestToURLs(t *testing.T) {
-	fooBaseURL, _ := url.Parse("https://www.example.com/foo")
-	barBaseURL, _ := url.Parse("https://www.example.com/bar")
-	otherURL, _ := url.Parse("http://otherdomain.com")
+func TestToAbsoluteURL(t *testing.T) {
+	rootURL := "https://www.example.com/"
+	fooURL := "https://www.example.com/foo"
+	barURL := "https://www.example.com/bar"
+	otherURL := "http://otherdomain.com"
 
 	tcs := []struct {
-		desc, input, expectedPortable, expectedAbsolute string
-		baseURL                                         *url.URL
+		desc             string
+		input            string
+		baseURL          string
+		documentURL      string
+		expectedAbsolute string
 	}{
 		{
 			desc:             "Empty",
 			input:            "",
-			expectedPortable: "",
+			baseURL:          barURL,
+			documentURL:      rootURL,
 			expectedAbsolute: "",
-			baseURL:          barBaseURL,
 		},
 		{
-			desc:             "Null base",
-			input:            fooBaseURL.String(),
-			expectedPortable: fooBaseURL.String(),
-			expectedAbsolute: fooBaseURL.String(),
-			baseURL:          nil,
-		},
-		{
-			desc:             "protocol relative path",
-			input:            "//domain.com",
-			expectedPortable: "https://domain.com",
+			desc:    "protocol relative path",
+			input:   "//domain.com",
+			baseURL: barURL,
+			// Note that the technically correct absolute URL here would be http, but
+			// we 'upgrade' protocol relative to https.
+			documentURL:      "http://example.com/",
 			expectedAbsolute: "https://domain.com",
-			baseURL:          barBaseURL,
 		},
 		{
-			desc:             "invalid",
+			desc:             "unusual protocol",
 			input:            "file://foo.txt",
-			expectedPortable: "file://foo.txt",
+			baseURL:          barURL,
+			documentURL:      rootURL,
 			expectedAbsolute: "file://foo.txt",
-			baseURL:          barBaseURL,
+		},
+		{
+			desc:             "mailto protocol",
+			input:            "mailto:user@example.com",
+			baseURL:          barURL,
+			documentURL:      rootURL,
+			expectedAbsolute: "mailto:user@example.com",
 		},
 		{
 			desc:             "valid absolute",
-			input:            fooBaseURL.String(),
-			expectedPortable: fooBaseURL.String(),
-			expectedAbsolute: fooBaseURL.String(),
-			baseURL:          barBaseURL,
+			input:            fooURL,
+			baseURL:          barURL,
+			documentURL:      rootURL,
+			expectedAbsolute: fooURL,
 		},
 		{
 			desc:             "valid relative",
-			input:            relativeURL,
-			expectedPortable: fooBaseURL.String(),
-			expectedAbsolute: fooBaseURL.String(),
-			baseURL:          barBaseURL,
+			input:            relativeFooURL,
+			baseURL:          barURL,
+			documentURL:      rootURL,
+			expectedAbsolute: fooURL,
+		},
+		{
+			desc:             "relative to base URL, not document URL",
+			input:            relativeFooURL,
+			baseURL:          rootURL,
+			documentURL:      otherURL,
+			expectedAbsolute: fooURL,
 		},
 		{
 			desc:             "absolute with different base",
-			input:            fooBaseURL.String(),
-			expectedPortable: fooBaseURL.String(),
-			expectedAbsolute: fooBaseURL.String(),
+			input:            fooURL,
 			baseURL:          otherURL,
+			documentURL:      rootURL,
+			expectedAbsolute: fooURL,
 		},
 		{
-			desc:             "same replaced with fragment",
-			input:            barBaseURL.String(),
-			expectedPortable: "#",
-			expectedAbsolute: barBaseURL.String(),
-			baseURL:          barBaseURL,
+			desc:             "empty fragment preserved",
+			input:            "#",
+			baseURL:          rootURL,
+			documentURL:      rootURL,
+			expectedAbsolute: "#",
 		},
 		{
 			desc:             "fragment same base",
-			input:            barBaseURL.String() + "#dogs",
-			expectedPortable: "#dogs",
-			expectedAbsolute: barBaseURL.String() + "#dogs",
-			baseURL:          barBaseURL,
+			input:            barURL + "#dogs",
+			baseURL:          barURL,
+			documentURL:      rootURL,
+			expectedAbsolute: barURL + "#dogs",
 		},
 		{
 			desc:             "fragment different base",
-			input:            barBaseURL.String() + "#dogs",
-			expectedPortable: barBaseURL.String() + "#dogs",
-			expectedAbsolute: barBaseURL.String() + "#dogs",
+			input:            barURL + "#dogs",
 			baseURL:          otherURL,
+			documentURL:      rootURL,
+			expectedAbsolute: barURL + "#dogs",
+		},
+		{
+			desc:             "same url ignoring fragment",
+			input:            "#dogs",
+			baseURL:          rootURL,
+			documentURL:      rootURL,
+			expectedAbsolute: "#dogs",
+		},
+		{
+			desc:             "fragment differs from document when relative to base",
+			input:            "#dogs",
+			baseURL:          rootURL,
+			documentURL:      otherURL,
+			expectedAbsolute: rootURL + "#dogs",
 		},
 	}
 	for _, tc := range tcs {
-		actual := ToAbsoluteURL(tc.baseURL, tc.input)
+		baseURL, _ := url.Parse(tc.baseURL)
+		actual := ToAbsoluteURL(&tc.documentURL, baseURL, &tc.input)
 		if actual != tc.expectedAbsolute {
 			t.Errorf("%s: ToAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
-		}
-
-		actual = ToPortableURL(tc.baseURL, tc.input)
-		if actual != tc.expectedPortable {
-			t.Errorf("%s: ToPortableURL=%s want=%s", tc.desc, actual, tc.expectedPortable)
 		}
 	}
 }
@@ -169,13 +192,14 @@ func TestGetCacheURL(t *testing.T) {
 			expectError: true,
 		},
 		{
-			desc:        "unsupported scheme with width",
-			input:       "itshappening.gif",
-			width:       100,
-			expectError: true,
+			desc:          "relative url with width",
+			input:         "itshappening.gif",
+			expectedImage: "https://example-com.cdn.ampproject.org/ii/w100/s/example.com/itshappening.gif",
+			expectedOther: "https://example-com.cdn.ampproject.org/r/s/example.com/itshappening.gif",
+			width:         100,
 		},
 	}
-	base, _ := url.Parse("")
+	base, _ := url.Parse("https://example.com/")
 	for _, tc := range tcs {
 		for _, subtype := range []SubresourceType{OtherType, ImageType} {
 			expected := tc.expectedOther
@@ -183,7 +207,8 @@ func TestGetCacheURL(t *testing.T) {
 				expected = tc.expectedImage
 			}
 			so := SubresourceOffset{SubType: subtype, Start: 0, End: len(tc.input), DesiredImageWidth: tc.width}
-			cu, err := so.GetCacheURL(base, tc.input)
+			rootURL := "https://example.com/"
+			cu, err := so.GetCacheURL(&rootURL, base, &tc.input)
 			if tc.expectError {
 				if err == nil {
 					t.Errorf("%s: ToCacheImageURL(%s, %d) expected error. Got none", tc.desc, tc.input, tc.width)
