@@ -79,26 +79,26 @@ func AbsoluteURL(e *Context) error {
 		}
 
 		// Make attributes with URLs portable on any tag
-		rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, anyTagAttrs)
+		rewriteAbsoluteURLs(n, documentURL, e.BaseURL, anyTagAttrs)
 
 		switch n.DataAtom {
 		case atom.Form:
 			// Make attributes with URLs absolute on <form> tag.
-			rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, formTagAttrs)
+			rewriteAbsoluteURLs(n, documentURL, e.BaseURL, formTagAttrs)
 		case atom.Img:
 			// Make attributes with URLs portable on <img> tag.
-			rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, imgTagAttrs)
+			rewriteAbsoluteURLs(n, documentURL, e.BaseURL, imgTagAttrs)
 		default:
 			switch n.Data {
 			case "amp-install-serviceworker":
 				// Make attributes with URLs portable on <amp-install-serviceworker> tag.
-				rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, ampInstallServiceWorkerTagAttrs)
+				rewriteAbsoluteURLs(n, documentURL, e.BaseURL, ampInstallServiceWorkerTagAttrs)
 			case amphtml.AMPStory:
 				// Make attributes with URLs portable on <amp-story> tag.
-				rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, ampStoryTagAttrs)
+				rewriteAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryTagAttrs)
 			case "amp-story-page":
 				// Make attributes with URLs portable on <amp-story-page> tag.
-				rewriteAbsoluteURLs(n, &documentURL, e.BaseURL, ampStoryPageTagAttrs)
+				rewriteAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryPageTagAttrs)
 			}
 		}
 
@@ -138,11 +138,10 @@ func AbsoluteURL(e *Context) error {
 					}
 				} else {
 					htmlnode.SetAttribute(n, "", "href",
-						amphtml.ToAbsoluteURL(&documentURL, e.BaseURL, &href.Val))
+						amphtml.ToAbsoluteURL(documentURL, e.BaseURL, href.Val))
 				}
 			case atom.A:
-				newValue := amphtml.ToAbsoluteURL(
-					&documentURL, e.BaseURL, &href.Val)
+				newValue := amphtml.ToAbsoluteURL(documentURL, e.BaseURL, href.Val)
 				// Set a default target
 				// 1. If the href is not a fragment AND
 				// 2. If there is no target OR
@@ -156,7 +155,7 @@ func AbsoluteURL(e *Context) error {
 			default:
 				// Absoluteify any remaining tags with an href attribute.
 				htmlnode.SetAttribute(n, "", "href",
-					amphtml.ToAbsoluteURL(&documentURL, e.BaseURL, &href.Val))
+					amphtml.ToAbsoluteURL(documentURL, e.BaseURL, href.Val))
 			}
 		}
 	}
@@ -181,12 +180,12 @@ func isAllowedTarget(t string) bool {
 
 // rewriteAbsoluteURLs rewrites URLs in the given slice of attributes
 // to be absolute for the base URL provided.
-func rewriteAbsoluteURLs(n *html.Node, documentURL *string, baseURL *url.URL,
+func rewriteAbsoluteURLs(n *html.Node, documentURL string, baseURL *url.URL,
 	tagAttrs []string) {
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, "", attr); ok {
 			htmlnode.SetAttribute(n, "", attr,
-				amphtml.ToAbsoluteURL(documentURL, baseURL, &v))
+				amphtml.ToAbsoluteURL(documentURL, baseURL, v))
 		}
 	}
 }

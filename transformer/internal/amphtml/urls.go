@@ -30,24 +30,24 @@ import (
 // sameURLIgnoringFragment is a helper for AbsoluteUrlValue below.
 // Returns true if |base| is the same as |u| with the exception that |u| may
 // also have an additional fragment component.
-func sameURLIgnoringFragment(base *string, u *url.URL) bool {
+func sameURLIgnoringFragment(base string, u *url.URL) bool {
 	// Due to https://github.com/golang/go/issues/29603 we have an extra check
 	// for the empty fragment case.
 	if u.Fragment == "" {
-		return *base == u.String()
+		return base == u.String()
 	}
 
-	return *base+"#"+u.Fragment == u.String()
+	return base+"#"+u.Fragment == u.String()
 }
 
 // isProtocolRelative is a mostly correct parse for protocol relative inputs
 // by looking for a "//" prefix after stripping any leading whitespace and
 // control characters.
-func isProtocolRelative(urlParam *string) bool {
-	for *urlParam != "" && (*urlParam)[0] <= 0x20 {
-		*urlParam = (*urlParam)[1 : len(*urlParam)-1]
+func isProtocolRelative(urlParam string) bool {
+	for urlParam != "" && (urlParam)[0] <= 0x20 {
+		urlParam = (urlParam)[1 : len(urlParam)-1]
 	}
-	return strings.HasPrefix(*urlParam, "//")
+	return strings.HasPrefix(urlParam, "//")
 }
 
 // ToAbsoluteURL absolute-ifies |urlParam|, using |baseURL| as the base if
@@ -55,23 +55,23 @@ func isProtocolRelative(urlParam *string) bool {
 // will return only a fragment if it's absolute URL matches |documentURL|,
 // which prevents changing an in-document navigation to a out-of-document
 // navigation.
-func ToAbsoluteURL(documentURL *string, baseURL *url.URL,
-	urlParam *string) string {
-	if *urlParam == "" {
+func ToAbsoluteURL(documentURL string, baseURL *url.URL,
+	urlParam string) string {
+	if urlParam == "" {
 		return ""
 	}
 
-	absoluteURL, err := baseURL.Parse(*urlParam)
+	absoluteURL, err := baseURL.Parse(urlParam)
 	// TODO(gregable): Should we strip this URL instead (ie: return "").
 	if err != nil {
-		return *urlParam
+		return urlParam
 	}
 
 	// TODO(gregable): We should probably assemble data: / mailto: / etc URLs,
 	// which will force them to be URL encoded, but this was left to maintain
 	// the old behavior for now.
 	if absoluteURL.Scheme != "http" && absoluteURL.Scheme != "https" {
-		return *urlParam
+		return urlParam
 	}
 
 	// Check for a specific case of protocol relative URL (ex: "//foo.com/")
@@ -88,7 +88,7 @@ func ToAbsoluteURL(documentURL *string, baseURL *url.URL,
 	// Note that we also try to identify empty fragments (ex: href="#").
 	// net/url doesn't support these (https://github.com/golang/go/issues/29603)
 	// so we try to detect them heuristically.
-	if (absoluteURL.Fragment != "" || strings.HasPrefix(*urlParam, "#")) &&
+	if (absoluteURL.Fragment != "" || strings.HasPrefix(urlParam, "#")) &&
 		sameURLIgnoringFragment(documentURL, absoluteURL) {
 		return "#" + absoluteURL.Fragment
 	}
@@ -143,10 +143,10 @@ func (c *CacheURL) String() string {
 // GetCacheURL returns an AMP Cache URL structure for the URL identified by
 // the given offset (relative to 'input') or an error if the URL could not be
 // parsed.
-func (so *SubresourceOffset) GetCacheURL(documentURL *string, base *url.URL,
-	input *string) (*CacheURL, error) {
-	urlStr := (*input)[so.Start:so.End]
-	absolute := ToAbsoluteURL(documentURL, base, &urlStr)
+func (so *SubresourceOffset) GetCacheURL(documentURL string, base *url.URL,
+	input string) (*CacheURL, error) {
+	urlStr := (input)[so.Start:so.End]
+	absolute := ToAbsoluteURL(documentURL, base, urlStr)
 	if len(absolute) == 0 {
 		return nil, errors.New("unable to convert empty URL string")
 	}
