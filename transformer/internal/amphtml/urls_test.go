@@ -130,7 +130,7 @@ func TestToAbsoluteURL(t *testing.T) {
 	}
 	for _, tc := range tcs {
 		baseURL, _ := url.Parse(tc.baseURL)
-		actual := ToAbsoluteURL(&tc.documentURL, baseURL, &tc.input)
+		actual := ToAbsoluteURL(tc.documentURL, baseURL, tc.input)
 		if actual != tc.expectedAbsolute {
 			t.Errorf("%s: ToAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
 		}
@@ -208,7 +208,7 @@ func TestGetCacheURL(t *testing.T) {
 			}
 			so := SubresourceOffset{SubType: subtype, Start: 0, End: len(tc.input), DesiredImageWidth: tc.width}
 			rootURL := "https://example.com/"
-			cu, err := so.GetCacheURL(&rootURL, base, &tc.input)
+			cu, err := so.GetCacheURL(rootURL, base, tc.input)
 			if tc.expectError {
 				if err == nil {
 					t.Errorf("%s: ToCacheImageURL(%s, %d) expected error. Got none", tc.desc, tc.input, tc.width)
