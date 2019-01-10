@@ -42,6 +42,11 @@ func TestStripJS(t *testing.T) {
 			Expected: "<head><script async custom-element=amp-analytics src=https://cDn.AMPproject.org/v0/amp-analytics-0.1.js></script></head>",
 		},
 		{
+			Desc:     "keeps script correct src with type",
+			Input:    "<script async src=\"https://cdn.ampproject.org/v0.js\" type=\"text/javascript\"></script>",
+			Expected: "<head><script async src=https://cdn.ampproject.org/v0.js type=text/javascript></script></head>",
+		},
+		{
 			Desc:     "strips script no src, no type",
 			Input:    "<script>foo</script>",
 			Expected: "<head></head><body></body>",

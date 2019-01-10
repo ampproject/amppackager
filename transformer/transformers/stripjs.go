@@ -45,11 +45,13 @@ func StripJS(e *Context) error {
 
 		if n.DataAtom == atom.Script {
 			srcVal, srcOk := htmlnode.GetAttributeVal(n, "", "src")
+			var isCacheSrc bool
 			if srcOk {
 				if !strings.HasPrefix(strings.ToLower(srcVal), amphtml.AMPCacheRootURL) {
 					htmlnode.RemoveNode(&n)
 					continue
 				}
+				isCacheSrc = true
 			}
 			typeVal, typeOk := htmlnode.GetAttributeVal(n, "", "type")
 			if !srcOk && !typeOk {
@@ -60,9 +62,13 @@ func StripJS(e *Context) error {
 				switch strings.ToLower(typeVal) {
 				case "application/json", "application/ld+json":
 					// ok to keep
+				case "text/javascript":
+					// ok to keep only for AMP Cache scripts.
+					if !isCacheSrc {
+						htmlnode.RemoveNode(&n)
+					}
 				default:
 					htmlnode.RemoveNode(&n)
-					continue
 				}
 			}
 		} else {
