@@ -27,7 +27,20 @@ import (
 func TestTransformedIdentifier(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
-			Desc: "Adds identifier to html tag",
+			Desc:               "Adds identifier with version to html tag",
+			TransformerVersion: 1,
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
+			Expected: tt.Concat(tt.Doctype, "<html ⚡=\"\" transformed=\"google;v=1\"><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				tt.NoscriptAMPBoilerplate, "</head><body></body></html>"),
+		},
+		{
+			Desc:               "Adds identifier without version to html tag",
+			TransformerVersion: 0,
 			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
@@ -49,7 +62,7 @@ func TestTransformedIdentifier(t *testing.T) {
 			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.TransformedIdentifier(&transformers.Context{DOM: inputDOM})
+		transformers.TransformedIdentifier(&transformers.Context{DOM: inputDOM, Version: tc.TransformerVersion})
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {

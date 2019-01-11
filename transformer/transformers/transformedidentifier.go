@@ -15,12 +15,18 @@
 package transformers
 
 import (
+	"strconv"
+
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 )
 
 // TransformedIdentifier identifies that transformations
-// were made for a specific platform on this document.
+// were made for a specific platform and version on this document.
 func TransformedIdentifier(e *Context) error {
-	htmlnode.SetAttribute(e.DOM.HTMLNode, "", "transformed", "google")
+	var v = "google"
+	if e.Version != 0 {
+		v = v + ";v=" + strconv.FormatInt(e.Version, 10)
+	}
+	htmlnode.SetAttribute(e.DOM.HTMLNode, "", "transformed", v)
 	return nil
 }

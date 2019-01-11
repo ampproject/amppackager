@@ -22,9 +22,10 @@ import "strings"
 // TestCase stores a description of the test case, the input HTML, and
 // expected output HTML.
 type TestCase struct {
-	Desc     string
-	Input    string
-	Expected string
+	Desc               string
+	TransformerVersion int64
+	Input              string
+	Expected           string
 }
 
 // AMPHTML constants.
