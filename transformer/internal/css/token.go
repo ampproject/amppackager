@@ -126,7 +126,10 @@ func (t *Token) String() string {
 	case PercentageToken:
 		return t.Value + "%"
 	case StringToken:
-		return t.Extra + t.Value + t.Extra
+		// A CSS string cannot directly contain a newline, so re-escape it.
+		// https://www.w3.org/TR/CSS2/syndata.html#strings
+		replaced := strings.Replace(t.Value, "\n", `\a `, -1)
+		return t.Extra + replaced + t.Extra
 	case URLToken:
 		return "url('" + t.Value + "')"
 	default:
@@ -484,15 +487,7 @@ func (z *Tokenizer) consumeAString(endingCodePoint rune) Token {
 			if next == '\n' {
 				z.consume()
 			} else if isValidEscape(r, next) {
-				escape := z.consumeAnEscape()
-				if escape == '\n' {
-					// This means "\A" or "\00000a" was interpreted as a newline. Put back the escape unconverted, so the UA can interpret it directly.
-					// An actual newline '\n' in a CSS string is not allowed.
-					// https://www.w3.org/TR/CSS2/syndata.html#strings
-					sb.WriteString("\\a ")
-				} else {
-					sb.WriteRune(escape)
-				}
+				sb.WriteRune(z.consumeAnEscape())
 			} else {
 				// not an escape, so append
 				sb.WriteRune(r)
