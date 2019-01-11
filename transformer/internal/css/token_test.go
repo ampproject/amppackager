@@ -83,6 +83,16 @@ func TestSingleToken(t *testing.T) {
 			expected: Token{Type: StringToken, Value: "foo", Extra: "'"},
 		},
 		{
+			desc:     "raw string with newline escape",
+			input:    "'" + `English \a Version` + "'",
+			expected: Token{Type: StringToken, Value: "English \\a Version", Extra: "'"},
+		},
+		{
+			desc:     "full newline escape is not preserved exactly",
+			input:    "'" + `hi\00000abye` + "'",
+			expected: Token{Type: StringToken, Value: "hi\\a bye", Extra: "'"},
+		},
+		{
 			desc:     "hash",
 			input:    "#foo",
 			expected: Token{Type: HashToken, Value: "foo"},
@@ -466,6 +476,20 @@ func TestTokenization(t *testing.T) {
 				Token{Type: StringToken, Value: "embedded-opentype", Extra: "'"},
 				Token{Type: CloseParenToken, Value: ")"},
 				Token{Type: SemicolonToken, Value: ";"},
+				Token{Type: CloseCurlyToken, Value: "}"},
+				Token{Type: EOFToken},
+			},
+		},
+		{
+			desc:  "raw string",
+			input: `.bar{content:"English \a Version"}`,
+			expected: []Token{
+				Token{Type: DelimToken, Value: "."},
+				Token{Type: IdentToken, Value: "bar"},
+				Token{Type: OpenCurlyToken, Value: "{"},
+				Token{Type: IdentToken, Value: "content"},
+				Token{Type: ColonToken, Value: ":"},
+				Token{Type: StringToken, Value: "English \\a Version", Extra: "\""},
 				Token{Type: CloseCurlyToken, Value: "}"},
 				Token{Type: EOFToken},
 			},
