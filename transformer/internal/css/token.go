@@ -97,7 +97,7 @@ const (
 	CloseCurlyToken
 )
 
-// A Token consists of a TokenType and some Data (the URL)
+// A Token consists of a TokenType, Value, and optional contextual data.
 type Token struct {
 	Type  TokenType
 	Value string
@@ -149,7 +149,7 @@ var preprocessReplacer = strings.NewReplacer(
 
 // NewTokenizer returns a new CSS Tokenizer for the string, which is assumed to be UTF-8 encoded.
 func NewTokenizer(input string) *Tokenizer {
-	// 3. https://www.w3.org/TR/css-syntax-3/#input-preprocessing
+	// 3.3 https://www.w3.org/TR/css-syntax-3/#input-preprocessing
 	preprocessed := preprocessReplacer.Replace(input)
 	return &Tokenizer{input: preprocessed, length: len(preprocessed)}
 }
@@ -484,7 +484,15 @@ func (z *Tokenizer) consumeAString(endingCodePoint rune) Token {
 			if next == '\n' {
 				z.consume()
 			} else if isValidEscape(r, next) {
-				sb.WriteRune(z.consumeAnEscape())
+				escape := z.consumeAnEscape()
+				if escape == '\n' {
+					// This means "\A" or "\00000a" was interpreted as a newline. Put back the escape unconverted, so the UA can interpret it directly.
+					// An actual newline '\n' in a CSS string is not allowed.
+					// https://www.w3.org/TR/CSS2/syndata.html#strings
+					sb.WriteString("\\a ")
+				} else {
+					sb.WriteRune(escape)
+				}
 			} else {
 				// not an escape, so append
 				sb.WriteRune(r)
