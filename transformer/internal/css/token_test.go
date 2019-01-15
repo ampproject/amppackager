@@ -81,6 +81,12 @@ func TestSingleToken(t *testing.T) {
 			expectedString: "\"foo'bar\"",
 		},
 		{
+			desc:           "double quoted string with embedded double quote",
+			input:          `"this is a \"string\""`,
+			expected:       Token{Type: StringToken, Value: "this is a \"string\"", Extra: "\""},
+			expectedString: `"this is a \"string\""`,
+		},
+		{
 			desc:           "string with escape",
 			input:          "'\\00066 \\0006f \\0006f'",
 			expected:       Token{Type: StringToken, Value: "foo", Extra: "'"},
@@ -90,13 +96,13 @@ func TestSingleToken(t *testing.T) {
 			desc:           "raw string with newline escape",
 			input:          "'" + `English \a Version` + "'",
 			expected:       Token{Type: StringToken, Value: "English \nVersion", Extra: "'"},
-			expectedString: "'English \\a Version'",
+			expectedString: "'English \\A Version'",
 		},
 		{
 			desc:           "full newline escape is not preserved exactly",
 			input:          "'" + `hi\00000abye` + "'",
 			expected:       Token{Type: StringToken, Value: "hi\nbye", Extra: "'"},
-			expectedString: "'hi\\a bye'",
+			expectedString: "'hi\\A bye'",
 		},
 		{
 			desc:           "hash",
@@ -391,6 +397,18 @@ func TestSingleToken(t *testing.T) {
 			input:          "\\000075 \\000072 \\00006c('foo.gif')",
 			expected:       Token{Type: URLToken, Value: "foo.gif"},
 			expectedString: "url('foo.gif')",
+		},
+		{
+			desc:           "url with embedded single quote",
+			input:          `url("fo'o.gif")`,
+			expected:       Token{Type: URLToken, Value: "fo'o.gif"},
+			expectedString: "url('fo\\'o.gif')",
+		},
+		{
+			desc:           "raw url with embedded single quote",
+			input:          `url('fo\'o.gif')`,
+			expected:       Token{Type: URLToken, Value: "fo'o.gif"},
+			expectedString: "url('fo\\'o.gif')",
 		},
 		{
 			desc:           "url with escape in value",
