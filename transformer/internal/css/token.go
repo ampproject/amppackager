@@ -97,11 +97,14 @@ const (
 	CloseCurlyToken
 )
 
-// A Token consists of a TokenType, Value, and optional contextual data.
+// A Token consists of a TokenType, Value, and optional contextual data. startPos, endPos are the indices
+// in the input CSS being parsed, that this token corresponds to, e.g. Tokenizer.input[startPos:endPos].
 type Token struct {
-	Type  TokenType
-	Value string
-	Extra string
+	Type             TokenType
+	Value            string
+	Extra            string
+	parent           *Tokenizer
+	startPos, endPos int
 }
 
 // Re-escape for URL serialization.
@@ -112,42 +115,20 @@ var reescapeURL = strings.NewReplacer(
 	"'", "\\'",
 )
 
-// String returns the string representation for the token, to reserialize the CSS.
-// Note that the original input is not preserved. Instead, the only requirement is that
-// parsing will produce the same tokens as parsing, serializing, and parsing again.
+// String returns the raw string representation for the token, to reserialize the CSS.
+// The original input may not be preserved, due to preprocessing. URLs are always emitted
+// with single quotes.
 //
-// Note that this also differs from the token's value. For example, the input of "@font-face"
+// This differs from the token's value. For example, the input of "@font-face"
 // is tokenized as an AtKeywordToken, with a value of "font-face" (without the @ sign). However,
 // its String() will be "@font-face".
-//
-// URLs are always single quoted.
 func (t *Token) String() string {
 	switch t.Type {
-	case AtKeywordToken:
-		return "@" + t.Value
-	case DimensionToken:
-		return t.Value + t.Extra
-	case FunctionToken:
-		return t.Value + "("
-	case HashToken:
-		return "#" + t.Value
-	case PercentageToken:
-		return t.Value + "%"
-	case StringToken:
-		// A CSS string cannot directly contain a newline, so re-escape it.
-		//   https://www.w3.org/TR/CSS2/syndata.html#strings
-		// In addition, escape any embedded quotes that are the same as delimiter quotes.
-		// E.g. double quotes cannot occur inside double quotes.
-		reescapeString := strings.NewReplacer(
-			"\n", "\\A ",
-			t.Extra, "\\"+t.Extra,
-		)
-		return t.Extra + reescapeString.Replace(t.Value) + t.Extra
 	case URLToken:
-		// Re-escape as needed.
+		// URLs are always single quoted. Re-escape as needed.
 		return "url('" + reescapeURL.Replace(t.Value) + "')"
 	default:
-		return t.Value
+		return t.parent.input[t.startPos:t.endPos]
 	}
 }
 
@@ -173,7 +154,12 @@ func NewTokenizer(input string) *Tokenizer {
 
 // Next scans the next token and returns it
 func (z *Tokenizer) Next() Token {
-	return z.consumeAToken()
+	mark := z.pos
+	t := z.consumeAToken()
+	t.parent = z
+	t.startPos = mark
+	t.endPos = z.pos
+	return t
 }
 
 // All returns all the tokens
@@ -345,6 +331,8 @@ func (z *Tokenizer) consumeAToken() Token {
 			return z.consumeAnIdentLike()
 		}
 		if z.peek() == '-' && z.peekAt(1) == '>' {
+			z.consume()
+			z.consume()
 			return Token{Type: CDCToken, Value: "-->"}
 		}
 		return Token{Type: DelimToken, Value: string(r)}
@@ -376,6 +364,9 @@ func (z *Tokenizer) consumeAToken() Token {
 		return Token{Type: SemicolonToken, Value: string(r)}
 	case '<':
 		if z.peek() == '!' && z.peekAt(1) == '-' && z.peekAt(2) == '-' {
+			z.consume()
+			z.consume()
+			z.consume()
 			return Token{Type: CDOToken, Value: "<!--"}
 		}
 		return Token{Type: DelimToken, Value: string(r)}
@@ -453,7 +444,7 @@ func (z *Tokenizer) consumeANumeric() Token {
 		return Token{Type: NumberToken, Value: repr}
 	}
 	if isAnIdentifier(r, z.peekAt(1), z.peekAt(2)) {
-		return Token{DimensionToken, repr, z.consumeAName()}
+		return Token{Type: DimensionToken, Value: repr, Extra: z.consumeAName()}
 	}
 	if r == '%' {
 		z.consume()
