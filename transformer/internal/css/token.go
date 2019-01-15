@@ -104,6 +104,14 @@ type Token struct {
 	Extra string
 }
 
+// Re-escape for URL serialization.
+// https://www.w3.org/TR/css3-values/#strings
+// https://www.w3.org/TR/css3-values/#urls
+var reescapeURL = strings.NewReplacer(
+	"\n", "\\A",
+	"'", "\\'",
+)
+
 // String returns the string representation for the token, to reserialize the CSS.
 // Note that the original input is not preserved. Instead, the only requirement is that
 // parsing will produce the same tokens as parsing, serializing, and parsing again.
@@ -127,11 +135,17 @@ func (t *Token) String() string {
 		return t.Value + "%"
 	case StringToken:
 		// A CSS string cannot directly contain a newline, so re-escape it.
-		// https://www.w3.org/TR/CSS2/syndata.html#strings
-		replaced := strings.Replace(t.Value, "\n", `\a `, -1)
-		return t.Extra + replaced + t.Extra
+		//   https://www.w3.org/TR/CSS2/syndata.html#strings
+		// In addition, escape any embedded quotes that are the same as delimiter quotes.
+		// E.g. double quotes cannot occur inside double quotes.
+		reescapeString := strings.NewReplacer(
+			"\n", "\\A ",
+			t.Extra, "\\"+t.Extra,
+		)
+		return t.Extra + reescapeString.Replace(t.Value) + t.Extra
 	case URLToken:
-		return "url('" + t.Value + "')"
+		// Re-escape as needed.
+		return "url('" + reescapeURL.Replace(t.Value) + "')"
 	default:
 		return t.Value
 	}
