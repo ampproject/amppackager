@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestNewTokenizer(t *testing.T) {
@@ -90,19 +91,19 @@ func TestSingleToken(t *testing.T) {
 			desc:           "string with escape",
 			input:          "'\\00066 \\0006f \\0006f'",
 			expected:       Token{Type: StringToken, Value: "foo", Extra: "'"},
-			expectedString: "'foo'",
+			expectedString: "'\\00066 \\0006f \\0006f'",
 		},
 		{
 			desc:           "raw string with newline escape",
 			input:          "'" + `English \a Version` + "'",
 			expected:       Token{Type: StringToken, Value: "English \nVersion", Extra: "'"},
-			expectedString: "'English \\A Version'",
+			expectedString: "'English \\a Version'",
 		},
 		{
-			desc:           "full newline escape is not preserved exactly",
+			desc:           "full newline escape",
 			input:          "'" + `hi\00000abye` + "'",
 			expected:       Token{Type: StringToken, Value: "hi\nbye", Extra: "'"},
-			expectedString: "'hi\\A bye'",
+			expectedString: "'hi\\00000abye'",
 		},
 		{
 			desc:           "hash",
@@ -114,7 +115,7 @@ func TestSingleToken(t *testing.T) {
 			desc:           "hash with escape",
 			input:          "#\\0066 \\006f \\006f",
 			expected:       Token{Type: HashToken, Value: "foo"},
-			expectedString: "#foo",
+			expectedString: "#\\0066 \\006f \\006f",
 		},
 		{
 			desc:           "hash delim",
@@ -144,13 +145,13 @@ func TestSingleToken(t *testing.T) {
 			desc:           "bad string",
 			input:          "'foo\n'",
 			expected:       Token{Type: BadStringToken, Value: "foo", Extra: "'"},
-			expectedString: "foo",
+			expectedString: "'foo",
 		},
 		{
 			desc:           "imbalanced quote (still valid string)",
 			input:          "'foo",
 			expected:       Token{Type: StringToken, Value: "foo", Extra: "'"},
-			expectedString: "'foo'",
+			expectedString: "'foo",
 		},
 		{
 			desc:           "left paren",
@@ -231,10 +232,10 @@ func TestSingleToken(t *testing.T) {
 			expectedString: ".",
 		},
 		{
-			desc:           "comment ignored",
+			desc:           "comment ignored as token value, but preserved in StringValue()",
 			input:          "/* this is throw away */",
 			expected:       Token{Type: EOFToken, Value: ""},
-			expectedString: "",
+			expectedString: "/* this is throw away */",
 		},
 		{
 			desc:           "slash delim",
@@ -420,31 +421,31 @@ func TestSingleToken(t *testing.T) {
 			desc:           "unicode range start only",
 			input:          "u+26",
 			expected:       Token{Type: UnicodeRangeToken, Value: "U+0026"},
-			expectedString: "U+0026",
+			expectedString: "u+26",
 		},
 		{
 			desc:           "unicode range",
 			input:          "u+0-7F",
 			expected:       Token{Type: UnicodeRangeToken, Value: "U+0000-007F"},
-			expectedString: "U+0000-007F",
+			expectedString: "u+0-7F",
 		},
 		{
 			desc:           "unicode range",
 			input:          "u+0025-00FF",
 			expected:       Token{Type: UnicodeRangeToken, Value: "U+0025-00FF"},
-			expectedString: "U+0025-00FF",
+			expectedString: "u+0025-00FF",
 		},
 		{
 			desc:           "unicode range wild",
 			input:          "u+4??",
 			expected:       Token{Type: UnicodeRangeToken, Value: "U+0400-04FF"},
-			expectedString: "U+0400-04FF",
+			expectedString: "u+4??",
 		},
 	}
 	for _, tc := range tcs {
 		z := NewTokenizer(tc.input)
 		actual := z.Next()
-		if diff := cmp.Diff(tc.expected, actual); diff != "" {
+		if diff := cmp.Diff(tc.expected, actual, cmpopts.IgnoreUnexported(Token{})); diff != "" {
 			t.Errorf("%s returned diff (-want, +got):\n%s", tc.desc, diff)
 		}
 		if tc.expectedString != actual.String() {
@@ -579,7 +580,7 @@ func TestTokenization(t *testing.T) {
 	for _, tc := range tcs {
 		z := NewTokenizer(tc.input)
 		actual := z.All()
-		if diff := cmp.Diff(tc.expected, actual); diff != "" {
+		if diff := cmp.Diff(tc.expected, actual, cmpopts.IgnoreUnexported(Token{})); diff != "" {
 			t.Errorf("%s returned diff (-want, +got):\n%s", tc.desc, diff)
 		}
 	}
@@ -599,7 +600,7 @@ func TestSerialization(t *testing.T) {
 	}
 	z = NewTokenizer(sb.String())
 	second := z.All()
-	if diff := cmp.Diff(first, second); diff != "" {
+	if diff := cmp.Diff(first, second, cmpopts.IgnoreUnexported(Token{})); diff != "" {
 		t.Errorf("returned diff (-want, +got):\n%s", diff)
 	}
 }
