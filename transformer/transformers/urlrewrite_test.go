@@ -346,6 +346,19 @@ func TestURLRewrite_styleEdgeCases(t *testing.T) {
 				"}\n" +
 				"</style>",
 		},
+		{
+			desc: "re-escape closing style in data and newline",
+			input: "<head><style amp-custom>" +
+				".foo { background-image:url('data:image/svg+xml;utf8," +
+				"<svg xmlns=\"http://www.w3.org/2000/svg\">\\3c /style>" +
+				"<path d=\"M108.044,42.407\\a c-22.58,65.505z\"/></svg>');}" +
+				"</style></head>",
+			expected: "<style amp-custom=\"\">" +
+				".foo { background-image:url('data:image/svg+xml;utf8," +
+				"<svg xmlns=\"http://www.w3.org/2000/svg\">\\3C /style>" +
+				"<path d=\"M108.044,42.407\\A c-22.58,65.505z\"/>" +
+				"</svg>');}</style>",
+		},
 	}
 	runURLRewriteTestcases(t, tcs)
 }

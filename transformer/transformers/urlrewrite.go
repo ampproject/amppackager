@@ -16,6 +16,7 @@ package transformers
 
 import (
 	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -165,7 +166,7 @@ func convertToAMPCacheURLs(ctx urlRewriteContext, documentURL string, base *url.
 
 // rewrite the URLs described by the elementNodeContext. rewriteable implementation.
 func (nc *elementNodeContext) rewrite(documentURL string, baseURL *url.URL,
-	mainSubdomain string,	preconnects map[string]struct{}) {
+	mainSubdomain string, preconnects map[string]struct{}) {
 	if len(nc.attrName) == 0 || len(nc.offsets) == 0 {
 		return
 	}
@@ -180,7 +181,7 @@ func (nc *elementNodeContext) rewrite(documentURL string, baseURL *url.URL,
 
 // rewrite the URLs described by the textNodeContext. rewriteable implementation.
 func (nc *textNodeContext) rewrite(documentURL string, baseURL *url.URL,
-	mainSubdomain string,	preconnects map[string]struct{}) {
+	mainSubdomain string, preconnects map[string]struct{}) {
 	nc.node.Data = replaceURLs(nc.node.Data, nc.offsets, documentURL, baseURL,
 		mainSubdomain, preconnects)
 }
@@ -266,6 +267,19 @@ func (ctx *urlRewriteContext) parseInlineStyle(n *html.Node, style string) {
 	}
 }
 
+// Re-escape for URL serialization.
+// https://www.w3.org/TR/css3-values/#strings
+// https://www.w3.org/TR/css3-values/#urls
+var reescapeURL = strings.NewReplacer(
+	"\\", "\\\\",
+	"\n", "\\A ",
+	"'", "\\'",
+)
+
+// Also, prevent closing the style tag inside a data: string.
+// \3C (followed by a space) is the CSS way of encoding <.
+var closeStyle = regexp.MustCompile("(?i)</style")
+
 func parseCSS(style string) (string, []amphtml.SubresourceOffset) {
 	segments, err := css.ParseURLs(style)
 	if err != nil {
@@ -281,7 +295,9 @@ func parseCSS(style string) (string, []amphtml.SubresourceOffset) {
 		}
 		writeAndMark(&sb, &pos, "url('")
 		if len(segment.Data) > 0 {
-			slen, _ := sb.WriteString(segment.Data)
+			urlVal := reescapeURL.Replace(segment.Data)
+			urlVal = closeStyle.ReplaceAllString(urlVal, "\\3C /style")
+			slen, _ := sb.WriteString(urlVal)
 			subtype := amphtml.ImageType
 			if segment.Type == css.FontURLType {
 				subtype = amphtml.OtherType

@@ -107,29 +107,14 @@ type Token struct {
 	startPos, endPos int
 }
 
-// Re-escape for URL serialization.
-// https://www.w3.org/TR/css3-values/#strings
-// https://www.w3.org/TR/css3-values/#urls
-var reescapeURL = strings.NewReplacer(
-	"\n", "\\A",
-	"'", "\\'",
-)
-
-// String returns the raw string representation for the token, to reserialize the CSS.
-// The original input may not be preserved, due to preprocessing. URLs are always emitted
-// with single quotes.
+// String returns the raw string representation for the token.
+// The original input may not be preserved, due to preprocessing.
 //
 // This differs from the token's value. For example, the input of "@font-face"
 // is tokenized as an AtKeywordToken, with a value of "font-face" (without the @ sign). However,
 // its String() will be "@font-face".
 func (t *Token) String() string {
-	switch t.Type {
-	case URLToken:
-		// URLs are always single quoted. Re-escape as needed.
-		return "url('" + reescapeURL.Replace(t.Value) + "')"
-	default:
-		return t.parent.input[t.startPos:t.endPos]
-	}
+	return t.parent.input[t.startPos:t.endPos]
 }
 
 // Tokenizer returns a stream of CSS Tokens.

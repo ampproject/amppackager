@@ -49,6 +49,13 @@ const (
 // ParseURLs chops a style sheet into Segments. Each segment  is
 // either a UTF8 encoded byte string, or an image or font URL.
 // This is used to modify the URLs to point at a CDN.
+// Note that when combining the segments back to a stylesheet,
+// the client code must emit url() around URLs. This is done so that
+// client code can choose the quote character as in
+// url("http://foo.com") or url('http://foo.com/') or even leave out
+// the quote character as in url(http://foo.com/). Note that CSS supports
+// escaping quote characters within a string by prefixing with a backslash,
+// so " inside a URL may be written as \".
 func ParseURLs(css string) (Segments, error) {
 	z := NewTokenizer(css)
 	segments := Segments{}
