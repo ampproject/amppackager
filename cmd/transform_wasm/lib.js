@@ -18,6 +18,10 @@ async function start(callback, opt_test) {
     done();
   };
   GoBridge.test = !!opt_test;
+  // The patched Go runtime doesn't support concurrent GC yet.
+  process.env.GODEBUG = 'gcstoptheworld=1';
+  // Telling the GC to run more often keeps memory usage low.
+  process.env.GOGC = '20';
   const goroot = process.env.GOROOT || spawnSync('go', ['env', 'GOROOT']).stdout.toString().trim();
   require(join(goroot, 'misc/wasm/wasm_exec.js'));
 }
@@ -34,22 +38,11 @@ async function transform(url, html) {
   await urlIn.set(url);
   await htmlIn.set(html);
 
-  await new Promise((resolve) =>
-    transformCB(() => {
-      // Minimum valid AMP is larger than 1K.
-      htmlOut.get().then((str) => {
-        if (str.length < 1000) console.log('URL', url, 'output is invalid: ', str);
-        // Set a global instead of resolving the value into the Promise, in
-        // order to prevent a memory leak. Go-wasm eternally holds a reference
-        // to values passed into it. In this case, it holds a reference to the
-        // lambda passed to transformCB, which in turn closes over the resolve
-        // parameter, which holds a reference to the promise, which holds a
-        // reference to its resolved value.
-        GoBridge.returnValue = str;
-        resolve();
-      });
-    }));
-  return GoBridge.returnValue;
+  transformCB();
+  const str = await htmlOut.get();
+  // Minimum valid AMP is larger than 1K.
+  if (str.length < 1000) console.log('URL', url, 'output is invalid: ', str);
+  return str;
 }
 exports.transform = transform;
 
@@ -100,13 +93,10 @@ class Bytes {
   // with a working buffer property.
   async _buf() {
     if (!this._typedArray /* first use */ || !this._typedArray.length /* detached */) {
-      if (this._releaser) await new Promise((resolve) => this._releaser(() => resolve()));
-      await new Promise((resolve) =>
-          this._getter((ta, rel) => {
-            this._typedArray = ta;
-            this._releaser = rel;
-            resolve();
-          }));
+      if (this._releaser) this._releaser();
+      const {ta, release} = this._getter();
+      this._typedArray = ta;
+      this._releaser = release;
     }
     return this._typedArray;
   }
