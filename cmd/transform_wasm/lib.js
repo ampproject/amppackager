@@ -49,8 +49,6 @@ exports.transform = transform;
 // Internal communication between lib.js and the Go runtime.
 global.GoBridge = {};
 
-totalTaLength = 0;
-
 // Internal class for use by the Go runtime. Wraps a TypedArray, taking care of:
 // - Length-prefix and UTF-8 decoding/encoding in the get()/set() methods.
 // - Checking that the given string will fit in the buffer, in set().
@@ -98,7 +96,6 @@ class Bytes {
       if (this._releaser) this._releaser();
       const {ta, release} = this._getter();
       this._typedArray = ta;
-      totalTaLength += ta.length;
       this._releaser = release;
     }
     return this._typedArray;
