@@ -18,6 +18,10 @@ async function start(callback, opt_test) {
     done();
   };
   GoBridge.test = !!opt_test;
+  // The patched Go runtime doesn't support concurrent GC yet.
+  process.env.GODEBUG = 'gcstoptheworld=1';
+  // Telling the GC to run more often keeps memory usage low.
+  process.env.GOGC = '20';
   const goroot = process.env.GOROOT || spawnSync('go', ['env', 'GOROOT']).stdout.toString().trim();
   require(join(goroot, 'misc/wasm/wasm_exec.js'));
 }
@@ -95,7 +99,6 @@ class Bytes {
       const {ta, release} = this._getter();
       this._typedArray = ta;
       totalTaLength += ta.length;
-      console.log('total ta length', totalTaLength);
       this._releaser = release;
     }
     return this._typedArray;
