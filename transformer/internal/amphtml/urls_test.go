@@ -28,18 +28,18 @@ func TestToAbsoluteURL(t *testing.T) {
 	otherURL := "http://otherdomain.com"
 
 	tcs := []struct {
-		desc             string
-		input            string
-		baseURL          string
-		documentURL      string
-		expectedAbsolute string
+		desc        string
+		input       string
+		baseURL     string
+		documentURL string
+		expected    string
 	}{
 		{
-			desc:             "Empty",
-			input:            "",
-			baseURL:          barURL,
-			documentURL:      rootURL,
-			expectedAbsolute: "",
+			desc:        "Empty",
+			input:       "",
+			baseURL:     barURL,
+			documentURL: rootURL,
+			expected:    "",
 		},
 		{
 			desc:    "protocol relative path",
@@ -47,92 +47,115 @@ func TestToAbsoluteURL(t *testing.T) {
 			baseURL: barURL,
 			// Note that the technically correct absolute URL here would be http, but
 			// we 'upgrade' protocol relative to https.
-			documentURL:      "http://example.com/",
-			expectedAbsolute: "https://domain.com",
+			documentURL: "http://example.com/",
+			expected:    "https://domain.com",
 		},
 		{
-			desc:             "unusual protocol",
-			input:            "file://foo.txt",
-			baseURL:          barURL,
-			documentURL:      rootURL,
-			expectedAbsolute: "file://foo.txt",
+			desc:        "unusual protocol",
+			input:       "file://foo.txt",
+			baseURL:     barURL,
+			documentURL: rootURL,
+			expected:    "file://foo.txt",
 		},
 		{
-			desc:             "mailto protocol",
-			input:            "mailto:user@example.com",
-			baseURL:          barURL,
-			documentURL:      rootURL,
-			expectedAbsolute: "mailto:user@example.com",
+			desc:        "mailto protocol",
+			input:       "mailto:user@example.com",
+			baseURL:     barURL,
+			documentURL: rootURL,
+			expected:    "mailto:user@example.com",
 		},
 		{
-			desc:             "valid absolute",
-			input:            fooURL,
-			baseURL:          barURL,
-			documentURL:      rootURL,
-			expectedAbsolute: fooURL,
+			desc:        "valid absolute",
+			input:       fooURL,
+			baseURL:     barURL,
+			documentURL: rootURL,
+			expected:    fooURL,
 		},
 		{
-			desc:             "valid relative",
-			input:            relativeFooURL,
-			baseURL:          barURL,
-			documentURL:      rootURL,
-			expectedAbsolute: fooURL,
+			desc:        "valid relative",
+			input:       relativeFooURL,
+			baseURL:     barURL,
+			documentURL: rootURL,
+			expected:    fooURL,
 		},
 		{
-			desc:             "relative to base URL, not document URL",
-			input:            relativeFooURL,
-			baseURL:          rootURL,
-			documentURL:      otherURL,
-			expectedAbsolute: fooURL,
+			desc:        "relative to base URL, not document URL",
+			input:       relativeFooURL,
+			baseURL:     rootURL,
+			documentURL: otherURL,
+			expected:    fooURL,
 		},
 		{
-			desc:             "absolute with different base",
-			input:            fooURL,
-			baseURL:          otherURL,
-			documentURL:      rootURL,
-			expectedAbsolute: fooURL,
+			desc:        "absolute with different base",
+			input:       fooURL,
+			baseURL:     otherURL,
+			documentURL: rootURL,
+			expected:    fooURL,
 		},
 		{
-			desc:             "empty fragment preserved",
-			input:            "#",
-			baseURL:          rootURL,
-			documentURL:      rootURL,
-			expectedAbsolute: "#",
+			desc:        "empty fragment preserved",
+			input:       "#",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    "#",
 		},
 		{
-			desc:             "fragment same base",
-			input:            barURL + "#dogs",
-			baseURL:          barURL,
-			documentURL:      rootURL,
-			expectedAbsolute: barURL + "#dogs",
+			desc:        "fragment same base",
+			input:       barURL + "#dogs",
+			baseURL:     barURL,
+			documentURL: rootURL,
+			expected:    barURL + "#dogs",
 		},
 		{
-			desc:             "fragment different base",
-			input:            barURL + "#dogs",
-			baseURL:          otherURL,
-			documentURL:      rootURL,
-			expectedAbsolute: barURL + "#dogs",
+			desc:        "fragment different base",
+			input:       barURL + "#dogs",
+			baseURL:     otherURL,
+			documentURL: rootURL,
+			expected:    barURL + "#dogs",
 		},
 		{
-			desc:             "same url ignoring fragment",
-			input:            "#dogs",
-			baseURL:          rootURL,
-			documentURL:      rootURL,
-			expectedAbsolute: "#dogs",
+			desc:        "same url ignoring fragment",
+			input:       "#dogs",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    "#dogs",
 		},
 		{
-			desc:             "fragment differs from document when relative to base",
-			input:            "#dogs",
-			baseURL:          rootURL,
-			documentURL:      otherURL,
-			expectedAbsolute: rootURL + "#dogs",
+			desc:        "fragment differs from document when relative to base",
+			input:       "#dogs",
+			baseURL:     rootURL,
+			documentURL: otherURL,
+			expected:    rootURL + "#dogs",
+		},
+		{
+			// TODO(b/123017837): Go escapes only certain chars in fragments.
+			desc:        "fragment not entirely reescaped", // This is intrinsic Go URL behavior.
+			input:       "https://example.com/amp.html#htmlURL=http%3A%2F%2Fbar.com%2Fbaz",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			//expected:    "https://example.com/amp.html#htmlURL=http%3A%2F%2Fbar.com%2Fbaz",
+			expected: "https://example.com/amp.html#htmlURL=http://bar.com/baz",
+		},
+		{
+			desc:        "fragment with space and quote reescaped",
+			input:       "https://example.com/amp.html#fragment-\" ",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    "https://example.com/amp.html#fragment-%22%20",
+		},
+		{
+			desc:        "reescape path",
+			input:       "https://example.com/amp.html?URL=http%3A%2F%2Fbar.com%2Fbaz",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    "https://example.com/amp.html?URL=http%3A%2F%2Fbar.com%2Fbaz",
 		},
 	}
 	for _, tc := range tcs {
 		baseURL, _ := url.Parse(tc.baseURL)
 		actual := ToAbsoluteURL(tc.documentURL, baseURL, tc.input)
-		if actual != tc.expectedAbsolute {
-			t.Errorf("%s: ToAbsoluteURL=%s want=%s", tc.desc, actual, tc.expectedAbsolute)
+		if actual != tc.expected {
+			t.Errorf("%s: ToAbsoluteURL=%s want=%s", tc.desc, actual, tc.expected)
 		}
 	}
 }
