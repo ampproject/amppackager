@@ -321,12 +321,12 @@ func TestNodeCleanup_EscapeJspCharactersInScriptAndStyle(t *testing.T) {
            }
          </script></head>`,
 			Expected: `<head><style amp-custom>
-           a { color: "\3c% %\3e" }
-           b { color: "\3c% %\3e" }
+           a { color: "\3c % %\3e " }
+           b { color: "\3c % %\3e " }
          </style><script type=application/json>
            {
-             "foo": "\u3c% %\u3e",
-             "bar": "\u3c% %\u3e"
+             "foo": "\u003c% %\u003e",
+             "bar": "\u003c% %\u003e"
            }
          </script></head>`,
 		},
