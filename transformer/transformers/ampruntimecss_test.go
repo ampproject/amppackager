@@ -28,11 +28,10 @@ import (
 func TestAMPRuntimeCSS(t *testing.T) {
 	tcs := []struct{ desc, input, expected, css string }{
 		{
-			desc:  "link to css",
+			desc:  "no css",
 			input: "<html><head></head></html>",
 			expected: tt.Concat("<html><head>",
 				"<style amp-runtime=\"\" i-amphtml-version=\"42\"></style>",
-				"<link rel=\"stylesheet\" href=\"https://cdn.ampproject.org/rtv/42/v0.css\"/>",
 				"</head><body></body></html>"),
 			css: "",
 		},

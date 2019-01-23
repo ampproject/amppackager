@@ -17,18 +17,15 @@ package transformers
 import (
 	"strings"
 
-	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html"
 )
 
-// AMPRuntimeCSS inlines the contents of the AMP HTML CSS RTV, or
-// inserts a link into the appropriately revisioned v0.css (e.g. 102992221).
+// AMPRuntimeCSS inlines the contents of the AMP HTML CSS RTV.
 func AMPRuntimeCSS(e *Context) error {
 	// Create <style amp-runtime> tag.
 	n := htmlnode.Element("style", html.Attribute{Key: "amp-runtime"})
-	// Annotate it with the AMP Runtime version that is either being inlined
-	// or loaded with a link tag.
+	// Annotate it with the AMP Runtime version that is being inlined.
 	rtv := "latest"
 	if e.Request.GetRtv() != "" {
 		rtv = e.Request.GetRtv()
@@ -43,14 +40,5 @@ func AMPRuntimeCSS(e *Context) error {
 		return nil
 	}
 
-	// Otherwise: it can't be inlined, so add a link to the versioned v0.css.
-	link := amphtml.AMPCacheSchemeAndHost
-	if e.Request.GetRtv() != "" {
-		link = link + "/rtv/" + e.Request.GetRtv()
-	}
-	link = link + "/v0.css"
-	l := htmlnode.Element("link", html.Attribute{Key: "rel", Val: "stylesheet"},
-		html.Attribute{Key: "href", Val: link})
-	e.DOM.HeadNode.AppendChild(l)
 	return nil
 }
