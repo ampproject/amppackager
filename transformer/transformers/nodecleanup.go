@@ -31,8 +31,8 @@ const (
 )
 
 var (
-	scriptJSPReplacer = strings.NewReplacer("<%", "\\u3c%", "%>", "%\\u3e")
-	styleJSPReplacer  = strings.NewReplacer("<%", "\\3c%", "%>", "%\\3e")
+	scriptJSPReplacer = strings.NewReplacer("<%", "\\u003c%", "%>", "%\\u003e")
+	styleJSPReplacer  = strings.NewReplacer("<%", `\3c %`, "%>", `%\3e `)
 )
 
 // NodeCleanup cleans up the DOM tree, including, but not limited to:
