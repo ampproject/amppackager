@@ -51,6 +51,17 @@ func TestAMPRuntimeCSS(t *testing.T) {
 				"</head><body></body></html>"),
 			css: " \t\n CSS contents to inline \n\t\r\n",
 		},
+		{
+			desc: "removes existing <style amp-runtime>s>",
+			input: tt.Concat("<html><head>",
+				"<style amp-runtime>CSS contents to inline</style>",
+				"<style amp-runtime></style>",
+				"</head></html>"),
+			expected: tt.Concat("<html><head>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"42\">CSS contents to inline</style>",
+				"</head><body></body></html>"),
+			css: "CSS contents to inline",
+		},
 	}
 
 	for _, tc := range tcs {
