@@ -17,12 +17,22 @@ package transformers
 import (
 	"strings"
 
+	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
+	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
 
 // AMPRuntimeCSS inlines the contents of the AMP HTML CSS RTV.
 func AMPRuntimeCSS(e *Context) error {
+	// If the document already has <style amp-runtime> then remove them. This
+	// can happen if this transformer is run on already transformed AMP.
+	for c := e.DOM.HeadNode.FirstChild; c != nil; c = htmlnode.Next(c) {
+		if c.DataAtom == atom.Style &&
+			htmlnode.HasAttribute(c, "", amphtml.AMPRuntime) {
+			htmlnode.RemoveNode(&c)
+		}
+	}
 	// Create <style amp-runtime> tag.
 	n := htmlnode.Element("style", html.Attribute{Key: "amp-runtime"})
 	// Annotate it with the AMP Runtime version that is being inlined.
