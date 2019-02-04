@@ -61,21 +61,15 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		transformers.NodeCleanup,
 		transformers.StripJS,
 		transformers.MetaTag,
-		// TODO(alin04): Reenable LinkTag once validation is done.
-		// transformers.LinkTag,
-		// end TODO
+		transformers.LinkTag,
 		transformers.AbsoluteURL,
 		transformers.AMPBoilerplate,
 		transformers.UnusedExtensions,
 		// TODO(alin04): Reenable SSR once validation is done.
 		// transformers.ServerSideRendering,
 		// end TODO
-		// AmpRuntimeCss must run after ServerSideRendering
-		// TODO(alin04): Reenable AMPRuntimeCSS and
-		// TransformedIdentifier once validation is done
-		// transformers.AMPRuntimeCSS,
-		// transformers.TransformedIdentifier,
-		// end TODO
+		transformers.AMPRuntimeCSS,
+		transformers.TransformedIdentifier,
 		transformers.URLRewrite,
 		// ReorderHead should run after all transformers that modify the
 		// <head>, as they may do so without preserving the proper order.
