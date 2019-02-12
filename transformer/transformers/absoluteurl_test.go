@@ -41,13 +41,6 @@ func TestAbsoluteURLTansformer(t *testing.T) {
 		documentURL string
 	}{
 		{
-			desc:        "Amp img src URL not changed",
-			input:       "<amp-img src=" + relativeURL + "></amp-img>",
-			expected:    "<amp-img src=" + relativeURL + "></amp-img>",
-			baseURL:     fooURL,
-			documentURL: fooURL,
-		},
-		{
 			desc: "Self URL not changed to fragment",
 			// In this case the URL is the same as the document and base URL, but we
 			// don't want it to be changed to be a fragment ("#").
@@ -183,6 +176,14 @@ func TestAbsoluteURLTansformer(t *testing.T) {
 			desc:        "Base URL matches anchor",
 			input:       "<a href='/'>foo</a>",
 			expected:    "<a href=https://example.com/ target=_top>foo</a>",
+			baseURL:     "https://example.com/",
+			documentURL: barURL,
+		},
+		{
+			desc:  "srcset rewritten",
+			input: "<amp-img srcset=\"200.png 200w, 400.png 400w\"></amp-img>",
+			expected: "<amp-img srcset=\"https://example.com/200.png 200w, " +
+				"https://example.com/400.png 400w\"></amp-img>",
 			baseURL:     "https://example.com/",
 			documentURL: barURL,
 		},
