@@ -221,6 +221,24 @@ func TestGetCacheURL(t *testing.T) {
 			expectedOther: "https://example-com.cdn.ampproject.org/r/s/example.com/itshappening.gif",
 			width:         100,
 		},
+		{
+			desc:          "idempotent without verification of correct syntax",
+			input:         "https://www-example-com.cdn.ampproject.org/incorrect/path/is/preserved/wrong.domain.com/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/incorrect/path/is/preserved/wrong.domain.com/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/incorrect/path/is/preserved/wrong.domain.com/blah.jpg",
+		},
+		{
+			desc:          "idempotent preserves incorrect http scheme",
+			input:         "http://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			expectedImage: "http://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			expectedOther: "http://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg", // this is WAI that the path doesn't have /r
+		},
+		{
+			desc:          "domain match checks host (not path)",
+			input:         "https://www.example.com/cdn.ampproject.org/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/i/s/www.example.com/cdn.ampproject.org/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/s/www.example.com/cdn.ampproject.org/blah.jpg",
+		},
 	}
 	base, _ := url.Parse("https://example.com/")
 	for _, tc := range tcs {

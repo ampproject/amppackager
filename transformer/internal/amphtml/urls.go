@@ -140,6 +140,16 @@ func (c *CacheURL) String() string {
 	return s
 }
 
+// IsCacheURL returns true if the given string is from the AMPCache domain. This check is overly
+// simplistic and does no actual verification that the URL resolves (doesn't 404), nor if the URL
+// is of the correct format for the resource type (image, or otherwise).
+func IsCacheURL(input string) bool {
+	if u, err := url.Parse(input); err == nil {
+		return strings.HasSuffix(u.Hostname(), AMPCacheHostName)
+	}
+	return false
+}
+
 // GetCacheURL returns an AMP Cache URL structure for the URL identified by
 // the given offset (relative to 'input') or an error if the URL could not be
 // parsed.
@@ -167,6 +177,11 @@ func (so *SubresourceOffset) GetCacheURL(documentURL string, base *url.URL,
 	}
 
 	c := CacheURL{URL: origURL}
+	// simplistic idempotent check
+	if IsCacheURL(absolute) {
+		c.Subdomain = strings.TrimSuffix(c.Hostname(), "."+AMPCacheHostName)
+		return &c, nil
+	}
 	prefix := "/r/"
 	if so.SubType == ImageType {
 		prefix = "/i/"
@@ -191,7 +206,7 @@ func (so *SubresourceOffset) GetCacheURL(documentURL string, base *url.URL,
 // 3. Replaces every "." (dot) with a "-" (dash).
 // 4. Converts back to IDN (Punycode).
 //
-// For example, if the origin is www.example.com, its cache prefix will be www-example-com.
+// For example, if the origin is www.example.com, this returns www-example-com.
 // On Google's AMP Cache, this will be prepended to the Google cache domain resulting in
 // www-example-com.cdn.ampproject.org .
 // See https://developers.google.com/amp/cache/overview for more info
