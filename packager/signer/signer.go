@@ -219,6 +219,62 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 	return req, resp, nil
 }
 
+// Some Content-Security-Policy (CSP) configurations have the ability to break
+// AMPHTML document functionality on the AMPHTML Cache if set on the document.
+// This method parses the publisher's provided CSP and mutates it to ensure
+// that the document is not broken on the AMP Cache.
+//
+// Specifically, the following CSP directives are passed through unmodified:
+//  - base-uri
+//  - block-all-mixed-content
+//  - font-src
+//  - form-action
+//  - manifest-src
+//  - referrer
+//  - upgrade-insecure-requests
+// And the following CSP directives are overridden to specific values:
+//  - object-src
+//  - report-uri
+//  - script-src
+//  - style-src
+//  - default-src
+// All other CSP directives are stripped from the publisher provided CSP.
+func MutateFetchedContentSecurityPolicy(fetched string) (string) {
+	directiveTokens := strings.Split(fetched, ";")
+	var newCsp string
+	for i := range directiveTokens {
+		directiveToken := directiveTokens[i]
+		trimmed := strings.TrimSpace(directiveToken)
+		directiveParts := strings.Fields(trimmed)
+		if len(directiveParts) == 0 {
+			continue
+		}
+		directiveName := strings.ToLower(directiveParts[0])
+		switch directiveName {
+			// Preserve certain directives. The rest are all removed or replaced.
+			case "base-uri", "block-all-mixed-content", "font-src", "form-action",
+			     "manifest-src", "referrer", "upgrade-insecure-requests":
+					 newCsp += trimmed + ";"
+			default:
+		}
+	}
+	// Add missing directives or replace the ones that were removed in some cases
+	newCsp += "default-src * blob: data:;" +
+	          "report-uri https://csp-collector.appspot.com/csp/amp;" +
+						"script-src blob: https://cdn.ampproject.org/rtv/ " +
+              "https://cdn.ampproject.org/v0.js " + 
+							"https://cdn.ampproject.org/v0/ " +
+              "https://cdn.ampproject.org/viewer/;" +
+            "style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ " +
+              "https://cdn.materialdesignicons.com " +
+              "https://cloud.typography.com https://fast.fonts.net " + 
+              "https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com " +
+              "https://p.typekit.net https://pro.fontawesome.com " +
+              "https://use.fontawesome.com https://use.typekit.net;" +
+            "object-src 'none'"
+	return newCsp
+}
+
 func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.URL, error) {
 	var baseURL *url.URL
 	if this.overrideBaseURL != nil {
@@ -325,7 +381,12 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 			fetchResp.Header.Del(header)
 		}
 
-		fetchResp.Header.Set("Content-Security-Policy", contentSecurityPolicy)
+		// Mutate the fetched CSP to make sure it cannot break AMP pages.
+		fetchResp.Header.Set(
+			"Content-Security-Policy",
+			MutateFetchedContentSecurityPolicy(
+				fetchResp.Header.Get("Content-Security-Policy")))
+
 		fetchResp.Header.Del("Link") // Ensure there are no privacy-violating Link:rel=preload headers.
 
 		this.serveSignedExchange(resp, fetchResp, signURL, transformVersion)
