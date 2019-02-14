@@ -238,41 +238,44 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 //  - script-src
 //  - style-src
 //  - default-src
-// All other CSP directives are stripped from the publisher provided CSP.
-func MutateFetchedContentSecurityPolicy(fetched string) (string) {
+// All other CSP directives (see https://w3c.github.io/webappsec-csp/) are
+// stripped from the publisher provided CSP.
+func MutateFetchedContentSecurityPolicy(fetched string) string {
 	directiveTokens := strings.Split(fetched, ";")
-	var newCsp string
-	for i := range directiveTokens {
-		directiveToken := directiveTokens[i]
+	var newCsp strings.Builder
+	for _, directiveToken := range directiveTokens {
 		trimmed := strings.TrimSpace(directiveToken)
+		// This differs from the spec slightly in that it allows U+000b vertical
+		// tab in its definition of white space.
 		directiveParts := strings.Fields(trimmed)
 		if len(directiveParts) == 0 {
 			continue
 		}
 		directiveName := strings.ToLower(directiveParts[0])
 		switch directiveName {
-			// Preserve certain directives. The rest are all removed or replaced.
-			case "base-uri", "block-all-mixed-content", "font-src", "form-action",
-			     "manifest-src", "referrer", "upgrade-insecure-requests":
-					 newCsp += trimmed + ";"
-			default:
+		// Preserve certain directives. The rest are all removed or replaced.
+		case "base-uri", "block-all-mixed-content", "font-src", "form-action",
+			"manifest-src", "referrer", "upgrade-insecure-requests":
+			newCsp.WriteString(trimmed)
+			newCsp.WriteString(";")
+		default:
 		}
 	}
 	// Add missing directives or replace the ones that were removed in some cases
-	newCsp += "default-src * blob: data:;" +
-	          "report-uri https://csp-collector.appspot.com/csp/amp;" +
-						"script-src blob: https://cdn.ampproject.org/rtv/ " +
-              "https://cdn.ampproject.org/v0.js " + 
-							"https://cdn.ampproject.org/v0/ " +
-              "https://cdn.ampproject.org/viewer/;" +
-            "style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ " +
-              "https://cdn.materialdesignicons.com " +
-              "https://cloud.typography.com https://fast.fonts.net " + 
-              "https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com " +
-              "https://p.typekit.net https://pro.fontawesome.com " +
-              "https://use.fontawesome.com https://use.typekit.net;" +
-            "object-src 'none'"
-	return newCsp
+	newCsp.WriteString(
+		"default-src * blob: data:;" +
+			"report-uri https://csp-collector.appspot.com/csp/amp;" +
+			"script-src blob: https://cdn.ampproject.org/rtv/ " +
+			"https://cdn.ampproject.org/v0.js " +
+			"https://cdn.ampproject.org/v0/ " +
+			"https://cdn.ampproject.org/viewer/;" +
+			"style-src 'unsafe-inline' https://cdn.materialdesignicons.com " +
+			"https://cloud.typography.com https://fast.fonts.net " +
+			"https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com " +
+			"https://p.typekit.net https://pro.fontawesome.com " +
+			"https://use.fontawesome.com https://use.typekit.net;" +
+			"object-src 'none'")
+	return newCsp.String()
 }
 
 func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.URL, error) {

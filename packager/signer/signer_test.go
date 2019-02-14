@@ -290,45 +290,45 @@ func (this *SignerSuite) TestRemovesStatefulHeaders() {
 
 func (this *SignerSuite) TestMutatesCspHeaders() {
 	urlSets := []util.URLSet{{
-			Sign: &util.URLPattern{
-				[]string{"https"},
-				"",
-				this.httpsHost(),
-				stringPtr("/amp/.*"),
-				[]string{},
-				stringPtr(""),
-				false,
-				2000,
-				nil}}}
+		Sign: &util.URLPattern{
+			[]string{"https"},
+			"",
+			this.httpsHost(),
+			stringPtr("/amp/.*"),
+			[]string{},
+			stringPtr(""),
+			false,
+			2000,
+			nil}}}
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
 		// Expect base-uri and block-all-mixed-content to remain unmodified.
 		// Expect require-sri-for to be stripped.
 		// Expect script-src to be overwritten.
 		resp.Header().Set(
-				"Content-Security-Policy",
-				"base-uri http://*.example.com; " +
-				"block-all-mixed-content; " +
-				"require-sri-for script; " +
+			"Content-Security-Policy",
+			"base-uri http://*.example.com; "+
+				"block-all-mixed-content; "+
+				"require-sri-for script; "+
 				"script-src https://notallowed.org/")
 		resp.Write(fakeBody)
 	}
 	resp := this.get(
 		this.T(),
 		this.new(urlSets),
-		"/priv/doc?sign=" + url.QueryEscape(this.httpsURL() + fakePath))
+		"/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(
 		http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal(
-		"base-uri http://*.example.com;" +
-		"block-all-mixed-content;" +
-		"default-src * blob: data:;" +
-		"report-uri https://csp-collector.appspot.com/csp/amp;" +
-		"script-src blob: https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/;" +
-		"style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net;" +
-		"object-src 'none'",
+		"base-uri http://*.example.com;"+
+			"block-all-mixed-content;"+
+			"default-src * blob: data:;"+
+			"report-uri https://csp-collector.appspot.com/csp/amp;"+
+			"script-src blob: https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/;"+
+			"style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net;"+
+			"object-src 'none'",
 		exchange.ResponseHeaders.Get("Content-Security-Policy"))
 }
 
@@ -375,7 +375,7 @@ func (this *SignerSuite) TestRemovesHopByHopHeaders() {
 		resp.Header().Set("Connection", "PROXY-AUTHENTICATE, Server")
 		resp.Header().Set("Proxy-Authenticate", "Basic")
 		resp.Header().Set("Server", "thing")
-		resp.Header().Set("Transfer-Encoding", "chunked")  // Also removed, per RFC 2616.
+		resp.Header().Set("Transfer-Encoding", "chunked") // Also removed, per RFC 2616.
 		resp.Write([]byte("<html amp><head><link rel=stylesheet href=foo><script src=bar>"))
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
