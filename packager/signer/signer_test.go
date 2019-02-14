@@ -327,7 +327,7 @@ func (this *SignerSuite) TestMutatesCspHeaders() {
 			"default-src * blob: data:;"+
 			"report-uri https://csp-collector.appspot.com/csp/amp;"+
 			"script-src blob: https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/;"+
-			"style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net;"+
+			"style-src 'unsafe-inline' https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net;"+
 			"object-src 'none'",
 		exchange.ResponseHeaders.Get("Content-Security-Policy"))
 }
