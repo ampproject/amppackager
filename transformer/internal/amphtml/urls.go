@@ -61,11 +61,19 @@ func ToAbsoluteURL(documentURL string, baseURL *url.URL,
 		return ""
 	}
 
-	absoluteURL, err := baseURL.Parse(urlParam)
+	refurl, err := url.Parse(urlParam)
 	// TODO(gregable): Should we strip this URL instead (ie: return "").
 	if err != nil {
 		return urlParam
 	}
+	// Handle relative URLs that have a scheme but no authority. In this
+	// case, use the base's authority. Note that this behavior is not
+	// compliant with RFC 3986 Section 5, however, this is what the Chrome browser
+	// does. See b/124445904 .
+	if refurl.Scheme != "" && refurl.Host == "" {
+		refurl.Host = baseURL.Host
+	}
+	absoluteURL := baseURL.ResolveReference(refurl)
 
 	// TODO(gregable): We should probably assemble data: / mailto: / etc URLs,
 	// which will force them to be URL encoded, but this was left to maintain

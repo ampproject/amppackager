@@ -150,6 +150,13 @@ func TestToAbsoluteURL(t *testing.T) {
 			documentURL: rootURL,
 			expected:    "https://example.com/amp.html?URL=http%3A%2F%2Fbar.com%2Fbaz",
 		},
+		{
+			desc:        "missing authority uses base authority",
+			input:       "https:/foo.com/relative.jpg",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    "https://www.example.com/foo.com/relative.jpg",
+		},
 	}
 	for _, tc := range tcs {
 		baseURL, _ := url.Parse(tc.baseURL)
