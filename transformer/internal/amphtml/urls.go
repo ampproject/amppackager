@@ -66,7 +66,13 @@ func ToAbsoluteURL(documentURL string, baseURL *url.URL,
 	if err != nil {
 		return urlParam
 	}
-	// Handle relative URLs that have a scheme but no authority. In this
+	// Go URL parser is strict, but we want non-strict behavior for resolving
+	// references as per the algorithm in https://tools.ietf.org/html/rfc3986#section-5.2.2
+	// tl;dr If the scheme is the same, unset it so the relative URL truly is relative.
+	if refurl.Scheme == baseURL.Scheme {
+		refurl.Scheme = ""
+	}
+	// Handle relative URLs that have a different scheme but no authority. In this
 	// case, use the base's authority. Note that this behavior is not
 	// compliant with RFC 3986 Section 5, however, this is what the Chrome browser
 	// does. See b/124445904 .
