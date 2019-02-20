@@ -187,6 +187,13 @@ func TestAbsoluteURLTansformer(t *testing.T) {
 			baseURL:     "https://example.com/",
 			documentURL: barURL,
 		},
+		{
+			desc:        "missing authority",
+			input:       "<a href=https:/foo.com/baz.html>Foo</a>",
+			expected:    "<a href=https://www.example.com/foo.com/baz.html target=_top>Foo</a>",
+			baseURL:     "http://www.example.com",
+			documentURL: fooURL,
+		},
 	}
 	for _, tc := range tcs {
 		rawInput := tt.Concat(

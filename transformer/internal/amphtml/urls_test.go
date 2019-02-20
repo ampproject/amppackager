@@ -150,6 +150,20 @@ func TestToAbsoluteURL(t *testing.T) {
 			documentURL: rootURL,
 			expected:    "https://example.com/amp.html?URL=http%3A%2F%2Fbar.com%2Fbaz",
 		},
+		{
+			desc:        "different scheme and no authority uses base authority",
+			input:       "https:/foo.com/relative.jpg",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    "https://www.example.com/foo.com/relative.jpg",
+		},
+		{
+			desc:        "nothing except same scheme should use base",
+			input:       "https:",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    rootURL,
+		},
 	}
 	for _, tc := range tcs {
 		baseURL, _ := url.Parse(tc.baseURL)
@@ -220,6 +234,24 @@ func TestGetCacheURL(t *testing.T) {
 			expectedImage: "https://example-com.cdn.ampproject.org/ii/w100/s/example.com/itshappening.gif",
 			expectedOther: "https://example-com.cdn.ampproject.org/r/s/example.com/itshappening.gif",
 			width:         100,
+		},
+		{
+			desc:          "idempotent without verification of correct syntax",
+			input:         "https://www-example-com.cdn.ampproject.org/incorrect/path/is/preserved/wrong.domain.com/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/incorrect/path/is/preserved/wrong.domain.com/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/incorrect/path/is/preserved/wrong.domain.com/blah.jpg",
+		},
+		{
+			desc:          "idempotent preserves incorrect http scheme",
+			input:         "http://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			expectedImage: "http://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg",
+			expectedOther: "http://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg", // this is WAI that the path doesn't have /r
+		},
+		{
+			desc:          "domain match checks host (not path)",
+			input:         "https://www.example.com/cdn.ampproject.org/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/i/s/www.example.com/cdn.ampproject.org/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/s/www.example.com/cdn.ampproject.org/blah.jpg",
 		},
 	}
 	base, _ := url.Parse("https://example.com/")

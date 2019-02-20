@@ -61,11 +61,25 @@ func ToAbsoluteURL(documentURL string, baseURL *url.URL,
 		return ""
 	}
 
-	absoluteURL, err := baseURL.Parse(urlParam)
+	refurl, err := url.Parse(urlParam)
 	// TODO(gregable): Should we strip this URL instead (ie: return "").
 	if err != nil {
 		return urlParam
 	}
+	// Go URL parser is strict, but we want non-strict behavior for resolving
+	// references as per the algorithm in https://tools.ietf.org/html/rfc3986#section-5.2.2
+	// tl;dr If the scheme is the same, unset it so the relative URL truly is relative.
+	if refurl.Scheme == baseURL.Scheme {
+		refurl.Scheme = ""
+	}
+	// Handle relative URLs that have a different scheme but no authority. In this
+	// case, use the base's authority. Note that this behavior is not
+	// compliant with RFC 3986 Section 5, however, this is what the Chrome browser
+	// does. See b/124445904 .
+	if refurl.Scheme != "" && refurl.Host == "" {
+		refurl.Host = baseURL.Host
+	}
+	absoluteURL := baseURL.ResolveReference(refurl)
 
 	// TODO(gregable): We should probably assemble data: / mailto: / etc URLs,
 	// which will force them to be URL encoded, but this was left to maintain
@@ -140,6 +154,16 @@ func (c *CacheURL) String() string {
 	return s
 }
 
+// IsCacheURL returns true if the given string is from the AMPCache domain. This check is overly
+// simplistic and does no actual verification that the URL resolves (doesn't 404), nor if the URL
+// is of the correct format for the resource type (image, or otherwise).
+func IsCacheURL(input string) bool {
+	if u, err := url.Parse(input); err == nil {
+		return strings.HasSuffix(u.Hostname(), AMPCacheHostName)
+	}
+	return false
+}
+
 // GetCacheURL returns an AMP Cache URL structure for the URL identified by
 // the given offset (relative to 'input') or an error if the URL could not be
 // parsed.
@@ -167,6 +191,11 @@ func (so *SubresourceOffset) GetCacheURL(documentURL string, base *url.URL,
 	}
 
 	c := CacheURL{URL: origURL}
+	// simplistic idempotent check
+	if IsCacheURL(absolute) {
+		c.Subdomain = strings.TrimSuffix(c.Hostname(), "."+AMPCacheHostName)
+		return &c, nil
+	}
 	prefix := "/r/"
 	if so.SubType == ImageType {
 		prefix = "/i/"
@@ -191,7 +220,7 @@ func (so *SubresourceOffset) GetCacheURL(documentURL string, base *url.URL,
 // 3. Replaces every "." (dot) with a "-" (dash).
 // 4. Converts back to IDN (Punycode).
 //
-// For example, if the origin is www.example.com, its cache prefix will be www-example-com.
+// For example, if the origin is www.example.com, this returns www-example-com.
 // On Google's AMP Cache, this will be prepended to the Google cache domain resulting in
 // www-example-com.cdn.ampproject.org .
 // See https://developers.google.com/amp/cache/overview for more info

@@ -30,7 +30,7 @@ import (
 
 type rewritable interface {
 	// Rewrite the URLs within
-	rewrite(string, *url.URL, string, map[string]struct{})
+	rewrite(string, *url.URL, string, nodeMap)
 }
 
 type urlRewriteContext []rewritable
@@ -55,6 +55,9 @@ type textNodeContext struct {
 	offsets []amphtml.SubresourceOffset
 }
 
+// nodeMap is map of string to Node pointer
+type nodeMap map[string]*html.Node
+
 // URLRewrite rewrites links to point to the AMP Cache and adds DNS preconnects to the <head>
 // Affected links:
 //  * <amp-img/amp-anim src>
@@ -70,7 +73,7 @@ type textNodeContext struct {
 func URLRewrite(e *Context) error {
 	var ctx urlRewriteContext
 
-	// First travers the DOM, finding all nodes that need to be rewritten, building up
+	// First traverse the DOM, finding all nodes that need to be rewritten, building up
 	// contextual information - contextual information could describe attributes of a node,
 	// or an entire text node (in the case of the child of a <script> tag).
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
@@ -139,34 +142,62 @@ func URLRewrite(e *Context) error {
 	// After the contextual information has been gathered, use it to rewrite the appropriate URLs
 	// and adding any preconnects if necessary.
 	documentURL := e.DocumentURL.String()
-	preconnects := convertToAMPCacheURLs(ctx, documentURL, e.BaseURL)
-	for _, k := range preconnects {
-		n := htmlnode.Element("link", html.Attribute{Key: "href", Val: k}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
-		e.DOM.HeadNode.AppendChild(n)
-	}
-
+	convertToAMPCacheURLs(ctx, documentURL, e)
 	return nil
 }
 
-// convertToAMPCacheURLs examines the generated context and rewrites all the necessary
-// URLs to point to the AMP Cache, returning a list of preconnects that need to be added.
-func convertToAMPCacheURLs(ctx urlRewriteContext, documentURL string, base *url.URL) []string {
-	preconnects := make(map[string]struct{})
-	mainSubdomain := amphtml.ToCacheURLSubdomain(base.Hostname())
+// convertToAMPCacheURLs examines the generated context and:
+// - rewrites all the necessary URLs to point to the AMP Cache
+// - adds any preconnects, unless they exist already.
+func convertToAMPCacheURLs(ctx urlRewriteContext, documentURL string, e *Context) {
+	preconnects := make(nodeMap)
+	mainSubdomain := amphtml.ToCacheURLSubdomain(e.BaseURL.Hostname())
 	for _, rw := range ctx {
-		rw.rewrite(documentURL, base, mainSubdomain, preconnects)
+		rw.rewrite(documentURL, e.BaseURL, mainSubdomain, preconnects)
 	}
+
+	// Parse any existing preconnects.
+	for c := e.DOM.HeadNode.FirstChild; c != nil; c = c.NextSibling {
+		if c.DataAtom != atom.Link {
+			continue
+		}
+		if v, ok := htmlnode.GetAttributeVal(c, "", "rel"); ok {
+			if href, ok := htmlnode.GetAttributeVal(c, "", "href"); ok {
+				fields := strings.Fields(v)
+				m := make(map[string]struct{}, len(fields))
+				for _, f := range fields {
+					m[f] = struct{}{}
+				}
+				if containsKey(m, "dns-prefetch") && containsKey(m, "preconnect") {
+					// Remove the link as it will be added back later
+					preconnects[href] = htmlnode.RemoveNode(&c)
+				}
+			}
+		}
+	}
+
 	sortedPreconnects := make([]string, 0, len(preconnects))
 	for k := range preconnects {
 		sortedPreconnects = append(sortedPreconnects, k)
 	}
 	sort.Strings(sortedPreconnects)
-	return sortedPreconnects
+	for _, k := range sortedPreconnects {
+		n, ok := preconnects[k]
+		if !ok || n == nil {
+			n = htmlnode.Element("link", html.Attribute{Key: "href", Val: k}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
+		}
+		e.DOM.HeadNode.AppendChild(n)
+	}
+}
+
+func containsKey(m map[string]struct{}, k string) bool {
+	_, ok := m[k]
+	return ok
 }
 
 // rewrite the URLs described by the elementNodeContext. rewriteable implementation.
 func (nc *elementNodeContext) rewrite(documentURL string, baseURL *url.URL,
-	mainSubdomain string, preconnects map[string]struct{}) {
+	mainSubdomain string, preconnects nodeMap) {
 	if len(nc.attrName) == 0 || len(nc.offsets) == 0 {
 		return
 	}
@@ -181,7 +212,7 @@ func (nc *elementNodeContext) rewrite(documentURL string, baseURL *url.URL,
 
 // rewrite the URLs described by the textNodeContext. rewriteable implementation.
 func (nc *textNodeContext) rewrite(documentURL string, baseURL *url.URL,
-	mainSubdomain string, preconnects map[string]struct{}) {
+	mainSubdomain string, preconnects nodeMap) {
 	nc.node.Data = replaceURLs(nc.node.Data, nc.offsets, documentURL, baseURL,
 		mainSubdomain, preconnects)
 }
@@ -190,7 +221,7 @@ func (nc *textNodeContext) rewrite(documentURL string, baseURL *url.URL,
 // offsets with their AMP Cache equivalent, returning a new data string.
 func replaceURLs(data string, offsets []amphtml.SubresourceOffset,
 	documentURL string, baseURL *url.URL, mainSubdomain string,
-	preconnects map[string]struct{}) string {
+	preconnects nodeMap) string {
 	if len(offsets) == 0 {
 		// noop
 		return data
@@ -211,7 +242,7 @@ func replaceURLs(data string, offsets []amphtml.SubresourceOffset,
 		sb.WriteString(cu.String())
 		pos = so.End
 		if len(mainSubdomain) > 0 && mainSubdomain != cu.Subdomain {
-			preconnects[cu.OriginDomain()] = struct{}{}
+			preconnects[cu.OriginDomain()] = nil
 		}
 	}
 	// Append any remaining non-URL text
@@ -239,7 +270,7 @@ func fieldsContain(haystack, needle string) bool {
 // parseSimpleImageAttr parses the specified attribute value, calculating the offset to the
 // referenced subresource.
 func (ctx *urlRewriteContext) parseSimpleImageAttr(n *html.Node, namespace, attrName string) {
-	if v, ok := htmlnode.GetAttributeVal(n, namespace, attrName); ok {
+	if v, ok := htmlnode.GetAttributeVal(n, namespace, attrName); ok && !amphtml.IsCacheURL(v) {
 		nc := elementNodeContext{n, namespace, attrName, []amphtml.SubresourceOffset{amphtml.SubresourceOffset{
 			SubType: amphtml.ImageType, Start: 0, End: len(v)}}}
 		*ctx = append(*ctx, &nc)
@@ -294,7 +325,7 @@ func parseCSS(style string) (string, []amphtml.SubresourceOffset) {
 			continue
 		}
 		writeAndMark(&sb, &pos, "url('")
-		if len(segment.Data) > 0 {
+		if len(segment.Data) > 0 && !amphtml.IsCacheURL(segment.Data) {
 			urlVal := reescapeURL.Replace(segment.Data)
 			urlVal = closeStyle.ReplaceAllString(urlVal, "\\3C /style")
 			slen, _ := sb.WriteString(urlVal)
@@ -334,7 +365,7 @@ const minWidthToAddSrcsetInResponsiveLayout = 300
 
 // parseNewSrcset parses a new srcset derived from the src.
 func (ctx *urlRewriteContext) parseNewSrcset(n *html.Node, src string) {
-	if len(src) == 0 || strings.HasPrefix(src, "data:image/") {
+	if len(src) == 0 || strings.HasPrefix(src, "data:image/") || amphtml.IsCacheURL(src) {
 		return
 	}
 	var width int

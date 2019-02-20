@@ -8,6 +8,7 @@ import (
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/transformers"
+	"github.com/google/go-cmp/cmp"
 	"golang.org/x/net/html"
 )
 
@@ -225,13 +226,19 @@ func TestURLRewrite_preconnect(t *testing.T) {
 			base:     "http://www.example.com",
 		},
 		{
-			desc:     "no dupes",
+			desc:     "does not add duplicate preconnects",
 			input:    `<amp-img src=http://notexample.com/blah.jpg width=92 height=10 srcset="http://notexample.com/another.jpg 50w">`,
 			expected: `<head><link href="https://notexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/></head>`,
 			base:     "http://www.example.com",
 		},
 		{
-			desc:     "preconnects not added",
+			desc:     "keeps preconnect intact if in head already",
+			input:    `<head><link crossorigin href="https://notexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/></head><body><amp-img src=http://notexample.com/blah.jpg width=92 height=10 srcset="http://notexample.com/another.jpg 50w">`,
+			expected: `<head><link crossorigin="" href="https://notexample-com.cdn.ampproject.org" rel="dns-prefetch preconnect"/></head>`,
+			base:     "http://www.example.com",
+		},
+		{
+			desc:     "does not add unnecessary preconnect",
 			input:    `<amp-img src=http://www.example.com/blah.jpg width=92 height=10 srcset="http://www.example.com/blah.jpg 50w">`,
 			expected: `<head></head>`,
 			base:     "http://www.example.com",
@@ -363,33 +370,80 @@ func TestURLRewrite_styleEdgeCases(t *testing.T) {
 	runURLRewriteTestcases(t, tcs)
 }
 
-func runURLRewriteTestcases(t *testing.T, tcs []urlRewriteTestCase) {
-	documentURL, _ := url.Parse("https://example.com/")
-	for _, tc := range tcs {
-		baseURL, _ := url.Parse(tc.base)
-		inputDoc, err := html.Parse(strings.NewReader(tc.input))
-		if err != nil {
-			t.Errorf("%s: html.Parse failed %q", tc.input, err)
-			continue
-		}
-		inputDOM, err := amphtml.NewDOM(inputDoc)
-		if err != nil {
-			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.desc, tc.input, err)
-			continue
-		}
-		transformers.URLRewrite(&transformers.Context{
-			DOM:         inputDOM,
-			BaseURL:     baseURL,
-			DocumentURL: documentURL,
-		})
-		var input strings.Builder
-		if err := html.Render(&input, inputDoc); err != nil {
-			t.Errorf("%s: html.Render failed %q", tc.input, err)
-			continue
-		}
+func TestURLRewrite_idempotent(t *testing.T) {
+	html := `
+<html amp>
+<head>
+<style amp-custom="">
+	a:after {content: url('https://foo.com')}
+	a::after {content: url('https://foo.com')}
+	a:before {content: url('https://foo.com')}
+	a::before {content: url('https://foo.com')}
+	big {
+	  list-style: url('https://foo.com');
+	  list-style-image: url('https://foo.com');
+	  background: url('https://foo.com');
+	  background-image: url('https://foo.com');
+	  border-image: url('https://foo.com');
+	  -moz-border-image: url('https://foo.com');
+	  -webkit-border-image: url('https://foo.com');
+	  border-image-source: url('https://foo.com');
+	  shape-outside: url('https://foo.com');
+	  cursor: url('https://foo.com'), auto;
+	}
+</style>
+</head>
+<body>
+<amp-img src=http://www.example.com/blah.jpg width=92 height=10 srcset="http://www.example.com/blah.jpg 50w"></amp-img>
+<amp-anim src=http://www.example.com/blah.jpg width=92 height=10></amp-anim>
+</body>
+</html>
+`
 
-		if !strings.Contains(input.String(), tc.expected) {
-			t.Errorf("%s: URLRewrite=\n%q\ndoes not contain=\n%q", tc.desc, &input, tc.expected)
+	first, err := transformAndPrint(html, "")
+	if err != nil {
+		t.Fatalf("transformAndPrint failed %q", err)
+	}
+	second, err := transformAndPrint(first, "")
+	if err != nil {
+		t.Fatalf("transformAndPrint failed %q", err)
+	}
+	if diff := cmp.Diff(first, second); diff != "" {
+		t.Errorf("URLRewrite not idempotent (-want, +got):\n%s", diff)
+	}
+}
+
+func transformAndPrint(input, base string) (string, error) {
+	documentURL, _ := url.Parse("https://example.com/")
+	baseURL, _ := url.Parse(base)
+	inputDoc, err := html.Parse(strings.NewReader(input))
+	if err != nil {
+		return "", err
+	}
+	inputDOM, err := amphtml.NewDOM(inputDoc)
+	if err != nil {
+		return "", err
+	}
+	transformers.URLRewrite(&transformers.Context{
+		DOM:         inputDOM,
+		BaseURL:     baseURL,
+		DocumentURL: documentURL,
+	})
+	var output strings.Builder
+	if err := html.Render(&output, inputDoc); err != nil {
+		return "", err
+	}
+	return output.String(), nil
+}
+
+func runURLRewriteTestcases(t *testing.T, tcs []urlRewriteTestCase) {
+	for _, tc := range tcs {
+		output, err := transformAndPrint(tc.input, tc.base)
+		if err != nil {
+			t.Errorf("%s: unexpected error %q", tc.desc, err)
+		}
+		if !strings.Contains(output, tc.expected) {
+			t.Errorf("%s: URLRewrite=\n%q\ndoes not contain=\n%q", tc.desc, output, tc.expected)
 		}
 	}
 }
