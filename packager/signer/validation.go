@@ -200,12 +200,22 @@ func validateFetch(req *http.Request, resp *http.Response) error {
 	// Validate response is publicly-cacheable, per
 	// https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-03#section-6.1, as referenced by
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-6.
+	//
+	// Note: If the cachecontrol library ever adds support for no-cache
+	// with field name arguments, then instruct the signer to remove these
+	// headers, per https://github.com/WICG/webpackage/pull/339.
 	nonCachableReasons, _, err := cachecontrol.CachableResponse(req, resp, cachecontrol.Options{PrivateCache: false})
 	if err != nil {
 		return errors.Wrap(err, "Parsing cache headers")
 	}
 	if len(nonCachableReasons) > 0 {
 		return errors.Errorf("Non-cacheable response: %s", nonCachableReasons)
+	}
+
+	// Validate that no Content-Encoding is specified. Otherwise, it was
+	// encoded as something that http.Client was unable to decode (e.g. br).
+	if encoding := resp.Header.Get("Content-Encoding"); encoding != "" {
+		return errors.Errorf("Invalid Content-Encoding: %s", encoding)
 	}
 
 	// Validate that Content-Type seems right. This doesn't validate its

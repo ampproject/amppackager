@@ -9,14 +9,14 @@ import (
 
 // The SXG version that packager can produce. In the future, it may need to be
 // able to produce multiple versions.
-const AcceptedSxgVersion = "b2"
+const AcceptedSxgVersion = "b3"
 
 // The Content-Type for the SXG version that the signer produces.
 const SxgContentType = "application/signed-exchange;v=" + AcceptedSxgVersion
 
 // The enum of the SXG version that the signer produces, for passing to the
 // signedexchange library.
-var SxgVersion = version.Version1b2
+var SxgVersion = version.Version1b3
 
 // True if the given Accept header is one that the packager can satisfy. It
 // must contain application/signed-exchange;v=$V so that the packager knows
