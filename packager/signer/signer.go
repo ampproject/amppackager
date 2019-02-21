@@ -465,12 +465,10 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		fetchResp.Header.Set("Link", linkHeader)
 	}
 
-	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
-	if err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
-		return
-	}
-	if err := exchange.MiEncodePayload(miRecordSize, accept.SxgVersion); err != nil {
+	exchange := signedexchange.NewExchange(
+		accept.SxgVersion, /*uri=*/signURL.String(), /*method=*/"GET",
+		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
+	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
@@ -497,12 +495,12 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		// default is to use getrandom(2) if available, else
 		// /dev/urandom.
 	}
-	if err := exchange.AddSignatureHeader(&signer, accept.SxgVersion); err != nil {
+	if err := exchange.AddSignatureHeader(&signer); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
 		return
 	}
 	var body bytes.Buffer
-	if err := exchange.Write(&body, accept.SxgVersion); err != nil {
+	if err := exchange.Write(&body); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
 	}
 

@@ -162,8 +162,9 @@ func (this *SignerSuite) TestSimple() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI.String())
-	this.Assert().Equal(http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
+	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI)
+	this.Assert().Equal("GET", exchange.RequestMethod)
+	this.Assert().Equal(http.Header{}, exchange.RequestHeaders)
 	this.Assert().Equal(200, exchange.ResponseStatus)
 	this.Assert().Equal(
 		[]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest", "x-content-type-options"},
@@ -197,7 +198,7 @@ func (this *SignerSuite) TestParamsInPostBody() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI.String())
+	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI)
 }
 
 func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
@@ -213,7 +214,7 @@ func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal(this.httpSignURL()+fakePath+"?%3Chi%3E", exchange.RequestURI.String())
+	this.Assert().Equal(this.httpSignURL()+fakePath+"?%3Chi%3E", exchange.RequestURI)
 }
 
 func (this *SignerSuite) TestNoFetchParam() {
@@ -225,7 +226,7 @@ func (this *SignerSuite) TestNoFetchParam() {
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
-	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI.String())
+	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI)
 }
 
 func (this *SignerSuite) TestSignAsPathParam() {
@@ -238,7 +239,7 @@ func (this *SignerSuite) TestSignAsPathParam() {
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
-	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI.String())
+	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI)
 }
 
 func (this *SignerSuite) TestPreservesContentType() {
