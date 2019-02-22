@@ -27,6 +27,7 @@ import (
 	"testing"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/rtv"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/ampproject/amppackager/packager/util"
@@ -74,12 +75,12 @@ func (this *SignerSuite) get(t *testing.T, handler pkgt.AlmostHandler, target st
 
 func (this *SignerSuite) getP(t *testing.T, handler pkgt.AlmostHandler, target string, params httprouter.Params) *http.Response {
 	return pkgt.GetHP(t, handler, target, http.Header{
-		"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=b2"}}, params)
+		"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion}}, params)
 }
 
 func (this *SignerSuite) getB(t *testing.T, handler pkgt.AlmostHandler, target string, body string) *http.Response {
 	return pkgt.GetBH(t, handler, target, strings.NewReader(body), http.Header{
-		"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=b2"}})
+		"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion}})
 }
 
 func (this *SignerSuite) httpURL() string {
@@ -162,8 +163,9 @@ func (this *SignerSuite) TestSimple() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI.String())
-	this.Assert().Equal(http.Header{":method": []string{"GET"}}, exchange.RequestHeaders)
+	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI)
+	this.Assert().Equal("GET", exchange.RequestMethod)
+	this.Assert().Equal(http.Header{}, exchange.RequestHeaders)
 	this.Assert().Equal(200, exchange.ResponseStatus)
 	this.Assert().Equal(
 		[]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest", "x-content-type-options"},
@@ -197,7 +199,7 @@ func (this *SignerSuite) TestParamsInPostBody() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI.String())
+	this.Assert().Equal(this.httpSignURL()+fakePath, exchange.RequestURI)
 }
 
 func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
@@ -213,7 +215,7 @@ func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal(this.httpSignURL()+fakePath+"?%3Chi%3E", exchange.RequestURI.String())
+	this.Assert().Equal(this.httpSignURL()+fakePath+"?%3Chi%3E", exchange.RequestURI)
 }
 
 func (this *SignerSuite) TestNoFetchParam() {
@@ -225,7 +227,7 @@ func (this *SignerSuite) TestNoFetchParam() {
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
-	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI.String())
+	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI)
 }
 
 func (this *SignerSuite) TestSignAsPathParam() {
@@ -238,7 +240,7 @@ func (this *SignerSuite) TestSignAsPathParam() {
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
-	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI.String())
+	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI)
 }
 
 func (this *SignerSuite) TestPreservesContentType() {
@@ -453,7 +455,7 @@ func (this *SignerSuite) TestProxyUnsignedIfMissingAMPCacheTransformHeader() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
 	}}
 	resp := pkgt.GetH(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath), http.Header{
-		"Accept": {"application/signed-exchange;v=b2"}})
+		"Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	body, err := ioutil.ReadAll(resp.Body)
 	this.Require().NoError(err)
@@ -470,6 +472,38 @@ func (this *SignerSuite) TestProxyUnsignedIfMissingAcceptHeader() {
 	body, err := ioutil.ReadAll(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
+}
+
+func (this *SignerSuite) TestProxyUnsignedNonCachable() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Header().Set("Cache-Control", "no-store")
+		resp.WriteHeader(200)
+	}
+
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(200, resp.StatusCode)
+	this.Assert().Equal("no-store", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
+}
+
+func (this *SignerSuite) TestProxyUnsignedBadContentEncoding() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Header().Set("Content-Encoding", "br")
+		resp.WriteHeader(200)
+	}
+
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(200, resp.StatusCode)
+	this.Assert().Equal("br", resp.Header.Get("Content-Encoding"))
+	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
 }
 
 func (this *SignerSuite) TestProxyUnsignedErrOnStatefulHeader() {
@@ -489,22 +523,23 @@ func (this *SignerSuite) TestProxyUnsignedErrOnStatefulHeader() {
 	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
 }
 
-func (this *SignerSuite) TestProxyUnsignedNonCachable() {
+func (this *SignerSuite) TestProxyUnsignedOnVariants() {
 	urlSets := []util.URLSet{{
-		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), true, 2000, nil},
 	}}
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
-		resp.Header().Set("Cache-Control", "no-store")
+		resp.Header().Set("Variants", "foo")
 		resp.Header().Set("Content-Type", "text/html")
 		resp.WriteHeader(200)
 	}
 
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(200, resp.StatusCode)
-	this.Assert().Equal("no-store", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("foo", resp.Header.Get("Variants"))
 	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
 }
+
 
 func (this *SignerSuite) TestProxyUnsignedIfNotAMP() {
 	urlSets := []util.URLSet{{

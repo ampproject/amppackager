@@ -26,6 +26,8 @@ func contextString(v version.Version) string {
 		return "HTTP Exchange 1 b1"
 	case version.Version1b2:
 		return "HTTP Exchange 1 b2"
+	case version.Version1b3:
+		return "HTTP Exchange 1 b3"
 	default:
 		panic("not reached")
 	}
@@ -41,7 +43,7 @@ type Signer struct {
 	Rand        io.Reader
 }
 
-func certSha256(certs []*x509.Certificate) []byte {
+func calculateCertSha256(certs []*x509.Certificate) []byte {
 	// Binary content (Section 4.5 of [I-D.ietf-httpbis-header-structure])
 	// holding the SHA-256 hash of the first certificate found at "certUrl".
 	if len(certs) == 0 {
@@ -51,8 +53,8 @@ func certSha256(certs []*x509.Certificate) []byte {
 	return sum[:]
 }
 
-func (s *Signer) serializeSignedMessage(e *Exchange, ver version.Version) ([]byte, error) {
-	switch ver {
+func serializeSignedMessage(e *Exchange, certSha256 []byte, validityUrl string, date, expires int64) ([]byte, error) {
+	switch e.Version {
 	case version.Version1b1:
 		// "Let message be the concatenation of the following byte strings.
 		// This matches the [I-D.ietf-tls-tls13] format to avoid cross-protocol
@@ -65,7 +67,7 @@ func (s *Signer) serializeSignedMessage(e *Exchange, ver version.Version) ([]byt
 		}
 
 		// "2. A context string: the ASCII encoding of "HTTP Exchange"." [spec text]
-		buf.WriteString(contextString(ver))
+		buf.WriteString(contextString(e.Version))
 
 		// "3. A single 0 byte which serves as a separator." [spec text]
 		buf.WriteByte(0)
@@ -76,11 +78,11 @@ func (s *Signer) serializeSignedMessage(e *Exchange, ver version.Version) ([]byt
 
 		// "4.1. If cert-sha256 is set: The text string "cert-sha256" to the byte string
 		// cert-sha256." [spec text]
-		if b := certSha256(s.Certs); len(b) > 0 {
+		if certSha256 != nil {
 			mes = append(mes,
 				cbor.GenerateMapEntry(func(keyE *cbor.Encoder, valueE *cbor.Encoder) {
 					keyE.EncodeTextString("cert-sha256")
-					valueE.EncodeByteString(b)
+					valueE.EncodeByteString(certSha256)
 				}))
 		}
 
@@ -89,25 +91,25 @@ func (s *Signer) serializeSignedMessage(e *Exchange, ver version.Version) ([]byt
 			// [spec text]
 			cbor.GenerateMapEntry(func(keyE *cbor.Encoder, valueE *cbor.Encoder) {
 				keyE.EncodeTextString("validity-url")
-				valueE.EncodeByteString([]byte(s.ValidityUrl.String()))
+				valueE.EncodeByteString([]byte(validityUrl))
 			}),
 			// "4.3. The text string "date" to the integer value of date."
 			// [spec text]
 			cbor.GenerateMapEntry(func(keyE *cbor.Encoder, valueE *cbor.Encoder) {
 				keyE.EncodeTextString("date")
-				valueE.EncodeInt(s.Date.Unix())
+				valueE.EncodeInt(date)
 			}),
 			// "4.4. The text string "expires" to the integer value of expires."
 			// [spec text]
 			cbor.GenerateMapEntry(func(keyE *cbor.Encoder, valueE *cbor.Encoder) {
 				keyE.EncodeTextString("expires")
-				valueE.EncodeInt(s.Expires.Unix())
+				valueE.EncodeInt(expires)
 			}),
 			// "4.5. The text string "headers" to the CBOR representation (Section
 			// 3.4) of exchange's headers."
 			cbor.GenerateMapEntry(func(keyE *cbor.Encoder, valueE *cbor.Encoder) {
 				keyE.EncodeTextString("headers")
-				e.encodeExchangeHeaders(valueE, ver)
+				e.encodeExchangeHeaders(valueE)
 			}),
 		)
 
@@ -117,7 +119,7 @@ func (s *Signer) serializeSignedMessage(e *Exchange, ver version.Version) ([]byt
 		}
 		return buf.Bytes(), nil
 
-	case version.Version1b2:
+	case version.Version1b2, version.Version1b3:
 		// draft-yasskin-http-origin-signed-responses.html#signature-validity
 
 		// "Let message be the concatenation of the following byte strings. This matches the [I-D.ietf-tls-tls13] format to avoid cross-protocol attacks if anyone uses the same key in a TLS certificate and an exchange-signing certificate." [spec text]
@@ -129,41 +131,41 @@ func (s *Signer) serializeSignedMessage(e *Exchange, ver version.Version) ([]byt
 		}
 
 		// "2. A context string: the ASCII encoding of “HTTP Exchange 1”." [spec text]
-		buf.WriteString(contextString(ver))
+		buf.WriteString(contextString(e.Version))
 
 		// "3. A single 0 byte which serves as a separator." [spec text]
 		buf.WriteByte(0)
 
 		// "4. If cert-sha256 is set, a byte holding the value 32 followed by the 32 bytes of the value of cert-sha256. Otherwise a 0 byte." [spec text]
-		if b := certSha256(s.Certs); len(b) > 0 {
+		if certSha256 != nil {
 			buf.WriteByte(32)
-			buf.Write(b)
+			buf.Write(certSha256)
 		}
 
 		// "5. The 8-byte big-endian encoding of the length in bytes of validity-url, followed by the bytes of validity-url." [spec text]
 		//bigendian
-		vurl := []byte(s.ValidityUrl.String())
+		vurl := []byte(validityUrl)
 		vurlLenBytes, _ := bigendian.EncodeBytesUint(int64(len(vurl)), 8)
 		buf.Write(vurlLenBytes)
 		buf.Write(vurl)
 
 		// "6. The 8-byte big-endian encoding of date." [spec text]
-		dateBytes, _ := bigendian.EncodeBytesUint(s.Date.Unix(), 8)
+		dateBytes, _ := bigendian.EncodeBytesUint(date, 8)
 		buf.Write(dateBytes)
 
 		// "7. The 8-byte big-endian encoding of expires." [spec text]
-		expiresBytes, _ := bigendian.EncodeBytesUint(s.Expires.Unix(), 8)
+		expiresBytes, _ := bigendian.EncodeBytesUint(expires, 8)
 		buf.Write(expiresBytes)
 
 		// "8. The 8-byte big-endian encoding of the length in bytes of requestUrl, followed by the bytes of requestUrl." [spec text]
-		rurl := []byte(e.RequestURI.String())
+		rurl := []byte(e.RequestURI)
 		rurlLenBytes, _ := bigendian.EncodeBytesUint(int64(len(rurl)), 8)
 		buf.Write(rurlLenBytes)
 		buf.Write(rurl)
 
 		// "9. The 8-byte big-endian encoding of the length in bytes of headers, followed by the bytes of headers." [spec text]
 		headerBuf := &bytes.Buffer{}
-		if err := e.encodeExchangeHeaders(cbor.NewEncoder(headerBuf), ver); err != nil {
+		if err := e.encodeExchangeHeaders(cbor.NewEncoder(headerBuf)); err != nil {
 			return nil, err
 		}
 		headerLenBytes, _ := bigendian.EncodeBytesUint(int64(headerBuf.Len()), 8)
@@ -176,7 +178,7 @@ func (s *Signer) serializeSignedMessage(e *Exchange, ver version.Version) ([]byt
 	}
 }
 
-func (s *Signer) sign(e *Exchange, ver version.Version) ([]byte, error) {
+func (s *Signer) sign(e *Exchange) ([]byte, error) {
 	r := s.Rand
 	if r == nil {
 		r = rand.Reader
@@ -186,7 +188,7 @@ func (s *Signer) sign(e *Exchange, ver version.Version) ([]byte, error) {
 		return nil, err
 	}
 
-	msg, err := s.serializeSignedMessage(e, ver)
+	msg, err := serializeSignedMessage(e, calculateCertSha256(s.Certs), s.ValidityUrl.String(), s.Date.Unix(), s.Expires.Unix())
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +196,7 @@ func (s *Signer) sign(e *Exchange, ver version.Version) ([]byte, error) {
 	return alg.Sign(msg)
 }
 
-func (s *Signer) signatureHeaderValue(e *Exchange, ver version.Version) (string, error) {
+func (s *Signer) signatureHeaderValue(e *Exchange) (string, error) {
 	switch s.CertUrl.Scheme {
 	case "https", "data":
 		break
@@ -202,7 +204,7 @@ func (s *Signer) signatureHeaderValue(e *Exchange, ver version.Version) (string,
 		return "", fmt.Errorf("signedexchange: cert-url with disallowed scheme %q. cert-url must have a scheme of \"https\" or \"data\".", s.CertUrl.Scheme)
 	}
 
-	sig, err := s.sign(e, ver)
+	sig, err := s.sign(e)
 	if err != nil {
 		return "", err
 	}
@@ -210,17 +212,17 @@ func (s *Signer) signatureHeaderValue(e *Exchange, ver version.Version) (string,
 	label := "label"
 	sigb64 := base64.StdEncoding.EncodeToString(sig)
 	integrityStr := ""
-	switch ver {
+	switch e.Version {
 	case version.Version1b1:
 		integrityStr = "mi-draft2"
-	case version.Version1b2:
+	case version.Version1b2, version.Version1b3:
 		integrityStr = "digest/mi-sha256-03"
 	default:
 		panic("not reached")
 	}
 	certUrl := s.CertUrl.String()
 	validityUrl := s.ValidityUrl.String()
-	certSha256b64 := base64.StdEncoding.EncodeToString(certSha256(s.Certs))
+	certSha256b64 := base64.StdEncoding.EncodeToString(calculateCertSha256(s.Certs))
 	dateUnix := s.Date.Unix()
 	expiresUnix := s.Expires.Unix()
 

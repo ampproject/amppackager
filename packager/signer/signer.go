@@ -67,13 +67,16 @@ var conditionalRequestHeaders = map[string]bool{
 var statefulResponseHeaders = map[string]bool{
 	"Authentication-Control":    true,
 	"Authentication-Info":       true,
+	"Clear-Site-Data":           true,
 	"Optional-WWW-Authenticate": true,
 	"Proxy-Authenticate":        true,
 	"Proxy-Authentication-Info": true,
+	"Public-Key-Pins":           true,
 	"Sec-WebSocket-Accept":      true,
 	"Set-Cookie":                true,
 	"Set-Cookie2":               true,
 	"SetProfile":                true,
+	"Strict-Transport-Security": true,
 	"WWW-Authenticate":          true,
 }
 
@@ -124,7 +127,10 @@ var protocol = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9a-zA-Z/]+$")
 //
 // Connection header should also be removed per
 // https://tools.ietf.org/html/rfc7230#section-6.1.
-var legacyHeaders = []string{"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailer", "Transfer-Encoding", "Upgrade"}
+//
+// Proxy-Connection should also be deleted, per
+// https://github.com/WICG/webpackage/pull/339.
+var legacyHeaders = []string{"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Proxy-Connection", "TE", "Trailer", "Transfer-Encoding", "Upgrade"}
 
 // Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
 func removeHopByHopHeaders(resp *http.Response) {
@@ -392,6 +398,14 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 
 		fetchResp.Header.Del("Link") // Ensure there are no privacy-violating Link:rel=preload headers.
 
+		if fetchResp.Header.Get("Variants") != "" || fetchResp.Header.Get("Variant-Key") != "" {
+			// Variants headers (https://tools.ietf.org/html/draft-ietf-httpbis-variants-04) are disallowed by AMP Cache.
+			// We could delete the headers, but it's safest to assume they reflect the downstream server's intent.
+			log.Println("Not packaging because response contains a Variants header.")
+			proxy(resp, fetchResp, nil)
+			return
+		}
+
 		this.serveSignedExchange(resp, fetchResp, signURL, transformVersion)
 
 	case 304:
@@ -465,12 +479,10 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		fetchResp.Header.Set("Link", linkHeader)
 	}
 
-	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
-	if err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
-		return
-	}
-	if err := exchange.MiEncodePayload(miRecordSize, accept.SxgVersion); err != nil {
+	exchange := signedexchange.NewExchange(
+		accept.SxgVersion, /*uri=*/signURL.String(), /*method=*/"GET",
+		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
+	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
@@ -497,12 +509,12 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		// default is to use getrandom(2) if available, else
 		// /dev/urandom.
 	}
-	if err := exchange.AddSignatureHeader(&signer, accept.SxgVersion); err != nil {
+	if err := exchange.AddSignatureHeader(&signer); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
 		return
 	}
 	var body bytes.Buffer
-	if err := exchange.Write(&body, accept.SxgVersion); err != nil {
+	if err := exchange.Write(&body); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
 	}
 
