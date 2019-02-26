@@ -45,6 +45,11 @@ func sameURLIgnoringFragment(base string, u *url.URL) bool {
 // control characters.
 func isProtocolRelative(urlParam string) bool {
 	for urlParam != "" && (urlParam)[0] <= 0x20 {
+		// If all of the string is whitespace/control, it's not protocol relative.
+		if len(urlParam) == 1 {
+			return false
+		}
+		// Otherwise, strip the first byte and try again.
 		urlParam = (urlParam)[1 : len(urlParam)-1]
 	}
 	return strings.HasPrefix(urlParam, "//")
