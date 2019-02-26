@@ -44,9 +44,9 @@ func sameURLIgnoringFragment(base string, u *url.URL) bool {
 // by looking for a "//" prefix after stripping any leading whitespace and
 // control characters.
 func isProtocolRelative(urlParam string) bool {
-	for urlParam != "" && (urlParam)[0] <= 0x20 {
-		urlParam = (urlParam)[1 : len(urlParam)-1]
-	}
+	urlParam = strings.TrimLeftFunc(urlParam, func(r rune) bool {
+		return r <= 0x20
+	})
 	return strings.HasPrefix(urlParam, "//")
 }
 
