@@ -42,6 +42,13 @@ func TestToAbsoluteURL(t *testing.T) {
 			expected:    "",
 		},
 		{
+			desc:        "Whitespace Only",
+			input:       " ",
+			baseURL:     barURL,
+			documentURL: rootURL,
+			expected:    "https://www.example.com/%20",
+		},
+		{
 			desc:    "protocol relative path",
 			input:   "//domain.com",
 			baseURL: barURL,
