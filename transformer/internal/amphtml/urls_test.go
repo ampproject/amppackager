@@ -42,12 +42,12 @@ func TestToAbsoluteURL(t *testing.T) {
 			expected:    "",
 		},
 		{
- 			desc:        "Whitespace Only",
- 			input:       " ",
- 			baseURL:     barURL,
- 			documentURL: rootURL,
- 			expected:    "https://www.example.com/%20",
- 		},
+			desc:        "Whitespace Only",
+			input:       " ",
+			baseURL:     barURL,
+			documentURL: rootURL,
+			expected:    "https://www.example.com/%20",
+		},
 		{
 			desc:    "protocol relative path",
 			input:   "//domain.com",
@@ -172,11 +172,11 @@ func TestToAbsoluteURL(t *testing.T) {
 			expected:    rootURL,
 		},
 		{
-			desc:        "query string encoded",
-			input:       "https://foo.com?q=i haz spaces",
+			desc:        "spaces encoded. '%20' in path, '+' in query string",
+			input:       "https://foo.com/i haz spaces?q=i haz spaces",
 			baseURL:     rootURL,
 			documentURL: rootURL,
-			expected:    "https://foo.com?q=i+haz+spaces",
+			expected:    "https://foo.com/i%20haz%20spaces?q=i+haz+spaces",
 		},
 		{
 			desc:        "key only query param",
