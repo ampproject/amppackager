@@ -171,6 +171,20 @@ func TestToAbsoluteURL(t *testing.T) {
 			documentURL: rootURL,
 			expected:    rootURL,
 		},
+		{
+			desc:        "query string encoded",
+			input:       "https://foo.com?q=i haz spaces",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    "https://foo.com?q=i+haz+spaces",
+		},
+		{
+			desc:        "key only query param",
+			input:       "https://foo.com?q",
+			baseURL:     rootURL,
+			documentURL: rootURL,
+			expected:    "https://foo.com?q",
+		},
 	}
 	for _, tc := range tcs {
 		baseURL, _ := url.Parse(tc.baseURL)

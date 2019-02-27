@@ -50,6 +50,8 @@ func isProtocolRelative(urlParam string) bool {
 	return strings.HasPrefix(urlParam, "//")
 }
 
+var queryEncoder = strings.NewReplacer(" ", "+")
+
 // ToAbsoluteURL absolute-ifies |urlParam|, using |baseURL| as the base if
 // |urlParam| is relative. If |urlParam| contains a fragment, this method
 // will return only a fragment if it's absolute URL matches |documentURL|,
@@ -107,6 +109,11 @@ func ToAbsoluteURL(documentURL string, baseURL *url.URL,
 		return "#" + absoluteURL.Fragment
 	}
 
+	// Go's URL parser doesn't properly encode query string at parse time.
+	// See https://github.com/golang/go/issues/22907 .
+	// This currently only does the bare minimum:
+	//  - encode space to "+"
+	absoluteURL.RawQuery = queryEncoder.Replace(absoluteURL.RawQuery)
 	return absoluteURL.String()
 }
 
