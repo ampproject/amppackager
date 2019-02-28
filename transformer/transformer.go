@@ -65,9 +65,7 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		transformers.AbsoluteURL,
 		transformers.AMPBoilerplate,
 		transformers.UnusedExtensions,
-		// TODO(alin04): Reenable SSR once validation is done.
-		// transformers.ServerSideRendering,
-		// end TODO
+		transformers.ServerSideRendering,
 		transformers.AMPRuntimeCSS,
 		transformers.TransformedIdentifier,
 		transformers.URLRewrite,
