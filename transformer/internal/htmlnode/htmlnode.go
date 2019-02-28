@@ -172,11 +172,12 @@ func PrependAttribute(n *html.Node, namespace, key, val string) {
 // attribute doesn't exist, it adds it.
 func addAttributeValue(n *html.Node, namespace, key, val string, prepend bool, sep string) {
 	if a, ok := FindAttribute(n, namespace, key); ok {
-		if prepend {
+		if len(a.Val) == 0 {
+			a.Val = val
+		} else if prepend {
 			a.Val = val + sep + a.Val
 		} else {
-			// Strips whitespace and does not add separator if not needed.
-			a.Val = strings.TrimSpace(a.Val)
+			// Only add separator if needed.
 			if strings.EqualFold(a.Val[len(a.Val)-1:], sep) {
 				a.Val = a.Val + val
 			} else {
