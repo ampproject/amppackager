@@ -77,7 +77,7 @@ func main() {
 		http.ServeFile(resp, req, *flagCert)
 	})
 	http.HandleFunc("/test.sxg", func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Set("Content-Type", "application/signed-exchange;v=b2")
+		resp.Header().Set("Content-Type", "application/signed-exchange;v=b3")
 		http.ServeContent(resp, req, "test.sxg", time.Time{}, sxgReader)
 	})
 	log.Println("Serving on port", *flagPort)

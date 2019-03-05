@@ -23,7 +23,7 @@ func getSXG(url string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	req.Header.Set("Accept", "application/signed-exchange;v=b2")
+	req.Header.Set("Accept", "application/signed-exchange;v=b3")
 	req.Header.Set("AMP-Cache-Transform", "any")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
