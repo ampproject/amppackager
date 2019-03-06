@@ -27,8 +27,8 @@ import (
 
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"github.com/pkg/errors"
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 type writer interface {

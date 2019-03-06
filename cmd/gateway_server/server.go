@@ -15,23 +15,21 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
-	pb "github.com/amaltas/gateway"
+	pb "github.com/ampproject/amppackager/cmd/gateway_server/gateway"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
-	// For this import to work, delete vendor/julienschmidt from
-	// amppackager project. I couldn't figure out how to fix this.
 	"github.com/julienschmidt/httprouter"
 	"google.golang.org/grpc"
 )
 
 var (
-	port = flag.Int("port", 9000, "Gateway server port")
+	port                = flag.Int("port", 9000, "Gateway server port")
 	publisherServerPort = flag.Int("publisher_server_port", 10000,
-	    "Publisher server port.")
+		"Publisher server port.")
 	privateKey = flag.String("private_key", "",
-	    "Path to private key. Must be same private key used to generate certs.")
-    )
+		"Path to private key. Must be same private key used to generate certs.")
+)
 
 type gatewayServer struct{}
 
@@ -69,8 +67,8 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 	}
 
 	var dotStarPattern = ".*"
-	signUrlPattern := util.URLPattern {
-                Domain:    signUrl.Host,
+	signUrlPattern := util.URLPattern{
+		Domain:  signUrl.Host,
 		QueryRE: &dotStarPattern,
 	}
 	err = util.ValidateSignURLPattern(&signUrlPattern)
@@ -78,12 +76,12 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 		return errorToSXGResponse(err), nil
 	}
 
-	fetchUrlPattern := util.URLPattern {
-		Scheme:    []string{"http"},
-		Domain:    fmt.Sprintf("localhost:%d", *publisherServerPort),
+	fetchUrlPattern := util.URLPattern{
+		Scheme:                 []string{"http"},
+		Domain:                 fmt.Sprintf("localhost:%d", *publisherServerPort),
 		ErrorOnStatefulHeaders: false,
-		QueryRE: &dotStarPattern,
-                SamePath:  new(bool),
+		QueryRE:                &dotStarPattern,
+		SamePath:               new(bool),
 	}
 	*fetchUrlPattern.SamePath = false
 	err = util.ValidateFetchURLPattern(&fetchUrlPattern)
@@ -93,7 +91,7 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 
 	urlSets := []util.URLSet{
 		{
-			Sign: &signUrlPattern,
+			Sign:  &signUrlPattern,
 			Fetch: &fetchUrlPattern,
 		},
 	}
@@ -120,10 +118,12 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 	httpreq, err := http.NewRequest("GET", baseUrl.String(), nil)
 	httpresp := httptest.NewRecorder()
 	packager.ServeHTTP(httpresp, httpreq, httprouter.Params{})
+
+	// TODO(amaltas): Capture error when signer returns unsigned document.
 	if httpresp.Code != 200 {
 		// TODO(amaltas): Add counter.
 		return &pb.SXGResponse{
-			Error: true,
+			Error:            true,
 			ErrorDescription: "Packager error.",
 		}, nil
 	}
@@ -143,17 +143,17 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 	}
 
 	// Record http headers from the packager.
-	http_headers := make(map[string]string)
+	http_headers := map[string]string{}
 	for header_key, header_value := range httpresp.Header() {
 		// Ignores multiple header values.
 		http_headers[strings.ToLower(header_key)] =
-		string(header_value[0])
+			string(header_value[0])
 	}
 
 	return &pb.SXGResponse{
-		Sxg: httpresp.Body.Bytes(),
-	        Cbor: buf.Bytes(),
-	        HttpHeaders: http_headers}, nil
+		Sxg:         httpresp.Body.Bytes(),
+		Cbor:        buf.Bytes(),
+		HttpHeaders: http_headers}, nil
 }
 
 func main() {
@@ -163,7 +163,7 @@ func main() {
 		log.Fatalf("Error reading private key file.")
 	}
 	key, err := util.ParsePrivateKey(keyPem)
-	if (err != nil) {
+	if err != nil {
 		log.Fatalf("Error reading parsed private key string.")
 	}
 	if key == nil {
@@ -174,10 +174,10 @@ func main() {
 		log.Fatalf("Set flag -port")
 	}
 	if *publisherServerPort == -1 {
-		log.Fatalf("Set falg -publisher-server-port")
+		log.Fatalf("Set flag -publisher-server-port")
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", *port))
+	listener, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", *port))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
@@ -186,5 +186,5 @@ func main() {
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterGatewayServiceServer(grpcServer, &gatewayServer{})
 	fmt.Println("Starting server on port: ", *port)
-	grpcServer.Serve(lis)
+	grpcServer.Serve(listener)
 }

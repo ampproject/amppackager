@@ -480,7 +480,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	}
 
 	exchange := signedexchange.NewExchange(
-		accept.SxgVersion, /*uri=*/signURL.String(), /*method=*/"GET",
+		accept.SxgVersion /*uri=*/, signURL.String() /*method=*/, "GET",
 		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)

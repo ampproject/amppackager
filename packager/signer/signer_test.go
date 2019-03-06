@@ -540,7 +540,6 @@ func (this *SignerSuite) TestProxyUnsignedOnVariants() {
 	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
 }
 
-
 func (this *SignerSuite) TestProxyUnsignedIfNotAMP() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}

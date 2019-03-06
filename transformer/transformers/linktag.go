@@ -19,8 +19,8 @@ import (
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // LinkTag operates on the <link> tag.

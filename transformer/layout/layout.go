@@ -18,12 +18,12 @@ import (
 	"strconv"
 	"strings"
 
+	amppb "github.com/ampproject/amphtml/validator"
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"github.com/pkg/errors"
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
-	amppb "github.com/ampproject/amphtml/validator"
+	"golang.org/x/net/html/atom"
 )
 
 // String constants to avoid magic numbers

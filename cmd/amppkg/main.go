@@ -32,10 +32,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/packager/validitymap"
-	"github.com/ampproject/amppackager/packager/rtv"
 )
 
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
@@ -126,7 +126,7 @@ func main() {
 	}
 
 	packager, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment)
+		overrideBaseURL /*requireHeaders=*/, !*flagDevelopment)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
 	}

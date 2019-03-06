@@ -42,9 +42,9 @@ func TestMinimalValidConfig(t *testing.T) {
 		OCSPCache: "/tmp/ocsp",
 		URLSet: []URLSet{{
 			Sign: &URLPattern{
-				Domain:  "example.com",
-				PathRE:  stringPtr(".*"),
-				QueryRE: stringPtr(""),
+				Domain:    "example.com",
+				PathRE:    stringPtr(".*"),
+				QueryRE:   stringPtr(""),
 				MaxLength: 2000,
 			},
 		}},

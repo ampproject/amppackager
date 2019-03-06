@@ -17,8 +17,8 @@ package transformers
 import (
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // AMPBoilerplate removes <style> and <noscript> tags in <head>,

@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"testing"
 
-	"golang.org/x/net/html"
 	amppb "github.com/ampproject/amphtml/validator"
+	"golang.org/x/net/html"
 )
 
 func TestValidCSSLength(t *testing.T) {
