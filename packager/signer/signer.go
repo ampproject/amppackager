@@ -192,7 +192,7 @@ func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
 }
 
-func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
+func (this *Signer) fetchURL(fetch *url.URL, sign *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
 	ampURL := fetch.String()
 
 	log.Printf("Fetching URL: %q\n", ampURL)
@@ -216,6 +216,10 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		if value := GetJoined(serveHTTPReq.Header, header); value != "" {
 			req.Header.Set(header, value)
 		}
+	}
+	// Rewrite host to that of signURL when fetchURL is different.
+	if req.Host != sign.Host {
+		req.Host = sign.Host
 	}
 	resp, err := this.client.Do(req)
 	if err != nil {
@@ -331,7 +335,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		return
 	}
 
-	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req)
+	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, signURL, req)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return

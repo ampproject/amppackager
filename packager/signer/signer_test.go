@@ -101,6 +101,17 @@ func (this *SignerSuite) httpSignURL() string {
 	return u.String()
 }
 
+func (this *SignerSuite) certSubjectCN() string {
+	return pkgt.Certs[0].Subject.CommonName
+}
+
+func (this *SignerSuite) httpSignURL_CertSubjectCN() string {
+	u, err := url.Parse(this.certSubjectCN())
+	this.Require().NoError(err)
+	u.Scheme = "https"
+	return u.String()
+}
+
 func (this *SignerSuite) httpsURL() string {
 	return this.tlsServer.URL
 }
@@ -181,6 +192,45 @@ func (this *SignerSuite) TestSimple() {
 	// The response header values are untested here, as that is covered by signedexchange tests.
 
 	// For small enough bodies, the only thing that MICE does is add a record size prefix.
+	var payloadPrefix bytes.Buffer
+	binary.Write(&payloadPrefix, binary.BigEndian, uint64(miRecordSize))
+	this.Assert().Equal(append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)
+}
+
+func (this *SignerSuite) TestFetchSign() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.certSubjectCN(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
+	}}
+	resp := this.get(this.T(), this.new(urlSets),
+		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath)+
+			"&sign="+url.QueryEscape(this.httpSignURL_CertSubjectCN()+fakePath))
+
+	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
+	this.Assert().Equal(this.certSubjectCN(), this.lastRequest.Host)
+	this.Assert().Equal(userAgent, this.lastRequest.Header.Get("User-Agent"))
+	this.Assert().Equal("1.1 amppkg", this.lastRequest.Header.Get("Via"))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	this.Assert().Equal(fmt.Sprintf(`google;v="%d"`, transformer.SupportedVersions[0].Max), resp.Header.Get("AMP-Cache-Transform"))
+	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
+	this.Assert().Equal("Accept, AMP-Cache-Transform", resp.Header.Get("Vary"))
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(this.httpSignURL_CertSubjectCN()+fakePath, exchange.RequestURI)
+	this.Assert().Equal("GET", exchange.RequestMethod)
+	this.Assert().Equal(http.Header{}, exchange.RequestHeaders)
+	this.Assert().Equal(200, exchange.ResponseStatus)
+	this.Assert().Equal(
+		[]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest", "x-content-type-options"},
+		headerNames(exchange.ResponseHeaders))
+	this.Assert().Equal("text/html", exchange.ResponseHeaders.Get("Content-Type"))
+	this.Assert().Equal("text/html", exchange.ResponseHeaders.Get("Content-Type"))
+	this.Assert().Equal("nosniff", exchange.ResponseHeaders.Get("X-Content-Type-Options"))
+	this.Assert().Contains(exchange.SignatureHeaderValue, "validity-url=\""+this.httpSignURL_CertSubjectCN()+"/amppkg/validity\"")
+	this.Assert().Contains(exchange.SignatureHeaderValue, "integrity=\"digest/mi-sha256-03\"")
+	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-url=\""+this.httpSignURL_CertSubjectCN()+"/amppkg/cert/"+pkgt.CertName+"\"")
+	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*"+pkgt.CertName+"=*")
 	var payloadPrefix bytes.Buffer
 	binary.Write(&payloadPrefix, binary.BigEndian, uint64(miRecordSize))
 	this.Assert().Equal(append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)
