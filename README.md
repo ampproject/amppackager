@@ -42,7 +42,6 @@ own and can obtain certificates for.
   3. Create a file `amppkg.toml`. A minimal config looks like this:
      ```
      LocalOnly = true
-     PackagerBase = 'https://localhost:8080/'
      CertFile = 'path/to/fullchain.pem'
      KeyFile = 'path/to/privkey.pem'
      OCSPCache = '/tmp/amppkg-ocsp'
