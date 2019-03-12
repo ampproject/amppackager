@@ -42,6 +42,8 @@ instruct your browser to trust `ca.cert`.
   files that are mirrored from Google to GitHub, so we can't change them here.
 - Make sure `go test ./...` passes.
 - `golint` and `go vet` are optional.
+- Make sure PRs are sent to `develop` and not `master`, unless you're releasing
+  a new version of amppkg.
 
 ## New dependencies
 

@@ -120,6 +120,16 @@ For now, productionizing is a bit manual. The minimum steps are:
      extension](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-cert-req).
      One provider of SXG certs is [DigiCert](https://www.digicert.com/account/ietf/http-signed-exchange.php).
      You MUST use this in `amppkg.toml`, and MUST NOT use it in your frontend.
+  6. Restart amppkg every ~90 days with after renewing your SXG cert (this
+     is due to WICG/webpackage#383 and #93).
+  7. Keep amppkg updated from `master` (e.g. with `go get`) about every ~2
+     months. The details of this release cadence are still being worked out, but
+     they will be signaled by Googlebot changing its `AMP-Cache-Transform`
+     header from `google;v=N` to `google;v=N..{N+1}` and then ~2 months later to
+     `google;v={N+1}`. (Or perhaps Google will always allow at least 2 versions;
+     TBD.) `master` is the release branch, so you can use [various
+     tools](https://stackoverflow.com/questions/9845655/how-do-i-get-notifications-for-commits-to-a-repository)
+     to subscribe to releases.
 
 You may also want to:
 
