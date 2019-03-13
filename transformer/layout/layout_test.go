@@ -18,9 +18,9 @@ import (
 	"strings"
 	"testing"
 
+	amppb "github.com/ampproject/amphtml/validator"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html"
-	amppb "github.com/ampproject/amphtml/validator"
 )
 
 func TestEveryEnumHandled(t *testing.T) {

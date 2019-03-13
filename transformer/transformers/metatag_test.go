@@ -42,7 +42,7 @@ func TestMetaTag(t *testing.T) {
 				"<meta content=experiment-a name=amp-experiments-opt-in>",
 				"<meta content=experiment-b name=amp-experiments-opt-in>",
 				tt.LinkFavicon, tt.LinkCanonical,
-                                tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"<meta content=experiment-c name=amp-experiments-opt-in>",
 				"</head><body></body></html>"),
 		},

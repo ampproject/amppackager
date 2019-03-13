@@ -28,8 +28,8 @@ import (
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"github.com/pkg/errors"
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // Transformer functions must be added here in order to be passed in from
@@ -87,7 +87,6 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 // should be enforced by AMP Caches, to protect any pages that prefetch the SXG
 // from an unnecessary number of fetches.
 const maxPreloads = 20
-
 
 // Override for tests.
 var runTransformers = func(c *transformers.Context, fns []func(*transformers.Context) error) error {

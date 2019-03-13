@@ -76,7 +76,7 @@ func parseParameterisedList(reader *strings.Reader) ([]parameterisedIdentifier, 
 }
 
 const (
-	parameterSeparator = ';'
+	parameterSeparator      = ';'
 	parameterValueSeparator = '='
 )
 
@@ -144,7 +144,7 @@ func parseParameterisedIdentifier(reader *strings.Reader) (*parameterisedIdentif
 
 const (
 	stringDelimiter = '"'
-	stringEscape = '\\'
+	stringEscape    = '\\'
 )
 
 func invalidStringChar(char byte) bool {
@@ -264,7 +264,7 @@ func parseVersions(vSpec string) ([]*rpb.VersionRange, error) {
 // The valid set of "destination AMP cache" identifiers for which this packager
 // can serve a request. Eventually, this should be parsed from caches.json
 // (issue #156).
-var validIdentifiers = map[string]bool {"any": true, "google": true}
+var validIdentifiers = map[string]bool{"any": true, "google": true}
 
 const versionParamName = "v"
 

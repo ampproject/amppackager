@@ -24,8 +24,8 @@ import (
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/css"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 type rewritable interface {

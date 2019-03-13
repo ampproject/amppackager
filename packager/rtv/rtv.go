@@ -29,9 +29,9 @@ type rtvData struct {
 }
 
 type RTVCache struct {
-	d  *rtvData
-	c  http.Client
-	lk sync.Mutex
+	d    *rtvData
+	c    http.Client
+	lk   sync.Mutex
 	stop chan struct{}
 }
 
@@ -54,7 +54,7 @@ func (r *RTVCache) StartCron() {
 		for {
 			select {
 			case <-ticker.C:
-				r.poll()  // Ignores error return.
+				r.poll() // Ignores error return.
 			case <-r.stop:
 				ticker.Stop()
 				return

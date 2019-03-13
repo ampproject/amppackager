@@ -2,8 +2,7 @@
 // Using Gateway service c++ testing environment (client) can call go code
 // (server).
 //
-// Gateway server is implemented in go lang and is hosted in private repository
-// in github. It uses public implementation of go gRPC library.
+// Gateway server uses public implementation of go gRPC library.
 
 syntax = "proto3";
 

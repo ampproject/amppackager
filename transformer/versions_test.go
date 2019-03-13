@@ -8,8 +8,8 @@ import (
 
 func TestValidateRequest(t *testing.T) {
 	tests := []struct {
-		rs []*rpb.VersionRange
-		expectedError        bool
+		rs            []*rpb.VersionRange
+		expectedError bool
 	}{
 		{
 			rs:            nil,

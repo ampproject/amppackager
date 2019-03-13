@@ -218,7 +218,6 @@ func ToCacheURLSubdomain(originHost string) string {
 	return fallbackCacheURLSubdomain(originHost)
 }
 
-
 func fallbackCacheURLSubdomain(originHost string) string {
 	sha := sha256.New()
 	sha.Write([]byte(originHost))
@@ -226,4 +225,3 @@ func fallbackCacheURLSubdomain(originHost string) string {
 	// Remove the last four chars are always "====" which are not legal in a domain name.
 	return strings.ToLower(result[0:52])
 }
-

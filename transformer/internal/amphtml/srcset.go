@@ -62,7 +62,6 @@ func roundUp(w int) int {
 	return legitimateWidths[len(legitimateWidths)-1]
 }
 
-
 // Regex for leading spaces, followed by an optional comma and whitespace,
 // followed by an URL*, followed by an optional space, followed by an
 // optional width or pixel density**, followed by spaces, followed by an
@@ -144,4 +143,3 @@ func ParseSrcset(in string) (string, []SubresourceOffset) {
 	}
 	return sb.String(), ret
 }
-

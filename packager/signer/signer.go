@@ -401,12 +401,19 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		fetchResp.Header.Set("Link", linkHeader)
 	}
 
+<<<<<<< HEAD
 	exchange, err := signedexchange.NewExchange(signURL, http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error building exchange: ", err).LogAndRespond(resp)
 		return
 	}
 	if err := exchange.MiEncodePayload(miRecordSize, accept.SxgVersion); err != nil {
+=======
+	exchange := signedexchange.NewExchange(
+		accept.SxgVersion /*uri=*/, signURL.String() /*method=*/, "GET",
+		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
+	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
+>>>>>>> Addressed comments in:
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}

@@ -17,8 +17,8 @@ package htmlnode
 import (
 	"strings"
 
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // RemoveNode removes the node and adjusts the Node pointer to continue
