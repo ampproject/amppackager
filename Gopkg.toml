@@ -25,6 +25,8 @@
 #   unused-packages = true
 
 
+ignored = ["google.golang.org/grpc"]
+
 [prune]
   go-tests = true
   unused-packages = true
