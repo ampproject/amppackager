@@ -29,6 +29,11 @@ Guidelines](https://opensource.google.com/conduct/).
 
 # Getting Started
 
+## Cloning the repository
+
+When cloning, use `git clone -b master`; the default branch is `releases` which
+is not meant for developing against.
+
 ## Running a development server
 
 Copy `amppkg.example.toml` to `amppkg.toml` and modify it to suit your needs.
@@ -42,6 +47,8 @@ instruct your browser to trust `ca.cert`.
   files that are mirrored from Google to GitHub, so we can't change them here.
 - Make sure `go test ./...` passes.
 - `golint` and `go vet` are optional.
+- Make sure PRs are sent to `master` and not `releases`, unless you're releasing
+  a new version of amppkg.
 
 ## New dependencies
 
