@@ -4,16 +4,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/WICG/webpackage"
-  packages = [
-    "go/signedexchange",
-    "go/signedexchange/cbor",
-    "go/signedexchange/certurl",
-    "go/signedexchange/internal/bigendian",
-    "go/signedexchange/internal/signingalgorithm",
-    "go/signedexchange/mice",
-    "go/signedexchange/structuredheader",
-    "go/signedexchange/version"
-  ]
+  packages = ["go/signedexchange","go/signedexchange/cbor","go/signedexchange/certurl","go/signedexchange/internal/bigendian","go/signedexchange/internal/signingalgorithm","go/signedexchange/mice","go/signedexchange/structuredheader","go/signedexchange/version"]
   revision = "70386c3750f2ba5fbcb6e66835df0578b2a55c13"
 
 [[projects]]
@@ -31,18 +22,12 @@
 [[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
+  revision = "c823c79ea1570fb5ff454033735a8e68575d1d0f"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/google/go-cmp"
-  packages = [
-    "cmp",
-    "cmp/cmpopts",
-    "cmp/internal/diff",
-    "cmp/internal/function",
-    "cmp/internal/value"
-  ]
+  packages = ["cmp","cmp/cmpopts","cmp/internal/diff","cmp/internal/function","cmp/internal/value"]
   revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
   version = "v0.2.0"
 
@@ -73,19 +58,12 @@
 [[projects]]
   branch = "master"
   name = "github.com/pquerna/cachecontrol"
-  packages = [
-    ".",
-    "cacheobject"
-  ]
+  packages = [".","cacheobject"]
   revision = "525d0eb5f91d30e3b1548de401b7ef9ea6898520"
 
 [[projects]]
   name = "github.com/stretchr/testify"
-  packages = [
-    "assert",
-    "require",
-    "suite"
-  ]
+  packages = ["assert","require","suite"]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
@@ -104,37 +82,18 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = [
-    "html",
-    "html/atom",
-    "idna"
-  ]
+  packages = ["html","html/atom","idna"]
   revision = "f9ce57c11b242f0f1599cf25c89d8cb02c45295a"
 
 [[projects]]
   name = "golang.org/x/text"
-  packages = [
-    "collate",
-    "collate/build",
-    "internal/colltab",
-    "internal/gen",
-    "internal/tag",
-    "internal/triegen",
-    "internal/ucd",
-    "language",
-    "secure/bidirule",
-    "transform",
-    "unicode/bidi",
-    "unicode/cldr",
-    "unicode/norm",
-    "unicode/rangetable"
-  ]
+  packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "57ada0db71d59cf41009c5fed7eca533452a7ffa7af346db64b6244a63cbbab7"
+  inputs-digest = "ea6e0ce97e189ec01467cc5586a863947300e191b6be9b6bec174199431ff000"
   solver-name = "gps-cdcl"
   solver-version = 1
