@@ -540,6 +540,22 @@ func (this *SignerSuite) TestProxyUnsignedOnVariants() {
 	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
 }
 
+func (this *SignerSuite) TestProxyUnsignedOnVariants04() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), true, 2000, nil},
+	}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Header().Set("Variants-04", "foo")
+		resp.Header().Set("Content-Type", "text/html")
+		resp.WriteHeader(200)
+	}
+
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(200, resp.StatusCode)
+	this.Assert().Equal("foo", resp.Header.Get("Variants-04"))
+	this.Assert().Equal("text/html", resp.Header.Get("Content-Type"))
+}
 
 func (this *SignerSuite) TestProxyUnsignedIfNotAMP() {
 	urlSets := []util.URLSet{{
