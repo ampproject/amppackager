@@ -25,6 +25,7 @@ import (
 
 // LinkTag operates on the <link> tag.
 // * It will add a preconnect link tag for Google Font resources.
+// * It will add a preconnect link tag to the publisher's own origin.
 func LinkTag(e *Context) error {
 	preconnectAdded := false
 
@@ -34,6 +35,8 @@ func LinkTag(e *Context) error {
 			preconnectAdded = true
 		}
 	}
+
+	addLinkPublisherOriginPreconnect(e.DOM.HeadNode, e.DocumentURL)
 	return nil
 }
 
@@ -59,6 +62,35 @@ func addLinkGoogleFontPreconnect(n *html.Node) {
 	if n.DataAtom != atom.Link {
 		return
 	}
-	preconnect := htmlnode.Element("link", html.Attribute{Key: "crossorigin"}, html.Attribute{Key: "href", Val: "https://fonts.gstatic.com/"}, html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
+	preconnect :=
+		htmlnode.Element("link",
+			html.Attribute{Key: "crossorigin"},
+			html.Attribute{Key: "href", Val: "https://fonts.gstatic.com/"},
+			html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
 	n.Parent.InsertBefore(preconnect, n)
+}
+
+// addLinkPublisherOriginPreconnect adds a preconnect link tag for the
+// publisher's own origin. This will only occur once the SXG is fully loaded
+// so does not invalidate privacy preserving preload. For publishers that load
+// dynamic resources, this will speed up those requests.
+func addLinkPublisherOriginPreconnect(n *html.Node, u *url.URL) {
+	if n.DataAtom != atom.Head {
+		return
+	}
+	// Generates a preconnect value, which does not need anything
+	// other than the origin to connect to, so to shave some bytes, strip
+	// everything else.
+	urlCopy := *u
+	urlCopy.User = nil
+	urlCopy.Path = ""
+	urlCopy.ForceQuery = false
+	urlCopy.RawQuery = ""
+	urlCopy.Fragment = ""
+
+	preconnect :=
+		htmlnode.Element("link",
+			html.Attribute{Key: "href", Val: urlCopy.String()},
+			html.Attribute{Key: "rel", Val: "dns-prefetch preconnect"})
+	n.AppendChild(preconnect)
 }
