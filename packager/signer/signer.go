@@ -398,7 +398,9 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 
 		fetchResp.Header.Del("Link") // Ensure there are no privacy-violating Link:rel=preload headers.
 
-		if fetchResp.Header.Get("Variants") != "" || fetchResp.Header.Get("Variant-Key") != "" {
+		if fetchResp.Header.Get("Variants") != "" || fetchResp.Header.Get("Variant-Key") != "" ||
+			// Include versioned headers per https://github.com/WICG/webpackage/pull/406.
+			fetchResp.Header.Get("Variants-04") != "" || fetchResp.Header.Get("Variant-Key-04") != "" {
 			// Variants headers (https://tools.ietf.org/html/draft-ietf-httpbis-variants-04) are disallowed by AMP Cache.
 			// We could delete the headers, but it's safest to assume they reflect the downstream server's intent.
 			log.Println("Not packaging because response contains a Variants header.")
