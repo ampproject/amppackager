@@ -72,6 +72,9 @@ func insertMatchingExtensions(n *html.Node, e map[string]string) {
 		if v, ok := htmlnode.GetAttributeVal(n, "", "id"); ok && strings.EqualFold(v, "amp-access") {
 			e["amp-access"] = ""
 		}
+		if v, ok := htmlnode.GetAttributeVal(n, "", "template"); ok && strings.EqualFold(v, "amp-mustache") {
+			e["amp-mustache"] = ""
+		}
 	case "amp-embed":
 		e["amp-ad"] = ""
 	case "form":
