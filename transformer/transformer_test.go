@@ -200,6 +200,23 @@ func TestError(t *testing.T) {
 	}
 }
 
+func TestInvalidUTF8(t *testing.T) {
+	tests := []struct { html, expectedError  string }{
+		{"<html ⚡><le\003mur>", "character U+0003 at position 13 is not allowed in AMPHTML"},
+		{"<html ⚡><le\xc0mur>", "invalid UTF-8 at byte position 13"},
+	}
+	for _, test := range tests {
+		r := rpb.Request{Html: test.html, Config: rpb.Request_DEFAULT}
+		_, _, err := Process(&r)
+		if err == nil {
+			t.Fatalf("Process(%q) unexpectedly succeeded", test.html)
+		}
+		if err.Error() != test.expectedError {
+			t.Fatalf("Process(%q) mismatched error. got=%s, want=%s", test.html, err.Error(), test.expectedError)
+		}
+	}
+}
+
 func TestRequireAMPAttribute(t *testing.T) {
 	tests := []struct {
 		desc                     string
