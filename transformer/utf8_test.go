@@ -13,7 +13,8 @@ var minimumValidAMP = tt.Concat(
 	tt.NoscriptAMPBoilerplate, "</head><body></body></html>",
 )
 
-// True if the rune is known to cause parse errors during preprocessing, per
+// True if the code point is known to cause parse errors during HTML
+// preprocessing, per
 // https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream,
 // or if it is U+0000 NULL.
 //
@@ -27,8 +28,8 @@ func isHTMLInvalid(r rune) bool {
 		// https://infra.spec.whatwg.org/#surrogate
 		(r >= 0xD800 && r <= 0xDFFF) ||
 		// https://infra.spec.whatwg.org/#noncharacter
-		(r >= 0xFDD0 && r <= 0xFDEF) || r == 0xFFFE ||
-		(r >= 0xFFFF && r <= 0x10FFFF && r & 0xFFFF == 0xFFFF) ||
+		(r >= 0xFDD0 && r <= 0xFDEF) ||
+		(r >= 0xFFFE && r <= 0x10FFFF && r & 0xFFFE == 0xFFFE) ||
 		// http://unicode.org/glossary/#codespace
 		(r >= 0x110000))
 }

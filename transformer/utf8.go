@@ -6,16 +6,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-// False if the rune is known to cause parse errors during preprocessing, per
+// False if the code point is known to cause parse errors during HTML
+// preprocessing, per
 // https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
 //
 // Also false for U+0000 NULL, as that causes parse errors everywhere except
 // CDATA, and for defense in depth we don't assume that all parsers interpret
 // this properly.
 func isHTMLValidInternal(r rune) bool {
-	// In order to reduce the average number of comparisons per rune, test
-	// for validity (OR of ANDs) rather than invalidity (AND of ORs), and
-	// check popular ranges first.
+	// In order to reduce the average number of comparisons per code point,
+	// test for validity (OR of ANDs) rather than invalidity (AND of ORs),
+	// and check popular ranges first.
 	return (
 		// Invalid chars:
 		// U+0000 NULL, per above logic.
@@ -27,9 +28,9 @@ func isHTMLValidInternal(r rune) bool {
 		(r > 0xDFFF && r < 0xFDD0) ||
 		// U+FDD0 through U+FDEF, per https://infra.spec.whatwg.org/#noncharacter.
 		(r > 0xFDEF && r < 0xFFFE) ||
-		// U+FFFE and U+??FFFF, per https://infra.spec.whatwg.org/#noncharacter.
-		(r > 0xFFFF && r < 0x10FFFF && r & 0xFFFF != 0xFFFF))
-		// Maybe U+110000 and higher? These codepoints are currently undefined, so best not assume.
+		// U+??FFFE and U+??FFFF, per https://infra.spec.whatwg.org/#noncharacter.
+		(r > 0xFFFF && r < 0x10FFFE && r & 0xFFFE != 0xFFFE))
+		// There are no codepoints greater than U+10FFFF.
 }
 
 // Overrideable for test.
@@ -42,6 +43,8 @@ func validateUTF8ForHTML(html string) error {
 	pos := 0
 	for pos < len(html) {
 		r, width := utf8.DecodeRuneInString(html[pos:])
+		// Check that the code point wasn't ill-formed. utf8.RuneError
+		// == '\uFFFD' so we need to check for a mismatched width, too.
 		if r == utf8.RuneError && width < 2 {
 			return errors.Errorf("invalid UTF-8 at byte position %d", pos)
 		}
