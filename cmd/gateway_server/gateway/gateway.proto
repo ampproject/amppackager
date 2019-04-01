@@ -2,7 +2,8 @@
 // Using Gateway service c++ testing environment (client) can call go code
 // (server).
 //
-// Gateway server uses public implementation of go gRPC library.
+// Gateway server is implemented in go lang and is hosted in private repository
+// in github. It uses public implementation of go gRPC library.
 
 syntax = "proto3";
 
@@ -34,7 +35,29 @@ message SXGResponse {
   map<string, string> http_headers = 5;
 }
 
+message TransformHTMLRequest {
+  enum ConfigType {
+    NONE = 0;
+    DEFAULT = 1;
+    VALIDATION = 2;
+  }
+  ConfigType config_type = 1;
+  string html_source = 2;
+  string url = 3;
+}
+
+message TransformedHTML {
+  string url = 1;
+  string original_html = 2;
+  string transformed_html = 3;
+  bool error = 4;
+  string error_description = 5;
+}
+
+
 service GatewayService {
   // Calls Signer.go->FetchUrl method.
   rpc GenerateSXG(SXGRequest) returns (SXGResponse) {}
+  // Calls Transformer.go->Process method.
+  rpc TransformHTML(TransformHTMLRequest) returns (TransformedHTML) {}
 }

@@ -15,12 +15,14 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
-	pb "github.com/ampproject/amppackager/cmd/gateway_server/gateway"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
+	"github.com/ampproject/amppackager/transformer"
 	"github.com/julienschmidt/httprouter"
 	"google.golang.org/grpc"
+	pb "github.com/ampproject/amppackager/cmd/gateway_server/gateway"
+	rpb "github.com/ampproject/amppackager/transformer/request"
 )
 
 var (
@@ -43,6 +45,25 @@ func errorToSXGResponse(err error) *pb.SXGResponse {
 		ErrorDescription: err.Error(),
 	}
 	return response
+}
+
+func (s *gatewayServer) TransformHTML(ctx context.Context, request *pb.TransformHTMLRequest) (*pb.TransformedHTML, error) {
+	r := &rpb.Request{Html: request.HtmlSource, DocumentUrl: request.Url, Config: rpb.Request_TransformersConfig(rpb.Request_TransformersConfig_value[request.ConfigType.String()])}
+	o, _, err := transformer.Process(r)
+	if err != nil {
+		response := &pb.TransformedHTML{
+			Error: true,
+			ErrorDescription: err.Error(),
+		}
+		return response, nil
+	}
+
+	response := &pb.TransformedHTML{
+		Url: request.Url,
+		OriginalHtml: request.HtmlSource,
+		TransformedHtml: o,
+	}
+	return response, nil
 }
 
 func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest) (*pb.SXGResponse, error) {
