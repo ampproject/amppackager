@@ -51,6 +51,7 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"transformedidentifier": transformers.TransformedIdentifier,
 	"unusedextensions":      transformers.UnusedExtensions,
 	"urlrewrite":            transformers.URLRewrite,
+	"preloadimage":          transformers.PreloadImage,
 }
 
 // The map of config to the list of transformers, in the order in
@@ -69,6 +70,8 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		transformers.AMPRuntimeCSS,
 		transformers.TransformedIdentifier,
 		transformers.URLRewrite,
+		transformers.PreloadImage,
+
 		// ReorderHead should run after all transformers that modify the
 		// <head>, as they may do so without preserving the proper order.
 		transformers.ReorderHead,
