@@ -3,6 +3,9 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/x509"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -12,6 +15,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
@@ -20,6 +24,7 @@ import (
 	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/julienschmidt/httprouter"
+	"golang.org/x/crypto/ocsp"
 	"google.golang.org/grpc"
 )
 
@@ -43,6 +48,20 @@ func errorToSXGResponse(err error) *pb.SXGResponse {
 		ErrorDescription: err.Error(),
 	}
 	return response
+}
+
+func createOCSPResponse(cert *x509.Certificate, key crypto.Signer) ([]byte, error) {
+	thisUpdate := time.Now()
+
+	// Construct args to ocsp.CreateResponse.
+	template := ocsp.Response{
+		SerialNumber: cert.SerialNumber,
+		Status: ocsp.Good,
+		ThisUpdate: thisUpdate,
+		NextUpdate: thisUpdate.Add(time.Hour*24*7),
+		IssuerHash: crypto.SHA256,
+	}
+	return ocsp.CreateResponse(cert /*issuer*/, cert /*responderCert*/, template, key)
 }
 
 func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest) (*pb.SXGResponse, error) {
@@ -128,8 +147,21 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 		}, nil
 	}
 
-	// Creates cbor data.
-	ocspDer := []byte("ocsp")
+	// Create cert-chain+cbor.
+	var ocspDer []byte
+	if len(certs) > 1 {
+		// Attach an OCSP response, signed with the second cert in the
+		// chain (assumed to be the issuer and using the same private
+		// key as the leaf cert).
+		var err error
+		ocspDer, err = createOCSPResponse(certs[1], privateKey.(*ecdsa.PrivateKey))
+		if err != nil {
+			return errorToSXGResponse(err), nil
+		}
+	} else {
+		// Make up an invalid OCSP response.
+		ocspDer = []byte("ocsp")
+	}
 	var sctList []byte
 	certChain, err := certurl.NewCertChain(certs, ocspDer, sctList)
 	if err != nil {
