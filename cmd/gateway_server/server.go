@@ -36,7 +36,9 @@ var (
 		"Path to private key. Must be same private key used to generate certs.")
 )
 
-type gatewayServer struct{}
+type gatewayServer struct{
+	rtvCache *rtv.RTVCache
+}
 
 func shouldPackage() bool {
 	return true
@@ -65,11 +67,6 @@ func createOCSPResponse(cert *x509.Certificate, key crypto.Signer) ([]byte, erro
 }
 
 func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest) (*pb.SXGResponse, error) {
-	rtvCache, err := rtv.New()
-	if err != nil {
-		return errorToSXGResponse(err), nil
-	}
-
 	certs, err := signedexchange.ParseCertificates(request.PublicCert)
 	if err != nil {
 		return errorToSXGResponse(err), nil
@@ -115,7 +112,7 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 		},
 	}
 
-	packager, err := signer.New(certs[0], privateKey, urlSets, rtvCache, shouldPackage, signUrl, false)
+	packager, err := signer.New(certs[0], privateKey, urlSets, s.rtvCache, shouldPackage, signUrl, false)
 
 	if err != nil {
 		return errorToSXGResponse(err), nil
@@ -214,9 +211,14 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
+	rtvCache, err := rtv.New()
+	if err != nil {
+		log.Fatalf("Error initializing RTVCache: %v", err)
+	}
+
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterGatewayServiceServer(grpcServer, &gatewayServer{})
+	pb.RegisterGatewayServiceServer(grpcServer, &gatewayServer{rtvCache: rtvCache})
 	fmt.Println("Starting server on port: ", *port)
 	grpcServer.Serve(listener)
 }
