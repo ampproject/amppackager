@@ -79,7 +79,7 @@ func ApplyLayout(n *html.Node) error {
 		return nil
 	}
 
-	inputLayout := parseAMPLayout(n)
+	inputLayout := ParseAMPLayout(n)
 	dimensions, err := getNormalizedDimensions(n, inputLayout)
 	if err != nil {
 		return err
@@ -97,7 +97,7 @@ func ApplyLayout(n *html.Node) error {
 
 // Parses the layout attribute value of the given node and returns the
 // corresponding AmpLayout_Layout enum.
-func parseAMPLayout(n *html.Node) amppb.AmpLayout_Layout {
+func ParseAMPLayout(n *html.Node) amppb.AmpLayout_Layout {
 	v, ok := htmlnode.GetAttributeVal(n, "", "layout")
 	if !ok || v == "" {
 		return amppb.AmpLayout_UNKNOWN

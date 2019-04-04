@@ -26,7 +26,7 @@ func TestProcess(t *testing.T) {
 		config      rpb.Request_TransformersConfig
 		expectedLen int
 	}{
-		{rpb.Request_DEFAULT, 12},
+		{rpb.Request_DEFAULT, 13},
 		{rpb.Request_NONE, 0},
 		{rpb.Request_VALIDATION, 1},
 		{rpb.Request_CUSTOM, 0},
@@ -201,7 +201,7 @@ func TestError(t *testing.T) {
 }
 
 func TestInvalidUTF8(t *testing.T) {
-	tests := []struct { html, expectedError  string }{
+	tests := []struct{ html, expectedError string }{
 		{"<html ⚡><le\003mur>", "character U+0003 at position 13 is not allowed in AMPHTML"},
 		{"<html ⚡><le\xc0mur>", "invalid UTF-8 at byte position 13"},
 	}
