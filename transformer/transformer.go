@@ -45,6 +45,7 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"linktag":               transformers.LinkTag,
 	"metatag":               transformers.MetaTag,
 	"nodecleanup":           transformers.NodeCleanup,
+  "preloadimage":          transformers.PreloadImage,
 	"reorderhead":           transformers.ReorderHead,
 	"serversiderendering":   transformers.ServerSideRendering,
 	"stripjs":               transformers.StripJS,
@@ -69,6 +70,7 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		transformers.AMPRuntimeCSS,
 		transformers.TransformedIdentifier,
 		transformers.URLRewrite,
+		transformers.PreloadImage,
 		// ReorderHead should run after all transformers that modify the
 		// <head>, as they may do so without preserving the proper order.
 		transformers.ReorderHead,
