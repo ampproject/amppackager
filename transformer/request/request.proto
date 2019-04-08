@@ -113,8 +113,12 @@ message Metadata {
     // https://html.spec.whatwg.org/multipage/semantics.html#attr-link-as. The
     // full list of potential values is specified in
     // https://fetch.spec.whatwg.org/#concept-request-destination, though for
-    // the time being only "script" and "style" are allowed.
+    // the time being only "script", "style", and "image" are allowed.
     string as = 2;
+
+    // The media attribute for image preload link. This attribute is useful
+    // only for image links.
+    string media = 3;
   }
   // Absolute URLs of resources that should be preloaded when the AMP is
   // prefetched. In a signed exchange (SXG) context, these would be included as
