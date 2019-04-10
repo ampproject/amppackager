@@ -91,7 +91,7 @@ func main() {
 	if certs == nil || len(certs) == 0 {
 		die(fmt.Sprintf("no cert found in %s", config.CertFile))
 	}
-	if !(*flagDevelopment || *flagInvalidCert) && !util.CanSignHttpExchanges(certs[0]) {
+	if !(*flagDevelopment || *flagInvalidCert || util.CanSignHttpExchanges(certs[0])) {
 		die("cert is missing CanSignHttpExchanges extension")
 	}
 	// TODO(twifkak): Verify that certs[0] covers all the signing domains in the config.
