@@ -150,6 +150,21 @@ packager URL directly, first add a Chrome extension to send an
 `AMP-Cache-Transform: any` request header. Otherwise, follow the above
 "Demonstrate privacy-preserving prefetch" instructions.
 
+#### Testing productionization without a valid certificate
+
+It is possible to test an otherwise fully production configuration without
+obtaining a certificate with the `CanSignHttpExchanges` extension. `amppkg`
+still needs to perform OCSP verification, so the Root CA must be valid (i.e. no
+self-signed certificates). e.g. You can use a certificate from [Let's Encrypt](https://letsencrypt.org/).
+
+Running `amppkg` with the `-invalidcert` flag will skip the check for
+`CanSignHttpExchanges`. This flag is not necessary when using the
+`-development` flag.
+
+Chrome can be configured to allow these invalid certificates with the
+*Allow Signed HTTP Exchange certificates without extension* experiment:
+chrome://flags/#allow-sxg-certs-without-extension
+
 #### Redundancy
 
 If you need to load balance across multiple instances of `amppkg`, you'll want
