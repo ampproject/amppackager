@@ -172,11 +172,11 @@ func TestToAbsoluteURL(t *testing.T) {
 			expected:    rootURL,
 		},
 		{
-			desc:        "spaces encoded. '%20' in path, '+' in query string",
+			desc:        "spaces encoded",
 			input:       "https://foo.com/i haz spaces?q=i haz spaces",
 			baseURL:     rootURL,
 			documentURL: rootURL,
-			expected:    "https://foo.com/i%20haz%20spaces?q=i+haz+spaces",
+			expected:    "https://foo.com/i%20haz%20spaces?q=i%20haz%20spaces",
 		},
 		{
 			desc:        "key only query param",

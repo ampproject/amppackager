@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	ampurl "github.com/ampproject/amppackager/internal/url"
 	"github.com/pkg/errors"
 	"golang.org/x/net/idna"
 )
@@ -34,10 +35,10 @@ func sameURLIgnoringFragment(base string, u *url.URL) bool {
 	// Due to https://github.com/golang/go/issues/29603 we have an extra check
 	// for the empty fragment case.
 	if u.Fragment == "" {
-		return base == u.String()
+		return base == ampurl.String(u)
 	}
 
-	return base+"#"+u.Fragment == u.String()
+	return base+"#"+u.Fragment == ampurl.String(u)
 }
 
 // isProtocolRelative is a mostly correct parse for protocol relative inputs
@@ -49,8 +50,6 @@ func isProtocolRelative(urlParam string) bool {
 	})
 	return strings.HasPrefix(urlParam, "//")
 }
-
-var queryEncoder = strings.NewReplacer(" ", "+")
 
 // ToAbsoluteURL absolute-ifies |urlParam|, using |baseURL| as the base if
 // |urlParam| is relative. If |urlParam| contains a fragment, this method
@@ -109,12 +108,7 @@ func ToAbsoluteURL(documentURL string, baseURL *url.URL,
 		return "#" + absoluteURL.Fragment
 	}
 
-	// Go's URL parser doesn't properly encode query string at parse time.
-	// See https://github.com/golang/go/issues/22907 .
-	// This currently only does the bare minimum:
-	//  - encode space to "+"
-	absoluteURL.RawQuery = queryEncoder.Replace(absoluteURL.RawQuery)
-	return absoluteURL.String()
+	return ampurl.String(absoluteURL)
 }
 
 // SubresourceType describes the type of subresource
@@ -154,7 +148,7 @@ func (c *CacheURL) OriginDomain() string {
 
 // String reassembles the URL into a URL string
 func (c *CacheURL) String() string {
-	s := c.URL.String()
+	s := ampurl.String(c.URL)
 	if len(c.descriptor) > 0 {
 		s = s + " " + c.descriptor
 	}
