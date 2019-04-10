@@ -185,6 +185,13 @@ func TestToAbsoluteURL(t *testing.T) {
 			documentURL: rootURL,
 			expected:    "https://foo.com?q",
 		},
+		{
+			desc:        "relative",
+			input:       "../blah.jpg",
+			baseURL:     fooURL + "/",
+			documentURL: rootURL,
+			expected:    "https://www.example.com/blah.jpg",
+		},
 	}
 	for _, tc := range tcs {
 		baseURL, _ := url.Parse(tc.baseURL)
@@ -271,6 +278,12 @@ func TestGetCacheURL(t *testing.T) {
 		{
 			desc:          "domain match checks host (not path)",
 			input:         "https://www.example.com/cdn.ampproject.org/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/i/s/www.example.com/cdn.ampproject.org/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/s/www.example.com/cdn.ampproject.org/blah.jpg",
+		},
+		{
+			desc:          "absolute with relative path",
+			input:         "https://www.example.com/cdn.ampproject.org/one/two/three/../../../blah.jpg",
 			expectedImage: "https://www-example-com.cdn.ampproject.org/i/s/www.example.com/cdn.ampproject.org/blah.jpg",
 			expectedOther: "https://www-example-com.cdn.ampproject.org/r/s/www.example.com/cdn.ampproject.org/blah.jpg",
 		},

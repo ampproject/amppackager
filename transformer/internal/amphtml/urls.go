@@ -53,7 +53,7 @@ func isProtocolRelative(urlParam string) bool {
 
 // ToAbsoluteURL absolute-ifies |urlParam|, using |baseURL| as the base if
 // |urlParam| is relative. If |urlParam| contains a fragment, this method
-// will return only a fragment if it's absolute URL matches |documentURL|,
+// will return only a fragment if its absolute URL matches |documentURL|,
 // which prevents changing an in-document navigation to a out-of-document
 // navigation.
 func ToAbsoluteURL(documentURL string, baseURL *url.URL,
