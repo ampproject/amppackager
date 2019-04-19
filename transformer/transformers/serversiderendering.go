@@ -145,9 +145,9 @@ func canRemoveBoilerplate(n *html.Node) bool {
 	}
 
 	if n.DataAtom == atom.Script && htmlnode.IsDescendantOf(n, atom.Head) {
-		if a, ok := htmlnode.FindAttribute(n, "", amphtml.AMPCustomElement); ok {
+		if v, ok := amphtml.AMPExtensionName(n); ok {
 			// TODO(b/77581738): Remove amp-story from here.
-			if a.Val == amphtml.AMPDynamicCSSClasses || a.Val == amphtml.AMPStory {
+			if v == amphtml.AMPDynamicCSSClasses || v == amphtml.AMPStory {
 				return false
 			}
 		}

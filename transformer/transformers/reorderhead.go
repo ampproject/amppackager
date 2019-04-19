@@ -168,15 +168,11 @@ func registerScript(n *html.Node, hn *headNodes) {
 		hn.scriptAMPViewer = n
 		return
 	}
-	if htmlnode.HasAttribute(n, "", amphtml.AMPCustomElement) {
+	if amphtml.IsScriptAMPExtension(n) {
 		if amphtml.IsScriptRenderDelaying(n) {
 			hn.scriptRenderDelaying = append(hn.scriptRenderDelaying, n)
 			return
 		}
-		hn.scriptNonRenderDelaying = append(hn.scriptNonRenderDelaying, n)
-		return
-	}
-	if htmlnode.HasAttribute(n, "", amphtml.AMPCustomTemplate) {
 		hn.scriptNonRenderDelaying = append(hn.scriptNonRenderDelaying, n)
 		return
 	}
@@ -206,15 +202,10 @@ func uniquifyAndSortCustomScripts(n []*html.Node) []*html.Node {
 	var u []*html.Node
 	m := make(map[string]*html.Node)
 	for _, s := range n {
-		if ce, ok := htmlnode.FindAttribute(s, "", amphtml.AMPCustomElement); ok {
-			if _, ok := m[ce.Val]; !ok {
-				m[ce.Val] = s
-				k = append(k, ce.Val)
-			}
-		} else if ct, ok := htmlnode.FindAttribute(s, "", amphtml.AMPCustomTemplate); ok {
-			if _, ok := m[ct.Val]; !ok {
-				m[ct.Val] = s
-				k = append(k, ct.Val)
+		if ext, ok := amphtml.AMPExtensionName(s); ok {
+			if _, ok := m[ext]; !ok {
+				m[ext] = s
+				k = append(k, ext)
 			}
 		}
 	}

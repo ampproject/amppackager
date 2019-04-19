@@ -78,6 +78,9 @@ const (
 	// ScriptAMPForm is the script for amp-form.
 	ScriptAMPForm = "<script async custom-element=amp-form src=https://cdn.ampproject.org/v0/amp-form-0.1.js></script>"
 
+	// ScriptAMPMraid is the script for amp-mraid.
+	ScriptAMPMraid = "<script async host-service=amp-mraid src=https://cdn.ampproject.org/v0/amp-mraid-0.1.js></script>"
+
 	// ScriptAMPMustache is the script for amp-mustache.
 	ScriptAMPMustache = "<script async custom-template=amp-mustache src=https://cdn.ampproject.org/v0/amp-mustache-0.1.js></script>"
 
