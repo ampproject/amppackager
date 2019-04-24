@@ -108,7 +108,7 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 		// Windows does not handle a lock "upgrade", hence unlock before lock.
 		if runtime.GOOS == "windows" {
 			if err = lock.Unlock(); err != nil {
-				return nil, errors.Wrapf(err, "Error unlocking %s", lockPath, err)
+				return nil, errors.Wrapf(err, "Error unlocking %s", lockPath)
 			}
 		}
 		locked, err = lock.TryLock()
