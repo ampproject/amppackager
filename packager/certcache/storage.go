@@ -89,7 +89,6 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 	if pathExists {
 		contents, err = ioutil.ReadFile(this.path)
 		if err != nil {
-			log.Print(err)
 			return nil, errors.Wrapf(err, "reading %s", this.path)
 		}
 	}
@@ -109,13 +108,11 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 		// Windows does not handle a lock "upgrade", hence unlock before lock.
 		if runtime.GOOS == "windows" {
 			if err = lock.Unlock(); err != nil {
-				log.Print(err)
 				return nil, errors.Wrapf(err, "Error unlocking %s", lockPath, err)
 			}
 		}
 		locked, err = lock.TryLock()
 		if err != nil {
-			log.Print(err)
 			return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
 		}
 		if !locked {
