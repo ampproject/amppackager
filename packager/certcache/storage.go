@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/gofrs/flock"
+	"github.com/theckman/go-flock"
 )
 
 // This is an abstraction over a single file on a remote storage mechanism. It
@@ -59,7 +59,7 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 	// Use independent .lock file; necessary on Windows to avoid "The process cannot
 	// access the file because another process has locked a portion of the file."
 	lockPath := this.path + ".lock"
-	lock := flock.New(lockPath)
+	lock := flock.NewFlock(lockPath)
 	locked, err := lock.TryRLock()
 	if err != nil {
 		return nil, errors.Wrapf(err, "obtaining shared lock for %s", lockPath)
