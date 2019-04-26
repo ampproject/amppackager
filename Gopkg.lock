@@ -3,97 +3,189 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:f714e69d8fc22c826e33a50283820d748020d36c55e6f7a1f3e801fcfff3b145"
   name = "github.com/WICG/webpackage"
-  packages = ["go/signedexchange","go/signedexchange/cbor","go/signedexchange/certurl","go/signedexchange/internal/bigendian","go/signedexchange/internal/signingalgorithm","go/signedexchange/mice","go/signedexchange/structuredheader","go/signedexchange/version"]
+  packages = [
+    "go/signedexchange",
+    "go/signedexchange/cbor",
+    "go/signedexchange/certurl",
+    "go/signedexchange/internal/bigendian",
+    "go/signedexchange/internal/signingalgorithm",
+    "go/signedexchange/mice",
+    "go/signedexchange/structuredheader",
+    "go/signedexchange/version",
+  ]
+  pruneopts = "NUT"
   revision = "70386c3750f2ba5fbcb6e66835df0578b2a55c13"
 
 [[projects]]
   branch = "master"
+  digest = "1:8fa9434f657d429669e07147758c7614238dcdae4d43cbd9fc1f4796e2443ec9"
   name = "github.com/ampproject/amphtml"
   packages = ["validator"]
+  pruneopts = "NUT"
   revision = "d3df64d07ae9e9e21a94d8339f3c2d0a9b7d4261"
 
 [[projects]]
+  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = "NUT"
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:2dcc32af5bf38c37286c96f0077efa98007f67946b690fce98a3e07b9659bdf1"
+  name = "github.com/gofrs/flock"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "392e7fae8f1b0bdbd67dad7237d23f618feb6dbb"
+  version = "v0.7.1"
+
+[[projects]]
+  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
+  pruneopts = "NUT"
   revision = "c823c79ea1570fb5ff454033735a8e68575d1d0f"
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:d2754cafcab0d22c13541618a8029a70a8959eb3525ff201fe971637e2274cd0"
   name = "github.com/google/go-cmp"
-  packages = ["cmp","cmp/cmpopts","cmp/internal/diff","cmp/internal/function","cmp/internal/value"]
+  packages = [
+    "cmp",
+    "cmp/cmpopts",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value",
+  ]
+  pruneopts = "NUT"
   revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
   version = "v0.2.0"
 
 [[projects]]
+  digest = "1:65c75e07f060f0f8c66b2a0377ea2b1c130b5aeed3e77f1e74b94dab0f3d51de"
   name = "github.com/julienschmidt/httprouter"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "8c199fb6259ffc1af525cc3ad52ee60ba8359669"
   version = "v1.1"
 
 [[projects]]
+  digest = "1:13b8f1a2ce177961dc9231606a52f709fab896c565f3988f60a7f6b4e543a902"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:5cf3f025cbee5951a4ee961de067c8a89fc95a5adabead774f82822efabab121"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = "NUT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:43691b15b116638040dcf64acc71ce52c73aac58286a54ea696149c8f962684e"
   name = "github.com/pquerna/cachecontrol"
-  packages = [".","cacheobject"]
+  packages = [
+    ".",
+    "cacheobject",
+  ]
+  pruneopts = "NUT"
   revision = "525d0eb5f91d30e3b1548de401b7ef9ea6898520"
 
 [[projects]]
+  digest = "1:7f694e534dcd061d6a308f5b9d50b389f81c3d636920b0a03176516e958cf32d"
   name = "github.com/stretchr/testify"
-  packages = ["assert","require","suite"]
+  packages = [
+    "assert",
+    "require",
+    "suite",
+  ]
+  pruneopts = "NUT"
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
 [[projects]]
-  name = "github.com/theckman/go-flock"
-  packages = ["."]
-  revision = "dd99ba217509348e899885ee977b6e2acb18179c"
-  version = "v0.5.0"
-
-[[projects]]
   branch = "master"
+  digest = "1:a9508d88987b33aa1933d1bb3516b9d442d2f812bfef5a7e2be7c00c83685255"
   name = "golang.org/x/crypto"
   packages = ["ocsp"]
+  pruneopts = "NUT"
   revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
 
 [[projects]]
   branch = "master"
+  digest = "1:aa865a7eb1321c57cf0bf45b2eed1432263a66b5fe6bd3a86044d2b02636d4ee"
   name = "golang.org/x/net"
-  packages = ["html","html/atom","idna"]
+  packages = [
+    "html",
+    "html/atom",
+    "idna",
+  ]
+  pruneopts = "NUT"
   revision = "f9ce57c11b242f0f1599cf25c89d8cb02c45295a"
 
 [[projects]]
+  digest = "1:e7071ed636b5422cc51c0e3a6cebc229d6c9fffc528814b519a980641422d619"
   name = "golang.org/x/text"
-  packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
+  packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable",
+  ]
+  pruneopts = "NUT"
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ea6e0ce97e189ec01467cc5586a863947300e191b6be9b6bec174199431ff000"
+  input-imports = [
+    "github.com/WICG/webpackage/go/signedexchange",
+    "github.com/WICG/webpackage/go/signedexchange/cbor",
+    "github.com/WICG/webpackage/go/signedexchange/certurl",
+    "github.com/WICG/webpackage/go/signedexchange/version",
+    "github.com/ampproject/amphtml/validator",
+    "github.com/gofrs/flock",
+    "github.com/golang/protobuf/proto",
+    "github.com/google/go-cmp/cmp",
+    "github.com/google/go-cmp/cmp/cmpopts",
+    "github.com/julienschmidt/httprouter",
+    "github.com/pelletier/go-toml",
+    "github.com/pkg/errors",
+    "github.com/pquerna/cachecontrol",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/require",
+    "github.com/stretchr/testify/suite",
+    "golang.org/x/crypto/ocsp",
+    "golang.org/x/net/html",
+    "golang.org/x/net/html/atom",
+    "golang.org/x/net/idna",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
