@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/theckman/go-flock"
+	"github.com/gofrs/flock"
 )
 
 // This is an abstraction over a single file on a remote storage mechanism. It
@@ -59,7 +59,7 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 	// Use independent .lock file; necessary on Windows to avoid "The process cannot
 	// access the file because another process has locked a portion of the file."
 	lockPath := this.path + ".lock"
-	lock := flock.NewFlock(lockPath)
+	lock := flock.New(lockPath)
 	locked, err := lock.TryRLock()
 	if err != nil {
 		return nil, errors.Wrapf(err, "obtaining shared lock for %s", lockPath)
@@ -134,7 +134,7 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 
 		contents = update(contents)
 		// TODO(twifkak): Should I write to a tempfile in the same dir and move into place, instead?
-		if err = ioutil.WriteFile(this.path, contents, 0700); err != nil {
+		if err = ioutil.WriteFile(this.path, contents, 0600); err != nil {
 			return nil, errors.Wrapf(err, "writing %s", this.path)
 		}
 		return contents, nil
@@ -179,6 +179,7 @@ func (this *Chained) Read(ctx context.Context, isExpired func([]byte) bool, upda
 	return this.first.Read(ctx, isExpired, func([]byte) []byte {
 		contents, err := this.second.Read(ctx, isExpired, update)
 		if err != nil {
+			log.Printf("%+v", err)
 			return nil
 		}
 		return contents

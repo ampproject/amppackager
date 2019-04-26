@@ -227,6 +227,23 @@ func TestUnusedExtensions(t *testing.T) {
 				"</head><body>",
 				"</body></html>"),
 		},
+		{
+			Desc: "keeps unused amp-mraid",
+			Input: tt.Concat(tt.Doctype,
+				"<html ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.ScriptAMPMraid, tt.LinkFavicon, tt.LinkCanonical,
+				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body>",
+				"</body></html>"),
+			Expected: tt.Concat(tt.Doctype,
+				"<html ⚡><head>",
+				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				tt.ScriptAMPMraid, tt.LinkFavicon, tt.LinkCanonical,
+				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body>",
+				"</body></html>"),
+		},
 	}
 	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))

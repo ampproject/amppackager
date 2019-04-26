@@ -51,6 +51,8 @@ const (
 
 	AMPCustomTemplate = "custom-template"
 
+	AMPHostService = "host-service"
+
 	AMPDynamicCSSClasses = "amp-dynamic-css-classes"
 
 	AMPExperiment = "amp-experiment"
@@ -67,12 +69,25 @@ func IsAMPCustomElement(n *html.Node) bool {
 	return n.Type == html.ElementNode && strings.HasPrefix(n.Data, "amp-")
 }
 
-// IsScriptAMPExtension returns true if the node is a script tag with either attribute `custom-element` or `custom-template` present.
-func IsScriptAMPExtension(n *html.Node) bool {
+// AMPExtensionName returns the name of the extension this node represents.  For most extensions this is the value of the "custom-element" attribute.  Returns ok=false if this isn't an extension.
+func AMPExtensionName(n *html.Node) (string, bool) {
 	if n.DataAtom != atom.Script {
-		return false
+		return "", false
 	}
-	return htmlnode.HasAttribute(n, "", AMPCustomElement) || htmlnode.HasAttribute(n, "", AMPCustomTemplate)
+	for _, attr := range n.Attr {
+		for _, k := range []string{AMPCustomElement, AMPCustomTemplate, AMPHostService} {
+			if attr.Key == k {
+				return attr.Val, true
+			}
+		}
+	}
+	return "", false
+}
+
+// IsScriptAMPExtension returns true if the node is a script tag representing an extension.
+func IsScriptAMPExtension(n *html.Node) bool {
+	_, ok := AMPExtensionName(n)
+	return ok
 }
 
 // IsScriptAMPRuntime returns true if the node is of the form <script async src=https://cdn.ampproject.org...v0.js></script>
@@ -82,8 +97,7 @@ func IsScriptAMPRuntime(n *html.Node) bool {
 	}
 	if v, ok := htmlnode.GetAttributeVal(n, "", "src"); ok {
 		return htmlnode.HasAttribute(n, "", "async") &&
-			!htmlnode.HasAttribute(n, "", AMPCustomElement) &&
-			!htmlnode.HasAttribute(n, "", AMPCustomTemplate) &&
+			!IsScriptAMPExtension(n) &&
 			strings.HasPrefix(v, AMPCacheRootURL) &&
 			(strings.HasSuffix(v, "/v0.js") ||
 				strings.HasSuffix(v, "/amp4ads-v0.js"))
@@ -98,12 +112,11 @@ func IsScriptAMPViewer(n *html.Node) bool {
 	}
 	a, ok := htmlnode.FindAttribute(n, "", "src")
 	return ok &&
-		!htmlnode.HasAttribute(n, "", AMPCustomTemplate) &&
+		!IsScriptAMPExtension(n) &&
 		strings.HasPrefix(a.Val,
 			AMPCacheSchemeAndHost+"/v0/amp-viewer-integration-") &&
 		strings.HasSuffix(a.Val, ".js") &&
-		htmlnode.HasAttribute(n, "", "async") &&
-		!htmlnode.HasAttribute(n, "", AMPCustomElement)
+		htmlnode.HasAttribute(n, "", "async")
 }
 
 // IsScriptRenderDelaying returns true if the node has one of these values for attribute 'custom-element': amp-dynamic-css-classes, amp-experiment, amp-story.
