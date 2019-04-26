@@ -52,8 +52,10 @@ CertFile = './pems/cert.pem'
 KeyFile = './pems/privkey.pem'
 
 # The path to a file where the OCSP response will be cached. The parent
-# directory should exist, but the file need not. If this is a network-mounted
-# file, it should support shared/exclusive locking.
+# directory should exist, but the file need not. A dedicated lock file will be
+# created in the same directory as this file, sharing the same name but with
+# extension .lock appended. The filesystem must support shared and exclusive
+# locking; consider this especially when utilizing network-mounted storage.
 OCSPCache = '/tmp/amppkg-ocsp'
 
 # This is a simple level of validation, to guard against accidental
