@@ -135,6 +135,7 @@ func (this *Chained) Read(ctx context.Context, isExpired func([]byte) bool, upda
 	return this.first.Read(ctx, isExpired, func([]byte) []byte {
 		contents, err := this.second.Read(ctx, isExpired, update)
 		if err != nil {
+			log.Printf("%+v", err)
 			return nil
 		}
 		return contents
