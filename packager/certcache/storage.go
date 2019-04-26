@@ -90,7 +90,7 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 		}
 		contents = update(contents)
 		// TODO(twifkak): Should I write to a tempfile in the same dir and move into place, instead?
-		if err = ioutil.WriteFile(this.path, contents, 0700); err != nil {
+		if err = ioutil.WriteFile(this.path, contents, 0600); err != nil {
 			return nil, errors.Wrapf(err, "writing %s", this.path)
 		}
 		return contents, nil
