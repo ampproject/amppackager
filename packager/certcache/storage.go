@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/theckman/go-flock"
+	"github.com/gofrs/flock"
 )
 
 // This is an abstraction over a single file on a remote storage mechanism. It
@@ -42,7 +42,7 @@ type LocalFile struct {
 }
 
 func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, update func([]byte) []byte) ([]byte, error) {
-	lock := flock.NewFlock(this.path)
+	lock := flock.New(this.path)
 	locked, err := lock.TryRLock()
 	if err != nil {
 		return nil, errors.Wrapf(err, "obtaining shared lock for %s", this.path)
