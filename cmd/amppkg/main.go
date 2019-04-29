@@ -136,14 +136,23 @@ func main() {
 	mux := httprouter.New()
 	mux.RedirectTrailingSlash = false
 	mux.RedirectFixedPath = false
-	mux.GET(util.ValidityMapPath, validityMap.ServeHTTP)
-	mux.HEAD(util.ValidityMapPath, validityMap.ServeHTTP)
-	mux.GET("/priv/doc", packager.ServeHTTP)
-	mux.HEAD("/priv/doc", packager.ServeHTTP)
-	mux.GET("/priv/doc/*signURL", packager.ServeHTTP)
-	mux.HEAD("/priv/doc/*signURL", packager.ServeHTTP)
-	mux.GET(path.Join(util.CertURLPrefix, ":certName"), certCache.ServeHTTP)
-	mux.HEAD(path.Join(util.CertURLPrefix, ":certName"), certCache.ServeHTTP)
+
+	var handlerConfigs = []struct {
+		path string
+		handler httprouter.Handle
+	} {
+		{util.ValidityMapPath, validityMap.ServeHTTP},
+		{"/priv/doc", packager.ServeHTTP},
+		{"/priv/doc/*signURL", packager.ServeHTTP},
+		{path.Join(util.CertURLPrefix, ":certName"), certCache.ServeHTTP},
+	}
+	// GET and HEAD requests are handled identically. http.Server empties
+	// the body before responding to HEAD requests.
+	for _, handlerConfig := range handlerConfigs {
+		mux.GET(handlerConfig.path, handlerConfig.handler)
+		mux.HEAD(handlerConfig.path, handlerConfig.handler)
+	}
+
 	addr := ""
 	if config.LocalOnly {
 		addr = "localhost"
