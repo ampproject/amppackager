@@ -137,9 +137,13 @@ func main() {
 	mux.RedirectTrailingSlash = false
 	mux.RedirectFixedPath = false
 	mux.GET(util.ValidityMapPath, validityMap.ServeHTTP)
+	mux.HEAD(util.ValidityMapPath, validityMap.ServeHTTP)
 	mux.GET("/priv/doc", packager.ServeHTTP)
+	mux.HEAD("/priv/doc", packager.ServeHTTP)
 	mux.GET("/priv/doc/*signURL", packager.ServeHTTP)
+	mux.HEAD("/priv/doc/*signURL", packager.ServeHTTP)
 	mux.GET(path.Join(util.CertURLPrefix, ":certName"), certCache.ServeHTTP)
+	mux.HEAD(path.Join(util.CertURLPrefix, ":certName"), certCache.ServeHTTP)
 	addr := ""
 	if config.LocalOnly {
 		addr = "localhost"
