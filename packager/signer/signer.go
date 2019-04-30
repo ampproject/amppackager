@@ -387,16 +387,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 				proxy(resp, fetchResp, nil)
 				return
 			}
-			fetchResp.Header.Del(header)
 		}
-
-		// Mutate the fetched CSP to make sure it cannot break AMP pages.
-		fetchResp.Header.Set(
-			"Content-Security-Policy",
-			MutateFetchedContentSecurityPolicy(
-				fetchResp.Header.Get("Content-Security-Policy")))
-
-		fetchResp.Header.Del("Link") // Ensure there are no privacy-violating Link:rel=preload headers.
 
 		if fetchResp.Header.Get("Variants") != "" || fetchResp.Header.Get("Variant-Key") != "" ||
 			// Include versioned headers per https://github.com/WICG/webpackage/pull/406.
@@ -452,8 +443,6 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
 func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, transformVersion int64) {
-	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
-
 	// After this, fetchResp.Body is consumed, and attempts to read or proxy it will result in an empty body.
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
@@ -470,16 +459,41 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		proxy(resp, fetchResp, fetchBody)
 		return
 	}
-	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
+
+	// Validate and format Link header.
 	linkHeader, err := formatLinkHeader(metadata.Preloads)
 	if err != nil {
 		log.Println("Not packaging due to Link header error:", err)
 		proxy(resp, fetchResp, fetchBody)
 		return
 	}
+
+	// Begin mutations on original fetch response. From this point forward, do
+	// not fall-back to proxy().
+
+	// Remove stateful headers.
+	for header := range statefulResponseHeaders {
+		fetchResp.Header.Del(header)
+	}
+
+	// Set or remove Link header.
 	if linkHeader != "" {
 		fetchResp.Header.Set("Link", linkHeader)
+	} else {
+		fetchResp.Header.Del("Link")
 	}
+
+	// Set content length.
+	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
+
+	// Set general security headers.
+	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
+
+	// Mutate the fetched CSP to make sure it cannot break AMP pages.
+	fetchResp.Header.Set(
+		"Content-Security-Policy",
+		MutateFetchedContentSecurityPolicy(
+			fetchResp.Header.Get("Content-Security-Policy")))
 
 	exchange := signedexchange.NewExchange(
 		accept.SxgVersion, /*uri=*/signURL.String(), /*method=*/"GET",
