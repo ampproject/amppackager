@@ -476,7 +476,8 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		fetchResp.Header.Del(header)
 	}
 
-	// Set or remove Link header.
+	// Set Link header if formatting returned a valid value, otherwise, delete
+	// it to ensure there are no privacy-violating Link:rel=preload headers.
 	if linkHeader != "" {
 		fetchResp.Header.Set("Link", linkHeader)
 	} else {
