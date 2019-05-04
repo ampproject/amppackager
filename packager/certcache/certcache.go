@@ -304,7 +304,7 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 		return true
 	}
 	// TODO(twifkak): Use a logging framework with support for debug-only statements.
-	log.Println("No update necessary.")
+	log.Println("No OCSP update necessary.")
 	return false
 }
 
