@@ -171,7 +171,6 @@ func (this *SignerSuite) TestSimple() {
 		[]string{"content-encoding", "content-length", "content-security-policy", "content-type", "date", "digest", "x-content-type-options"},
 		headerNames(exchange.ResponseHeaders))
 	this.Assert().Equal("text/html", exchange.ResponseHeaders.Get("Content-Type"))
-	this.Assert().Equal("text/html", exchange.ResponseHeaders.Get("Content-Type"))
 	this.Assert().Equal("nosniff", exchange.ResponseHeaders.Get("X-Content-Type-Options"))
 	this.Assert().Contains(exchange.SignatureHeaderValue, "validity-url=\""+this.httpSignURL()+"/amppkg/validity\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "integrity=\"digest/mi-sha256-03\"")
@@ -462,6 +461,20 @@ func (this *SignerSuite) TestProxyUnsignedIfMissingAMPCacheTransformHeader() {
 	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
 }
 
+func (this *SignerSuite) TestProxyUnsignedIfInvalidAMPCacheTransformHeader() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	resp := pkgt.GetH(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath), http.Header{
+		"Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion},
+		"AMP-Cache-Transform": {"donotmatch"},
+	})
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
+}
+
 func (this *SignerSuite) TestProxyUnsignedIfMissingAcceptHeader() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
@@ -607,6 +620,33 @@ func (this *SignerSuite) TestProxyTransformError() {
 	body, err := ioutil.ReadAll(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
+}
+
+func (this *SignerSuite) TestProxyHeadersUnaltered() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+
+	// Generate a request for non-existent transformer that will fail
+	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
+		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_CUSTOM,
+			AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP},
+			Transformers:   []string{"bogus"}}
+	}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Header().Set("Set-Cookie", "chocolate chip")
+		resp.Header().Set("Cache-Control", "max-age=31536000")
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(200, resp.StatusCode)
+
+	this.Assert().Equal("text/html", resp.Header.Get("content-type"))
+	this.Assert().Equal("chocolate chip", resp.Header.Get("set-cookie"))
+	this.Assert().Equal("max-age=31536000", resp.Header.Get("cache-control"))
+	this.Assert().Equal("", resp.Header.Get("content-security-policy"))
+	this.Assert().Equal("", resp.Header.Get("x-content-type-options"))
+	this.Assert().Equal("", resp.Header.Get("amp-cache-transform"))
 }
 
 func TestSignerSuite(t *testing.T) {
