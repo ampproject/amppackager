@@ -2,9 +2,9 @@ package accept
 
 import (
 	"mime"
+	"strings"
 
 	"github.com/WICG/webpackage/go/signedexchange/version"
-	"github.com/ampproject/amppackager/packager/util"
 )
 
 // The SXG version that packager can produce. In the future, it may need to be
@@ -18,23 +18,57 @@ const SxgContentType = "application/signed-exchange;v=" + AcceptedSxgVersion
 // signedexchange library.
 var SxgVersion = version.Version1b3
 
+// Tokenize a comma-separated string of accept patterns into a slice
+func tokenize(accept string) []string {
+	var tokens []string
+	acceptLen := len(accept)
+	if acceptLen == 0 {
+		return tokens
+	}
+
+	inQuotes := false
+	startIndex := 0
+	for i := 0; i < acceptLen; i++ {
+		char := string(accept[i])
+		switch char {
+		case "\"":
+			inQuotes = !inQuotes;
+		case ",":
+			if !inQuotes {
+				tokens = append(tokens, strings.TrimSpace(accept[startIndex:i]))
+				startIndex = i + 1;
+			}
+		case "\\":
+			i++
+		}
+	}
+	tokens = append(tokens, strings.TrimSpace(accept[startIndex:]))
+	return tokens
+}
+
+// Determine whether a version specified by the accept header matches the
+// version of signed exchange output by the packager
+func hasMatchingSxgVersion(versions []string) bool {
+	for _, version := range versions {
+		if version == AcceptedSxgVersion {
+			return true
+		}
+	}
+	return false
+}
+
 // True if the given Accept header is one that the packager can satisfy. It
 // must contain application/signed-exchange;v=$V so that the packager knows
 // whether or not it can supply the correct version. "" and "*/*" are not
 // satisfiable, for this reason.
 func CanSatisfy(accept string) bool {
-	// There is an edge case on which this comma-splitting fails:
-	//   Accept: application/signed-exchange;junk="some,thing";v=b2
-	// However, in practice, browsers don't send media types with quoted
-	// commas in them:
-	//   https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation/List_of_default_Accept_values
-	// So we'll live with this deficiency for the sake of not forking
-	// mime.ParseMediaType.
-	types := util.Comma.Split(accept, -1)
+	types := tokenize(accept)
 	for _, mediaRange := range types {
 		mediatype, params, err := mime.ParseMediaType(mediaRange)
-		if err == nil && mediatype == "application/signed-exchange" && params["v"] == AcceptedSxgVersion {
-			return true
+		if err == nil && mediatype == "application/signed-exchange" {
+			if hasMatchingSxgVersion(strings.Split(params["v"], ",")) {
+				return true
+			}
 		}
 	}
 	return false
