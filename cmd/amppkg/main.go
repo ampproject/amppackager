@@ -127,7 +127,7 @@ func main() {
 	}
 
 	packager, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment)
+		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
 	if err != nil {
 		die(errors.Wrap(err, "building packager"))
 	}

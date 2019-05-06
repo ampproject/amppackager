@@ -46,6 +46,9 @@ var Key = func() crypto.PrivateKey {
 // The URL path component corresponding to the cert's sha-256.
 var CertName = util.CertName(Certs[0])
 
+// ForwardedRequestHeaders List.
+var ForwardedRequestHeaders = []string{"Host", "X-Foo"}
+
 // A variant of http.Handler that's required by httprouter.
 type AlmostHandler interface {
 	ServeHTTP(http.ResponseWriter, *http.Request, httprouter.Params)
@@ -66,14 +69,18 @@ func GetP(t *testing.T, handler AlmostHandler, target string, params httprouter.
 }
 
 func GetBH(t *testing.T, handler AlmostHandler, target string, body io.Reader, headers http.Header) *http.Response {
-	return GetBHP(t, handler, target, body, headers, httprouter.Params{})
+	return GetBHP(t, handler, target, "", body, headers, httprouter.Params{})
 }
 
 func GetHP(t *testing.T, handler AlmostHandler, target string, headers http.Header, params httprouter.Params) *http.Response {
-	return GetBHP(t, handler, target, nil, headers, params)
+	return GetBHP(t, handler, target, "", nil, headers, params)
 }
 
-func GetBHP(t *testing.T, handler AlmostHandler, target string, body io.Reader, headers http.Header, params httprouter.Params) *http.Response {
+func GetBHHP(t *testing.T, handler AlmostHandler, target string, host string, headers http.Header, params httprouter.Params) *http.Response {
+	return GetBHP(t, handler, target, host, nil, headers, params)
+}
+
+func GetBHP(t *testing.T, handler AlmostHandler, target string, host string, body io.Reader, headers http.Header, params httprouter.Params) *http.Response {
 	rec := httptest.NewRecorder()
 	method := ""
 	if body != nil {
@@ -85,6 +92,9 @@ func GetBHP(t *testing.T, handler AlmostHandler, target string, body io.Reader, 
 		for _, value := range values {
 			req.Header.Add(name, value)
 		}
+	}
+	if host != "" {
+		req.Host = host
 	}
 	handler.ServeHTTP(rec, req, params)
 	return rec.Result()
