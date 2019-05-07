@@ -627,26 +627,42 @@ func (this *SignerSuite) TestProxyHeadersUnaltered() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
 	}}
 
-	// Generate a request for non-existent transformer that will fail
+	// "Perform local transformations" is close to the last opportunity that a
+	// response could be proxied instead of signed. Intentionally cause an error
+	// to occur so that we can verify the proxy response has not been altered.
 	getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 		return &rpb.Request{Html: string(s), DocumentUrl: u, Config: rpb.Request_CUSTOM,
 			AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP},
 			Transformers:   []string{"bogus"}}
 	}
+
+	originalHeaders := map[string]string {
+		"Content-Type": "text/html",
+		"Set-Cookie": "chocolate chip",
+		"Cache-Control": "max-age=31536000",
+		"Content-Length": string(len(fakeBody)),
+	}
+
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Set("Content-Type", "text/html")
-		resp.Header().Set("Set-Cookie", "chocolate chip")
-		resp.Header().Set("Cache-Control", "max-age=31536000")
+		for key, value := range originalHeaders {
+			resp.Header().Set(key, value)
+		}
+		resp.Write(fakeBody)
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(200, resp.StatusCode)
 
-	this.Assert().Equal("text/html", resp.Header.Get("content-type"))
-	this.Assert().Equal("chocolate chip", resp.Header.Get("set-cookie"))
-	this.Assert().Equal("max-age=31536000", resp.Header.Get("cache-control"))
-	this.Assert().Equal("", resp.Header.Get("content-security-policy"))
-	this.Assert().Equal("", resp.Header.Get("x-content-type-options"))
-	this.Assert().Equal("", resp.Header.Get("amp-cache-transform"))
+	for key, values := range resp.Header {
+		if key == "Vary" { // Vary is set for any request that reaches the signer
+			this.Assert().Equal(resp.Header.Get(key), "Accept, AMP-Cache-Transform")
+		} else if key == "Date" { // Allow Date to be updated
+			continue
+		} else { // Original headers must be unaltered and no new headers may appear
+			for _, value := range values {
+				this.Assert().Equal(value, originalHeaders[key])
+			}
+		}
+	}
 }
 
 func TestSignerSuite(t *testing.T) {
