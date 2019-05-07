@@ -176,15 +176,10 @@ recommendations](https://gist.github.com/sleevi/5efe9ef98961ecfb4da8).
 
 #### How will these web packages be discovered by Google?
 
-For now, the presence of the `Vary: AMP-Cache-Transform` response header on an
-AMP HTML page will allow the Google AMP Cache to make a second request with
-`AMP-Cache-Transform: google` for the SXG.
-
-The Google Search developer preview only runs on Chrome M71+ (as of 2018-11-12,
-Beta or Dev).
-
-In the future, Googlebot may make all requests with `AMP-Cache-Transform: google`,
-eliminating the double fetch.
+Googlebot makes requests with an `AMP-Cache-Transform` header. Responses that
+are [acceptable AMP SXGs](docs/cache_requirements.md) will be eligible for
+display to SXG-supporting browsers, and the HTML payload will be extracted and
+eligible for use in the AMP viewer in other browsers.
 
 ### Limitations
 
