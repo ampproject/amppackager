@@ -640,7 +640,7 @@ func (this *SignerSuite) TestProxyHeadersUnaltered() {
 		"Content-Type": "text/html",
 		"Set-Cookie": "chocolate chip",
 		"Cache-Control": "max-age=31536000",
-		"Content-Length": string(len(fakeBody)),
+		"Content-Length": fmt.Sprintf("%d", len(fakeBody)),
 	}
 
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
@@ -652,17 +652,17 @@ func (this *SignerSuite) TestProxyHeadersUnaltered() {
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(200, resp.StatusCode)
 
-	for key, values := range resp.Header {
-		if key == "Vary" { // Vary is set for any request that reaches the signer
-			this.Assert().Equal(resp.Header.Get(key), "Accept, AMP-Cache-Transform")
-		} else if key == "Date" { // Allow Date to be updated
-			continue
-		} else { // Original headers must be unaltered and no new headers may appear
-			for _, value := range values {
-				this.Assert().Equal(value, originalHeaders[key])
-			}
-		}
+	// Compare the final headers to the originals, removing each one after
+	// checking, so that we can finally verify that no additional headers were
+	// appended.
+	for key, value := range originalHeaders {
+		this.Assert().Equal([]string{value}, resp.Header[key])
+		resp.Header.Del(key)
 	}
+	this.Assert().Equal([]string{"Accept, AMP-Cache-Transform"}, resp.Header["Vary"])
+	resp.Header.Del("Vary")
+	resp.Header.Del("Date") // Date header is not tested; it may be updated.
+	this.Assert().Empty(resp.Header)
 }
 
 func TestSignerSuite(t *testing.T) {
