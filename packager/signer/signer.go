@@ -348,17 +348,16 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		proxy(resp, fetchResp, nil)
 		return
 	}
+	var act string
 	var transformVersion int64
 	if this.requireHeaders {
 		header_value := GetJoined(req.Header, "AMP-Cache-Transform")
-		var act string
 		act, transformVersion = amp_cache_transform.ShouldSendSXG(header_value)
 		if act == "" {
 			log.Println("Not packaging because AMP-Cache-Transform request header is invalid:", header_value)
 			proxy(resp, fetchResp, nil)
 			return
 		}
-		resp.Header().Set("AMP-Cache-Transform", act)
 	} else {
 		var err error
 		transformVersion, err = transformer.SelectVersion(nil)
@@ -387,16 +386,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 				proxy(resp, fetchResp, nil)
 				return
 			}
-			fetchResp.Header.Del(header)
 		}
-
-		// Mutate the fetched CSP to make sure it cannot break AMP pages.
-		fetchResp.Header.Set(
-			"Content-Security-Policy",
-			MutateFetchedContentSecurityPolicy(
-				fetchResp.Header.Get("Content-Security-Policy")))
-
-		fetchResp.Header.Del("Link") // Ensure there are no privacy-violating Link:rel=preload headers.
 
 		if fetchResp.Header.Get("Variants") != "" || fetchResp.Header.Get("Variant-Key") != "" ||
 			// Include versioned headers per https://github.com/WICG/webpackage/pull/406.
@@ -408,7 +398,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 			return
 		}
 
-		this.serveSignedExchange(resp, fetchResp, signURL, transformVersion)
+		this.serveSignedExchange(resp, fetchResp, signURL, act, transformVersion)
 
 	case 304:
 		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
@@ -451,9 +441,7 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 }
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
-func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, transformVersion int64) {
-	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
-
+func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, act string, transformVersion int64) {
 	// After this, fetchResp.Body is consumed, and attempts to read or proxy it will result in an empty body.
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
@@ -470,16 +458,42 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		proxy(resp, fetchResp, fetchBody)
 		return
 	}
-	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
+
+	// Validate and format Link header.
 	linkHeader, err := formatLinkHeader(metadata.Preloads)
 	if err != nil {
 		log.Println("Not packaging due to Link header error:", err)
 		proxy(resp, fetchResp, fetchBody)
 		return
 	}
+
+	// Begin mutations on original fetch response. From this point forward, do
+	// not fall-back to proxy().
+
+	// Remove stateful headers.
+	for header := range statefulResponseHeaders {
+		fetchResp.Header.Del(header)
+	}
+
+	// Set Link header if formatting returned a valid value, otherwise, delete
+	// it to ensure there are no privacy-violating Link:rel=preload headers.
 	if linkHeader != "" {
 		fetchResp.Header.Set("Link", linkHeader)
+	} else {
+		fetchResp.Header.Del("Link")
 	}
+
+	// Set content length.
+	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
+
+	// Set general security headers.
+	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
+
+	// Mutate the fetched CSP to make sure it cannot break AMP pages.
+	fetchResp.Header.Set(
+		"Content-Security-Policy",
+		MutateFetchedContentSecurityPolicy(
+			fetchResp.Header.Get("Content-Security-Policy")))
 
 	exchange := signedexchange.NewExchange(
 		accept.SxgVersion, /*uri=*/signURL.String(), /*method=*/"GET",
@@ -518,6 +532,13 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	var body bytes.Buffer
 	if err := exchange.Write(&body); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
+	}
+
+	// If requireHeaders was true when constructing signer, the
+	// AMP-Cache-Transform outer response header is required (and has already
+	// been validated)
+	if (act != "") {
+		resp.Header().Set("AMP-Cache-Transform", act)
 	}
 
 	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
