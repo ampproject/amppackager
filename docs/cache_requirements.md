@@ -18,11 +18,12 @@ These include:
  * The payload must be:
    * non-empty.
    * valid transformed AMP. The canonical definition of transformed AMP is the
-     return value of `transform.Process()`. If given a valid AMP doc as input,
-     it should produce a valid transformed AMP doc. There may be other ways of
-     achieving this, but they are unsupported (i.e. may arbitrarily break in the
-     future).
-   * unchanged after calling `transform -config NONE`.
+     return value of [`transform.Process()`](https://github.com/ampproject/amppackager/blob/e4bf0430ba152cfe82ccf063df92021dfc0f26a5/transformer/transformer.go#L219).
+     If given a [valid AMP](https://github.com/ampproject/amphtml/tree/master/validator)
+     doc as input, it should produce a valid transformed AMP doc. There may be
+     other ways of achieving this, but they are unsupported (i.e. may
+     arbitrarily break in the future).
+   * unchanged after calling [`transform -config NONE`](https://github.com/ampproject/amppackager/tree/releases/transformer#how-to-use).
    * matching one of the versions requested by the `AMP-Cache-Transform` header.
      Note that this version range will increase over time, at a cadence TBD
      (likely 6-8 weeks with 2 or 3 supported latest versions).
