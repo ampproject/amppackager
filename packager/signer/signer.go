@@ -109,10 +109,6 @@ var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 // in that it allows multiple slashes, as well as initial and terminal slashes.
 var protocol = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9a-zA-Z/]+$")
 
-func removeHopByHopResponseHeaders(resp *http.Response) {
-	util.RemoveHopByHopHeaders(resp.Header)
-}
-
 // Gets all values of the named header, joined on comma.
 func GetJoined(h http.Header, name string) string {
 	if values, ok := h[http.CanonicalHeaderKey(name)]; ok {
@@ -170,11 +166,10 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 	req.Header.Set("User-Agent", userAgent)
 	// copy forwardedRequestHeaders
 	for _, header := range this.forwardedRequestHeaders {
-		if value := GetJoined(serveHTTPReq.Header, header); value != "" {
-			req.Header.Set(header, value)
-		}
 		if http.CanonicalHeaderKey(header) == "Host" {
 			req.Host = serveHTTPReq.Host
+		} else if value := GetJoined(serveHTTPReq.Header, header); value != "" {
+			req.Header.Set(header, value)
 		}
 	}
 	// Golang's HTTP parser appears not to validate the protocol it parses
@@ -197,7 +192,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
 	}
-	removeHopByHopResponseHeaders(resp)
+	util.RemoveHopByHopHeaders(resp.Header)
 	return req, resp, nil
 }
 

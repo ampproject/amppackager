@@ -46,9 +46,6 @@ var Key = func() crypto.PrivateKey {
 // The URL path component corresponding to the cert's sha-256.
 var CertName = util.CertName(Certs[0])
 
-// ForwardedRequestHeaders List.
-var ForwardedRequestHeaders = []string{"Host", "X-Foo"}
-
 // A variant of http.Handler that's required by httprouter.
 type AlmostHandler interface {
 	ServeHTTP(http.ResponseWriter, *http.Request, httprouter.Params)

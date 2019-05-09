@@ -144,8 +144,10 @@ func ValidateFetchURLPattern(pattern *URLPattern) error {
 }
 
 func ValidateForwardedRequestHeaders(hs []string) error {
-	if msg := haveInvalidFowardedRequestHeader(hs); msg != "" {
-		return errors.Errorf("ForwardedRequestHeaders must not %s", msg)
+	for _, h := range hs {
+		if msg := haveInvalidForwardedRequestHeader(h); msg != "" {
+			return errors.Errorf("ForwardedRequestHeaders must not %s", msg)
+		}
 	}
 	return nil
 }

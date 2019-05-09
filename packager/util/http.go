@@ -46,7 +46,7 @@ var legacyHeaders = map[string]bool{
 
 // Via is implicitly forwarded and disallowed to be included in
 // config.ForwardedRequestHeaders
-var notFowardedRequestHeader = map[string]bool{
+var notForwardedRequestHeader = map[string]bool{
 	"Via": true,
 }
 
@@ -66,17 +66,15 @@ func RemoveHopByHopHeaders(h http.Header) {
 	}
 }
 
-func haveInvalidFowardedRequestHeader(hs []string) (string) {
-	for _, h :=range hs {
-		if _, ok := legacyHeaders[http.CanonicalHeaderKey(h)]; ok {
-			return fmt.Sprintf("have hop-by-hop header of %s", h)
-		}
-		if _, ok := ConditionalRequestHeaders[http.CanonicalHeaderKey(h)]; ok {
-			return fmt.Sprintf("have conditional request header of %s", h)
-		}
-		if _, ok := notFowardedRequestHeader[http.CanonicalHeaderKey(h)]; ok {
-			return fmt.Sprintf("include request header of %s", h)
-		}
+func haveInvalidForwardedRequestHeader(h string) string {
+	if _, ok := legacyHeaders[http.CanonicalHeaderKey(h)]; ok {
+		return fmt.Sprintf("have hop-by-hop header of %s", h)
+	}
+	if _, ok := ConditionalRequestHeaders[http.CanonicalHeaderKey(h)]; ok {
+		return fmt.Sprintf("have conditional request header of %s", h)
+	}
+	if _, ok := notForwardedRequestHeader[http.CanonicalHeaderKey(h)]; ok {
+		return fmt.Sprintf("include request header of %s", h)
 	}
 	return ""
 }
