@@ -75,6 +75,6 @@ content-type: application/signed-exchange;v=b3
 
 Does not meet requirements:
 ```
-$ curl -s -i -H 'Accept: application/signed-exchange;v=b3' https://amppackageexample-com.cdn.ampproject.org/wp/s/amppackageexample.com/gen/invalid.sxg | grep META
-<META HTTP-EQUIV="refresh" content="1; url=https://amppackageexample.com/gen/invalid.sxg">
+$ curl -s -i -H 'Accept: application/signed-exchange;v=b3' https://amppackageexample-com.cdn.ampproject.org/wp/s/amppackageexample.com/gen/invalid.sxg | grep -i warning:
+warning: 199 - "inner != outer; fallback url https://azei-package-test.com/gen/unwrap2.sxg != https://amppackageexample.com/gen/invalid.sxg"
 ```
