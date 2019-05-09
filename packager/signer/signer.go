@@ -40,12 +40,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// The Content-Security-Policy in use by the AMP Cache today. Specifying here
-// provides protection for the publisher against bugs in the transformers, as
-// these pages will now run on the publisher's origin. In the future, this
-// value will likely be versioned along with the transforms.
-var contentSecurityPolicy = "default-src * blob: data:; script-src blob: https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/; object-src 'none'; style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net; report-uri https://csp-collector.appspot.com/csp/amp"
-
 // The user agent to send when issuing fetches. Should look like a mobile device.
 const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile " +
