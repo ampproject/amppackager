@@ -45,16 +45,6 @@ const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile " +
 	"Safari/537.36 (compatible; amppackager/0.0.0; +https://github.com/ampproject/amppackager)"
 
-// Conditional request headers that ServeHTTP may receive and need to be sent with fetchURL.
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests#Conditional_headers
-var conditionalRequestHeaders = map[string]bool{
-	"If-Match":            true,
-	"If-None-Match":       true,
-	"If-Modified-Since":   true,
-	"If-Unmodified-Since": true,
-	"If-Range":            true,
-}
-
 // Advised against, per
 // https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-4.1
 // and blocked in http://crrev.com/c/958945.
@@ -113,34 +103,6 @@ var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 // in that it allows multiple slashes, as well as initial and terminal slashes.
 var protocol = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9a-zA-Z/]+$")
 
-// The following hop-by-hop headers should be removed even when not specified
-// in Connection, for backwards compatibility with downstream servers that were
-// written against RFC 2616, and expect gateways to behave according to
-// https://tools.ietf.org/html/rfc2616#section-13.5.1. (Note: "Trailers" is a
-// typo there; should be "Trailer".)
-//
-// Connection header should also be removed per
-// https://tools.ietf.org/html/rfc7230#section-6.1.
-//
-// Proxy-Connection should also be deleted, per
-// https://github.com/WICG/webpackage/pull/339.
-var legacyHeaders = []string{"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Proxy-Connection", "TE", "Trailer", "Transfer-Encoding", "Upgrade"}
-
-// Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
-func removeHopByHopHeaders(resp *http.Response) {
-	if connections, ok := resp.Header[http.CanonicalHeaderKey("Connection")]; ok {
-		for _, connection := range connections {
-			headerNames := util.Comma.Split(connection, -1)
-			for _, headerName := range headerNames {
-				resp.Header.Del(headerName)
-			}
-		}
-	}
-	for _, headerName := range legacyHeaders {
-		resp.Header.Del(headerName)
-	}
-}
-
 // Gets all values of the named header, joined on comma.
 func GetJoined(h http.Header, name string) string {
 	if values, ok := h[http.CanonicalHeaderKey(name)]; ok {
@@ -168,6 +130,7 @@ type Signer struct {
 	shouldPackage   func() bool
 	overrideBaseURL *url.URL
 	requireHeaders  bool
+	forwardedRequestHeaders []string
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
@@ -176,14 +139,14 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 
 func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
-	requireHeaders bool) (*Signer, error) {
+	requireHeaders bool, forwardedRequestHeaders []string) (*Signer, error) {
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
 
-	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
+	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders}, nil
 }
 
 func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
@@ -195,6 +158,14 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		return nil, nil, util.NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
+	// copy forwardedRequestHeaders
+	for _, header := range this.forwardedRequestHeaders {
+		if http.CanonicalHeaderKey(header) == "Host" {
+			req.Host = serveHTTPReq.Host
+		} else if value := GetJoined(serveHTTPReq.Header, header); value != "" {
+			req.Header.Set(header, value)
+		}
+	}
 	// Golang's HTTP parser appears not to validate the protocol it parses
 	// from the request line, so we do so here.
 	if protocol.MatchString(serveHTTPReq.Proto) {
@@ -206,7 +177,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		req.Header.Set("Via", via)
 	}
 	// Set conditional headers that were included in ServeHTTP's Request.
-	for header := range conditionalRequestHeaders {
+	for header := range util.ConditionalRequestHeaders {
 		if value := GetJoined(serveHTTPReq.Header, header); value != "" {
 			req.Header.Set(header, value)
 		}
@@ -215,7 +186,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
 	}
-	removeHopByHopHeaders(resp)
+	util.RemoveHopByHopHeaders(resp.Header)
 	return req, resp, nil
 }
 

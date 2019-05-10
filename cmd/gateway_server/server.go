@@ -112,7 +112,7 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 		},
 	}
 
-	packager, err := signer.New(certs[0], privateKey, urlSets, s.rtvCache, shouldPackage, signUrl, false)
+	packager, err := signer.New(certs[0], privateKey, urlSets, s.rtvCache, shouldPackage, signUrl, false, []string{})
 
 	if err != nil {
 		return errorToSXGResponse(err), nil

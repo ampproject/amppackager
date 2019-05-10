@@ -29,6 +29,7 @@ type Config struct {
 	CertFile  string // This must be the full certificate chain.
 	KeyFile   string // Just for the first cert, obviously.
 	OCSPCache string
+	ForwardedRequestHeaders []string
 	URLSet    []URLSet
 }
 
@@ -142,6 +143,15 @@ func ValidateFetchURLPattern(pattern *URLPattern) error {
 	return nil
 }
 
+func ValidateForwardedRequestHeaders(hs []string) error {
+	for _, h := range hs {
+		if msg := haveInvalidForwardedRequestHeader(h); msg != "" {
+			return errors.Errorf("ForwardedRequestHeaders must not %s", msg)
+		}
+	}
+	return nil
+}
+
 // ReadConfig reads the config file specified at --config and validates it.
 func ReadConfig(configBytes []byte) (*Config, error) {
 	tree, err := toml.LoadBytes(configBytes)
@@ -165,6 +175,11 @@ func ReadConfig(configBytes []byte) (*Config, error) {
 	}
 	if config.OCSPCache == "" {
 		return nil, errors.New("must specify OCSPCache")
+	}
+	if len(config.ForwardedRequestHeaders) > 0 {
+		if err := ValidateForwardedRequestHeaders(config.ForwardedRequestHeaders); err != nil {
+			return nil, err
+		}
 	}
 	ocspDir := filepath.Dir(config.OCSPCache)
 	if stat, err := os.Stat(ocspDir); os.IsNotExist(err) || !stat.Mode().IsDir() {

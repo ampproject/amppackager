@@ -51,6 +51,70 @@ func TestMinimalValidConfig(t *testing.T) {
 	}, *config)
 }
 
+func TestForwardedRequestHeader(t *testing.T) {
+	config, err := ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		OCSPCache = "/tmp/ocsp"
+		ForwardedRequestHeaders = ["X-Foo", "X-Bar"]
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+	`))
+	require.NoError(t, err)
+	assert.Equal(t, Config{
+		Port:      8080,
+		CertFile:  "cert.pem",
+		KeyFile:   "key.pem",
+		OCSPCache: "/tmp/ocsp",
+		ForwardedRequestHeaders: []string{"X-Foo", "X-Bar"},
+		URLSet: []URLSet{{
+			Sign: &URLPattern{
+				Domain:  "example.com",
+				PathRE:  stringPtr(".*"),
+				QueryRE: stringPtr(""),
+				MaxLength: 2000,
+			},
+		}},
+	}, *config)
+}
+
+func TestForwardedRequestHeadersHaveHopByHopHeader(t *testing.T) {
+	assert.Contains(t, errorFrom(ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		OCSPCache = "/tmp/ocsp"
+		ForwardedRequestHeaders = ["X-Foo", "X-Bar", "connection"]
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+	`))), "ForwardedRequestHeaders must not have hop-by-hop header of connection")
+}
+
+func TestForwardedRequestHeadersHaveConditionalRequestHeader(t *testing.T) {
+	assert.Contains(t, errorFrom(ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		OCSPCache = "/tmp/ocsp"
+		ForwardedRequestHeaders = ["X-Foo", "X-Bar", "if-match"]
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+	`))), "ForwardedRequestHeaders must not have conditional request header of if-match")
+}
+
+func TestForwardedRequestHeadersHaveDisallowedHeader(t *testing.T) {
+	assert.Contains(t, errorFrom(ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		OCSPCache = "/tmp/ocsp"
+		ForwardedRequestHeaders = ["X-Foo", "X-Bar", "via"]
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+	`))), "ForwardedRequestHeaders must not include request header of via")
+}
+
 func TestOCSPDirDoesntExist(t *testing.T) {
 	assert.Contains(t, errorFrom(ReadConfig([]byte(`
 		CertFile = "cert.pem"
