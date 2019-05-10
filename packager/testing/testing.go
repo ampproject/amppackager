@@ -43,6 +43,48 @@ var Key = func() crypto.PrivateKey {
 	return key
 }()
 
+// 90 days cert of amppackageexample.com and www.amppackageexample.com in SAN
+var B3Certs = func() []*x509.Certificate {
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/fullchain.cert")
+	certs, _ := signedexchange.ParseCertificates(certPem)
+	return certs
+}()
+
+// Private key of B3Certs
+var B3Key = func() crypto.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/server.privkey")
+	key, _ := util.ParsePrivateKey(keyPem)
+	return key
+}()
+
+//  90 days cert of amppackageexample2.com and www.amppackageexample2.com in SAN
+var B3Certs2 = func() []*x509.Certificate {
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/fullchain2.cert")
+	certs, _ := signedexchange.ParseCertificates(certPem)
+	return certs
+}()
+
+// Private key of B3Certs2
+var B3Key2 = func() crypto.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/server2.privkey")
+	key, _ := util.ParsePrivateKey(keyPem)
+	return key
+}()
+
+// 91 days cert from B3Key
+var B3Certs91Days = func() []*x509.Certificate {
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/fullchain_91days.cert")
+	certs, _ := signedexchange.ParseCertificates(certPem)
+	return certs
+}()
+
+// secp521r1 private key
+var B3KeyP521 = func() crypto.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/server_p521.privkey")
+	key, _ := util.ParsePrivateKey(keyPem)
+	return key
+}()
+
 // The URL path component corresponding to the cert's sha-256.
 var CertName = util.CertName(Certs[0])
 

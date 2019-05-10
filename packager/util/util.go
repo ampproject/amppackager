@@ -17,11 +17,13 @@ package util
 import (
 	"bytes"
 	"crypto"
+	"crypto/ecdsa"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/base64"
 	"encoding/pem"
+	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
@@ -75,4 +77,33 @@ func CanSignHttpExchanges(cert *x509.Certificate) bool {
 		}
 	}
 	return false
+}
+
+func CheckCertificate(cert *x509.Certificate, priv crypto.PrivateKey, domain string) error {
+	certPubKey := cert.PublicKey.(*ecdsa.PublicKey)
+	pubKey := priv.(*ecdsa.PrivateKey).PublicKey
+	if certPubKey.Curve != pubKey.Curve {
+		return errors.New("PublicKey.Curve not match")
+	}
+	if certPubKey.X.Cmp(pubKey.X) != 0 {
+		return errors.New("PublicKey.X not match")
+	}
+	if certPubKey.Y.Cmp(pubKey.Y) != 0 {
+		return errors.New("PublicKey.Y not match")
+	}
+	if err := cert.VerifyHostname(domain); err != nil {
+		return err
+	}
+	// https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#cross-origin-cert-req
+	// Clients MUST reject certificates with this extension that were issued after 2019-05-01 and have a Validity Period longer than 90 days.
+	// After 2019-08-01, clients MUST reject all certificates with this extension that have a Validity Period longer than 90 days.
+	may1st := time.Date(2019, time.May, 1,  0, 0, 0, 0, time.UTC)
+	aug1st := time.Date(2009, time.August, 1, 0, 0, 0, 0, time.UTC)
+	// TODO: remove issue date and current time check after 2019-08-01
+	if cert.NotBefore.After(may1st) || time.Now().After(aug1st) {
+		if cert.NotBefore.AddDate(0,0,90).Before(cert.NotAfter) {
+			return errors.New("Certificate MUST have a Validity Period no greater than 90 days")
+		}
+	}
+	return nil
 }
