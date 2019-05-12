@@ -29,16 +29,16 @@ func tokenize(accept string) []string {
 	inQuotes := false
 	startIndex := 0
 	for i := 0; i < acceptLen; i++ {
-		char := string(accept[i])
+		char := accept[i]
 		switch char {
-		case "\"":
+		case '"':
 			inQuotes = !inQuotes;
-		case ",":
+		case ',':
 			if !inQuotes {
 				tokens = append(tokens, strings.TrimSpace(accept[startIndex:i]))
 				startIndex = i + 1;
 			}
-		case "\\":
+		case '\\':
 			i++
 		}
 	}
