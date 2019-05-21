@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/WICG/webpackage/go/signedexchange/version"
+	"github.com/ampproject/amppackager/packager/util"
 )
 
 // The SXG version that packager can produce. In the future, it may need to be
@@ -35,14 +36,14 @@ func tokenize(accept string) []string {
 			inQuotes = !inQuotes
 		case ',':
 			if !inQuotes {
-				tokens = append(tokens, strings.TrimSpace(accept[startIndex:i]))
+				tokens = append(tokens, util.TrimHeaderValue(accept[startIndex:i]))
 				startIndex = i + 1
 			}
 		case '\\':
 			i++
 		}
 	}
-	tokens = append(tokens, strings.TrimSpace(accept[startIndex:]))
+	tokens = append(tokens, util.TrimHeaderValue(accept[startIndex:]))
 	return tokens
 }
 
