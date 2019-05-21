@@ -32,11 +32,11 @@ func tokenize(accept string) []string {
 		char := accept[i]
 		switch char {
 		case '"':
-			inQuotes = !inQuotes;
+			inQuotes = !inQuotes
 		case ',':
 			if !inQuotes {
 				tokens = append(tokens, strings.TrimSpace(accept[startIndex:i]))
-				startIndex = i + 1;
+				startIndex = i + 1
 			}
 		case '\\':
 			i++
