@@ -44,7 +44,9 @@ var legacyHeaders = map[string]bool{
 
 // Via is implicitly forwarded and disallowed to be included in
 // config.ForwardedRequestHeaders
+// TE is a hop-by-hop request header and must not be forwarded.
 var notForwardedRequestHeader = map[string]bool{
+	"Te": true,
 	"Via": true,
 }
 

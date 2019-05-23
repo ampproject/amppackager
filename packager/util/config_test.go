@@ -115,6 +115,18 @@ func TestForwardedRequestHeadersHaveDisallowedHeader(t *testing.T) {
 	`))), "ForwardedRequestHeaders must not include request header of via")
 }
 
+func TestForwardedRequestHeadersHaveTE(t *testing.T) {
+	assert.Contains(t, errorFrom(ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		OCSPCache = "/tmp/ocsp"
+		ForwardedRequestHeaders = ["X-Foo", "X-Bar", "TE"]
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+	`))), "ForwardedRequestHeaders must not include request header of TE")
+}
+
 func TestOCSPDirDoesntExist(t *testing.T) {
 	assert.Contains(t, errorFrom(ReadConfig([]byte(`
 		CertFile = "cert.pem"
