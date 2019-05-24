@@ -1,4 +1,4 @@
-package signer
+package signer_test
 
 import (
 	"net/http"
@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,67 +24,67 @@ func urlOrDie(spec string) *url.URL {
 }
 
 func TestParseURL(t *testing.T) {
-	assert.EqualError(t, errorFrom(parseURL("", "sign")), "sign URL is unspecified")
-	if err := errorFrom(parseURL("abc-@#79!%^/", "sign")); assert.NotNil(t, err) {
+	assert.EqualError(t, errorFrom(signer.ParseURL("", "sign")), "sign URL is unspecified")
+	if err := errorFrom(signer.ParseURL("abc-@#79!%^/", "sign")); assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(), "Error parsing sign URL")
 	}
-	assert.EqualError(t, errorFrom(parseURL("abc/def", "sign")), "sign URL is relative")
+	assert.EqualError(t, errorFrom(signer.ParseURL("abc/def", "sign")), "sign URL is relative")
 
-	assert.Equal(t, "http://foo.com/baz", urlFrom(parseURL("http://foo.com/bar/../baz", "sign")).String())
+	assert.Equal(t, "http://foo.com/baz", urlFrom(signer.ParseURL("http://foo.com/bar/../baz", "sign")).String())
 }
 
 func TestFetchURLMatches(t *testing.T) {
-	assert.NoError(t, fetchURLMatches(nil, nil))
-	assert.NoError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.NoError(t, signer.FetchURLMatches(nil, nil))
+	assert.NoError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}))
-	assert.NoError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.NoError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, Domain: "example.com", PathRE: stringPtr("/"), QueryRE: stringPtr(""), MaxLength: 2000}))
-	assert.NoError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.NoError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, DomainRE: "example.*", PathRE: stringPtr("/"), QueryRE: stringPtr(""), MaxLength: 2000}))
 
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com/"), nil),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"), nil),
 		"If URLSet.Fetch is unspecified, then so should ?fetch= be.")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"https"}, PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"Scheme doesn't match")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, Domain: "wrongexample.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"Domain doesn't match")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com:1234/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com:1234/"),
 		&util.URLPattern{Scheme: []string{"http"}, Domain: "example.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"Domain doesn't match")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, DomainRE: "xample", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"DomainRE doesn't match")
 
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http:example.com/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http:example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"URL is opaque")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://user@example.com/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://user@example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"URL contains user")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, PathRE: stringPtr("/amp/.*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"PathRE doesn't match")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, PathRE: stringPtr(".*"), PathExcludeRE: []string{"/"}, QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"PathExcludeRE matches: /")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com/?sessid=foo"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com/?sessid=foo"),
 		&util.URLPattern{Scheme: []string{"http"}, PathRE: stringPtr(".*"), QueryRE: stringPtr(""), MaxLength: 2000}),
 		"QueryRE doesn't match")
-	assert.EqualError(t, fetchURLMatches(urlOrDie("http://example.com/"),
+	assert.EqualError(t, signer.FetchURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Scheme: []string{"http"}, PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 10}),
 		"URL too long")
 }
 
 func TestSignURLMatches(t *testing.T) {
-	assert.NoError(t, signURLMatches(urlOrDie("https://example.com/"),
+	assert.NoError(t, signer.SignURLMatches(urlOrDie("https://example.com/"),
 		&util.URLPattern{Domain: "example.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}))
 
-	assert.EqualError(t, signURLMatches(urlOrDie("http://example.com/"),
+	assert.EqualError(t, signer.SignURLMatches(urlOrDie("http://example.com/"),
 		&util.URLPattern{Domain: "example.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"Scheme doesn't match")
-	assert.EqualError(t, signURLMatches(urlOrDie("https://wrongexample.com/"),
+	assert.EqualError(t, signer.SignURLMatches(urlOrDie("https://wrongexample.com/"),
 		&util.URLPattern{Domain: "example.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}),
 		"Domain doesn't match")
 }
@@ -99,28 +100,28 @@ func TestURLsMatch(t *testing.T) {
 			PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000},
 	}
 
-	assert.NoError(t, urlsMatch(urlOrDie("http://fetch.com/"), urlOrDie("https://sign.com/"), config))
+	assert.NoError(t, signer.URLsMatch(urlOrDie("http://fetch.com/"), urlOrDie("https://sign.com/"), config))
 
-	assert.EqualError(t, urlsMatch(urlOrDie("https://fetch.com/"), urlOrDie("https://sign.com/"), config),
+	assert.EqualError(t, signer.URLsMatch(urlOrDie("https://fetch.com/"), urlOrDie("https://sign.com/"), config),
 		"fetch URL: Scheme doesn't match")
-	assert.EqualError(t, urlsMatch(urlOrDie("http://fetch.com/"), urlOrDie("http://sign.com/"), config),
+	assert.EqualError(t, signer.URLsMatch(urlOrDie("http://fetch.com/"), urlOrDie("http://sign.com/"), config),
 		"sign URL: Scheme doesn't match")
-	assert.EqualError(t, urlsMatch(urlOrDie("http://fetch.com/"), urlOrDie("https://sign.com/other"), config),
+	assert.EqualError(t, signer.URLsMatch(urlOrDie("http://fetch.com/"), urlOrDie("https://sign.com/other"), config),
 		"fetch and sign paths don't match")
 
 	*config.Fetch.SamePath = false
-	assert.NoError(t, urlsMatch(urlOrDie("http://fetch.com/"), urlOrDie("https://sign.com/other"), config))
+	assert.NoError(t, signer.URLsMatch(urlOrDie("http://fetch.com/"), urlOrDie("https://sign.com/other"), config))
 }
 
 func TestParseURLs(t *testing.T) {
-	if _, _, _, err := parseURLs("a%-", "b", []util.URLSet{}); assert.NotNil(t, err) {
+	if _, _, _, err := signer.ParseURLs("a%-", "b", []util.URLSet{}); assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(), "fetch URL")
 	}
-	if _, _, _, err := parseURLs("http://a", "b%-", []util.URLSet{}); assert.NotNil(t, err) {
+	if _, _, _, err := signer.ParseURLs("http://a", "b%-", []util.URLSet{}); assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(), "sign URL")
 	}
 
-	fetch, sign, errorOnStatefulHeaders, err := parseURLs("", "https://example.com/", []util.URLSet{
+	fetch, sign, errorOnStatefulHeaders, err := signer.ParseURLs("", "https://example.com/", []util.URLSet{
 		{Sign: &util.URLPattern{Domain: "wrongexample.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}},
 		{Sign: &util.URLPattern{Domain: "example.com", PathRE: stringPtr("/amp/.*"), QueryRE: stringPtr(".*"), MaxLength: 2000}},
 		{Sign: &util.URLPattern{Domain: "example.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000, ErrorOnStatefulHeaders: true}},
@@ -132,7 +133,7 @@ func TestParseURLs(t *testing.T) {
 		assert.True(t, errorOnStatefulHeaders)
 	}
 
-	_, _, _, err = parseURLs("", "https://example.com/", []util.URLSet{
+	_, _, _, err = signer.ParseURLs("", "https://example.com/", []util.URLSet{
 		{Sign: &util.URLPattern{Domain: "wrongexample.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}},
 		{Sign: &util.URLPattern{Domain: "example.com", PathRE: stringPtr("/amp/.*"), QueryRE: stringPtr(".*"), MaxLength: 2000}},
 		{Sign: &util.URLPattern{Domain: "badexample.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}},
@@ -146,66 +147,66 @@ func TestValidateFetch(t *testing.T) {
 	req := httptest.NewRequest("", "/", nil)
 	resp := http.Response{Header: http.Header{}}
 	resp.Header.Set("Cache-Control", "max-age=ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Parsing cache headers")
 	}
 
 	resp.Header.Set("Cache-Control", "private")
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Non-cacheable response")
 	}
 
 	resp.Header.Del("Cache-Control")
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Non-cacheable response")
 	}
 
 	resp.Header.Set("Cache-Control", "public")
 
 	resp.Header.Set("Content-Type", "text//html")
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Parsing Content-Type")
 	}
 
 	resp.Header.Set("Content-Type", "text/html;charset=utf-8;charset=ebcdic")
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Parsing Content-Type")
 	}
 
 	resp.Header.Set("Content-Type", "text/htmlol")
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Wrong Content-Type")
 	}
 
 	resp.Header.Set("Content-Type", "text/html;charset=ebcdic")
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Wrong charset")
 	}
 
 	resp.Header.Set("Content-Type", "text/html;CHARSET=ebcdic")
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Wrong charset")
 	}
 
 	resp.Header.Set("Content-Type", `text/html; charset ="ebcdic"`)
-	if err := validateFetch(req, &resp); assert.Error(t, err) {
+	if err := signer.ValidateFetch(req, &resp); assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "Wrong charset")
 	}
 
 	resp.Header.Set("Content-Type", "text/html")
-	assert.NoError(t, validateFetch(req, &resp))
+	assert.NoError(t, signer.ValidateFetch(req, &resp))
 
 	// Examples from https://tools.ietf.org/html/rfc7231#section-3.1.1.1:
 
 	resp.Header.Set("Content-Type", "text/html;charset=utf-8")
-	assert.NoError(t, validateFetch(req, &resp))
+	assert.NoError(t, signer.ValidateFetch(req, &resp))
 
 	resp.Header.Set("Content-Type", "text/html;charset=UTF-8")
-	assert.NoError(t, validateFetch(req, &resp))
+	assert.NoError(t, signer.ValidateFetch(req, &resp))
 
 	resp.Header.Set("Content-Type", `Text/HTML;Charset="utf-8"`)
-	assert.NoError(t, validateFetch(req, &resp))
+	assert.NoError(t, signer.ValidateFetch(req, &resp))
 
 	resp.Header.Set("Content-Type", `text/html; charset="utf-8"`)
-	assert.NoError(t, validateFetch(req, &resp))
+	assert.NoError(t, signer.ValidateFetch(req, &resp))
 }

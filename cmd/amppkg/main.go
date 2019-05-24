@@ -24,15 +24,14 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"path"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/signer"
+	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/packager/validitymap"
 	"github.com/ampproject/amppackager/packager/rtv"
@@ -126,32 +125,13 @@ func main() {
 		}
 	}
 
-	packager, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
+	signer, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
 		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
 	if err != nil {
-		die(errors.Wrap(err, "building packager"))
+		die(errors.Wrap(err, "building signer"))
 	}
 
 	// TODO(twifkak): Make log output configurable.
-	mux := httprouter.New()
-	mux.RedirectTrailingSlash = false
-	mux.RedirectFixedPath = false
-
-	var handlerConfigs = []struct {
-		path string
-		handler httprouter.Handle
-	} {
-		{util.ValidityMapPath, validityMap.ServeHTTP},
-		{"/priv/doc", packager.ServeHTTP},
-		{"/priv/doc/*signURL", packager.ServeHTTP},
-		{path.Join(util.CertURLPrefix, ":certName"), certCache.ServeHTTP},
-	}
-	// GET and HEAD requests are handled identically. http.Server empties
-	// the body before responding to HEAD requests.
-	for _, handlerConfig := range handlerConfigs {
-		mux.GET(handlerConfig.path, handlerConfig.handler)
-		mux.HEAD(handlerConfig.path, handlerConfig.handler)
-	}
 
 	addr := ""
 	if config.LocalOnly {
@@ -162,7 +142,7 @@ func main() {
 		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
-		Handler:           logIntercept{mux},
+		Handler:           logIntercept{mux.New(certCache, signer, validityMap)},
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		// If needing to stream the response, disable WriteTimeout and

@@ -32,16 +32,17 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/amp_cache_transform"
+	muxp "github.com/ampproject/amppackager/packager/mux/params"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
-	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 )
 
 // The user agent to send when issuing fetches. Should look like a mobile device.
-const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
+// Exported for test.
+const UserAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile " +
 	"Safari/537.36 (compatible; amppackager/0.0.0; +https://github.com/ampproject/amppackager)"
 
@@ -89,10 +90,10 @@ const maxBodyLength = 4 * 1 << 20
 // https://cs.chromium.org/chromium/src/content/browser/loader/merkle_integrity_source_stream.cc?l=18&rcl=591949795043a818e50aba8a539094c321a4220c
 // The maximum is cheapest in terms of network usage, and probably CPU on both
 // server and client. The memory usage difference is negligible.
-const miRecordSize = 16 << 10
+const MIRecordSize = 16 << 10
 
-// Overrideable for testing.
-var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
+// Exported and overrideable for testing.
+var GetTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 	return &rpb.Request{Html: string(s), DocumentUrl: u, Rtv: r.GetRTV(), Css: r.GetCSS(),
 		AllowedFormats: []rpb.Request_HtmlFormat{rpb.Request_AMP}}
 }
@@ -124,7 +125,7 @@ type Signer struct {
 	cert *x509.Certificate
 	// TODO(twifkak): Do we want to allow multiple keys?
 	key             crypto.PrivateKey
-	client          *http.Client
+	Client          *http.Client  // Exported for test.
 	urlSets         []util.URLSet
 	rtvCache        *rtv.RTVCache
 	shouldPackage   func() bool
@@ -133,7 +134,8 @@ type Signer struct {
 	forwardedRequestHeaders []string
 }
 
-func noRedirects(req *http.Request, via []*http.Request) error {
+// Exported for test.
+func NoRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
@@ -141,7 +143,7 @@ func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
 	requireHeaders bool, forwardedRequestHeaders []string) (*Signer, error) {
 	client := http.Client{
-		CheckRedirect: noRedirects,
+		CheckRedirect: NoRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
@@ -157,7 +159,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
-	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("User-Agent", UserAgent)
 	// copy forwardedRequestHeaders
 	for _, header := range this.forwardedRequestHeaders {
 		if http.CanonicalHeaderKey(header) == "Host" {
@@ -182,7 +184,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 			req.Header.Set(header, value)
 		}
 	}
-	resp, err := this.client.Do(req)
+	resp, err := this.Client.Do(req)
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
 	}
@@ -265,7 +267,9 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 	return ret, nil
 }
 
-func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	log.Println("req =", req.URL)
+	log.Println("req path =", req.URL.Path)
 	resp.Header().Add("Vary", "Accept, AMP-Cache-Transform")
 
 	if err := req.ParseForm(); err != nil {
@@ -273,10 +277,12 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		return
 	}
 	var fetch, sign string
-	if inPathSignURL := params.ByName("signURL"); inPathSignURL != "" {
-		sign = inPathSignURL[1:] // Strip leading "/" produced by httprouter.
+	params := muxp.Params(req)
+	if inPathSignURL := params["signURL"]; inPathSignURL != "" {
+		println("inPathSignURL =", inPathSignURL)
+		sign = inPathSignURL
 		if req.URL.RawQuery != "" {
-			sign += "?" + req.URL.RawQuery
+			sign += "?" + req.URL.RawQuery  // TODO(twifkak): Verify this logic is still correct.
 		}
 	} else {
 		if len(req.Form["fetch"]) > 1 {
@@ -290,11 +296,15 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		fetch = req.FormValue("fetch")
 		sign = req.FormValue("sign")
 	}
-	fetchURL, signURL, errorOnStatefulHeaders, httpErr := parseURLs(fetch, sign, this.urlSets)
+	log.Println("fetch =", fetch)
+	log.Println("sign =", sign)
+	fetchURL, signURL, errorOnStatefulHeaders, httpErr := ParseURLs(fetch, sign, this.urlSets)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
 	}
+	log.Println("fetchURL =", fetchURL)
+	log.Println("signURL =", signURL)
 
 	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req)
 	if httpErr != nil {
@@ -340,7 +350,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 	switch fetchResp.StatusCode {
 	case 200:
 		// If fetchURL returns an OK status, then validate, munge, and package.
-		if err := validateFetch(fetchReq, fetchResp); err != nil {
+		if err := ValidateFetch(fetchReq, fetchResp); err != nil {
 			log.Println("Not packaging because of invalid fetch: ", err)
 			proxy(resp, fetchResp, nil)
 			return
@@ -415,7 +425,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	}
 
 	// Perform local transformations.
-	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
+	r := GetTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
 	r.Version = transformVersion
 	transformed, metadata, err := transformer.Process(r)
 	if err != nil {
@@ -463,7 +473,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	exchange := signedexchange.NewExchange(
 		accept.SxgVersion, /*uri=*/signURL.String(), /*method=*/"GET",
 		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
-	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
+	if err := exchange.MiEncodePayload(MIRecordSize); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
