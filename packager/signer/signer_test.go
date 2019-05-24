@@ -262,6 +262,15 @@ func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
 	this.Assert().Equal(this.httpSignURL()+fakePath+"?%3Chi%3E", exchange.RequestURI)
 }
 
+func (this *SignerSuite) TestDisallowInvalidCharsSign() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	resp := this.get(this.T(), this.new(urlSets),
+		"/priv/doc?&sign="+url.QueryEscape(this.httpSignURL()+fakePath+"<hi>"))
+	this.Assert().Equal(http.StatusBadRequest, resp.StatusCode, "incorrect status: %#v", resp)
+}
+
 func (this *SignerSuite) TestNoFetchParam() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
@@ -285,6 +294,19 @@ func (this *SignerSuite) TestSignAsPathParam() {
 	this.Require().NoError(err)
 	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
 	this.Assert().Equal(this.httpsURL()+fakePath, exchange.RequestURI)
+}
+
+func (this *SignerSuite) TestSignAsPathParamWithQuery() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(".*"), false, 2000, nil},
+	}}
+	resp := this.get(this.T(), this.new(urlSets), `/priv/doc/` + this.httpsURL() + fakePath + "?amp=1")
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(fakePath+"?amp=1", this.lastRequest.URL.String())
+	this.Assert().Equal(this.httpsURL()+fakePath+"?amp=1", exchange.RequestURI)
 }
 
 // Ensure that the server doesn't attempt to percent-decode the sign URL.

@@ -281,9 +281,6 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if inPathSignURL := params["signURL"]; inPathSignURL != "" {
 		println("inPathSignURL =", inPathSignURL)
 		sign = inPathSignURL
-		if req.URL.RawQuery != "" {
-			sign += "?" + req.URL.RawQuery  // TODO(twifkak): Verify this logic is still correct.
-		}
 	} else {
 		if len(req.Form["fetch"]) > 1 {
 			util.NewHTTPError(http.StatusBadRequest, "More than 1 fetch param").LogAndRespond(resp)

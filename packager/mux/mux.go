@@ -26,7 +26,7 @@ type mux struct {
 // order to meet docs/cache_requirements.md.
 //
 // The default http mux had some problems which led to me investigating 3rd
-// party routers. (TODO: Remember and document those problems.)
+// party routers. (TODO(twifkak): Remember and document those problems.)
 //
 // I investigated two 3rd party routers capable of handling catch-all suffix
 // parameters:
@@ -70,9 +70,9 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			this.signer.ServeHTTP(resp, req)
 		} else if suffix[0] == '/' {
 			params["signURL"] = suffix[1:]
-			// TODO(twifkak): What
-			// https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#seccons-content-sniffing
-			// prescribes.
+			if req.URL.RawQuery != "" {
+				params["signURL"] += "?" + req.URL.RawQuery
+			}
 			this.signer.ServeHTTP(resp, req)
 		} else {
 			http.NotFound(resp, req)
