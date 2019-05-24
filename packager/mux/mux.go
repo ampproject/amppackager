@@ -1,19 +1,16 @@
-package mux
-
-import (
-	"context"
-	"net/http"
-	"net/url"
-	"strings"
-
-	"github.com/ampproject/amppackager/packager/util"
-)
-
-type mux struct {
-	certCache http.Handler
-	signer http.Handler
-	validityMap http.Handler
-}
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Implements the HTTP routing strategy used by the amppkg server. The main
 // purpose for rolling our own is to be able to route the following types of
@@ -33,6 +30,24 @@ type mux struct {
 // impossible. The latter does so despite documenting support for unmodified
 // URL escapings. This, plus a lack of feature needs, led me to believe that
 // writing our own mux was the best approach.
+package mux
+
+import (
+	"context"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"github.com/ampproject/amppackager/packager/util"
+)
+
+type mux struct {
+	certCache http.Handler
+	signer http.Handler
+	validityMap http.Handler
+}
+
+// The main entry point. Use the return value for http.Server.Handler.
 func New(certCache http.Handler, signer http.Handler, validityMap http.Handler) http.Handler {
 	return &mux{certCache, signer, validityMap}
 }
@@ -46,7 +61,7 @@ func tryTrimPrefix(s, prefix string) (string, bool) {
 var allowedMethods = map[string]bool{http.MethodGet: true, http.MethodHead: true}
 
 func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	if _, ok := allowedMethods[req.Method]; !ok {
+	if !allowedMethods[req.Method] {
 		http.Error(resp, "405 method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -77,7 +92,7 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	} else if suffix, ok := tryTrimPrefix(path, util.CertURLPrefix + "/"); ok {
 		unescaped, err := url.PathUnescape(suffix)
 		if err != nil {
-			http.Error(resp, "400 bad request", http.StatusBadRequest)
+			http.Error(resp, "400 bad request - bad URL encoding", http.StatusBadRequest)
 		} else {
 			params["certName"] = unescaped
 			this.certCache.ServeHTTP(resp, req)
@@ -93,7 +108,7 @@ type paramsKeyType struct{}
 var paramsKey = paramsKeyType{}
 
 // Gets the params from the request context, injected by the mux. Guaranteed to
-// be non-nil.
+// be non-nil. Call from the handlers.
 func Params(req *http.Request) map[string]string {
 	params := req.Context().Value(paramsKey)
 	switch v := params.(type) {
