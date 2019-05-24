@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	muxp "github.com/ampproject/amppackager/packager/mux/params"
 	"github.com/ampproject/amppackager/packager/util"
 )
 
@@ -49,30 +48,18 @@ var CertName = util.CertName(Certs[0])
 // TODO(twifkak): Make a fluent builder interface for requests, instead of this mess.
 
 func Get(t *testing.T, handler http.Handler, target string) *http.Response {
-	return GetP(t, handler, target, map[string]string{})
+	return GetH(t, handler, target, http.Header{})
 }
 
 func GetH(t *testing.T, handler http.Handler, target string, headers http.Header) *http.Response {
-	return GetHP(t, handler, target, headers, map[string]string{})
+	return GetBHH(t, handler, target, "", nil, headers)
 }
 
-func GetP(t *testing.T, handler http.Handler, target string, params map[string]string) *http.Response {
-	return GetHP(t, handler, target, http.Header{}, params)
+func GetHH(t *testing.T, handler http.Handler, target string, host string, headers http.Header) *http.Response {
+	return GetBHH(t, handler, target, host, nil, headers)
 }
 
-func GetBH(t *testing.T, handler http.Handler, target string, body io.Reader, headers http.Header) *http.Response {
-	return GetBHP(t, handler, target, "", body, headers, map[string]string{})
-}
-
-func GetHP(t *testing.T, handler http.Handler, target string, headers http.Header, params map[string]string) *http.Response {
-	return GetBHP(t, handler, target, "", nil, headers, params)
-}
-
-func GetBHHP(t *testing.T, handler http.Handler, target string, host string, headers http.Header, params map[string]string) *http.Response {
-	return GetBHP(t, handler, target, host, nil, headers, params)
-}
-
-func GetBHP(t *testing.T, handler http.Handler, target string, host string, body io.Reader, headers http.Header, params map[string]string) *http.Response {
+func GetBHH(t *testing.T, handler http.Handler, target string, host string, body io.Reader, headers http.Header) *http.Response {
 	rec := httptest.NewRecorder()
 	method := ""
 	if body != nil {
@@ -88,7 +75,6 @@ func GetBHP(t *testing.T, handler http.Handler, target string, host string, body
 	if host != "" {
 		req.Host = host
 	}
-	req = muxp.WithParams(req, params)
 	handler.ServeHTTP(rec, req)
 	return rec.Result()
 }

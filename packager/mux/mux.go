@@ -46,9 +46,13 @@ func tryTrimPrefix(s, prefix string) (string, bool) {
 	return trimmed, len(trimmed) != sLen
 }
 
-// TODO(twifkak): Test this. Maybe by changing all the tests!
+var allowedMethods = map[string]bool{http.MethodGet: true, http.MethodHead: true}
+
 func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	// TODO(twifkak): Early return unless method is GET or HEAD.
+	if _, ok := allowedMethods[req.Method]; !ok {
+		http.Error(resp, "405 method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
 	params := map[string]string{}
 	req = muxp.WithParams(req, params)
@@ -66,6 +70,9 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			this.signer.ServeHTTP(resp, req)
 		} else if suffix[0] == '/' {
 			params["signURL"] = suffix[1:]
+			// TODO(twifkak): What
+			// https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#seccons-content-sniffing
+			// prescribes.
 			this.signer.ServeHTTP(resp, req)
 		} else {
 			http.NotFound(resp, req)
