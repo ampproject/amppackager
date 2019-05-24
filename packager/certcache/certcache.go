@@ -146,7 +146,6 @@ func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (tim
 
 func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	params := mux.Params(req)
-	log.Println("params =", params)
 	if params["certName"] == this.certName {
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
 		// This content-type is not standard, but included to reduce

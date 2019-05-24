@@ -127,7 +127,7 @@ func fetchURLMatches(url *url.URL, pattern *util.URLPattern) error {
 // https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#seccons-content-sniffing
 // item 3.1, or is the U+0025 (%) character.
 func isFallbackURLCodePoint(b byte) bool {
-	// https://url.spec.whatwg.org/#url-code-points:
+	// https://url.spec.whatwg.org/#url-code-points, but in codepoint order:
 	//
 	// U+0021 (!), U+0024 ($), U+0026 (&), U+0027 ('), U+0028 LEFT PARENTHESIS,
 	// U+0029 RIGHT PARENTHESIS, U+002A (*), U+002B (+), U+002C (,), U+002D (-),
@@ -135,9 +135,8 @@ func isFallbackURLCodePoint(b byte) bool {
 	// U+003B (;), U+003D (=), U+003F (?), U+0040 (@),
 	// ASCII upper alpha (U+0041 - U+005A), U+005F (_),
 	// ASCII lower alpha (U+0061 - U+007A), U+007E (~)
-	//
-	// The comment above is in codepoint order. The expression below is
-	// vaguely ordered most to least common, to aid short-circuiting.
+
+	// Vaguely ordered most to least common, to aid short-circuiting:
 	return (b >= 'a' && b <= 'z') || b == '_' || b == '~' ||
 		(b >= '!' && b < 'Z' && b != '"' /*x22*/ && b != '#' /*x23*/ && b != '<' /*x3C*/ && b != '>' /*x3E*/)
 }

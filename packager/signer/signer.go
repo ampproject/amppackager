@@ -266,8 +266,6 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 }
 
 func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	log.Println("req =", req.URL)
-	log.Println("req path =", req.URL.Path)
 	resp.Header().Add("Vary", "Accept, AMP-Cache-Transform")
 
 	if err := req.ParseForm(); err != nil {
@@ -277,7 +275,6 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var fetch, sign string
 	params := mux.Params(req)
 	if inPathSignURL := params["signURL"]; inPathSignURL != "" {
-		println("inPathSignURL =", inPathSignURL)
 		sign = inPathSignURL
 	} else {
 		if len(req.Form["fetch"]) > 1 {
@@ -291,15 +288,11 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		fetch = req.FormValue("fetch")
 		sign = req.FormValue("sign")
 	}
-	log.Println("fetch =", fetch)
-	log.Println("sign =", sign)
 	fetchURL, signURL, errorOnStatefulHeaders, httpErr := parseURLs(fetch, sign, this.urlSets)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
 	}
-	log.Println("fetchURL =", fetchURL)
-	log.Println("signURL =", signURL)
 
 	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req)
 	if httpErr != nil {
