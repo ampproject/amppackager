@@ -30,11 +30,11 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certcache"
-	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/mux"
+	"github.com/ampproject/amppackager/packager/rtv"
+	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/packager/validitymap"
-	"github.com/ampproject/amppackager/packager/rtv"
 )
 
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")

@@ -286,7 +286,7 @@ func (this *SignerSuite) TestSignAsPathParam() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
 	}}
-	resp := this.get(this.T(), this.new(urlSets), `/priv/doc/` + this.httpsURL() + fakePath)
+	resp := this.get(this.T(), this.new(urlSets), `/priv/doc/`+this.httpsURL()+fakePath)
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
@@ -299,7 +299,7 @@ func (this *SignerSuite) TestSignAsPathParamWithQuery() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(".*"), false, 2000, nil},
 	}}
-	resp := this.get(this.T(), this.new(urlSets), `/priv/doc/` + this.httpsURL() + fakePath + "?amp=1")
+	resp := this.get(this.T(), this.new(urlSets), `/priv/doc/`+this.httpsURL()+fakePath+"?amp=1")
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
@@ -313,7 +313,7 @@ func (this *SignerSuite) TestSignAsPathParamWithUnusualPctEncoding() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
 	}}
-	resp := this.get(this.T(), this.new(urlSets), `/priv/doc/` + this.httpsURL() + fakePath + `%2A`)
+	resp := this.get(this.T(), this.new(urlSets), `/priv/doc/`+this.httpsURL()+fakePath+`%2A`)
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)

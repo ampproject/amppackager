@@ -42,8 +42,8 @@ import (
 )
 
 type mux struct {
-	certCache http.Handler
-	signer http.Handler
+	certCache   http.Handler
+	signer      http.Handler
 	validityMap http.Handler
 }
 
@@ -89,7 +89,7 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		} else {
 			http.NotFound(resp, req)
 		}
-	} else if suffix, ok := tryTrimPrefix(path, util.CertURLPrefix + "/"); ok {
+	} else if suffix, ok := tryTrimPrefix(path, util.CertURLPrefix+"/"); ok {
 		unescaped, err := url.PathUnescape(suffix)
 		if err != nil {
 			http.Error(resp, "400 bad request - bad URL encoding", http.StatusBadRequest)
@@ -105,6 +105,7 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 type paramsKeyType struct{}
+
 var paramsKey = paramsKeyType{}
 
 // Gets the params from the request context, injected by the mux. Guaranteed to
