@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package certcache_test
+package certcache
 
 import (
 	"crypto/rsa"
@@ -29,7 +29,6 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/cbor"
-	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/mux"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/ampproject/amppackager/packager/util"
@@ -70,17 +69,17 @@ type CertCacheSuite struct {
 	ocspHandler         func(w http.ResponseWriter, req *http.Request)
 	tempDir             string
 	stop                chan struct{}
-	handler             *certcache.CertCache
+	handler             *CertCache
 }
 
-func (this *CertCacheSuite) New() (*certcache.CertCache, error) {
+func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(twifkak): Stop the old CertCache's goroutine.
-	certCache := certcache.New(pkgt.Certs, filepath.Join(this.tempDir, "ocsp"))
-	certCache.ExtractOCSPServer = func(*x509.Certificate) (string, error) {
+	certCache := New(pkgt.Certs, filepath.Join(this.tempDir, "ocsp"))
+	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}
-	defaultHttpExpiry := certCache.HTTPExpiry
-	certCache.HTTPExpiry = func(req *http.Request, resp *http.Response) time.Time {
+	defaultHttpExpiry := certCache.httpExpiry
+	certCache.httpExpiry = func(req *http.Request, resp *http.Response) time.Time {
 		if this.fakeOCSPExpiry != nil {
 			return *this.fakeOCSPExpiry
 		} else {
@@ -206,7 +205,7 @@ func (this *CertCacheSuite) TestOCSP() {
 func (this *CertCacheSuite) TestOCSPCached() {
 	// Verify it is in the memory cache:
 	this.Assert().False(this.ocspServerCalled(func() {
-		_, _, err := this.handler.ReadOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Assert().NoError(err)
 	}))
 
@@ -234,7 +233,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 
 	// On update, verify network is called:
 	this.Assert().True(this.ocspServerCalled(func() {
-		_, _, err := this.handler.ReadOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Assert().NoError(err)
 	}))
 }
@@ -258,7 +257,7 @@ func (this *CertCacheSuite) TestOCSPUpdateFromDisk() {
 
 	// On update, verify network is not called (fresh OCSP from disk is used):
 	this.Assert().False(this.ocspServerCalled(func() {
-		_, _, err := this.handler.ReadOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Assert().NoError(err)
 	}))
 }
@@ -273,11 +272,11 @@ func (this *CertCacheSuite) TestOCSPExpiredViaHTTPHeaders() {
 		this.handler, err = this.New()
 		this.Require().NoError(err, "reinitializing CertCache")
 	}))
-	this.Require().Equal(time.Unix(0, 1), this.handler.OCSPUpdateAfter)
+	this.Require().Equal(time.Unix(0, 1), this.handler.ocspUpdateAfter)
 
 	// Verify that, 2 seconds later, a new fetch is attempted.
 	this.Assert().True(this.ocspServerCalled(func() {
-		_, _, err := this.handler.ReadOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Require().NoError(err, "updating OCSP")
 	}))
 }
@@ -298,12 +297,12 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-8 * 24 * time.Hour))
 	this.Require().NoError(err, "creating expired OCSP response")
 	this.Assert().True(this.ocspServerCalled(func() {
-		_, _, err := this.handler.ReadOCSP()
+		_, _, err := this.handler.readOCSP()
 		this.Require().NoError(err, "updating OCSP")
 	}))
 
 	// Verify that the invalid update doesn't squash the valid cache entry.
-	ocsp, _, err := this.handler.ReadOCSP()
+	ocsp, _, err := this.handler.readOCSP()
 	this.Require().NoError(err, "reading OCSP")
 	this.Assert().Equal(staleOCSP, ocsp)
 }

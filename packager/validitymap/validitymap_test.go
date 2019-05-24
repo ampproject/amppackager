@@ -1,4 +1,4 @@
-package validitymap_test
+package validitymap
 
 import (
 	"io/ioutil"
@@ -6,13 +6,12 @@ import (
 
 	"github.com/ampproject/amppackager/packager/mux"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
-	"github.com/ampproject/amppackager/packager/validitymap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestValidityMap(t *testing.T) {
-	handler, err := validitymap.New()
+	handler, err := New()
 	require.NoError(t, err)
 
 	resp := pkgt.Get(t, mux.New(nil, nil, handler), "/amppkg/validity")

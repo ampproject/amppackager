@@ -14,8 +14,7 @@ import (
 )
 
 // Converts an URL string into an URL object with an unambiguous interpretation.
-// Exported for test.
-func ParseURL(rawURL string, name string) (*url.URL, *util.HTTPError) {
+func parseURL(rawURL string, name string) (*url.URL, *util.HTTPError) {
 	if rawURL == "" {
 		return nil, util.NewHTTPError(http.StatusBadRequest, name, " URL is unspecified")
 	}
@@ -48,7 +47,7 @@ func regexpFullMatch(pattern string, test string) bool {
 	return matches
 }
 
-// Implements the URL-matching common to both FetchURLMatches and SignURLMatches.
+// Implements the URL-matching common to both fetchURLMatches and signURLMatches.
 func urlMatches(url *url.URL, pattern util.URLPattern) error {
 	if url.Opaque != "" {
 		// Opaque URLs are unfetchable, and also disallowed by the spec
@@ -99,8 +98,7 @@ func schemeMatches(actualScheme string, expectedSchemes []string) bool {
 // True iff url matches pattern, as defined by an [URLSet.Fetch] block in the
 // config file. The format of this URLPattern is validated by
 // validateFetchURLPattern in config.go.
-// Exported for test.
-func FetchURLMatches(url *url.URL, pattern *util.URLPattern) error {
+func fetchURLMatches(url *url.URL, pattern *util.URLPattern) error {
 	// If the fetch block is not specified, then this particular URLSet is
 	// a "sign-only" config. That is: only the sign URL should be passed to
 	// the Signer; this will be used as the fetch URL as well.
@@ -147,8 +145,7 @@ func isFallbackURLCodePoint(b byte) bool {
 // True iff url matches pattern, as defined by an [URLSet.Sign] block in the
 // config file. The format of this URLPattern is validated by
 // validateSignURLPattern in config.go.
-// Exported for test.
-func SignURLMatches(url *url.URL, pattern *util.URLPattern) error {
+func signURLMatches(url *url.URL, pattern *util.URLPattern) error {
 	for _, b := range []byte(url.String()) {
 		if !isFallbackURLCodePoint(b) {
 			return errors.New("Contains invalid byte")
@@ -175,12 +172,11 @@ func SignURLMatches(url *url.URL, pattern *util.URLPattern) error {
 // True iff the given fetchURL and signURL match the given set (as specified by
 // an [[URLSet]] block in the config file), and, if SamePath is true (default),
 // fetchURL and signURL match each other.
-// Exported for test.
-func URLsMatch(fetchURL *url.URL, signURL *url.URL, set util.URLSet) error {
-	if err := FetchURLMatches(fetchURL, set.Fetch); err != nil {
+func urlsMatch(fetchURL *url.URL, signURL *url.URL, set util.URLSet) error {
+	if err := fetchURLMatches(fetchURL, set.Fetch); err != nil {
 		return errors.Wrap(err, "fetch URL")
 	}
-	if err := SignURLMatches(signURL, set.Sign); err != nil {
+	if err := signURLMatches(signURL, set.Sign); err != nil {
 		return errors.Wrap(err, "sign URL")
 	}
 	theyMatch := set.Fetch == nil || !*set.Fetch.SamePath || fetchURL.RequestURI() == signURL.RequestURI()
@@ -195,24 +191,23 @@ func URLsMatch(fetchURL *url.URL, signURL *url.URL, set util.URLSet) error {
 // this returns the parsed URLs as well as a bool containing the value of
 // ErrorOnStatefulHeaders for the first matching URLSet. Otherwise, returns an
 // error.
-// Exported for test.
-func ParseURLs(fetch string, sign string, urlSets []util.URLSet) (*url.URL, *url.URL, bool, *util.HTTPError) {
+func parseURLs(fetch string, sign string, urlSets []util.URLSet) (*url.URL, *url.URL, bool, *util.HTTPError) {
 	var fetchURL *url.URL
 	var err *util.HTTPError
 	if fetch != "" {
-		fetchURL, err = ParseURL(fetch, "fetch")
+		fetchURL, err = parseURL(fetch, "fetch")
 		if err != nil {
 			// TODO(twifkak): Use errors.Wrap() after changing return types to error.
 			return nil, nil, false, err
 		}
 	}
-	signURL, err := ParseURL(sign, "sign")
+	signURL, err := parseURL(sign, "sign")
 	if err != nil {
 		// TODO(twifkak): Use errors.Wrap() after changing return types to error.
 		return nil, nil, false, err
 	}
 	for _, set := range urlSets {
-		err := URLsMatch(fetchURL, signURL, set)
+		err := urlsMatch(fetchURL, signURL, set)
 		if err == nil {
 			if fetchURL == nil {
 				fetchURL = signURL
@@ -226,8 +221,7 @@ func ParseURLs(fetch string, sign string, urlSets []util.URLSet) (*url.URL, *url
 // Given a request/response pair for the fetch from the packager to the backend
 // content server, validates that the response is fit for including in an AMP
 // SXG.
-// Exported for test.
-func ValidateFetch(req *http.Request, resp *http.Response) error {
+func validateFetch(req *http.Request, resp *http.Response) error {
 	// Validate response is publicly-cacheable, per
 	// https://tools.ietf.org/html/draft-yasskin-http-origin-signed-responses-03#section-6.1, as referenced by
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-6.

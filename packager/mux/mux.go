@@ -1,21 +1,18 @@
 package mux
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/ampproject/amppackager/packager/certcache"
-	"github.com/ampproject/amppackager/packager/signer"
-	muxp "github.com/ampproject/amppackager/packager/mux/params"
 	"github.com/ampproject/amppackager/packager/util"
-	"github.com/ampproject/amppackager/packager/validitymap"
 )
 
 type mux struct {
-	certCache *certcache.CertCache
-	signer *signer.Signer
-	validityMap *validitymap.ValidityMap
+	certCache http.Handler
+	signer http.Handler
+	validityMap http.Handler
 }
 
 // Implements the HTTP routing strategy used by the amppkg server. The main
@@ -36,7 +33,7 @@ type mux struct {
 // impossible. The latter does so despite documenting support for unmodified
 // URL escapings. This, plus a lack of feature needs, led me to believe that
 // writing our own mux was the best approach.
-func New(certCache *certcache.CertCache, signer *signer.Signer, validityMap *validitymap.ValidityMap) http.Handler {
+func New(certCache http.Handler, signer http.Handler, validityMap http.Handler) http.Handler {
 	return &mux{certCache, signer, validityMap}
 }
 
@@ -55,7 +52,7 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	params := map[string]string{}
-	req = muxp.WithParams(req, params)
+	req = WithParams(req, params)
 
 	// Use EscapedPath rather than RequestURI because the latter can take
 	// absolute-form, per https://tools.ietf.org/html/rfc7230#section-5.3.
@@ -90,4 +87,27 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	} else {
 		http.NotFound(resp, req)
 	}
+}
+
+type paramsKeyType struct{}
+var paramsKey = paramsKeyType{}
+
+// Gets the params from the request context, injected by the mux. Guaranteed to
+// be non-nil.
+func Params(req *http.Request) map[string]string {
+	params := req.Context().Value(paramsKey)
+	switch v := params.(type) {
+	case map[string]string:
+		return v
+	default:
+		// This should never happen, but just in case, let's not panic.
+		return map[string]string{}
+	}
+}
+
+// Returns a copy of req annotated with the given params. (Params is stored by
+// reference, and so may be mutated afterwards.) To be called only by this
+// library itself or by tests.
+func WithParams(req *http.Request, params map[string]string) *http.Request {
+	return req.WithContext(context.WithValue(req.Context(), paramsKey, params))
 }
