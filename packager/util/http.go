@@ -45,7 +45,10 @@ var legacyHeaders = map[string]bool{
 // Via is implicitly forwarded and disallowed to be included in
 // config.ForwardedRequestHeaders
 // TE is a hop-by-hop request header and must not be forwarded.
+// Proxy-Authorization can be forwarded per rfc7235#section-4.4 but
+// remove it to mitigate the risk of over-signing.
 var notForwardedRequestHeader = map[string]bool{
+	"Proxy-Authorization": true,
 	"Te": true,
 	"Via": true,
 }
