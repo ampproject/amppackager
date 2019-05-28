@@ -18,8 +18,6 @@ import (
 	"bytes"
 	"net/http"
 	"time"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 type ValidityMap struct {
@@ -34,7 +32,7 @@ func New() (*ValidityMap, error) {
 	return this, nil
 }
 
-func (this *ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func (this *ValidityMap) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/cbor")
 	resp.Header().Set("Cache-Control", "public, max-age=604800")
 	resp.Header().Set("X-Content-Type-Options", "nosniff")

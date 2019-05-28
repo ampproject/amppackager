@@ -32,11 +32,11 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/amp_cache_transform"
+	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
-	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 )
 
@@ -265,7 +265,7 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 	return ret, nil
 }
 
-func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Add("Vary", "Accept, AMP-Cache-Transform")
 
 	if err := req.ParseForm(); err != nil {
@@ -273,11 +273,9 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		return
 	}
 	var fetch, sign string
-	if inPathSignURL := params.ByName("signURL"); inPathSignURL != "" {
-		sign = inPathSignURL[1:] // Strip leading "/" produced by httprouter.
-		if req.URL.RawQuery != "" {
-			sign += "?" + req.URL.RawQuery
-		}
+	params := mux.Params(req)
+	if inPathSignURL := params["signURL"]; inPathSignURL != "" {
+		sign = inPathSignURL
 	} else {
 		if len(req.Form["fetch"]) > 1 {
 			util.NewHTTPError(http.StatusBadRequest, "More than 1 fetch param").LogAndRespond(resp)
