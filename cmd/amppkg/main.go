@@ -100,10 +100,9 @@ func main() {
 		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
 	}
 
-	for i := range config.URLSet {
-		domain := config.URLSet[i].Sign.Domain
-		err := util.CheckCertificate(certs[0], key, domain)
-		if err != nil {
+	for _, urlSet := range config.URLSet {
+		domain := urlSet.Sign.Domain
+		if err := util.CheckCertificate(certs[0], key, domain, time.Now()); err != nil {
 			die(errors.Wrapf(err, "checking %s", config.CertFile))
 		}
 	}

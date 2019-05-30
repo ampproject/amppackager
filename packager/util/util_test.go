@@ -37,39 +37,40 @@ func TestCanSignHttpExchanges(t *testing.T) {
 }
 
 func TestParseCertificate(t *testing.T) {
-	assert.Nil(t, util.CheckCertificate(pkgt.B3Certs[0], pkgt.B3Key, "amppackageexample.com"))
+	assert.Nil(t, util.CheckCertificate(pkgt.B3Certs[0], pkgt.B3Key, "amppackageexample.com", time.Now()))
 }
 
 func TestParseCertificateSubjectAltName(t *testing.T) {
-	assert.Nil(t, util.CheckCertificate(pkgt.B3Certs[0], pkgt.B3Key, "www.amppackageexample.com"))
+	assert.Nil(t, util.CheckCertificate(pkgt.B3Certs[0], pkgt.B3Key, "www.amppackageexample.com", time.Now()))
 }
 
 func TestParseCertificateNotMatchX(t *testing.T) {
 	assert.Contains(t, errorFrom(util.CheckCertificate(pkgt.B3Certs[0],
-		pkgt.B3Key2, "amppackageexample.com")), "PublicKey.X not match")
+		pkgt.B3Key2, "amppackageexample.com", time.Now())), "PublicKey.X not match")
 }
 
 func TestParseCertificateNotMatchCurve(t *testing.T) {
 	assert.Contains(t, errorFrom(util.CheckCertificate(pkgt.B3Certs[0],
-		pkgt.B3KeyP521, "amppackageexample.com")), "PublicKey.Curve not match")
+		pkgt.B3KeyP521, "amppackageexample.com", time.Now())), "PublicKey.Curve not match")
 }
 
 func TestParseCertificateNotMatchDomain(t *testing.T) {
 	assert.Contains(t, errorFrom(util.CheckCertificate(pkgt.B3Certs2[0],
-		pkgt.B3Key2, "amppackageexample.com")), "x509: certificate is valid for amppackageexample2.com, www.amppackageexample2.com, not amppackageexample.com")
+		pkgt.B3Key2, "amppackageexample.com", time.Now())), "x509: certificate is valid for amppackageexample2.com, www.amppackageexample2.com, not amppackageexample.com")
 }
 
 func TestParse91DaysCertificate(t *testing.T) {
 	assert.Contains(t, errorFrom(util.CheckCertificate(pkgt.B3Certs91Days[0],
-		pkgt.B3Key, "amppackageexample.com")), "Certificate MUST have a Validity Period no greater than 90 days")
+		pkgt.B3Key, "amppackageexample.com", time.Now())), "Certificate MUST have a Validity Period no greater than 90 days")
 }
 
-func TestParseCertificateIssuedBeforeMay1(t *testing.T) {
-	aug1st := time.Date(2009, time.August, 1, 0, 0, 0, 0, time.UTC)
-	if time.Now().After(aug1st) {
-		assert.Contains(t, errorFrom(util.CheckCertificate(pkgt.Certs[0],
-		pkgt.Key, "amppackageexample.com")), "Certificate MUST have a Validity Period no greater than 90 days")
-	} else {
-		assert.Nil(t, util.CheckCertificate(pkgt.Certs[0], pkgt.Key, "amppackageexample.com"))
-	}
+func TestParseCertificateIssuedBeforeMay1InGarcePeriod(t *testing.T) {
+	now := time.Date(2019, time.July, 31, 0, 0, 0, 0, time.UTC)
+	assert.Nil(t, util.CheckCertificate(pkgt.Certs[0], pkgt.Key, "amppackageexample.com", now))
+}
+
+func TestParseCertificateIssuedBeforeMay1AfterGracePeriod(t *testing.T) {
+	now := time.Date(2019, time.August, 1, 0, 0, 0, 1, time.UTC)
+	assert.Contains(t, errorFrom(util.CheckCertificate(pkgt.Certs[0],
+		pkgt.Key, "amppackageexample.com", now)), "Certificate MUST have a Validity Period no greater than 90 days")
 }
