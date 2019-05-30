@@ -93,13 +93,18 @@ func main() {
 	if !(*flagDevelopment || *flagInvalidCert || util.CanSignHttpExchanges(certs[0])) {
 		die("cert is missing CanSignHttpExchanges extension")
 	}
-	// TODO(twifkak): Verify that certs[0] covers all the signing domains in the config.
 
 	key, err := util.ParsePrivateKey(keyPem)
 	if err != nil {
 		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
 	}
-	// TODO(twifkak): Verify that key matches certs[0].
+
+	for _, urlSet := range config.URLSet {
+		domain := urlSet.Sign.Domain
+		if err := util.CheckCertificate(certs[0], key, domain, time.Now()); err != nil {
+			die(errors.Wrapf(err, "checking %s", config.CertFile))
+		}
+	}
 
 	validityMap, err := validitymap.New()
 	if err != nil {
