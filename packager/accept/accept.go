@@ -1,6 +1,7 @@
 package accept
 
 import (
+	"log"
 	"mime"
 	"strings"
 
@@ -40,6 +41,10 @@ func tokenize(accept string) []string {
 				startIndex = i + 1
 			}
 		case '\\':
+			if !inQuotes {
+				log.Printf("unable to parse Accept header: %s", accept)
+				return []string{}
+			}
 			i++
 		}
 	}
