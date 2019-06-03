@@ -1,9 +1,5 @@
 # AMP Packager
 
-> **WARNING**: This code is still evolving, and is a developer preview. The
-> specification is still changing, and this is an implementation of a snapshot
-> of it. Feel free to use it, but treat with care how you configure and deploy it.
-
 AMP Packager is a tool to [improve AMP
 URLs](https://www.ampproject.org/latest/blog/developer-preview-of-better-amp-urls-in-google-search).
 By running it in a proper configuration, web publishers may (eventually) have
@@ -150,6 +146,21 @@ packager URL directly, first add a Chrome extension to send an
 `AMP-Cache-Transform: any` request header. Otherwise, follow the above
 "Demonstrate privacy-preserving prefetch" instructions.
 
+##### Security Considerations
+
+Signed exchanges come with some [security
+considerations](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#security-considerations)
+that publishers should consider. A starting list of recommendations based on
+that:
+
+ * Use different keys for the signed exchange cert and the TLS cert.
+ * Only sign public content that's OK to be shared with crawlers.
+ * Don't sign personalized content. (It's OK to sign content that includes
+   static JS that adds personalization at runtime.)
+ * Be careful when signing inline JS; if it includes a vulnerability, it may be
+   possible for attackers to exploit it without intercepting the network path,
+   for up to 7 days.
+
 #### Testing productionization without a valid certificate
 
 It is possible to test an otherwise fully production configuration without
@@ -176,15 +187,10 @@ recommendations](https://gist.github.com/sleevi/5efe9ef98961ecfb4da8).
 
 #### How will these web packages be discovered by Google?
 
-For now, the presence of the `Vary: AMP-Cache-Transform` response header on an
-AMP HTML page will allow the Google AMP Cache to make a second request with
-`AMP-Cache-Transform: google` for the SXG.
-
-The Google Search developer preview only runs on Chrome M71+ (as of 2018-11-12,
-Beta or Dev).
-
-In the future, Googlebot may make all requests with `AMP-Cache-Transform: google`,
-eliminating the double fetch.
+Googlebot makes requests with an `AMP-Cache-Transform` header. Responses that
+are [acceptable AMP SXGs](docs/cache_requirements.md) will be eligible for
+display to SXG-supporting browsers, and the HTML payload will be extracted and
+eligible for use in the AMP viewer in other browsers.
 
 ### Limitations
 

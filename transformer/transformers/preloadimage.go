@@ -15,7 +15,10 @@
 package transformers
 
 import (
+	"fmt"
 	"math/big"
+	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -34,34 +37,26 @@ const maxAspectRatioSize int = 16
 
 // PreloadImage adds link rel="prefetch" head element to preload the most revalent image in the AMP document.
 func PreloadImage(e *Context) error {
-	importantImageUrls := imagesToPreload(e)
-	if len(importantImageUrls) > 0 {
-		prefetchLink := htmlnode.Element("link", html.Attribute{Key: "rel", Val: "prefetch"}, html.Attribute{Key: "href", Val: importantImageUrls[0]})
-		e.DOM.HeadNode.AppendChild(prefetchLink)
-	}
-	return nil
-}
-
-// Returns list of images on the document that qualifies for preloading.
-func imagesToPreload(e *Context) []string {
-	candidateImages := []string{}
-
 	for n := e.DOM.BodyNode; n != nil; n = htmlnode.Next(n) {
 		if isNodeHiddenInLayout(n) {
 			continue
 		}
 
 		if n.Data == "amp-img" {
-			if imgsrc, ok := candidateImageForPreloading(n); ok {
-				candidateImages = append(candidateImages, imgsrc)
+			if imgsrcset, ok := candidateImageForPreloading(n); ok {
+				srcsetToPreloadData(imgsrcset, e)
 			}
 		} else if n.Data == "amp-video" || n.Data == "amp-video-iframe" {
-			if imgsrc, ok := candidateVideoPosterImage(n); ok {
-				candidateImages = append(candidateImages, imgsrc)
+			if poster, ok := candidateVideoPosterImage(n); ok {
+				posterURL, err := url.Parse(poster)
+				if err != nil {
+					continue
+				}
+				e.Preloads = append(e.Preloads, PreloadData{URL: posterURL, As: "image"})
 			}
 		}
 	}
-	return candidateImages
+	return nil
 }
 
 func candidateVideoPosterImage(i *html.Node) (string, bool) {
@@ -82,22 +77,75 @@ func isNodeHiddenInLayout(n *html.Node) bool {
 	return layout.ParseAMPLayout(n) == amppb.AmpLayout_NODISPLAY
 }
 
+// Converts the raw srcset attribute value and populates Context.Preloads field.
+func srcsetToPreloadData(srcset string, e *Context) {
+	type imageWithTargetSize struct {
+		imgURL *url.URL
+		size   int
+	}
+
+	srcSets := strings.FieldsFunc(strings.TrimSpace(srcset), func(c rune) bool { return c == ',' })
+	srcSetsSize := len(srcSets)
+	imgSet := []imageWithTargetSize{}
+
+	for _, src := range srcSets {
+		imgComponents := strings.Fields(src)
+		if len(imgComponents) != 2 {
+			e.Preloads = nil
+			return
+		}
+		imgTargetSize, err := strconv.Atoi(strings.TrimSuffix(imgComponents[1], "w"))
+
+		if err != nil {
+			e.Preloads = nil
+			return
+		}
+
+		urlObj, err := url.Parse(imgComponents[0])
+
+		if err != nil {
+			e.Preloads = nil
+			return
+		}
+
+		imgSet = append(imgSet, imageWithTargetSize{urlObj, imgTargetSize})
+	}
+
+	// Sort the images based on their target sizes in asc order.
+	sort.Slice(imgSet, func(i, j int) bool { return imgSet[i].size < imgSet[j].size })
+
+	for i, ci := range imgSet {
+		var mediaQuery string
+		// srcset images should be sorted by width.
+		if i == 0 {
+			mediaQuery = fmt.Sprintf("(max-width: %d)", ci.size)
+			// Largest image has only min width limit of second largest image.
+		} else if i == srcSetsSize-1 {
+			mediaQuery = fmt.Sprintf("(min-width: %d)", imgSet[i-1].size+1)
+		} else {
+			mediaQuery = fmt.Sprintf("(min-width: %d) and (max-width: %d)", imgSet[i-1].size+1, ci.size)
+		}
+
+		e.Preloads = append(e.Preloads, PreloadData{URL: ci.imgURL, As: "image", Media: mediaQuery})
+	}
+}
+
 // Decides if the given image node qualifies for preloading and returns tuple of
 // (imagesrc, true) if the node qualifies for preloading, otherwise returns
 // empty string and false.
 func candidateImageForPreloading(n *html.Node) (string, bool) {
 	// amp-image under following containers do not qualify for preloading.
-	imgsrc, hasSrc := htmlnode.GetAttributeVal(n, "", "src")
+	imgsrcset, hasSrcset := htmlnode.GetAttributeVal(n, "", "srcset")
 
 	// Ignores images with no src attribute.
 	// These can be css images inside class definition.
-	if !hasSrc || len(imgsrc) == 0 {
+	if !hasSrcset || len(imgsrcset) == 0 {
 		return "", false
 	}
 
 	// Ignores if image src is not a https url.
 	// URL rewrite transformer guarantees img srcs are https protocol.
-	if !strings.HasPrefix(imgsrc, "https://") {
+	if !strings.HasPrefix(imgsrcset, "https://") {
 		return "", false
 	}
 
@@ -110,7 +158,7 @@ func candidateImageForPreloading(n *html.Node) (string, bool) {
 		// Small images of icon types inside input type container types
 		// are ignored.
 		if widthInt > 0 && widthInt <= maxAspectRatioSize && heightInt > 0 && heightInt <= maxAspectRatioSize && isAspectRatioDimensions(n, widthInt, heightInt) && !containerTypeInput(n) {
-			return imgsrc, true
+			return imgsrcset, true
 		}
 		return "", false
 	}
@@ -124,7 +172,7 @@ func candidateImageForPreloading(n *html.Node) (string, bool) {
 			if isTinyNode(parentWidthInt, parentHeightInt) {
 				return "", false
 			}
-			return imgsrc, true
+			return imgsrcset, true
 		}
 		return "", false
 	}
@@ -136,7 +184,7 @@ func candidateImageForPreloading(n *html.Node) (string, bool) {
 			if isTinyNode(parentWidthInt, parentHeightInt) {
 				return "", false
 			}
-			return imgsrc, true
+			return imgsrcset, true
 		}
 
 		// Actual image dimension check is performed later.
@@ -153,7 +201,7 @@ func candidateImageForPreloading(n *html.Node) (string, bool) {
 	// Ignores the width size if it is not specified. In most layouts it
 	// defaults to auto or 100% size of container.
 	if (widthInt >= minImageSize || widthInt == 0) && heightInt >= minImageSize {
-		return imgsrc, true
+		return imgsrcset, true
 	}
 
 	return "", false

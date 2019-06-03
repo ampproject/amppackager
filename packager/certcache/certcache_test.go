@@ -29,9 +29,9 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/cbor"
+	"github.com/ampproject/amppackager/packager/mux"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/ampproject/amppackager/packager/util"
-	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/crypto/ocsp"
 )
@@ -133,6 +133,10 @@ func (this *CertCacheSuite) TearDownTest() {
 	}
 }
 
+func (this *CertCacheSuite) mux() http.Handler {
+	return mux.New(this.handler, nil, nil)
+}
+
 func (this *CertCacheSuite) ocspServerCalled(f func()) bool {
 	this.ocspServerWasCalled = false
 	f()
@@ -168,7 +172,7 @@ func (this *CertCacheSuite) DecodeCBOR(r io.Reader) map[string][]byte {
 }
 
 func (this *CertCacheSuite) TestServesCertificate() {
-	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+pkgt.CertName, httprouter.Params{httprouter.Param{"certName", pkgt.CertName}})
+	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName)
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
 	cbor := this.DecodeCBOR(resp.Body)
@@ -178,7 +182,7 @@ func (this *CertCacheSuite) TestServesCertificate() {
 }
 
 func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
-	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/lalala", httprouter.Params{httprouter.Param{"certName", "lalala"}})
+	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/lalala")
 	this.Assert().Equal(http.StatusNotFound, resp.StatusCode, "incorrect status: %#v", resp)
 	body, _ := ioutil.ReadAll(resp.Body)
 	// Small enough not to fit a cert or key:
@@ -187,7 +191,7 @@ func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 
 func (this *CertCacheSuite) TestOCSP() {
 	// Verify it gets included in the cert-chain+cbor payload.
-	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+pkgt.CertName, httprouter.Params{httprouter.Param{"certName", pkgt.CertName}})
+	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName)
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
@@ -222,7 +226,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 	}))
 
 	// Verify HTTP response expires immediately:
-	resp := pkgt.GetP(this.T(), this.handler, "/amppkg/cert/"+pkgt.CertName, httprouter.Params{httprouter.Param{"certName", pkgt.CertName}})
+	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName)
 	this.Assert().Equal("public, max-age=0", resp.Header.Get("Cache-Control"))
 
 	// On update, verify network is called:

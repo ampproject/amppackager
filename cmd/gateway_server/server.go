@@ -23,7 +23,6 @@ import (
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
-	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/ocsp"
 	"google.golang.org/grpc"
 )
@@ -112,7 +111,7 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 		},
 	}
 
-	packager, err := signer.New(certs[0], privateKey, urlSets, s.rtvCache, shouldPackage, signUrl, false)
+	packager, err := signer.New(certs[0], privateKey, urlSets, s.rtvCache, shouldPackage, signUrl, false, []string{})
 
 	if err != nil {
 		return errorToSXGResponse(err), nil
@@ -133,7 +132,7 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 
 	httpreq, err := http.NewRequest("GET", baseUrl.String(), nil)
 	httpresp := httptest.NewRecorder()
-	packager.ServeHTTP(httpresp, httpreq, httprouter.Params{})
+	packager.ServeHTTP(httpresp, httpreq)
 
 	// TODO(amaltas): Capture error when signer returns unsigned document.
 	if httpresp.Code != 200 {

@@ -32,34 +32,18 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/amp_cache_transform"
+	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
-	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 )
-
-// The Content-Security-Policy in use by the AMP Cache today. Specifying here
-// provides protection for the publisher against bugs in the transformers, as
-// these pages will now run on the publisher's origin. In the future, this
-// value will likely be versioned along with the transforms.
-var contentSecurityPolicy = "default-src * blob: data:; script-src blob: https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/; object-src 'none'; style-src 'unsafe-inline' https://cdn.ampproject.org/rtv/ https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net; report-uri https://csp-collector.appspot.com/csp/amp"
 
 // The user agent to send when issuing fetches. Should look like a mobile device.
 const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile " +
 	"Safari/537.36 (compatible; amppackager/0.0.0; +https://github.com/ampproject/amppackager)"
-
-// Conditional request headers that ServeHTTP may receive and need to be sent with fetchURL.
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests#Conditional_headers
-var conditionalRequestHeaders = map[string]bool{
-	"If-Match":            true,
-	"If-None-Match":       true,
-	"If-Modified-Since":   true,
-	"If-Unmodified-Since": true,
-	"If-Range":            true,
-}
 
 // Advised against, per
 // https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-4.1
@@ -119,34 +103,6 @@ var getTransformerRequest = func(r *rtv.RTVCache, s, u string) *rpb.Request {
 // in that it allows multiple slashes, as well as initial and terminal slashes.
 var protocol = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9a-zA-Z/]+$")
 
-// The following hop-by-hop headers should be removed even when not specified
-// in Connection, for backwards compatibility with downstream servers that were
-// written against RFC 2616, and expect gateways to behave according to
-// https://tools.ietf.org/html/rfc2616#section-13.5.1. (Note: "Trailers" is a
-// typo there; should be "Trailer".)
-//
-// Connection header should also be removed per
-// https://tools.ietf.org/html/rfc7230#section-6.1.
-//
-// Proxy-Connection should also be deleted, per
-// https://github.com/WICG/webpackage/pull/339.
-var legacyHeaders = []string{"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Proxy-Connection", "TE", "Trailer", "Transfer-Encoding", "Upgrade"}
-
-// Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
-func removeHopByHopHeaders(resp *http.Response) {
-	if connections, ok := resp.Header[http.CanonicalHeaderKey("Connection")]; ok {
-		for _, connection := range connections {
-			headerNames := util.Comma.Split(connection, -1)
-			for _, headerName := range headerNames {
-				resp.Header.Del(headerName)
-			}
-		}
-	}
-	for _, headerName := range legacyHeaders {
-		resp.Header.Del(headerName)
-	}
-}
-
 // Gets all values of the named header, joined on comma.
 func GetJoined(h http.Header, name string) string {
 	if values, ok := h[http.CanonicalHeaderKey(name)]; ok {
@@ -174,6 +130,7 @@ type Signer struct {
 	shouldPackage   func() bool
 	overrideBaseURL *url.URL
 	requireHeaders  bool
+	forwardedRequestHeaders []string
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
@@ -182,14 +139,14 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 
 func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
-	requireHeaders bool) (*Signer, error) {
+	requireHeaders bool, forwardedRequestHeaders []string) (*Signer, error) {
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
 
-	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders}, nil
+	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders}, nil
 }
 
 func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
@@ -201,6 +158,14 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		return nil, nil, util.NewHTTPError(http.StatusInternalServerError, "Error building request: ", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
+	// copy forwardedRequestHeaders
+	for _, header := range this.forwardedRequestHeaders {
+		if http.CanonicalHeaderKey(header) == "Host" {
+			req.Host = serveHTTPReq.Host
+		} else if value := GetJoined(serveHTTPReq.Header, header); value != "" {
+			req.Header.Set(header, value)
+		}
+	}
 	// Golang's HTTP parser appears not to validate the protocol it parses
 	// from the request line, so we do so here.
 	if protocol.MatchString(serveHTTPReq.Proto) {
@@ -212,7 +177,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		req.Header.Set("Via", via)
 	}
 	// Set conditional headers that were included in ServeHTTP's Request.
-	for header := range conditionalRequestHeaders {
+	for header := range util.ConditionalRequestHeaders {
 		if value := GetJoined(serveHTTPReq.Header, header); value != "" {
 			req.Header.Set(header, value)
 		}
@@ -221,7 +186,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
 	}
-	removeHopByHopHeaders(resp)
+	util.RemoveHopByHopHeaders(resp.Header)
 	return req, resp, nil
 }
 
@@ -300,7 +265,7 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 	return ret, nil
 }
 
-func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Add("Vary", "Accept, AMP-Cache-Transform")
 
 	if err := req.ParseForm(); err != nil {
@@ -308,11 +273,9 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		return
 	}
 	var fetch, sign string
-	if inPathSignURL := params.ByName("signURL"); inPathSignURL != "" {
-		sign = inPathSignURL[1:] // Strip leading "/" produced by httprouter.
-		if req.URL.RawQuery != "" {
-			sign += "?" + req.URL.RawQuery
-		}
+	params := mux.Params(req)
+	if inPathSignURL := params["signURL"]; inPathSignURL != "" {
+		sign = inPathSignURL
 	} else {
 		if len(req.Form["fetch"]) > 1 {
 			util.NewHTTPError(http.StatusBadRequest, "More than 1 fetch param").LogAndRespond(resp)
@@ -348,17 +311,16 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 		proxy(resp, fetchResp, nil)
 		return
 	}
+	var act string
 	var transformVersion int64
 	if this.requireHeaders {
 		header_value := GetJoined(req.Header, "AMP-Cache-Transform")
-		var act string
 		act, transformVersion = amp_cache_transform.ShouldSendSXG(header_value)
 		if act == "" {
 			log.Println("Not packaging because AMP-Cache-Transform request header is invalid:", header_value)
 			proxy(resp, fetchResp, nil)
 			return
 		}
-		resp.Header().Set("AMP-Cache-Transform", act)
 	} else {
 		var err error
 		transformVersion, err = transformer.SelectVersion(nil)
@@ -387,16 +349,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 				proxy(resp, fetchResp, nil)
 				return
 			}
-			fetchResp.Header.Del(header)
 		}
-
-		// Mutate the fetched CSP to make sure it cannot break AMP pages.
-		fetchResp.Header.Set(
-			"Content-Security-Policy",
-			MutateFetchedContentSecurityPolicy(
-				fetchResp.Header.Get("Content-Security-Policy")))
-
-		fetchResp.Header.Del("Link") // Ensure there are no privacy-violating Link:rel=preload headers.
 
 		if fetchResp.Header.Get("Variants") != "" || fetchResp.Header.Get("Variant-Key") != "" ||
 			// Include versioned headers per https://github.com/WICG/webpackage/pull/406.
@@ -408,7 +361,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request, param
 			return
 		}
 
-		this.serveSignedExchange(resp, fetchResp, signURL, transformVersion)
+		this.serveSignedExchange(resp, fetchResp, signURL, act, transformVersion)
 
 	case 304:
 		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
@@ -451,9 +404,7 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 }
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
-func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, transformVersion int64) {
-	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
-
+func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, act string, transformVersion int64) {
 	// After this, fetchResp.Body is consumed, and attempts to read or proxy it will result in an empty body.
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
@@ -470,16 +421,42 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		proxy(resp, fetchResp, fetchBody)
 		return
 	}
-	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
+
+	// Validate and format Link header.
 	linkHeader, err := formatLinkHeader(metadata.Preloads)
 	if err != nil {
 		log.Println("Not packaging due to Link header error:", err)
 		proxy(resp, fetchResp, fetchBody)
 		return
 	}
+
+	// Begin mutations on original fetch response. From this point forward, do
+	// not fall-back to proxy().
+
+	// Remove stateful headers.
+	for header := range statefulResponseHeaders {
+		fetchResp.Header.Del(header)
+	}
+
+	// Set Link header if formatting returned a valid value, otherwise, delete
+	// it to ensure there are no privacy-violating Link:rel=preload headers.
 	if linkHeader != "" {
 		fetchResp.Header.Set("Link", linkHeader)
+	} else {
+		fetchResp.Header.Del("Link")
 	}
+
+	// Set content length.
+	fetchResp.Header.Set("Content-Length", strconv.Itoa(len(transformed)))
+
+	// Set general security headers.
+	fetchResp.Header.Set("X-Content-Type-Options", "nosniff")
+
+	// Mutate the fetched CSP to make sure it cannot break AMP pages.
+	fetchResp.Header.Set(
+		"Content-Security-Policy",
+		MutateFetchedContentSecurityPolicy(
+			fetchResp.Header.Get("Content-Security-Policy")))
 
 	exchange := signedexchange.NewExchange(
 		accept.SxgVersion, /*uri=*/signURL.String(), /*method=*/"GET",
@@ -518,6 +495,13 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	var body bytes.Buffer
 	if err := exchange.Write(&body); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
+	}
+
+	// If requireHeaders was true when constructing signer, the
+	// AMP-Cache-Transform outer response header is required (and has already
+	// been validated)
+	if (act != "") {
+		resp.Header().Set("AMP-Cache-Transform", act)
 	}
 
 	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache

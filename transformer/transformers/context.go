@@ -24,9 +24,9 @@ import (
 // PreloadData stores the links of type script, image and style that are
 // added as Link http headers in SXG package.
 type PreloadData struct {
-	url   *url.URL
-	as    string
-	media string
+	URL   *url.URL
+	As    string
+	Media string
 }
 
 // Context stores the root DOM Node and contextual data used for the

@@ -58,6 +58,10 @@ KeyFile = './pems/privkey.pem'
 # locking; consider this especially when utilizing network-mounted storage.
 OCSPCache = '/tmp/amppkg-ocsp'
 
+# The list of request header names to be forwarded in a fetch request.
+# Hop-by-hop headers, conditional request headers and Via cannot be included.
+ForwardedRequestHeaders = []
+
 # This is a simple level of validation, to guard against accidental
 # misconfiguration of the reverse proxy that sits in front of the packager.
 #
