@@ -102,7 +102,12 @@ func main() {
 	for _, urlSet := range config.URLSet {
 		domain := urlSet.Sign.Domain
 		if err := util.CheckCertificate(certs[0], key, domain, time.Now()); err != nil {
-			die(errors.Wrapf(err, "checking %s", config.CertFile))
+			err := errors.Wrapf(err, "checking %s", config.CertFile)
+			if *flagDevelopment {
+				log.Println("WARNING:", err)
+			} else {
+				die(err)
+			}
 		}
 	}
 
