@@ -1,3 +1,5 @@
+// gRPC server to be used only for automated integration testing.
+
 package main
 
 import (
@@ -8,7 +10,6 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -31,8 +32,6 @@ var (
 	port                = flag.Int("port", 9000, "Gateway server port")
 	publisherServerPort = flag.Int("publisher_server_port", 10000,
 		"Publisher server port.")
-	privateKey = flag.String("private_key", "",
-		"Path to private key. Must be same private key used to generate certs.")
 )
 
 type gatewayServer struct{
@@ -186,17 +185,6 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 
 func main() {
 	flag.Parse()
-	keyPem, err := ioutil.ReadFile(*privateKey)
-	if err != nil {
-		log.Fatalf("Error reading private key file.")
-	}
-	key, err := util.ParsePrivateKey(keyPem)
-	if err != nil {
-		log.Fatalf("Error reading parsed private key string.")
-	}
-	if key == nil {
-		log.Fatalf("Key is nil.")
-	}
 
 	if *port == -1 {
 		log.Fatalf("Set flag -port")
