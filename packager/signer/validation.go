@@ -138,7 +138,7 @@ func isFallbackURLCodePoint(b byte) bool {
 
 	// Vaguely ordered most to least common, to aid short-circuiting:
 	return (b >= 'a' && b <= 'z') || b == '_' || b == '~' ||
-		(b >= '!' && b < 'Z' && b != '"' /*x22*/ && b != '#' /*x23*/ && b != '<' /*x3C*/ && b != '>' /*x3E*/)
+		(b >= '!' && b <= 'Z' && b != '"' /*x22*/ && b != '#' /*x23*/ && b != '<' /*x3C*/ && b != '>' /*x3E*/)
 }
 
 // True iff url matches pattern, as defined by an [URLSet.Sign] block in the
@@ -205,6 +205,8 @@ func parseURLs(fetch string, sign string, urlSets []util.URLSet) (*url.URL, *url
 		// TODO(twifkak): Use errors.Wrap() after changing return types to error.
 		return nil, nil, false, err
 	}
+
+	errs := []string{}
 	for _, set := range urlSets {
 		err := urlsMatch(fetchURL, signURL, set)
 		if err == nil {
@@ -213,8 +215,9 @@ func parseURLs(fetch string, sign string, urlSets []util.URLSet) (*url.URL, *url
 			}
 			return fetchURL, signURL, set.Sign.ErrorOnStatefulHeaders, nil
 		}
+		errs = append(errs, err.Error())
 	}
-	return nil, nil, false, util.NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config")
+	return nil, nil, false, util.NewHTTPError(http.StatusBadRequest, "fetch/sign URLs do not match config; caused by: ", strings.Join(errs, ", "))
 }
 
 // Given a request/response pair for the fetch from the packager to the backend
