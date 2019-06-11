@@ -34,7 +34,7 @@ var (
 		"Publisher server port.")
 )
 
-type gatewayServer struct{
+type gatewayServer struct {
 	rtvCache *rtv.RTVCache
 }
 
@@ -56,15 +56,17 @@ func createOCSPResponse(cert *x509.Certificate, key crypto.Signer) ([]byte, erro
 	// Construct args to ocsp.CreateResponse.
 	template := ocsp.Response{
 		SerialNumber: cert.SerialNumber,
-		Status: ocsp.Good,
-		ThisUpdate: thisUpdate,
-		NextUpdate: thisUpdate.Add(time.Hour*24*7),
-		IssuerHash: crypto.SHA256,
+		Status:       ocsp.Good,
+		ThisUpdate:   thisUpdate,
+		NextUpdate:   thisUpdate.Add(time.Hour * 24 * 7),
+		IssuerHash:   crypto.SHA256,
 	}
 	return ocsp.CreateResponse(cert /*issuer*/, cert /*responderCert*/, template, key)
 }
 
 func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest) (*pb.SXGResponse, error) {
+	log.Println("Handling request with fetchUrl =", request.FetchUrl, "; signUrl =", request.SignUrl)
+
 	certs, err := signedexchange.ParseCertificates(request.PublicCert)
 	if err != nil {
 		return errorToSXGResponse(err), nil
@@ -206,6 +208,6 @@ func main() {
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterGatewayServiceServer(grpcServer, &gatewayServer{rtvCache: rtvCache})
-	fmt.Println("Starting server on port: ", *port)
+	log.Println("Starting server on port: ", *port)
 	grpcServer.Serve(listener)
 }
