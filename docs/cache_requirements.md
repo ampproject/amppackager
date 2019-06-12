@@ -15,6 +15,9 @@ The Google AMP cache sets some requirements in addition to the ones set by the
 These include:
 
  * The signed `fallback URL` must equal the URL at which the SXG was delivered.
+ * The signature header must contain only:
+   * One parameterised identifier.
+   * Parameter values of type string, binary, or identifier.
  * The payload must be:
    * non-empty.
    * valid transformed AMP. The canonical definition of transformed AMP is the
@@ -37,11 +40,15 @@ These include:
      `manifest-src`, `referrer`, and `upgrade-insecure-requests` may be omitted
      or have any value
    * all other directives are disallowed
+ * The signed `content-type` header must be present. Its media type must be
+   `text/html`. Its `charset` parameter, if present, must case-insensitively
+   equal `utf-8`.
  * The signed `link` header, if present, must look like [this](https://github.com/ampproject/amppackager/blob/e4bf0430ba152cfe82ccf063df92021dfc0f26a5/packager/signer/signer.go#L426)
    (the validation logic is currently very picky about its serialization); and
    have limits like [this](https://github.com/ampproject/amppackager/blob/e4bf0430ba152cfe82ccf063df92021dfc0f26a5/transformer/transformer.go#L177)
    (e.g. max 20 urls, rel=preload only, as=script|style only). URLs must be
    limited to `cdn.ampproject.org` and the allowlisted [font provider URLs](https://github.com/ampproject/amphtml/blob/b0ff92429923c86f3973009a84ff02f4f1868b4d/validator/validator-main.protoascii#L310).
+ * There must not be a signed `variant-key-04` or `variants-04` header.
  * The signature's duration (expiry minus date) must be >= 4 days.
 
 The above is an attempt at a complete list of SXG-related requirements, but it
