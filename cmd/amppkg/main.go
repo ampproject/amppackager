@@ -90,8 +90,12 @@ func main() {
 	if certs == nil || len(certs) == 0 {
 		die(fmt.Sprintf("no cert found in %s", config.CertFile))
 	}
-	if !(*flagDevelopment || *flagInvalidCert || util.CanSignHttpExchanges(certs[0])) {
-		die("cert is missing CanSignHttpExchanges extension")
+	if err := util.CanSignHttpExchanges(certs[0], time.Now()); err != nil {
+		if *flagDevelopment || *flagInvalidCert {
+			log.Println("WARNING:", err)
+		} else {
+			die(err)
+		}
 	}
 
 	key, err := util.ParsePrivateKey(keyPem)
@@ -101,7 +105,7 @@ func main() {
 
 	for _, urlSet := range config.URLSet {
 		domain := urlSet.Sign.Domain
-		if err := util.CheckCertificate(certs[0], key, domain, time.Now()); err != nil {
+		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
 			die(errors.Wrapf(err, "checking %s", config.CertFile))
 		}
 	}

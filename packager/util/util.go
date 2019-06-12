@@ -71,10 +71,7 @@ func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
 	}
 }
 
-// CanSignHttpExchanges returns true if the given certificate has the
-// CanSignHttpExchanges extension. This is not the only requirement for SXGs;
-// it also needs to use the right public key type, which is not checked here.
-func CanSignHttpExchanges(cert *x509.Certificate) bool {
+func hasCanSignHttpExchangesExtension(cert *x509.Certificate) bool {
 	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-cert-req
 	for _, ext := range cert.Extensions {
 		// 0x05, 0x00 is the DER encoding of NULL.
@@ -85,7 +82,26 @@ func CanSignHttpExchanges(cert *x509.Certificate) bool {
 	return false
 }
 
-func CheckCertificate(cert *x509.Certificate, priv crypto.PrivateKey, domain string, now time.Time) error {
+// CanSignHttpExchanges returns nil if the given certificate has the
+// CanSignHttpExchanges extension, and a valid lifetime per the SXG spec;
+// otherwise it returns an error. These are not the only requirements for SXGs;
+// it also needs to use the right public key type, which is not checked here.
+func CanSignHttpExchanges(cert *x509.Certificate, now time.Time) error {
+	if !hasCanSignHttpExchangesExtension(cert) {
+		return errors.New("Certificate is missing CanSignHttpExchanges extension")
+	}
+
+	// TODO: remove issue date and current time check after 2019-08-01
+	if cert.NotBefore.After(start90DayGracePeriod) || now.After(end90DayGracePeriod) {
+		if cert.NotBefore.AddDate(0,0,90).Before(cert.NotAfter) {
+			return errors.New("Certificate MUST have a Validity Period no greater than 90 days")
+		}
+	}
+	return nil
+}
+
+// Returns nil if the certificate matches the private key and domain, else the appropriate error.
+func CertificateMatches(cert *x509.Certificate, priv crypto.PrivateKey, domain string) error {
 	certPubKey := cert.PublicKey.(*ecdsa.PublicKey)
 	pubKey := priv.(*ecdsa.PrivateKey).PublicKey
 	if certPubKey.Curve != pubKey.Curve {
@@ -99,12 +115,6 @@ func CheckCertificate(cert *x509.Certificate, priv crypto.PrivateKey, domain str
 	}
 	if err := cert.VerifyHostname(domain); err != nil {
 		return err
-	}
-	// TODO: remove issue date and current time check after 2019-08-01
-	if cert.NotBefore.After(start90DayGracePeriod) || now.After(end90DayGracePeriod) {
-		if cert.NotBefore.AddDate(0,0,90).Before(cert.NotAfter) {
-			return errors.New("Certificate MUST have a Validity Period no greater than 90 days")
-		}
 	}
 	return nil
 }
