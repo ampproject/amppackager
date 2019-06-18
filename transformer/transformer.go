@@ -45,6 +45,7 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"linktag":               transformers.LinkTag,
 	"metatag":               transformers.MetaTag,
 	"nodecleanup":           transformers.NodeCleanup,
+  "preloadimage":          transformers.PreloadImage,
 	"reorderhead":           transformers.ReorderHead,
 	"serversiderendering":   transformers.ServerSideRendering,
 	"stripjs":               transformers.StripJS,
@@ -69,6 +70,7 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		transformers.AMPRuntimeCSS,
 		transformers.TransformedIdentifier,
 		transformers.URLRewrite,
+		transformers.PreloadImage,
 		// ReorderHead should run after all transformers that modify the
 		// <head>, as they may do so without preserving the proper order.
 		transformers.ReorderHead,
@@ -224,14 +226,16 @@ func setBaseURL(c *transformers.Context) {
 // If the requested list of transformers is empty, apply the default.
 func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 	context := &transformers.Context{}
-	var err error
 
-	err = setDOM(context, r.Html)
-	if err != nil {
+	if err := validateUTF8ForHTML(r.Html); err != nil {
 		return "", nil, err
 	}
 
-	if err = requireAMPAttribute(context.DOM, r.AllowedFormats); err != nil {
+	if err := setDOM(context, r.Html); err != nil {
+		return "", nil, err
+	}
+
+	if err := requireAMPAttribute(context.DOM, r.AllowedFormats); err != nil {
 		return "", nil, err
 	}
 
@@ -246,17 +250,19 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 		}
 	}
 
-	context.DocumentURL, err = url.Parse(r.DocumentUrl)
+	documentURL, err := url.Parse(r.DocumentUrl)
 	if err != nil {
 		return "", nil, err
 	}
+	context.DocumentURL = documentURL
 
 	context.Version = r.Version
 	if r.Version == 0 {
-		context.Version, err = SelectVersion(nil)
+		version, err := SelectVersion(nil)
 		if err != nil {
 			return "", nil, err
 		}
+		context.Version = version
 	}
 
 	// This must run AFTER DocumentURL is parsed.
@@ -266,8 +272,7 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 		return "", nil, err
 	}
 	var o strings.Builder
-	err = printer.Print(&o, context.DOM.RootNode)
-	if err != nil {
+	if err := printer.Print(&o, context.DOM.RootNode); err != nil {
 		return "", nil, err
 	}
 	return o.String(), &rpb.Metadata{Preloads: extractPreloads(context.DOM)}, nil

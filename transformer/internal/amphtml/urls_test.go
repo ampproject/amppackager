@@ -172,11 +172,11 @@ func TestToAbsoluteURL(t *testing.T) {
 			expected:    rootURL,
 		},
 		{
-			desc:        "spaces encoded. '%20' in path, '+' in query string",
+			desc:        "spaces encoded",
 			input:       "https://foo.com/i haz spaces?q=i haz spaces",
 			baseURL:     rootURL,
 			documentURL: rootURL,
-			expected:    "https://foo.com/i%20haz%20spaces?q=i+haz+spaces",
+			expected:    "https://foo.com/i%20haz%20spaces?q=i%20haz%20spaces",
 		},
 		{
 			desc:        "key only query param",
@@ -184,6 +184,13 @@ func TestToAbsoluteURL(t *testing.T) {
 			baseURL:     rootURL,
 			documentURL: rootURL,
 			expected:    "https://foo.com?q",
+		},
+		{
+			desc:        "relative",
+			input:       "../blah.jpg",
+			baseURL:     fooURL + "/",
+			documentURL: rootURL,
+			expected:    "https://www.example.com/blah.jpg",
 		},
 	}
 	for _, tc := range tcs {
@@ -271,6 +278,12 @@ func TestGetCacheURL(t *testing.T) {
 		{
 			desc:          "domain match checks host (not path)",
 			input:         "https://www.example.com/cdn.ampproject.org/blah.jpg",
+			expectedImage: "https://www-example-com.cdn.ampproject.org/i/s/www.example.com/cdn.ampproject.org/blah.jpg",
+			expectedOther: "https://www-example-com.cdn.ampproject.org/r/s/www.example.com/cdn.ampproject.org/blah.jpg",
+		},
+		{
+			desc:          "absolute with relative path",
+			input:         "https://www.example.com/cdn.ampproject.org/one/two/three/../../../blah.jpg",
 			expectedImage: "https://www-example-com.cdn.ampproject.org/i/s/www.example.com/cdn.ampproject.org/blah.jpg",
 			expectedOther: "https://www-example-com.cdn.ampproject.org/r/s/www.example.com/cdn.ampproject.org/blah.jpg",
 		},

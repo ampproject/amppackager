@@ -1,0 +1,40 @@
+// Gateway enables communication between C++ and Go environment.
+// Using Gateway service c++ testing environment (client) can call go code
+// (server).
+//
+// Gateway server uses public implementation of go gRPC library.
+
+syntax = "proto3";
+
+package gateway;
+
+option cc_enable_arenas = true;
+
+message SXGRequest {
+  // URL to fetch from publisher's internal server. ie. PublisherServer.
+  string fetch_url = 1;
+  // URL to sign in sxg package.
+  string sign_url = 2;
+  // ECC private key.
+  bytes private_key = 3;
+  // X509 certificate which may or may not contain CanSignHTTPExchange
+  // extension.
+  bytes public_cert = 4;
+  // Extra request headers to pass to Packager. singer.go->ServeHTTP.
+  map<string, string> packager_server_request_headers = 5;
+}
+
+message SXGResponse {
+  bytes sxg = 1;
+  bool error = 2;
+  string error_description = 3;
+  // application/cert-chain+cbor format certificate response.
+  bytes cbor = 4;
+  // HTTP headers returned by the packager.
+  map<string, string> http_headers = 5;
+}
+
+service GatewayService {
+  // Calls Signer.go->FetchUrl method.
+  rpc GenerateSXG(SXGRequest) returns (SXGResponse) {}
+}

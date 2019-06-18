@@ -29,6 +29,7 @@ type Config struct {
 	CertFile  string // This must be the full certificate chain.
 	KeyFile   string // Just for the first cert, obviously.
 	OCSPCache string
+	ForwardedRequestHeaders []string
 	URLSet    []URLSet
 }
 
@@ -57,7 +58,7 @@ var emptyRegexp = ""
 var defaultPathRegexp = ".*"
 
 // Also sets defaults.
-func validateURLPattern(pattern *URLPattern) error {
+func ValidateURLPattern(pattern *URLPattern) error {
 	if pattern.PathRE == nil {
 		pattern.PathRE = &defaultPathRegexp
 	} else if _, err := regexp.Compile(*pattern.PathRE); err != nil {
@@ -79,7 +80,7 @@ func validateURLPattern(pattern *URLPattern) error {
 	return nil
 }
 
-func validateSignURLPattern(pattern *URLPattern) error {
+func ValidateSignURLPattern(pattern *URLPattern) error {
 	if pattern == nil {
 		return errors.New("This section must be specified")
 	}
@@ -95,7 +96,7 @@ func validateSignURLPattern(pattern *URLPattern) error {
 	if pattern.SamePath != nil {
 		return errors.New("SamePath not allowed here")
 	}
-	if err := validateURLPattern(pattern); err != nil {
+	if err := ValidateURLPattern(pattern); err != nil {
 		return err
 	}
 	return nil
@@ -103,7 +104,7 @@ func validateSignURLPattern(pattern *URLPattern) error {
 
 var allowedFetchSchemes = map[string]bool{"http": true, "https": true}
 
-func validateFetchURLPattern(pattern *URLPattern) error {
+func ValidateFetchURLPattern(pattern *URLPattern) error {
 	if pattern == nil {
 		return nil
 	}
@@ -136,8 +137,17 @@ func validateFetchURLPattern(pattern *URLPattern) error {
 	if pattern.ErrorOnStatefulHeaders {
 		return errors.New("ErrorOnStatefulHeaders not allowed here")
 	}
-	if err := validateURLPattern(pattern); err != nil {
+	if err := ValidateURLPattern(pattern); err != nil {
 		return err
+	}
+	return nil
+}
+
+func ValidateForwardedRequestHeaders(hs []string) error {
+	for _, h := range hs {
+		if msg := haveInvalidForwardedRequestHeader(h); msg != "" {
+			return errors.Errorf("ForwardedRequestHeaders must not %s", msg)
+		}
 	}
 	return nil
 }
@@ -166,6 +176,11 @@ func ReadConfig(configBytes []byte) (*Config, error) {
 	if config.OCSPCache == "" {
 		return nil, errors.New("must specify OCSPCache")
 	}
+	if len(config.ForwardedRequestHeaders) > 0 {
+		if err := ValidateForwardedRequestHeaders(config.ForwardedRequestHeaders); err != nil {
+			return nil, err
+		}
+	}
 	ocspDir := filepath.Dir(config.OCSPCache)
 	if stat, err := os.Stat(ocspDir); os.IsNotExist(err) || !stat.Mode().IsDir() {
 		return nil, errors.Errorf("OCSPCache parent directory must exist: %s", ocspDir)
@@ -176,11 +191,11 @@ func ReadConfig(configBytes []byte) (*Config, error) {
 	}
 	for i := range config.URLSet {
 		if config.URLSet[i].Fetch != nil {
-			if err := validateFetchURLPattern(config.URLSet[i].Fetch); err != nil {
+			if err := ValidateFetchURLPattern(config.URLSet[i].Fetch); err != nil {
 				return nil, errors.Wrapf(err, "parsing URLSet.%d.Fetch", i)
 			}
 		}
-		if err := validateSignURLPattern(config.URLSet[i].Sign); err != nil {
+		if err := ValidateSignURLPattern(config.URLSet[i].Sign); err != nil {
 			return nil, errors.Wrapf(err, "parsing URLSet.%d.Sign", i)
 		}
 	}

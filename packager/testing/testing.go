@@ -25,7 +25,6 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/util"
-	"github.com/julienschmidt/httprouter"
 )
 
 // A cert (with its issuer chain) for testing.
@@ -43,37 +42,66 @@ var Key = func() crypto.PrivateKey {
 	return key
 }()
 
+// 90 days cert of amppackageexample.com and www.amppackageexample.com in SAN
+var B3Certs = func() []*x509.Certificate {
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/fullchain.cert")
+	certs, _ := signedexchange.ParseCertificates(certPem)
+	return certs
+}()
+
+// Private key of B3Certs
+var B3Key = func() crypto.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/server.privkey")
+	key, _ := util.ParsePrivateKey(keyPem)
+	return key
+}()
+
+//  90 days cert of amppackageexample2.com and www.amppackageexample2.com in SAN
+var B3Certs2 = func() []*x509.Certificate {
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/fullchain2.cert")
+	certs, _ := signedexchange.ParseCertificates(certPem)
+	return certs
+}()
+
+// Private key of B3Certs2
+var B3Key2 = func() crypto.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/server2.privkey")
+	key, _ := util.ParsePrivateKey(keyPem)
+	return key
+}()
+
+// 91 days cert from B3Key
+var B3Certs91Days = func() []*x509.Certificate {
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/fullchain_91days.cert")
+	certs, _ := signedexchange.ParseCertificates(certPem)
+	return certs
+}()
+
+// secp521r1 private key
+var B3KeyP521 = func() crypto.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/server_p521.privkey")
+	key, _ := util.ParsePrivateKey(keyPem)
+	return key
+}()
+
 // The URL path component corresponding to the cert's sha-256.
 var CertName = util.CertName(Certs[0])
 
-// A variant of http.Handler that's required by httprouter.
-type AlmostHandler interface {
-	ServeHTTP(http.ResponseWriter, *http.Request, httprouter.Params)
-}
-
 // TODO(twifkak): Make a fluent builder interface for requests, instead of this mess.
 
-func Get(t *testing.T, handler AlmostHandler, target string) *http.Response {
-	return GetP(t, handler, target, httprouter.Params{})
+func Get(t *testing.T, handler http.Handler, target string) *http.Response {
+	return GetH(t, handler, target, http.Header{})
 }
 
-func GetH(t *testing.T, handler AlmostHandler, target string, headers http.Header) *http.Response {
-	return GetHP(t, handler, target, headers, httprouter.Params{})
+func GetH(t *testing.T, handler http.Handler, target string, headers http.Header) *http.Response {
+	return GetBHH(t, handler, target, "", nil, headers)
 }
 
-func GetP(t *testing.T, handler AlmostHandler, target string, params httprouter.Params) *http.Response {
-	return GetHP(t, handler, target, http.Header{}, params)
+func GetHH(t *testing.T, handler http.Handler, target string, host string, headers http.Header) *http.Response {
+	return GetBHH(t, handler, target, host, nil, headers)
 }
 
-func GetBH(t *testing.T, handler AlmostHandler, target string, body io.Reader, headers http.Header) *http.Response {
-	return GetBHP(t, handler, target, body, headers, httprouter.Params{})
-}
-
-func GetHP(t *testing.T, handler AlmostHandler, target string, headers http.Header, params httprouter.Params) *http.Response {
-	return GetBHP(t, handler, target, nil, headers, params)
-}
-
-func GetBHP(t *testing.T, handler AlmostHandler, target string, body io.Reader, headers http.Header, params httprouter.Params) *http.Response {
+func GetBHH(t *testing.T, handler http.Handler, target string, host string, body io.Reader, headers http.Header) *http.Response {
 	rec := httptest.NewRecorder()
 	method := ""
 	if body != nil {
@@ -86,6 +114,9 @@ func GetBHP(t *testing.T, handler AlmostHandler, target string, body io.Reader, 
 			req.Header.Add(name, value)
 		}
 	}
-	handler.ServeHTTP(rec, req, params)
+	if host != "" {
+		req.Host = host
+	}
+	handler.ServeHTTP(rec, req)
 	return rec.Result()
 }

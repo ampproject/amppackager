@@ -18,7 +18,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
 )
@@ -42,6 +41,8 @@ const htmltext = `
 </body>
 </html>
 `
+
+func stringPtr(v string) *string { return &v }
 
 // Tests a bunch of different methods on the test HTML.
 func TestHTMLNode(t *testing.T) {
@@ -140,9 +141,9 @@ func TestGetAttributeValOrNil(t *testing.T) {
 		namespace string
 		expected  *string
 	}{
-		{Element("p", html.Attribute{Namespace: "foo", Key: "id", Val: "A"}), "foo", proto.String("A")},
+		{Element("p", html.Attribute{Namespace: "foo", Key: "id", Val: "A"}), "foo", stringPtr("A")},
 		{Element("p", html.Attribute{Namespace: "foo", Key: "id", Val: "A"}), "differentnamespace", nil},
-		{Element("p", html.Attribute{Key: "id", Val: "A"}), "", proto.String("A")},
+		{Element("p", html.Attribute{Key: "id", Val: "A"}), "", stringPtr("A")},
 		{Element("p"), "", nil},
 	}
 	for _, tc := range testCases {

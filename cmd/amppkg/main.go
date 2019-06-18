@@ -24,22 +24,22 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"path"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/mux"
+	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/ampproject/amppackager/packager/validitymap"
-	"github.com/ampproject/amppackager/packager/rtv"
 )
 
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
 var flagDevelopment = flag.Bool("development", false, "True if this is a development server.")
+var flagInvalidCert = flag.Bool("invalidcert", false, "True if invalid certificate intentionally used in production.")
 
 // Prints errors returned by pkg/errors with stack traces.
 func die(err interface{}) { log.Fatalf("%+v", err) }
@@ -90,16 +90,25 @@ func main() {
 	if certs == nil || len(certs) == 0 {
 		die(fmt.Sprintf("no cert found in %s", config.CertFile))
 	}
-	if !*flagDevelopment && !util.CanSignHttpExchanges(certs[0]) {
-		die("cert is missing CanSignHttpExchanges extension")
+	if err := util.CanSignHttpExchanges(certs[0], time.Now()); err != nil {
+		if *flagDevelopment || *flagInvalidCert {
+			log.Println("WARNING:", err)
+		} else {
+			die(err)
+		}
 	}
-	// TODO(twifkak): Verify that certs[0] covers all the signing domains in the config.
 
 	key, err := util.ParsePrivateKey(keyPem)
 	if err != nil {
 		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
 	}
-	// TODO(twifkak): Verify that key matches certs[0].
+
+	for _, urlSet := range config.URLSet {
+		domain := urlSet.Sign.Domain
+		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
+			die(errors.Wrapf(err, "checking %s", config.CertFile))
+		}
+	}
 
 	validityMap, err := validitymap.New()
 	if err != nil {
@@ -125,20 +134,14 @@ func main() {
 		}
 	}
 
-	packager, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment)
+	signer, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
+		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
 	if err != nil {
-		die(errors.Wrap(err, "building packager"))
+		die(errors.Wrap(err, "building signer"))
 	}
 
 	// TODO(twifkak): Make log output configurable.
-	mux := httprouter.New()
-	mux.RedirectTrailingSlash = false
-	mux.RedirectFixedPath = false
-	mux.GET(util.ValidityMapPath, validityMap.ServeHTTP)
-	mux.GET("/priv/doc", packager.ServeHTTP)
-	mux.GET("/priv/doc/*signURL", packager.ServeHTTP)
-	mux.GET(path.Join(util.CertURLPrefix, ":certName"), certCache.ServeHTTP)
+
 	addr := ""
 	if config.LocalOnly {
 		addr = "localhost"
@@ -148,7 +151,7 @@ func main() {
 		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
-		Handler:           logIntercept{mux},
+		Handler:           logIntercept{mux.New(certCache, signer, validityMap)},
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		// If needing to stream the response, disable WriteTimeout and
@@ -170,6 +173,9 @@ func main() {
 	if *flagDevelopment {
 		log.Println("WARNING: Running in development, using SXG key for TLS. This won't work in production.")
 		log.Fatal(server.ListenAndServeTLS(config.CertFile, config.KeyFile))
+	} else if *flagInvalidCert {
+		log.Println("WARNING: Running in production without valid signing certificate. Signed exchanges will not be valid.")
+		log.Fatal(server.ListenAndServe())
 	} else {
 		log.Fatal(server.ListenAndServe())
 	}

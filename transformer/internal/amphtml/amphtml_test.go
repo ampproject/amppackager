@@ -51,6 +51,85 @@ func TestIsAMPCustomElement(t *testing.T) {
 	}
 }
 
+func TestIsScriptAmpExtension(t *testing.T) {
+	tcs := []struct {
+		desc     string
+		n        *html.Node
+		k        string
+		v        string
+		expected bool
+	}{
+		{
+			"custom-element true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "custom-element",
+						Val: "amp-experiment"}}},
+			"custom-element",
+			"amp-experiment",
+			true,
+		},
+		{
+			"custom-template true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "custom-template",
+						Val: "amp-mustache"}}},
+			"custom-template",
+			"amp-mustache",
+			true,
+		},
+		{
+			"host-service true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "host-service",
+						Val: "amp-mraid"}}},
+			"host-service",
+			"amp-mraid",
+			true,
+		},
+		{
+			"something else false",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "custom-service",
+						Val: "amp-just-a-random-example"}}},
+			"",
+			"",
+			false,
+		},
+		{
+			"not a script false",
+			&html.Node{Type: html.ElementNode,
+				Data:     "img",
+				DataAtom: atom.Img,
+				Attr: []html.Attribute{
+					{Key: "custom-element",
+						Val: "amp-experiment"}}},
+			"",
+			"",
+			false,
+		},
+	}
+	for _, tc := range tcs {
+		if ok := IsScriptAMPExtension(tc.n); ok != tc.expected {
+			t.Errorf("%s: IsScriptAMPExtension=%t want=%t", tc.desc, ok, tc.expected)
+		}
+		if v, ok := AMPExtensionName(tc.n); ok != tc.expected || v != tc.v {
+			t.Errorf("%s: AMPExtensionName=%s want=%s", tc.desc, v, tc.v)
+		}
+	}
+}
+
 func TestIsScriptAMPRuntime(t *testing.T) {
 	tcs := []struct {
 		desc     string

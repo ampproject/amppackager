@@ -36,6 +36,7 @@ func TestReorderHead(t *testing.T) {
 				tt.LinkGoogleFontPreconnect, tt.MetaCharset,
 				tt.MetaViewport, tt.StyleAMPCustom, tt.LinkCanonical,
 				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
+				tt.ScriptAMPMustache, tt.ScriptAMPMraid,
 				"</head><body></body></html>"),
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
@@ -52,6 +53,8 @@ func TestReorderHead(t *testing.T) {
 				tt.ScriptAMPExperiment,
 				// (6) <script> tags for remaining extensions
 				tt.ScriptAMPAudio,
+				tt.ScriptAMPMraid,
+				tt.ScriptAMPMustache,
 				// (7) <link> tag for favicons
 				tt.LinkFavicon,
 				// (8) <link> tag for resource hints

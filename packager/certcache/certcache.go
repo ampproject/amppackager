@@ -29,8 +29,8 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
+	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/util"
-	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/pquerna/cachecontrol"
 	"golang.org/x/crypto/ocsp"
@@ -144,8 +144,9 @@ func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (tim
 	return resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate) / 2), nil
 }
 
-func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-	if params.ByName("certName") == this.certName {
+func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	params := mux.Params(req)
+	if params["certName"] == this.certName {
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
 		// This content-type is not standard, but included to reduce
 		// the chance that faulty user agents employ content sniffing.
@@ -304,7 +305,7 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 		return true
 	}
 	// TODO(twifkak): Use a logging framework with support for debug-only statements.
-	log.Println("No update necessary.")
+	log.Println("No OCSP update necessary.")
 	return false
 }
 

@@ -4,10 +4,12 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"os"
+	"runtime"
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/theckman/go-flock"
+	"github.com/gofrs/flock"
 )
 
 // This is an abstraction over a single file on a remote storage mechanism. It
@@ -41,28 +43,60 @@ type LocalFile struct {
 	path string
 }
 
+// Check whether a file or directory exists.
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return true, err
+}
+
 func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, update func([]byte) []byte) ([]byte, error) {
-	lock := flock.NewFlock(this.path)
+	// Use independent .lock file; necessary on Windows to avoid "The process cannot
+	// access the file because another process has locked a portion of the file."
+	lockPath := this.path + ".lock"
+	lock := flock.New(lockPath)
 	locked, err := lock.TryRLock()
 	if err != nil {
-		return nil, errors.Wrapf(err, "obtaining shared lock for %s", this.path)
+		return nil, errors.Wrapf(err, "obtaining shared lock for %s", lockPath)
 	}
 	if !locked {
-		return nil, errors.Errorf("unable to obtain shared lock for %s", this.path)
+		return nil, errors.Errorf("unable to obtain shared lock for %s", lockPath)
 	}
 	defer func() {
 		if err = lock.Unlock(); err != nil {
-			log.Printf("Error unlocking %s; %+v", this.path, err)
+			log.Printf("Error unlocking %s; %+v", lockPath, err)
 		}
 	}()
+
+	// Check whether OCSP cache file exists.
+	pathExists, err := exists(this.path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "checking file exists %s", this.path)
+	}
+
+	// Initialize empty contents.
+	var contents []byte
+
+	// If cache file exists, read it and check freshness. Note that zero-length
+	// contents are considered "expired" by isExpired(). If an attempt is made
+	// to read the file before it exists on Windows, error "The system cannot
+	// find the file specified." is thrown.
+	if pathExists {
+		contents, err = ioutil.ReadFile(this.path)
+		if err != nil {
+			return nil, errors.Wrapf(err, "reading %s", this.path)
+		}
+	}
+
 	// At first glance, this looks like "broken" double-checked locking, as in
 	// http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html.
 	// However, the difference is that a read lock is established first, so
 	// that this shouldn't be looking at a partially-written file.
-	contents, err := ioutil.ReadFile(this.path)
-	if err != nil {
-		return nil, errors.Wrapf(err, "reading %s", this.path)
-	}
 	select {
 	case <-ctx.Done():
 		return nil, errors.Wrapf(ctx.Err(), "while reading %s", this.path)
@@ -71,26 +105,36 @@ func (this *LocalFile) Read(ctx context.Context, isExpired func([]byte) bool, up
 			return contents, nil
 		}
 		// Upgrade to a write-lock. It seems this may or may not be atomic, depending on the system.
+		// Windows does not handle a lock "upgrade", hence unlock before lock.
+		if runtime.GOOS == "windows" {
+			if err = lock.Unlock(); err != nil {
+				return nil, errors.Wrapf(err, "Error unlocking %s", lockPath)
+			}
+		}
 		locked, err = lock.TryLock()
 		if err != nil {
-			return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", this.path)
+			return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
 		}
 		if !locked {
-			return nil, errors.Errorf("unable to obtain exclusive lock for %s", this.path)
+			return nil, errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
 		}
+
 		// Reread the file while in write-lock, to make the
 		// read-modify-write atomic, and thus reduce the chance of
 		// multiple calls to update() in parallel.
-		contents, err := ioutil.ReadFile(this.path)
-		if err != nil {
-			return nil, errors.Wrapf(err, "rereading %s", this.path)
+		if pathExists {
+			contents, err := ioutil.ReadFile(this.path)
+			if err != nil {
+				return nil, errors.Wrapf(err, "rereading %s", this.path)
+			}
+			if !isExpired(contents) {
+				return contents, nil
+			}
 		}
-		if !isExpired(contents) {
-			return contents, nil
-		}
+
 		contents = update(contents)
 		// TODO(twifkak): Should I write to a tempfile in the same dir and move into place, instead?
-		if err = ioutil.WriteFile(this.path, contents, 0700); err != nil {
+		if err = ioutil.WriteFile(this.path, contents, 0600); err != nil {
 			return nil, errors.Wrapf(err, "writing %s", this.path)
 		}
 		return contents, nil
@@ -135,6 +179,7 @@ func (this *Chained) Read(ctx context.Context, isExpired func([]byte) bool, upda
 	return this.first.Read(ctx, isExpired, func([]byte) []byte {
 		contents, err := this.second.Read(ctx, isExpired, update)
 		if err != nil {
+			log.Printf("%+v", err)
 			return nil
 		}
 		return contents

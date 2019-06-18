@@ -15,6 +15,7 @@
 package transformers_test
 
 import (
+	"net/url"
 	"strings"
 	"testing"
 
@@ -22,6 +23,11 @@ import (
 	tt "github.com/ampproject/amppackager/transformer/internal/testing"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"golang.org/x/net/html"
+)
+
+const (
+	PublisherURL             = "https://publisher.com/amp-url.html"
+	LinkGoogleFontPreconnect = "<link href=\"https://publisher.com\" rel=\"dns-prefetch preconnect\"/>"
 )
 
 func TestLinkTag(t *testing.T) {
@@ -37,6 +43,7 @@ func TestLinkTag(t *testing.T) {
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
 				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				LinkGoogleFontPreconnect,
 				"</head><body></body></html>"),
 		},
 		{
@@ -50,7 +57,7 @@ func TestLinkTag(t *testing.T) {
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				tt.LinkFavicon, tt.LinkGoogleFontPreconnect, tt.LinkGoogleFont,
 				tt.LinkGoogleFont, tt.LinkCanonical, tt.StyleAMPBoilerplate,
-				tt.NoscriptAMPBoilerplate,
+				tt.NoscriptAMPBoilerplate, LinkGoogleFontPreconnect,
 				"</head><body></body></html>"),
 		},
 	}
@@ -65,7 +72,9 @@ func TestLinkTag(t *testing.T) {
 			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
-		transformers.LinkTag(&transformers.Context{DOM: inputDOM})
+		context := transformers.Context{DOM: inputDOM}
+		context.DocumentURL, err = url.Parse(PublisherURL)
+		transformers.LinkTag(&context)
 
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {

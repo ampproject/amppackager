@@ -29,10 +29,16 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/gofrs/flock"
+  packages = ["."]
+  revision = "392e7fae8f1b0bdbd67dad7237d23f618feb6dbb"
+  version = "v0.7.1"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
+  revision = "c823c79ea1570fb5ff454033735a8e68575d1d0f"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/google/go-cmp"
@@ -45,12 +51,6 @@
   ]
   revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
   version = "v0.2.0"
-
-[[projects]]
-  name = "github.com/julienschmidt/httprouter"
-  packages = ["."]
-  revision = "8c199fb6259ffc1af525cc3ad52ee60ba8359669"
-  version = "v1.1"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -88,12 +88,6 @@
   ]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
-
-[[projects]]
-  name = "github.com/theckman/go-flock"
-  packages = ["."]
-  revision = "dd99ba217509348e899885ee977b6e2acb18179c"
-  version = "v0.5.0"
 
 [[projects]]
   branch = "master"
@@ -135,6 +129,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "57ada0db71d59cf41009c5fed7eca533452a7ffa7af346db64b6244a63cbbab7"
+  inputs-digest = "10bd66ddd0a417265606dbeca1aa951d8bc4040b79b1bc00c4b9a107d8b2fdf7"
   solver-name = "gps-cdcl"
   solver-version = 1

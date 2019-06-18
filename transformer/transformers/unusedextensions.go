@@ -39,13 +39,7 @@ func UnusedExtensions(e *Context) error {
 		insertMatchingExtensions(n, extensionsUsed)
 	}
 	for c := e.DOM.HeadNode.FirstChild; c != nil; c = c.NextSibling {
-		if amphtml.IsScriptAMPExtension(c) {
-			var ext string
-			if v, ok := htmlnode.GetAttributeVal(c, "", amphtml.AMPCustomElement); ok {
-				ext = v
-			} else if v, ok := htmlnode.GetAttributeVal(c, "", amphtml.AMPCustomTemplate); ok {
-				ext = v
-			}
+		if ext, ok := amphtml.AMPExtensionName(c); ok {
 			if len(ext) > 0 && (isStringKeyInMap(ext, elementGrandfatheredExtensions) || isStringKeyInMap(ext, differentElementGrandfatheredExtensions)) && !isStringKeyInMap(ext, extensionsUsed) {
 				htmlnode.RemoveNode(&c)
 			}
@@ -71,6 +65,9 @@ func insertMatchingExtensions(n *html.Node, e map[string]string) {
 	case "script":
 		if v, ok := htmlnode.GetAttributeVal(n, "", "id"); ok && strings.EqualFold(v, "amp-access") {
 			e["amp-access"] = ""
+		}
+		if v, ok := htmlnode.GetAttributeVal(n, "", "template"); ok && strings.EqualFold(v, "amp-mustache") {
+			e["amp-mustache"] = ""
 		}
 	case "amp-embed":
 		e["amp-ad"] = ""

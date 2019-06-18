@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/ampproject/amppackager/packager/mux"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,7 @@ func TestValidityMap(t *testing.T) {
 	handler, err := New()
 	require.NoError(t, err)
 
-	resp := pkgt.Get(t, handler, "/")
+	resp := pkgt.Get(t, mux.New(nil, nil, handler), "/amppkg/validity")
 	defer resp.Body.Close()
 	assert.Equal(t, "application/cbor", resp.Header.Get("Content-Type"))
 	assert.Equal(t, "public, max-age=604800", resp.Header.Get("Cache-Control"))

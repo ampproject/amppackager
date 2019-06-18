@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/ampproject/amppackager/packager/util"
@@ -76,6 +77,15 @@ func TestFetchURLMatches(t *testing.T) {
 		"URL too long")
 }
 
+func TestIsFallbackURLCodePoint(t *testing.T) {
+	// https://url.spec.whatwg.org/#url-code-points + "%", in codepoint order:
+	validURLCodepoints := `!$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~`
+	for b := 0; b < 0x100; b++ {
+		expected := strings.ContainsRune(validURLCodepoints, rune(b))
+		assert.Equal(t, expected, isFallbackURLCodePoint(byte(b)), "char: %#v", string(rune(b)))
+	}
+}
+
 func TestSignURLMatches(t *testing.T) {
 	assert.NoError(t, signURLMatches(urlOrDie("https://example.com/"),
 		&util.URLPattern{Domain: "example.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}))
@@ -138,7 +148,9 @@ func TestParseURLs(t *testing.T) {
 		{Sign: &util.URLPattern{Domain: "badexample.com", PathRE: stringPtr(".*"), QueryRE: stringPtr(".*"), MaxLength: 2000}},
 	})
 	if assert.NotNil(t, err) {
-		assert.EqualError(t, err, "fetch/sign URLs do not match config")
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), "fetch/sign URLs do not match config")
+		}
 	}
 }
 
