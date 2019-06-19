@@ -29,41 +29,4 @@ Guidelines](https://opensource.google.com/conduct/).
 
 # Getting Started
 
-## Cloning the repository
-
-When cloning, use `git clone -b master`; the default branch is `releases` which
-is not meant for developing against.
-
-## Running a development server
-
-Copy `amppkg.example.toml` to `amppkg.toml` and modify it to suit your needs.
-You may use `testdata/b1/server.{cert,privkey}` to get started. However, you are
-at your own risk if you instruct your browser to trust `server.cert`. *NEVER*
-instruct your browser to trust `ca.cert`.
-
-## Presubmits
-
-- Run `go fmt` on the code you change. Don't run `go fmt ./...`; this affects
-  files that are mirrored from Google to GitHub, so we can't change them here.
-- Make sure `go test ./...` passes.
-- `golint` and `go vet` are optional.
-- Make sure PRs are sent to `master` and not `releases`, unless you're releasing
-  a new version of amppkg.
-
-## New dependencies
-
-Feel free to add dependencies on small code if it implements a feature that's
-hard to implement yourself. Try not to add large dependencies, or dependencies
-for the sake of minor development inconvenience (unless it's for test code
-only). They add risk by bringing in code of unknown provenance, and bloat the
-binary.
-
-If you need to add or upgrade dependencies, AMP Packager uses
-[dep](https://golang.github.io/dep/).
-
-# Suggestions for contributions
-
-Take a look at [good first
-issues](https://github.com/ampproject/amppackager/labels/good%20first%20issue),
-and please communicate early and often, to ensure we agree on the solution
-before you invest a lot of time into its implementation.
+See the [Contributing wiki](../../wiki/Contributing).

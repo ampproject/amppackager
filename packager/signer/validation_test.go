@@ -13,8 +13,6 @@ import (
 
 func urlFrom(url *url.URL, err *util.HTTPError) *url.URL { return url }
 
-func errorFrom(url *url.URL, err *util.HTTPError) *util.HTTPError { return err }
-
 func urlOrDie(spec string) *url.URL {
 	url, err := url.Parse(spec)
 	if err != nil {
@@ -24,6 +22,8 @@ func urlOrDie(spec string) *url.URL {
 }
 
 func TestParseURL(t *testing.T) {
+	errorFrom := func(url *url.URL, err *util.HTTPError) *util.HTTPError { return err }
+
 	assert.EqualError(t, errorFrom(parseURL("", "sign")), "sign URL is unspecified")
 	if err := errorFrom(parseURL("abc-@#79!%^/", "sign")); assert.NotNil(t, err) {
 		assert.Contains(t, err.Error(), "Error parsing sign URL")
