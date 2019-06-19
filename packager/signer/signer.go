@@ -504,10 +504,17 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		resp.Header().Set("AMP-Cache-Transform", act)
 	}
 
-	// TODO(twifkak): Add Cache-Control: public with expiry to match when we think the AMP Cache
-	// should fetch an update (half-way between signature date & expires).
 	resp.Header().Set("Content-Type", accept.SxgContentType)
-	resp.Header().Set("Cache-Control", "no-transform")
+	// We set a zero freshness lifetime on the SXG, so that naive caching
+	// intermediaries won't inhibit the update of this resource on AMP
+	// caches. AMP caches are recommended to base their update strategies
+	// on a combination of inner and outer resource lifetime.
+	//
+	// If you change this code to set a Cache-Control based on the inner
+	// resource, you need to ensure that its max-age is no longer than the
+	// lifetime of the signature (6 days, per above). Maybe an even tighter
+	// bound than that, based on data about client clock skew.
+	resp.Header().Set("Cache-Control", "no-transform, max-age=0")
 	resp.Header().Set("X-Content-Type-Options", "nosniff")
 	if _, err := resp.Write(body.Bytes()); err != nil {
 		log.Println("Error writing response:", err)
