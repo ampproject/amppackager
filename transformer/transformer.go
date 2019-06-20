@@ -43,9 +43,8 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"ampboilerplate":        transformers.AMPBoilerplate,
 	"ampruntimecss":         transformers.AMPRuntimeCSS,
 	"linktag":               transformers.LinkTag,
-	"metatag":               transformers.MetaTag,
 	"nodecleanup":           transformers.NodeCleanup,
-  "preloadimage":          transformers.PreloadImage,
+	"preloadimage":          transformers.PreloadImage,
 	"reorderhead":           transformers.ReorderHead,
 	"serversiderendering":   transformers.ServerSideRendering,
 	"stripjs":               transformers.StripJS,
@@ -61,7 +60,6 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		// NodeCleanup should be first.
 		transformers.NodeCleanup,
 		transformers.StripJS,
-		transformers.MetaTag,
 		transformers.LinkTag,
 		transformers.AbsoluteURL,
 		transformers.AMPBoilerplate,
