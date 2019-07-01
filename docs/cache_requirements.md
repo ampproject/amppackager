@@ -54,6 +54,16 @@ These include:
 The above is an attempt at a complete list of SXG-related requirements, but it
 is not guaranteed to be complete.
 
+If a document does not meet all of the above requirements, Google may still use
+its payload in an AMP viewer. The requirements for this are approximately as
+follows (but should not be relied upon by publishers):
+
+ * magic string is correct
+ * prologue length fields are correct
+ * fallback URL matches request URL
+ * MICE encoding and `Digest` header are valid
+ * payload is valid AMP
+
 Some of the above limitations are overly strict for an AMP SXG cache's needs,
 and were implemented as such for the sake of expediency. They may be loosened
 over time, especially in response to publisher feedback.
