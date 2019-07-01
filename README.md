@@ -102,6 +102,10 @@ For now, productionizing is a bit manual. The minimum steps are:
      2. If the URL points to an AMP page and the `AMP-Cache-Transform` request
         header is present, rewrite the URL by prepending `/priv/doc` and forward
         the request.
+
+        NOTE: If using nginx, prefer using `proxy_pass` with `$request_uri`,
+        rather than using `rewrite`, as in [this PR](https://github.com/Warashi/try-amppackager/pull/3),
+        to avoid percent-encoding issues.
      3. If at all possible, don't send URLs of non-AMP pages to `amppkg`; its
         [transforms](transformer/) may break non-AMP HTML.
      4. DO NOT forward `/priv/doc` requests; these URLs are meant to be
@@ -121,13 +125,15 @@ For now, productionizing is a bit manual. The minimum steps are:
      restart amppkg (per
      [#93](https://github.com/ampproject/amppackager/issues/93)).
   7. Keep amppkg updated from `releases` (the default branch, so `go get` works)
-     about every ~2 months. The details of this release cadence are still being
-     worked out, but they will be signaled by Googlebot changing its
-     `AMP-Cache-Transform` header from `google;v=N` to `google;v=N..{N+1}` and
-     then ~2 months later to `google;v={N+1}`. (Or perhaps Google will always
-     allow at least 2 versions; TBD.) You can use [various
-     tools](https://stackoverflow.com/questions/9845655/how-do-i-get-notifications-for-commits-to-a-repository)
-     to subscribe to `releases`.
+     about every ~2 months. The [wg-caching](https://github.com/ampproject/wg-caching)
+     team will release a new version approximately this often. Soon after each
+     release, Googlebot will increment the version it requests with
+     `AMP-Cache-Transform`. Googlebot will only allow the latest 2-3 versions
+     (details are still TBD), so an update is necessary but not immediately.
+
+     To keep subscribed to releases, you can select "Releases only" from the
+     "Watch" dropdown in GitHub, or use [various tools](https://stackoverflow.com/questions/9845655/how-do-i-get-notifications-for-commits-to-a-repository)
+     to subscribe to the `releases` branch.
 
 You may also want to:
 
@@ -207,6 +213,13 @@ packages by 24h, which means they effectively last only 6 days for most users.
 This tool only packages AMP documents. To sign non-AMP documents, look at the
 commandline tools on which this was based, at
 https://github.com/WICG/webpackage/tree/master/go/signedexchange.
+
+`<amp-install-serviceworker>` will fail inside of a signed exchange, due to a
+[Chrome limitation](https://bugs.chromium.org/p/chromium/issues/detail?id=939237). The
+recommendation is to ignore the console error, for now. This is because
+amp-install-serviceworker will still succeed in the unsigned AMP viewer case,
+and crawlers may reuse the contents of the signed exchange when displaying an
+AMP viewer to browser versions that don't support SXG.
 
 ## Local Transformer
 
