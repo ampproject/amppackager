@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"regexp"
 	"strconv"
 
@@ -17,6 +19,7 @@ import (
 
 var flagOutSXG = flag.String("out_sxg", "test.sxg", "Path to where the signed-exchange should be saved.")
 var flagOutCert = flag.String("out_cert", "test.cert", "Path to where the cert-chain+cbor should be saved.")
+var flagCertUrlBase = flag.String("cert_url_base", "", "Override scheme, hostname and parent path in cert-url.")
 
 func getSXG(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
@@ -66,6 +69,12 @@ func getCert(url string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+	if resp.StatusCode != 200 {
+		return nil, errors.Errorf("cert-url response error: %s", resp.Status)
+	}
+	if contentType := resp.Header.Get("Content-Type"); contentType != "application/cert-chain+cbor" {
+		return nil, errors.Errorf("invalid content-type of cert-url: %s", contentType)
+	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -90,11 +99,24 @@ func main() {
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
+	cURL, err := url.Parse(certURL)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+	if *flagCertUrlBase != "" {
+		fURL, err := url.Parse(*flagCertUrlBase)
+		if err != nil {
+			log.Fatalf("%+v", err)
+		}
+		certHash := path.Base(cURL.Path)
+		cURL = fURL
+		cURL.Path = path.Join(cURL.Path, certHash)
+	}
 	err = ioutil.WriteFile(*flagOutSXG, sxg, 0644)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
-	cert, err := getCert(certURL)
+	cert, err := getCert(cURL.String())
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
