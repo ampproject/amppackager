@@ -70,6 +70,11 @@ func TestURLRewrite_images(t *testing.T) {
 			expected: `<%s src="data:image/png,foo"></%s>`,
 		},
 		{
+			desc:     "%s ends in comma noop",
+			input:    `<%s src="http://example.com/image.jpg," width=92 height=10>`,
+			expected: `<%s src="https://example-com.cdn.ampproject.org/i/example.com/image.jpg," width="92" height="10"></%s>`,
+		},
+		{
 			desc:     "%s empty src noop",
 			input:    `<%s src="">`,
 			expected: `<%s src=""></%s>`,
