@@ -16,6 +16,7 @@ package signer
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
@@ -187,7 +188,8 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Contains(exchange.SignatureHeaderValue, "validity-url=\""+this.httpSignURL()+"/amppkg/validity\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "integrity=\"digest/mi-sha256-03\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-url=\""+this.httpSignURL()+"/amppkg/cert/"+pkgt.CertName+"\"")
-	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*"+pkgt.CertName+"=*")
+	certHash, _ := base64.RawURLEncoding.DecodeString(pkgt.CertName)
+	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*"+base64.StdEncoding.EncodeToString(certHash[:])+"*")
 	// TODO(twifkak): Control date, and test for expires and sig.
 	// The response header values are untested here, as that is covered by signedexchange tests.
 
@@ -239,7 +241,8 @@ func (this *SignerSuite) TestFetchSignWithForwardedRequestHeaders() {
 	this.Assert().Contains(exchange.SignatureHeaderValue, "validity-url=\""+this.httpSignURL_CertSubjectCN()+"/amppkg/validity\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "integrity=\"digest/mi-sha256-03\"")
 	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-url=\""+this.httpSignURL_CertSubjectCN()+"/amppkg/cert/"+pkgt.CertName+"\"")
-	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*"+pkgt.CertName+"=*")
+	certHash, _ := base64.RawURLEncoding.DecodeString(pkgt.CertName)
+	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*"+base64.StdEncoding.EncodeToString(certHash[:])+"*")
 	var payloadPrefix bytes.Buffer
 	binary.Write(&payloadPrefix, binary.BigEndian, uint64(miRecordSize))
 	this.Assert().Equal(append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)

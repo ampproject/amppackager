@@ -19,13 +19,13 @@ func errorFrom(err error) string {
 }
 
 func TestCertName(t *testing.T) {
-	assert.Equal(t, "PJ1IwfP1igOlJd2oTUVs2mj4dWIZcOWHMk5jfJYS2Qc", util.CertName(pkgt.Certs[0]))
+	assert.Equal(t, "Qk83Jo8qB8cEtxfb_7eit0SWVt0pdj5e7oDCqEgf77o", util.CertName(pkgt.B3Certs[0]))
 }
 
-// ParsePrivateKey() is tested indirectly via the definition of pkgt.Key.
+// ParsePrivateKey() is tested indirectly via the definition of pkgt.B3Key.
 func TestParsePrivateKey(t *testing.T) {
-	require.IsType(t, &ecdsa.PrivateKey{}, pkgt.Key)
-	assert.Equal(t, elliptic.P256(), pkgt.Key.(*ecdsa.PrivateKey).PublicKey.Curve)
+	require.IsType(t, &ecdsa.PrivateKey{}, pkgt.B3Key)
+	assert.Equal(t, elliptic.P256(), pkgt.B3Key.(*ecdsa.PrivateKey).PublicKey.Curve)
 }
 
 func TestCanSignHttpExchangesExtension(t *testing.T) {
