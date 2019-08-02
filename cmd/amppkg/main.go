@@ -90,7 +90,7 @@ func main() {
 	if certs == nil || len(certs) == 0 {
 		die(fmt.Sprintf("no cert found in %s", config.CertFile))
 	}
-	if err := util.CanSignHttpExchanges(certs[0], time.Now()); err != nil {
+	if err := util.CanSignHttpExchanges(certs[0]); err != nil {
 		if *flagDevelopment || *flagInvalidCert {
 			log.Println("WARNING:", err)
 		} else {

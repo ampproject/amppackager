@@ -19,7 +19,7 @@ FROM golang:1.11
 RUN go get -v github.com/ampproject/amppackager/cmd/amppkg
 
 # Seed the ocsp cache
-WORKDIR /go/src/github.com/ampproject/amppackager/testdata/b1/
+WORKDIR /go/src/github.com/ampproject/amppackager/testdata/b3/
 RUN ./seedcache.sh
 
 WORKDIR /go/src/app

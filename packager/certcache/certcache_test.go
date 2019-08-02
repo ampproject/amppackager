@@ -37,13 +37,13 @@ import (
 )
 
 var caCert = func() *x509.Certificate {
-	certPem, _ := ioutil.ReadFile("../../testdata/b1/ca.cert")
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/ca.cert")
 	certs, _ := signedexchange.ParseCertificates(certPem)
 	return certs[0]
 }()
 
 var caKey = func() *rsa.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("../../testdata/b1/ca.privkey")
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/ca.privkey")
 	key, _ := util.ParsePrivateKey(keyPem)
 	return key.(*rsa.PrivateKey)
 }()
@@ -51,7 +51,7 @@ var caKey = func() *rsa.PrivateKey {
 func FakeOCSPResponse(thisUpdate time.Time) ([]byte, error) {
 	template := ocsp.Response{
 		Status:           ocsp.Good,
-		SerialNumber:     pkgt.Certs[0].SerialNumber,
+		SerialNumber:     pkgt.B3Certs[0].SerialNumber,
 		ThisUpdate:       thisUpdate,
 		NextUpdate:       thisUpdate.Add(7 * 24 * time.Hour),
 		RevokedAt:        thisUpdate.AddDate( /*years=*/ 0 /*months=*/, 0 /*days=*/, 365),
@@ -74,7 +74,7 @@ type CertCacheSuite struct {
 
 func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(twifkak): Stop the old CertCache's goroutine.
-	certCache := New(pkgt.Certs, filepath.Join(this.tempDir, "ocsp"))
+	certCache := New(pkgt.B3Certs, filepath.Join(this.tempDir, "ocsp"))
 	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}
