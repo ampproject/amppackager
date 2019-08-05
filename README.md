@@ -1,15 +1,15 @@
 # AMP Packager
 
-AMP Packager is a tool to [improve AMP
-URLs](https://www.ampproject.org/latest/blog/developer-preview-of-better-amp-urls-in-google-search).
-By running it in a proper configuration, web publishers may (eventually) have
-origin URLs appear in AMP search results.
+AMP Packager is a tool to [improve AMP        
+URLs](https://blog.amp.dev/2018/11/13/developer-preview-of-better-amp-urls-in-google-search/) by [serving AMP using Signed Exchanges](https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/signed-exchange/). By running it
+in a proper configuration, web publishers may (eventually) have origin URLs
+appear in AMP search results.
 
 The AMP Packager works by creating [Signed HTTP
 Exchanges (SXGs)](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html)
 containing AMP documents, signed with a certificate associated with the origin,
 with a maximum lifetime of 7 days. In the future, the [Google AMP
-Cache](https://www.ampproject.org/docs/fundamentals/how_cached) will fetch,
+Cache](https://amp.dev/documentation/guides-and-tutorials/learn/amp-caches-and-cors/how_amp_pages_are_cached/) will fetch,
 cache, and serve them, similar to what it does for normal AMP HTML documents.
 When a user loads such an SXG, Chrome validates the signature and then displays
 the certificate's domain in the URL bar instead of `google.com`, and treats the
@@ -139,7 +139,7 @@ You may also want to:
 
   1. Launch `amppkg` as a restricted user.
   2. Save its stdout to a rotated log somewhere.
-  3. Use the [provided tools](https://www.ampproject.org/docs/fundamentals/validate)
+  3. Use the [provided tools](https://amp.dev/documentation/guides-and-tutorials/learn/validation-workflow/validate_amp/)
      to verify that your published AMP documents are valid, for instance just
      before publication, or with a regular audit of a sample of documents. The
      [transforms](transformer/) are designed to work on valid AMP pages, and
