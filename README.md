@@ -1,7 +1,7 @@
 # AMP Packager
 
 AMP Packager is a tool to [Serve AMP using Signed Exchanges](https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/signed-exchange/) which in turn [improves AMP
-URLs](https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/signed-exchange/).
+URLs](https://blog.amp.dev/2018/11/13/developer-preview-of-better-amp-urls-in-google-search/).
 By running it in a proper configuration, web publishers may (eventually) have
 origin URLs appear in AMP search results.
 
