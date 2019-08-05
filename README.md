@@ -1,9 +1,9 @@
 # AMP Packager
 
-AMP Packager is a tool to [Serve AMP using Signed Exchanges](https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/signed-exchange/) which in turn [improves AMP
-URLs](https://blog.amp.dev/2018/11/13/developer-preview-of-better-amp-urls-in-google-search/).
-By running it in a proper configuration, web publishers may (eventually) have
-origin URLs appear in AMP search results.
+AMP Packager is a tool to [improve AMP        
+URLs](https://blog.amp.dev/2018/11/13/developer-preview-of-better-amp-urls-in-google-search/) by [serving AMP using Signed Exchanges](https://amp.dev/documentation/guides-and-tutorials/optimize-and-measure/signed-exchange/). By running it
+in a proper configuration, web publishers may (eventually) have origin URLs
+appear in AMP search results.
 
 The AMP Packager works by creating [Signed HTTP
 Exchanges (SXGs)](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html)
