@@ -36,6 +36,17 @@ func AMPBoilerplate(e *Context) error {
 		}
 	}
 
+	if e.Version >= 3 {
+  	// If the document had been modified by a Server-Side-Rendering transform
+  	// earlier, for example by the AMP Optimizer, and that transform
+  	// determined that the boilerplate was unnecessary, we don't add the
+  	// boilerplate back. Note this can mean that an error in that transform
+  	// could result in boilerplate being removed when it shouldn't be.
+  	if htmlnode.HasAttribute(e.DOM.HTMLNode, "", "i-amphtml-no-boilerplate") {
+	  	return nil
+	  }
+	}
+
 	boilerplate, css := determineBoilerplateAndCSS(e.DOM.HTMLNode)
 
 	styleNode := htmlnode.Element("style", html.Attribute{Key: boilerplate})
