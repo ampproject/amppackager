@@ -174,6 +174,81 @@ func TestInvalidQueryRE(t *testing.T) {
 	`))), "QueryRE must be a valid regexp")
 }
 
+func TestOptionalAutoRenewCertAndKey(t *testing.T) {
+	config, err := ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		NewCertFile = "newcert.pem"
+		NewKeyFile = "newkey.pem"
+		AutoRenewCert = false
+		OCSPCache = "/tmp/ocsp"
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+	`))
+	require.NoError(t, err)
+	assert.Equal(t, Config{
+		Port:      8080,
+		CertFile:  "cert.pem",
+		KeyFile:   "key.pem",
+		NewCertFile: "newcert.pem",
+		AutoRenewCert: false,
+		NewKeyFile: "newkey.pem",
+		OCSPCache: "/tmp/ocsp",
+		URLSet: []URLSet{{
+			Sign: &URLPattern{
+				Domain:  "example.com",
+				PathRE:  stringPtr(".*"),
+				QueryRE: stringPtr(""),
+				MaxLength: 2000,
+			},
+		}},
+	}, *config)
+}
+
+func TestOptionalACMEConfig(t *testing.T) {
+	config, err := ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		OCSPCache = "/tmp/ocsp"
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+		[ACMEConfig]
+		  [ACMEConfig.Prod]
+		    DiscoURL = "prod.disco.url"
+		    AccountURL = "prod.account.url"
+		  [ACMEConfig.Staging]
+		    DiscoURL = "staging.disco.url"
+		    AccountURL = "staging.account.url"
+	`))
+	require.NoError(t, err)
+	assert.Equal(t, Config{
+		Port:      8080,
+		CertFile:  "cert.pem",
+		KeyFile:   "key.pem",
+		OCSPCache: "/tmp/ocsp",
+		ACMEConfig: &ACMEConfig{
+			Prod: &ACMEServerConfig{
+				DiscoURL: "prod.disco.url",
+				AccountURL: "prod.account.url",
+			},
+			Staging: &ACMEServerConfig{
+				DiscoURL: "staging.disco.url",
+				AccountURL: "staging.account.url",
+			},
+		},
+		URLSet: []URLSet{{
+			Sign: &URLPattern{
+				Domain:  "example.com",
+				PathRE:  stringPtr(".*"),
+				QueryRE: stringPtr(""),
+				MaxLength: 2000,
+			},
+		}},
+	}, *config)
+}
+
 func TestSignMissing(t *testing.T) {
 	msg := errorFrom(ReadConfig([]byte(`
 		CertFile = "cert.pem"

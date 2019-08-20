@@ -24,13 +24,17 @@ import (
 )
 
 type Config struct {
-	LocalOnly bool
-	Port      int
-	CertFile  string // This must be the full certificate chain.
-	KeyFile   string // Just for the first cert, obviously.
-	OCSPCache string
+	LocalOnly	bool
+	Port		int
+	CertFile	string // This must be the full certificate chain.
+	KeyFile		string // Just for the first cert, obviously.
+	NewCertFile	string // The new full certificate chain replacing the expired one.
+	NewKeyFile	string // For the first cert in NewCertFile.
+	AutoRenewCert	bool   // Should we auto-renew cert? Defaults to false.
+	OCSPCache	string
 	ForwardedRequestHeaders []string
-	URLSet    []URLSet
+	URLSet		[]URLSet
+	ACMEConfig	*ACMEConfig
 }
 
 type URLSet struct {
@@ -48,6 +52,16 @@ type URLPattern struct {
 	ErrorOnStatefulHeaders bool
 	MaxLength              int
 	SamePath               *bool
+}
+
+type ACMEConfig struct {
+	Prod	*ACMEServerConfig
+	Staging	*ACMEServerConfig
+}
+
+type ACMEServerConfig struct {
+	DiscoURL	string // ACME Production Directory Resource URL
+	AccountURL	string // ACME Account URL
 }
 
 // TODO(twifkak): Extract default values into a function separate from the one
