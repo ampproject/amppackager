@@ -28,9 +28,13 @@ type Config struct {
 	Port		int
 	CertFile	string // This must be the full certificate chain.
 	KeyFile		string // Just for the first cert, obviously.
+
+	// NewCertFile will be read/write. CertFile and NewCertFile will be set when both
+	// are valid and that once CertFile becomes invalid, NewCertFile will replace it
+	// (CertFile = NewCertFile) and NewCertFile will be set to empty.  This will also
+	// apply to disk copies as well (which we may require to be some sort of shared
+	// filesystem, if multiple replicas of ammpackager are running).
 	NewCertFile	string // The new full certificate chain replacing the expired one.
-	NewKeyFile	string // For the first cert in NewCertFile.
-	AutoRenewCert	bool   // Should we auto-renew cert? Defaults to false.
 	OCSPCache	string
 	ForwardedRequestHeaders []string
 	URLSet		[]URLSet
@@ -55,13 +59,14 @@ type URLPattern struct {
 }
 
 type ACMEConfig struct {
-	Prod	*ACMEServerConfig
-	Staging	*ACMEServerConfig
+	Production	*ACMEServerConfig
+	Development	*ACMEServerConfig
 }
 
 type ACMEServerConfig struct {
-	DiscoURL	string // ACME Production Directory Resource URL
-	AccountURL	string // ACME Account URL
+	DiscoURL	string // ACME Directory Resource URL
+	AccountURL	string // ACME Account URL. If non-empty, we
+			       // will auto-renew cert via ACME.
 }
 
 // TODO(twifkak): Extract default values into a function separate from the one

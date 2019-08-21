@@ -174,13 +174,11 @@ func TestInvalidQueryRE(t *testing.T) {
 	`))), "QueryRE must be a valid regexp")
 }
 
-func TestOptionalAutoRenewCertAndKey(t *testing.T) {
+func TestOptionalNewCert(t *testing.T) {
 	config, err := ReadConfig([]byte(`
 		CertFile = "cert.pem"
 		KeyFile = "key.pem"
 		NewCertFile = "newcert.pem"
-		NewKeyFile = "newkey.pem"
-		AutoRenewCert = false
 		OCSPCache = "/tmp/ocsp"
 		[[URLSet]]
 		  [URLSet.Sign]
@@ -192,8 +190,6 @@ func TestOptionalAutoRenewCertAndKey(t *testing.T) {
 		CertFile:  "cert.pem",
 		KeyFile:   "key.pem",
 		NewCertFile: "newcert.pem",
-		AutoRenewCert: false,
-		NewKeyFile: "newkey.pem",
 		OCSPCache: "/tmp/ocsp",
 		URLSet: []URLSet{{
 			Sign: &URLPattern{
@@ -215,12 +211,12 @@ func TestOptionalACMEConfig(t *testing.T) {
 		  [URLSet.Sign]
 		    Domain = "example.com"
 		[ACMEConfig]
-		  [ACMEConfig.Prod]
+		  [ACMEConfig.Production]
 		    DiscoURL = "prod.disco.url"
 		    AccountURL = "prod.account.url"
-		  [ACMEConfig.Staging]
-		    DiscoURL = "staging.disco.url"
-		    AccountURL = "staging.account.url"
+		  [ACMEConfig.Development]
+		    DiscoURL = "dev.disco.url"
+		    AccountURL = "dev.account.url"
 	`))
 	require.NoError(t, err)
 	assert.Equal(t, Config{
@@ -229,13 +225,13 @@ func TestOptionalACMEConfig(t *testing.T) {
 		KeyFile:   "key.pem",
 		OCSPCache: "/tmp/ocsp",
 		ACMEConfig: &ACMEConfig{
-			Prod: &ACMEServerConfig{
+			Production: &ACMEServerConfig{
 				DiscoURL: "prod.disco.url",
 				AccountURL: "prod.account.url",
 			},
-			Staging: &ACMEServerConfig{
-				DiscoURL: "staging.disco.url",
-				AccountURL: "staging.account.url",
+			Development: &ACMEServerConfig{
+				DiscoURL: "dev.disco.url",
+				AccountURL: "dev.account.url",
 			},
 		},
 		URLSet: []URLSet{{
