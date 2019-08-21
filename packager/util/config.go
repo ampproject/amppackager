@@ -29,11 +29,12 @@ type Config struct {
 	CertFile	string // This must be the full certificate chain.
 	KeyFile		string // Just for the first cert, obviously.
 
-	// NewCertFile will be read/write. CertFile and NewCertFile will be set when both
-	// are valid and that once CertFile becomes invalid, NewCertFile will replace it
-	// (CertFile = NewCertFile) and NewCertFile will be set to empty.  This will also
-	// apply to disk copies as well (which we may require to be some sort of shared
-	// filesystem, if multiple replicas of ammpackager are running).
+	// When set, both CertFile and NewCertFile will be read/write. CertFile and
+	// NewCertFile will be set when both are valid and that once CertFile becomes
+	// invalid, NewCertFile will replace it (CertFile = NewCertFile) and NewCertFile
+	// will be set to empty.  This will also apply to disk copies as well (which
+	// we may require to be some sort of shared filesystem, if multiple replicas of
+	// ammpackager are running).
 	NewCertFile	string // The new full certificate chain replacing the expired one.
 	OCSPCache	string
 	ForwardedRequestHeaders []string
