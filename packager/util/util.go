@@ -23,6 +23,7 @@ import (
 	"encoding/asn1"
 	"encoding/base64"
 	"encoding/pem"
+	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
@@ -73,6 +74,17 @@ func hasCanSignHttpExchangesExtension(cert *x509.Certificate) bool {
 		}
 	}
 	return false
+}
+
+// Returns the Duration of time before cert expires with given deadline.
+// Returns -1 if cert is already expired. This will be used to periodically check if cert
+// is still within validity range.
+func GetDurationToExpiry(cert *x509.Certificate, currentTime time.Time) (time.Duration, error) {
+	if cert.NotBefore.After(currentTime) || cert.NotAfter.Before(currentTime) {
+		return time.Duration(-1), errors.New("Certificate has invalid duration")
+	}
+
+	return cert.NotAfter.Sub(currentTime), nil;
 }
 
 // CanSignHttpExchanges returns nil if the given certificate has the
