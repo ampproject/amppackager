@@ -79,12 +79,12 @@ func hasCanSignHttpExchangesExtension(cert *x509.Certificate) bool {
 // Returns the Duration of time before cert expires with given deadline.
 // Returns -1 if cert is already expired. This will be used to periodically check if cert
 // is still within validity range.
-func GetDurationToExpiry(cert *x509.Certificate, currentTime time.Time) (time.Duration, error) {
-	if cert.NotBefore.After(currentTime) || cert.NotAfter.Before(currentTime) {
+func GetDurationToExpiry(cert *x509.Certificate, certExpiryDeadline time.Time) (time.Duration, error) {
+	if cert.NotBefore.After(certExpiryDeadline) || cert.NotAfter.Before(certExpiryDeadline) {
 		return time.Duration(-1), errors.New("Certificate has invalid duration")
 	}
 
-	return cert.NotAfter.Sub(currentTime), nil;
+	return cert.NotAfter.Sub(certExpiryDeadline), nil;
 }
 
 // CanSignHttpExchanges returns nil if the given certificate has the
