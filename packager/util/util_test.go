@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"testing"
+	"time"
 
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/ampproject/amppackager/packager/util"
@@ -20,6 +21,33 @@ func errorFrom(err error) string {
 
 func TestCertName(t *testing.T) {
 	assert.Equal(t, "Qk83Jo8qB8cEtxfb_7eit0SWVt0pdj5e7oDCqEgf77o", util.CertName(pkgt.B3Certs[0]))
+}
+
+func TestGetDurationToExpiry(t *testing.T) {
+	// Time before the cert validity.
+	beforeCert := time.Date(2019, time.May, 8, 0, 0, 0, 0, time.UTC)
+	// Time after the cert validity.
+	afterCert := time.Date(2019, time.August, 8, 0, 0, 0, 0, time.UTC)
+	// Time 2 days before cert validity expiration.
+	twoDaysBeforeExpiry := time.Date(2019, time.August, 5, 5, 43, 32, 0, time.UTC)
+	// Time 0 days, 1 hour before cert validity expiration.
+	oneHourBeforeExpiry := time.Date(2019, time.August, 7, 4, 43, 32, 0, time.UTC)
+	// Time 0 days before cert validity expiration.
+	zeroDaysBeforeExpiry := time.Date(2019, time.August, 7, 5, 43, 32, 0, time.UTC)
+
+	d, err := util.GetDurationToExpiry(pkgt.B3Certs[0], beforeCert)
+	assert.EqualError(t, err, "Certificate is future-dated")
+	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], afterCert)
+	assert.EqualError(t, err, "Certificate is expired")
+
+	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], twoDaysBeforeExpiry)
+	assert.Equal(t, time.Duration(2 * time.Hour * 24), d)
+
+	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], oneHourBeforeExpiry)
+	assert.Equal(t, time.Duration(1 * time.Hour), d)
+
+	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], zeroDaysBeforeExpiry)
+	assert.Equal(t, time.Duration(0), d)
 }
 
 // ParsePrivateKey() is tested indirectly via the definition of pkgt.B3Key.
