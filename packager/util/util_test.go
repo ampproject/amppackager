@@ -36,9 +36,9 @@ func TestGetDurationToExpiry(t *testing.T) {
 	zeroDaysBeforeExpiry := time.Date(2019, time.August, 7, 5, 43, 32, 0, time.UTC)
 
 	d, err := util.GetDurationToExpiry(pkgt.B3Certs[0], beforeCert)
-	assert.Contains(t, errorFrom(err), "Certificate has invalid duration")
+	assert.EqualError(t, err, "Certificate is future-dated")
 	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], afterCert)
-	assert.Contains(t, errorFrom(err), "Certificate has invalid duration")
+	assert.EqualError(t, err, "Certificate is expired")
 
 	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], twoDaysBeforeExpiry)
 	assert.Equal(t, time.Duration(2 * time.Hour * 24), d)

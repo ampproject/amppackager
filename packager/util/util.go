@@ -78,14 +78,17 @@ func hasCanSignHttpExchangesExtension(cert *x509.Certificate) bool {
 
 // Returns the Duration of time before cert expires with given deadline.
 // Note that the certExpiryDeadline should be the expected SXG expiration time.
-// Returns -1 if cert is already expired. This will be used to periodically check if cert
+// Returns 0 if cert is already expired. This will be used to periodically check if cert
 // is still within validity range.
 func GetDurationToExpiry(cert *x509.Certificate, certExpiryDeadline time.Time) (time.Duration, error) {
-	if cert.NotBefore.After(certExpiryDeadline) || cert.NotAfter.Before(certExpiryDeadline) {
-		return time.Duration(-1), errors.New("Certificate has invalid duration")
+	if cert.NotBefore.After(certExpiryDeadline) {
+		return 0, errors.New("Certificate is future-dated")
+	}
+	if cert.NotAfter.Before(certExpiryDeadline) {
+		return 0, errors.New("Certificate is expired")
 	}
 
-	return cert.NotAfter.Sub(certExpiryDeadline), nil;
+	return cert.NotAfter.Sub(certExpiryDeadline), nil
 }
 
 // CanSignHttpExchanges returns nil if the given certificate has the
