@@ -26,10 +26,9 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 
-	"github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/certloader"
 	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
@@ -73,52 +72,21 @@ func main() {
 		die(errors.Wrapf(err, "parsing config at %s", *flagConfig))
 	}
 
-	// TODO(twifkak): Document what cert/key storage formats this accepts.
-	certPem, err := ioutil.ReadFile(config.CertFile)
-	if err != nil {
-		die(errors.Wrapf(err, "reading %s", config.CertFile))
-	}
-	keyPem, err := ioutil.ReadFile(config.KeyFile)
-	if err != nil {
-		die(errors.Wrapf(err, "reading %s", config.KeyFile))
-	}
-
-	certs, err := signedexchange.ParseCertificates(certPem)
-	if err != nil {
-		die(errors.Wrapf(err, "parsing %s", config.CertFile))
-	}
-	if certs == nil || len(certs) == 0 {
-		die(fmt.Sprintf("no cert found in %s", config.CertFile))
-	}
-	if err := util.CanSignHttpExchanges(certs[0]); err != nil {
-		if *flagDevelopment || *flagInvalidCert {
-			log.Println("WARNING:", err)
-		} else {
-			die(err)
-		}
-	}
-
-	key, err := util.ParsePrivateKey(keyPem)
-	if err != nil {
-		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
-	}
-
-	for _, urlSet := range config.URLSet {
-		domain := urlSet.Sign.Domain
-		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
-			die(errors.Wrapf(err, "checking %s", config.CertFile))
-		}
-	}
-
 	validityMap, err := validitymap.New()
 	if err != nil {
 		die(errors.Wrap(err, "building validity map"))
 	}
 
-	certCache := certcache.New(certs, config.OCSPCache)
-	if err = certCache.Init(nil); err != nil {
+	key, err := certloader.LoadKeyFromFile(config)
+	if err != nil {
+		die(err)
+	}
+
+	certCache, err := certloader.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert);
+	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
+
 	rtvCache, err := rtv.New()
 	if err != nil {
 		die(errors.Wrap(err, "initializing rtv cache"))
@@ -134,7 +102,7 @@ func main() {
 		}
 	}
 
-	signer, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
+	signer, err := signer.New(certCache, key, config.URLSet, rtvCache, certCache.IsHealthy,
 		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
 	if err != nil {
 		die(errors.Wrap(err, "building signer"))

@@ -32,6 +32,7 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/amp_cache_transform"
+	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/util"
@@ -121,7 +122,7 @@ type Signer struct {
 	// TODO(twifkak): Support multiple certs. This will require generating
 	// a signature for each one. Note that Chrome only supports 1 signature
 	// at the moment.
-	cert *x509.Certificate
+	certHandler	certcache.CertHandler
 	// TODO(twifkak): Do we want to allow multiple keys?
 	key             crypto.PrivateKey
 	client          *http.Client
@@ -137,7 +138,7 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
 
-func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
+func New(certHandler certcache.CertHandler, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
 	requireHeaders bool, forwardedRequestHeaders []string) (*Signer, error) {
 	client := http.Client{
@@ -146,7 +147,7 @@ func New(cert *x509.Certificate, key crypto.PrivateKey, urlSets []util.URLSet,
 		Timeout: 60 * time.Second,
 	}
 
-	return &Signer{cert, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders}, nil
+	return &Signer{certHandler, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders}, nil
 }
 
 func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
@@ -465,7 +466,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
-	certURL, err := this.genCertURL(this.cert, signURL)
+	certURL, err := this.genCertURL(this.certHandler.FetchCert(), signURL)
 	if err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
 		return
@@ -480,7 +481,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
 		Date:        now.Add(-24 * time.Hour),
 		Expires:     now.Add(6 * 24 * time.Hour),
-		Certs:       []*x509.Certificate{this.cert},
+		Certs:       []*x509.Certificate{this.certHandler.FetchCert()},
 		CertUrl:     certURL,
 		ValidityUrl: signURL.ResolveReference(validityHRef),
 		PrivKey:     this.key,
