@@ -1,4 +1,4 @@
-// Copyright 2018 Google LLC
+// Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,27 +20,28 @@ import (
 	"io/ioutil"
 	"log"
 
-        "github.com/WICG/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 
-        "github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/util"
 )
 
 // Creates cert cache by loading certs and keys from disk, doing validation
 // and populating the cert cache with current set of certificate related information.
-func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMode bool) (*certcache.CertCache, error)  {
+// If development mode is true, prints a warning for certs that can't sign HTTP exchanges.
+func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMode bool) (*certcache.CertCache, error) {
 	certs, err := LoadCertsFromFile(config, developmentMode)
 	if err != nil {
 		return nil, err
 	}
-        for _, urlSet := range config.URLSet {
-                domain := urlSet.Sign.Domain
-                if err := util.CertificateMatches(certs[0], key, domain); err != nil {
-                        return nil, errors.Wrapf(err, "checking %s", config.CertFile)
-                }
-        }
-        certCache := certcache.New(certs, config.OCSPCache)
+	for _, urlSet := range config.URLSet {
+		domain := urlSet.Sign.Domain
+		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
+			return nil, errors.Wrapf(err, "checking %s", config.CertFile)
+		}
+	}
+	certCache := certcache.New(certs, config.OCSPCache)
 
 	return certCache, nil
 }
@@ -51,27 +52,29 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMo
 //	The certificate can't be parsed.
 //	No certificates found in the file.
 //	Certificates cannot be used to sign HTTP exchanges.
+//	 (if developmentMode, print a warning that certs can't
+//	 be used to sign HTTP exchanges).
 // If there are no errors, the array of certificates is returned.
 func LoadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certificate, error) {
-        // TODO(twifkak): Document what cert/key storage formats this accepts.
-        certPem, err := ioutil.ReadFile(config.CertFile)
-        if err != nil {
+	// TODO(twifkak): Document what cert/key storage formats this accepts.
+	certPem, err := ioutil.ReadFile(config.CertFile)
+	if err != nil {
 		return nil, errors.Wrapf(err, "reading %s", config.CertFile)
-        }
-        certs, err := signedexchange.ParseCertificates(certPem)
-        if err != nil {
-                return nil, errors.Wrapf(err, "parsing %s", config.CertFile)
-        }
-        if certs == nil || len(certs) == 0 {
-                return nil, errors.Errorf("no cert found in %s", config.CertFile)
-        }
-        if err := util.CanSignHttpExchanges(certs[0]); err != nil {
-                if developmentMode {
-                        log.Println("WARNING:", err)
-                } else {
-                        return nil, err
-                }
-        }
+	}
+	certs, err := signedexchange.ParseCertificates(certPem)
+	if err != nil {
+		return nil, errors.Wrapf(err, "parsing %s", config.CertFile)
+	}
+	if certs == nil || len(certs) == 0 {
+		return nil, errors.Errorf("no cert found in %s", config.CertFile)
+	}
+	if err := util.CanSignHttpExchanges(certs[0]); err != nil {
+		if developmentMode {
+			log.Println("WARNING:", err)
+		} else {
+			return nil, err
+		}
+	}
 
 	return certs, nil
 }
@@ -82,15 +85,15 @@ func LoadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certi
 //	The key can't be parsed.
 // If there are no errors, the key is returned.
 func LoadKeyFromFile(config *util.Config) (crypto.PrivateKey, error) {
-        keyPem, err := ioutil.ReadFile(config.KeyFile)
-        if err != nil {
-                return nil, errors.Wrapf(err, "reading %s", config.KeyFile)
-        }
+	keyPem, err := ioutil.ReadFile(config.KeyFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading %s", config.KeyFile)
+	}
 
-        key, err := util.ParsePrivateKey(keyPem)
-        if err != nil {
-                return nil, errors.Wrapf(err, "parsing %s", config.KeyFile)
-        }
+	key, err := util.ParsePrivateKey(keyPem)
+	if err != nil {
+		return nil, errors.Wrapf(err, "parsing %s", config.KeyFile)
+	}
 
 	return key, nil
 }

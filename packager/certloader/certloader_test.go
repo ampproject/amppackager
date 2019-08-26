@@ -1,4 +1,4 @@
-// Copyright 2018 Google LLC
+// Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,18 +21,18 @@ import (
 	"testing"
 
 	pkgt "github.com/ampproject/amppackager/packager/testing"
-        "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/util"
 )
 
 func errorFrom(err error) string {
-        return err.Error()
+	return err.Error()
 }
 
 func stringPtr(s string) *string {
-        return &s
+	return &s
 }
 
 var caCert = func() *x509.Certificate {
@@ -49,59 +49,67 @@ var caKey = func() *rsa.PrivateKey {
 
 func TestPopulateCertCache(t *testing.T) {
 	certCache, err := PopulateCertCache(
-				&util.Config {
-			                CertFile:  "../../testdata/b3/fullchain.cert",
-			                KeyFile:   "../../testdata/b3/server.privkey",
-					OCSPCache: "/tmp/ocsp",
-					URLSet: []util.URLSet{{
-						Sign: &util.URLPattern{
-							Domain:  "amppackageexample.com",
-							PathRE:  stringPtr(".*"),
-							QueryRE: stringPtr(""),
-							MaxLength: 2000,
-						},
-					}},
+		&util.Config{
+			CertFile:  "../../testdata/b3/fullchain.cert",
+			KeyFile:   "../../testdata/b3/server.privkey",
+			OCSPCache: "/tmp/ocsp",
+			URLSet: []util.URLSet{{
+				Sign: &util.URLPattern{
+					Domain:    "amppackageexample.com",
+					PathRE:    stringPtr(".*"),
+					QueryRE:   stringPtr(""),
+					MaxLength: 2000,
 				},
-				pkgt.B3Key,
-	                        true)
+			}},
+		},
+		pkgt.B3Key,
+		true)
 	assert.NotNil(t, certCache)
-        assert.Equal(t, pkgt.B3Certs[0], certCache.FetchCert())
-        assert.Nil(t, err)
+	assert.Equal(t, pkgt.B3Certs[0], certCache.FetchCert())
+	assert.Nil(t, err)
 }
 
 func TestLoadCertsFromFile(t *testing.T) {
 	// Cert file does not exist.
 	certs, err := LoadCertsFromFile(
-			&util.Config {
-				CertFile: "file_does_not_exist",
-			},
-			true)
+		&util.Config{
+			CertFile: "file_does_not_exist",
+		},
+		true)
 	assert.Contains(t, errorFrom(err), "no such file or directory")
 
-	// Cert file is valid.
+	// Cert file is ok for dev mode.
 	certs, err = LoadCertsFromFile(
-			&util.Config {
-				CertFile: "../../testdata/b3/ca.cert",
-			},
-			true)
+		&util.Config{
+			CertFile: "../../testdata/b3/ca.cert",
+		},
+		true)
 	assert.Equal(t, caCert, certs[0])
 	assert.Nil(t, err)
+
+	// Cert file is not ok for prod mode.
+	certs, err = LoadCertsFromFile(
+		&util.Config{
+			CertFile: "../../testdata/b3/ca.cert",
+		},
+		false)
+	assert.Equal(t, certs, ([]*x509.Certificate)(nil))
+	assert.Equal(t, errorFrom(err), "Certificate is missing CanSignHttpExchanges extension")
 }
 
 func TestLoadKeyFromFile(t *testing.T) {
 	// Key does not exist.
 	key, err := LoadKeyFromFile(
-                        &util.Config {
-                                KeyFile: "file_does_not_exist",
-                        })
+		&util.Config{
+			KeyFile: "file_does_not_exist",
+		})
 	assert.Contains(t, errorFrom(err), "no such file or directory")
 
 	// Key is valid.
 	key, err = LoadKeyFromFile(
-                        &util.Config {
-                                KeyFile: "../../testdata/b3/ca.privkey",
-                        })
+		&util.Config{
+			KeyFile: "../../testdata/b3/ca.privkey",
+		})
 	assert.Equal(t, caKey, key)
 	assert.Nil(t, err)
 }
-
