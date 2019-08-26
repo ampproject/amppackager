@@ -27,7 +27,7 @@ import (
 	"github.com/ampproject/amppackager/packager/util"
 )
 
-// Creates and initializes cert cache by loading certs and keys from disk, doing validation
+// Creates cert cache by loading certs and keys from disk, doing validation
 // and populating the cert cache with current set of certificate related information.
 func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMode bool) (*certcache.CertCache, error)  {
 	certs, err := LoadCertsFromFile(config, developmentMode)
@@ -41,9 +41,6 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMo
                 }
         }
         certCache := certcache.New(certs, config.OCSPCache)
-        if err = certCache.Init(nil); err != nil {
-                return nil, errors.Wrap(err, "building cert cache")
-        }
 
 	return certCache, nil
 }

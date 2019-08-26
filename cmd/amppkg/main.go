@@ -87,6 +87,10 @@ func main() {
 		die(errors.Wrap(err, "building cert cache"))
 	}
 
+	if err = certCache.Init(nil); err != nil {
+		die(errors.Wrap(err, "initializing cert cache"))
+        }
+
 	rtvCache, err := rtv.New()
 	if err != nil {
 		die(errors.Wrap(err, "initializing rtv cache"))
