@@ -51,6 +51,10 @@ const maxOCSPResponseBytes = 1024 * 1024
 // How often to check if OCSP stapling needs updating.
 const ocspCheckInterval = 1 * time.Hour
 
+type CertHandler interface {
+	GetLatestCert() (*x509.Certificate)
+}
+
 type CertCache struct {
 	// TODO(twifkak): Support multiple cert chains (for different domains, for different roots).
 	certName          string
@@ -119,6 +123,14 @@ func (this *CertCache) Init(stop chan struct{}) error {
 	// 7. The ability to serve old responses while fetching new responses.
 	go this.maintainOCSP(stop)
 	return nil
+}
+
+// For now this just returns the first entry in the certs field in the cache.
+// For follow-on changes, we will transform this to a lambda so that anything
+// that needs a cert can do the cert refresh logic (if needed)  on demand.
+func (this *CertCache) GetLatestCert() (*x509.Certificate) {
+	// TODO(banaag): check if cert is still valid, refresh if not.
+	return this.certs[0]
 }
 
 func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
