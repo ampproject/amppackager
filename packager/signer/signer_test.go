@@ -57,8 +57,8 @@ func headerNames(headers http.Header) []string {
 type fakeCertHandler struct {
 }
 
-func (this fakeCertHandler)  FetchCert() (*x509.Certificate) {
-	return pkgt.Certs[0]; 
+func (this fakeCertHandler)  GetLatestCert() (*x509.Certificate) {
+	return pkgt.Certs[0] 
 }
 
 type SignerSuite struct {

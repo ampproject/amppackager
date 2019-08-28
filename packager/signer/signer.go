@@ -466,7 +466,8 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
-	certURL, err := this.genCertURL(this.certHandler.FetchCert(), signURL)
+	cert := this.certHandler.GetLatestCert()
+	certURL, err := this.genCertURL(cert, signURL)
 	if err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
 		return
@@ -481,7 +482,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
 		Date:        now.Add(-24 * time.Hour),
 		Expires:     now.Add(6 * 24 * time.Hour),
-		Certs:       []*x509.Certificate{this.certHandler.FetchCert()},
+		Certs:       []*x509.Certificate{cert},
 		CertUrl:     certURL,
 		ValidityUrl: signURL.ResolveReference(validityHRef),
 		PrivKey:     this.key,

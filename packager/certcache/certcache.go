@@ -52,7 +52,7 @@ const maxOCSPResponseBytes = 1024 * 1024
 const ocspCheckInterval = 1 * time.Hour
 
 type CertHandler interface {
-	FetchCert() (*x509.Certificate)
+	GetLatestCert() (*x509.Certificate)
 }
 
 type CertCache struct {
@@ -128,7 +128,7 @@ func (this *CertCache) Init(stop chan struct{}) error {
 // For now this just returns the first entry in the certs field in the cache.
 // For follow-on changes, we will transform this to a lambda so that anything
 // that needs a cert can do the cert refresh logic (if needed)  on demand.
-func (this *CertCache) FetchCert() (*x509.Certificate) {
+func (this *CertCache) GetLatestCert() (*x509.Certificate) {
 	// TODO(banaag): check if cert is still valid, refresh if not.
 	return this.certs[0]
 }

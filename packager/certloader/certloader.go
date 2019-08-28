@@ -31,7 +31,7 @@ import (
 // and populating the cert cache with current set of certificate related information.
 // If development mode is true, prints a warning for certs that can't sign HTTP exchanges.
 func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMode bool) (*certcache.CertCache, error) {
-	certs, err := LoadCertsFromFile(config, developmentMode)
+	certs, err := loadCertsFromFile(config, developmentMode)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMo
 //	 (if developmentMode, print a warning that certs can't
 //	 be used to sign HTTP exchanges).
 // If there are no errors, the array of certificates is returned.
-func LoadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certificate, error) {
+func loadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certificate, error) {
 	// TODO(twifkak): Document what cert/key storage formats this accepts.
 	certPem, err := ioutil.ReadFile(config.CertFile)
 	if err != nil {

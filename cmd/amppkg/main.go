@@ -79,7 +79,7 @@ func main() {
 
 	key, err := certloader.LoadKeyFromFile(config)
 	if err != nil {
-		die(err)
+		die(errors.Wrap(err, "loading key file"))
 	}
 
 	certCache, err := certloader.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert);

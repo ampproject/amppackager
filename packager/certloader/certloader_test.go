@@ -27,10 +27,6 @@ import (
 	"github.com/ampproject/amppackager/packager/util"
 )
 
-func errorFrom(err error) string {
-	return err.Error()
-}
-
 func stringPtr(s string) *string {
 	return &s
 }
@@ -65,21 +61,21 @@ func TestPopulateCertCache(t *testing.T) {
 		pkgt.B3Key,
 		true)
 	assert.NotNil(t, certCache)
-	assert.Equal(t, pkgt.B3Certs[0], certCache.FetchCert())
+	assert.Equal(t, pkgt.B3Certs[0], certCache.GetLatestCert())
 	assert.Nil(t, err)
 }
 
 func TestLoadCertsFromFile(t *testing.T) {
 	// Cert file does not exist.
-	certs, err := LoadCertsFromFile(
+	certs, err := loadCertsFromFile(
 		&util.Config{
 			CertFile: "file_does_not_exist",
 		},
 		true)
-	assert.Contains(t, errorFrom(err), "no such file or directory")
+	assert.Contains(t, err.Error(), "no such file or directory")
 
 	// Cert file is ok for dev mode.
-	certs, err = LoadCertsFromFile(
+	certs, err = loadCertsFromFile(
 		&util.Config{
 			CertFile: "../../testdata/b3/ca.cert",
 		},
@@ -88,13 +84,13 @@ func TestLoadCertsFromFile(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Cert file is not ok for prod mode.
-	certs, err = LoadCertsFromFile(
+	certs, err = loadCertsFromFile(
 		&util.Config{
 			CertFile: "../../testdata/b3/ca.cert",
 		},
 		false)
 	assert.Equal(t, certs, ([]*x509.Certificate)(nil))
-	assert.Equal(t, errorFrom(err), "Certificate is missing CanSignHttpExchanges extension")
+	assert.Equal(t, err.Error(), "Certificate is missing CanSignHttpExchanges extension")
 }
 
 func TestLoadKeyFromFile(t *testing.T) {
@@ -103,7 +99,7 @@ func TestLoadKeyFromFile(t *testing.T) {
 		&util.Config{
 			KeyFile: "file_does_not_exist",
 		})
-	assert.Contains(t, errorFrom(err), "no such file or directory")
+	assert.Contains(t, err.Error(), "no such file or directory")
 
 	// Key is valid.
 	key, err = LoadKeyFromFile(
