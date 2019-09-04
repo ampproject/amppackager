@@ -18,6 +18,8 @@ web page as though it were on that domain.
 The packager is an HTTP server that sits behind a frontend server; it fetches
 and signs AMP documents as requested by the AMP Cache.
 
+As an alternative to running the packager, you can sign up for one of the SXG [service providers](https://github.com/ampproject/amppackager/wiki/Service-Providers).
+
 ## Packager/Signer
 
 ### How to use
