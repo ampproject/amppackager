@@ -12,7 +12,6 @@ import (
 	tt "github.com/ampproject/amppackager/transformer/internal/testing"
 )
 
-// TODO(amaltas): WIP, Add lot of tests.
 func TestStripScriptComments(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
@@ -115,7 +114,7 @@ func TestStripScriptComments(t *testing.T) {
 		}
 		inputDOM, err := amphtml.NewDOM(inputDoc)
 		if err != nil {
-			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.Input, err)
+			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.Desc, tc.Input, err)
 			continue
 		}
 		transformers.StripScriptComments(&transformers.Context{DOM: inputDOM})
