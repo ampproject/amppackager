@@ -29,47 +29,46 @@ import (
 )
 
 type CertFetcher struct {
-	// ACME Discovery URL
-	AcmeDiscoURL string
-	AcmeUser     MyUser
+	AcmeDiscoveryURL string
+	AcmeUser	 AcmeUser
 	// Domains to validate
-	Domains    []string
-	legoClient *lego.Client
+	Domains		[]string
+	legoClient	*lego.Client
 }
 
-// You'll need a user or account type that implements acme.User
-type MyUser struct {
+// Implements registration.User
+type AcmeUser struct {
 	Email        string
 	Registration *registration.Resource
 	key          crypto.PrivateKey
 }
 
-func (u *MyUser) GetEmail() string {
+func (u *AcmeUser) GetEmail() string {
 	return u.Email
 }
-func (u MyUser) GetRegistration() *registration.Resource {
+func (u AcmeUser) GetRegistration() *registration.Resource {
 	return u.Registration
 }
-func (u *MyUser) GetPrivateKey() crypto.PrivateKey {
+func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 	return u.key
 }
 
 // Initializes the cert fetcher with information it needs to fetch new certificates in the future.
 func NewFetcher(email string, privateKey crypto.PrivateKey, acmeDiscoURL string,
 	domains []string, acmeChallengePort int, shouldRegister bool) (*CertFetcher, error) {
-	myUser := MyUser{
+	acmeUser := AcmeUser{
 		Email: email,
 		key:   privateKey,
 	}
-	config := lego.NewConfig(&myUser)
+	config := lego.NewConfig(&acmeUser)
 
 	config.CADirURL = acmeDiscoURL
-	config.Certificate.KeyType = certcrypto.RSA2048
+	config.Certificate.KeyType = certcrypto.EC256
 
 	// A client facilitates communication with the CA server.
 	client, err := lego.NewClient(config)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Obtaining LEGO client.")
 	}
 
 	// We specify an http port of `acmeChallengePort`
@@ -79,27 +78,31 @@ func NewFetcher(email string, privateKey crypto.PrivateKey, acmeDiscoURL string,
 	err = client.Challenge.SetHTTP01Provider(
 		http01.NewProviderServer("", strconv.Itoa(acmeChallengePort)))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Setting up HTTP01 challenge provider.")
 	}
 
 	// Theoretically, this should always be set to false as users should have pre-registered for access
 	// to the ACME CA and agreed to the TOS.
 	// TODO(banaag): revisit this when trying the class out with Digicert CA.
 	if !shouldRegister {
-		myUser.Registration = new(registration.Resource)
+		acmeUser.Registration = new(registration.Resource)
 	} else {
+		// TODO(banaag) make sure we present the TOS URL to the user and prompt for confirmation.
+		// The plan is to move this to some separate setup command outside the server which would be
+		// executed one time. Alternatively, we can have a field in the toml file that is documented
+		// to indicate agreement with TOS.
 		reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "ACME CA client registration") 
 		}
-		myUser.Registration = reg
+		acmeUser.Registration = reg
 	}
 
 	return &CertFetcher{
-		AcmeDiscoURL: acmeDiscoURL,
-		AcmeUser:     myUser,
-		Domains:      domains,
-		legoClient:   client,
+		AcmeDiscoveryURL: acmeDiscoURL,
+		AcmeUser:	  acmeUser,
+		Domains:	  domains,
+		legoClient:	  client,
 	}, nil
 }
 

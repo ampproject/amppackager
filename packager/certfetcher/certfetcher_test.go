@@ -15,6 +15,8 @@ import (
 	jose "gopkg.in/square/go-jose.v2"
 )
 
+// CertResponseMock is just any valid SXG cert generated via:
+// http://shortn/_AdDfxYOfZg
 const CertResponseMock = `-----BEGIN CERTIFICATE-----
 MIIFZDCCBOqgAwIBAgIQBxgJcqaHzEUEVOBlp+mFJTAKBggqhkjOPQQDAjBMMQsw
 CQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMSYwJAYDVQQDEx1EaWdp
