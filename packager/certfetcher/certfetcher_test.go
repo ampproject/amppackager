@@ -16,7 +16,7 @@ import (
 )
 
 // CertResponseMock is just any valid SXG cert generated via:
-// http://shortn/_AdDfxYOfZg
+// https://docs.digicert.com/manage-certificates/certificate-profile-options/get-your-signed-http-exchange-certificate/
 const CertResponseMock = `-----BEGIN CERTIFICATE-----
 MIIFZDCCBOqgAwIBAgIQBxgJcqaHzEUEVOBlp+mFJTAKBggqhkjOPQQDAjBMMQsw
 CQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMSYwJAYDVQQDEx1EaWdp
