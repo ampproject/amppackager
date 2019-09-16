@@ -116,6 +116,77 @@ func TestPreloads(t *testing.T) {
 	}
 }
 
+func TestMaxAge(t *testing.T) {
+	tcs := []struct {
+		html                string
+		expectedMaxAgeSecs  int32
+	}{
+		{
+			// No amp-scripts; no constraints on signing duration.
+			"<html ⚡>",
+			604800,
+		},
+		{
+			// amp-script but not inline; no constraints.
+			"<html ⚡><amp-script>",
+			604800,
+		},
+		{
+			// Inline amp-script; default to 1-day duration.
+			"<html ⚡><amp-script script=foo>",
+			86400,
+		},
+		{
+			// Inline amp-script with explicit 4-day duration.
+			"<html ⚡><amp-script script=foo max-age=345600>",
+			345600,
+		},
+		{
+			// Inline amp-script with explicit 1-year duration; capped at 7 days.
+			"<html ⚡><amp-script script=foo max-age=31536000>",
+			604800,
+		},
+		{
+			// Inline amp-script with invalid duration; use default.
+			"<html ⚡><amp-script script=foo max-age=aaaaaa>",
+			86400,
+		},
+		{
+			// Inline amp-script with negative duration; use 0.
+			"<html ⚡><amp-script script=foo max-age=-86400>",
+			0,
+		},
+		{
+			// Two inline amp-scripts, use min of both.
+			"<html ⚡><amp-script script=foo max-age=600000><amp-script script=foo max-age=500000>",
+			500000,
+		},
+		{
+			// Two inline amp-scripts, explicit > implicit.
+			"<html ⚡><amp-script script=foo max-age=600000><amp-script script=foo>",
+			86400,
+		},
+		{
+			// Two inline amp-scripts, explicit < implicit.
+			"<html ⚡><amp-script script=foo max-age=1><amp-script script=foo>",
+			1,
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.html, func(t *testing.T) {
+			_, metadata, err := Process(&rpb.Request{Html: tc.html, Config: rpb.Request_NONE})
+			if err != nil {
+				t.Fatalf("unexpected failure: %v", err)
+			}
+
+			if metadata.MaxAgeSecs != tc.expectedMaxAgeSecs {
+				t.Errorf("maxAgeSecs differs; got=%d, want=%d", metadata.MaxAgeSecs, tc.expectedMaxAgeSecs)
+			}
+		})
+	}
+}
+
 func TestVersion(t *testing.T) {
 	// context is the context provided by Process() to runTransformers().
 	var context *transformers.Context

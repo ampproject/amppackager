@@ -126,4 +126,10 @@ message Metadata {
   // prefetch:
   // https://github.com/WICG/webpackage/blob/master/explainer.md#prefetching-stops-here
   repeated Preload preloads = 1;
+
+  // Recommended validity duration (`expires - date`), in seconds, of the SXG,
+  // based on the content being signed. In particular, JS is given a shorter
+  // lifetime to reduce risk of issues due to downgrades:
+  // https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#seccons-downgrades.
+  int32 max_age_secs = 2;
 }
