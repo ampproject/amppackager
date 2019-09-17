@@ -480,7 +480,6 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	// Expires - Date must be <= 604800 seconds, per
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
 	duration := 7 * 24 * time.Hour
-	println("max-age=", metadata.MaxAgeSecs)
 	if maxAge := time.Duration(metadata.MaxAgeSecs) * time.Second; maxAge < duration {
 		duration = maxAge
 	}
