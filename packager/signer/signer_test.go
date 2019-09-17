@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/WICG/webpackage/go/signedexchange/structuredheader"
 	"github.com/ampproject/amppackager/packager/accept"
 	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/rtv"
@@ -57,8 +58,8 @@ func headerNames(headers http.Header) []string {
 type fakeCertHandler struct {
 }
 
-func (this fakeCertHandler)  GetLatestCert() (*x509.Certificate) {
-	return pkgt.Certs[0] 
+func (this fakeCertHandler) GetLatestCert() *x509.Certificate {
+	return pkgt.Certs[0]
 }
 
 type SignerSuite struct {
@@ -199,6 +200,16 @@ func (this *SignerSuite) TestSimple() {
 	certHash, _ := base64.RawURLEncoding.DecodeString(pkgt.CertName)
 	this.Assert().Contains(exchange.SignatureHeaderValue, "cert-sha256=*"+base64.StdEncoding.EncodeToString(certHash[:])+"*")
 	// TODO(twifkak): Control date, and test for expires and sig.
+
+	signatures, err := structuredheader.ParseParameterisedList(exchange.SignatureHeaderValue)
+	this.Require().NoError(err)
+	this.Require().NotEmpty(signatures)
+	date, ok := signatures[0].Params["date"].(int64)
+	this.Require().True(ok)
+	expires, ok := signatures[0].Params["expires"].(int64)
+	this.Require().True(ok)
+	this.Assert().Equal(int64(604800), expires-date)
+
 	// The response header values are untested here, as that is covered by signedexchange tests.
 
 	// For small enough bodies, the only thing that MICE does is add a record size prefix.
@@ -483,6 +494,50 @@ func (this *SignerSuite) TestRemovesHopByHopHeaders() {
 	this.Assert().NotContains(exchange.ResponseHeaders, http.CanonicalHeaderKey("Transfer-Encoding"))
 }
 
+func (this *SignerSuite) TestLimitsDuration() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Write([]byte("<html amp><body><amp-script script max-age=4000>"))
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	signatures, err := structuredheader.ParseParameterisedList(exchange.SignatureHeaderValue)
+	this.Require().NoError(err)
+	this.Require().NotEmpty(signatures)
+	date, ok := signatures[0].Params["date"].(int64)
+	this.Require().True(ok)
+	expires, ok := signatures[0].Params["expires"].(int64)
+	this.Require().True(ok)
+	this.Assert().Equal(int64(4000), expires-date)
+}
+
+func (this *SignerSuite) TestDoesNotExtendDuration() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Write([]byte("<html amp><body><amp-script script max-age=700000>"))
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	exchange, err := signedexchange.ReadExchange(resp.Body)
+	this.Require().NoError(err)
+	signatures, err := structuredheader.ParseParameterisedList(exchange.SignatureHeaderValue)
+	this.Require().NoError(err)
+	this.Require().NotEmpty(signatures)
+	date, ok := signatures[0].Params["date"].(int64)
+	this.Require().True(ok)
+	expires, ok := signatures[0].Params["expires"].(int64)
+	this.Require().True(ok)
+	this.Assert().Equal(int64(604800), expires-date)
+}
+
 func (this *SignerSuite) TestErrorNoCache() {
 	urlSets := []util.URLSet{{
 		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
@@ -558,7 +613,7 @@ func (this *SignerSuite) TestProxyUnsignedIfInvalidAMPCacheTransformHeader() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
 	}}
 	resp := pkgt.GetH(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath), http.Header{
-		"Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion},
+		"Accept":              {"application/signed-exchange;v=" + accept.AcceptedSxgVersion},
 		"AMP-Cache-Transform": {"donotmatch"},
 	})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -728,10 +783,10 @@ func (this *SignerSuite) TestProxyHeadersUnaltered() {
 			Transformers:   []string{"bogus"}}
 	}
 
-	originalHeaders := map[string]string {
-		"Content-Type": "text/html",
-		"Set-Cookie": "chocolate chip",
-		"Cache-Control": "max-age=31536000",
+	originalHeaders := map[string]string{
+		"Content-Type":   "text/html",
+		"Set-Cookie":     "chocolate chip",
+		"Cache-Control":  "max-age=31536000",
 		"Content-Length": fmt.Sprintf("%d", len(fakeBody)),
 	}
 

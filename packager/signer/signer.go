@@ -122,15 +122,15 @@ type Signer struct {
 	// TODO(twifkak): Support multiple certs. This will require generating
 	// a signature for each one. Note that Chrome only supports 1 signature
 	// at the moment.
-	certHandler	certcache.CertHandler
+	certHandler certcache.CertHandler
 	// TODO(twifkak): Do we want to allow multiple keys?
-	key             crypto.PrivateKey
-	client          *http.Client
-	urlSets         []util.URLSet
-	rtvCache        *rtv.RTVCache
-	shouldPackage   func() bool
-	overrideBaseURL *url.URL
-	requireHeaders  bool
+	key                     crypto.PrivateKey
+	client                  *http.Client
+	urlSets                 []util.URLSet
+	rtvCache                *rtv.RTVCache
+	shouldPackage           func() bool
+	overrideBaseURL         *url.URL
+	requireHeaders          bool
 	forwardedRequestHeaders []string
 }
 
@@ -477,11 +477,16 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	if err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
 	}
+	// Expires - Date must be <= 604800 seconds, per
+	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
+	duration := 7 * 24 * time.Hour
+	if maxAge := time.Duration(metadata.MaxAgeSecs) * time.Second; maxAge < duration {
+		duration = maxAge
+	}
+	date := now.Add(-24 * time.Hour)
 	signer := signedexchange.Signer{
-		// Expires - Date must be <= 604800 seconds, per
-		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
-		Date:        now.Add(-24 * time.Hour),
-		Expires:     now.Add(6 * 24 * time.Hour),
+		Date:        date,
+		Expires:     date.Add(duration),
 		Certs:       []*x509.Certificate{cert},
 		CertUrl:     certURL,
 		ValidityUrl: signURL.ResolveReference(validityHRef),
@@ -502,7 +507,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	// If requireHeaders was true when constructing signer, the
 	// AMP-Cache-Transform outer response header is required (and has already
 	// been validated)
-	if (act != "") {
+	if act != "" {
 		resp.Header().Set("AMP-Cache-Transform", act)
 	}
 
