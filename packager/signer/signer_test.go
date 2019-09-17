@@ -58,8 +58,8 @@ func headerNames(headers http.Header) []string {
 type fakeCertHandler struct {
 }
 
-func (this fakeCertHandler)  GetLatestCert() (*x509.Certificate) {
-	return pkgt.Certs[0] 
+func (this fakeCertHandler) GetLatestCert() *x509.Certificate {
+	return pkgt.Certs[0]
 }
 
 type SignerSuite struct {
@@ -613,7 +613,7 @@ func (this *SignerSuite) TestProxyUnsignedIfInvalidAMPCacheTransformHeader() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
 	}}
 	resp := pkgt.GetH(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath), http.Header{
-		"Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion},
+		"Accept":              {"application/signed-exchange;v=" + accept.AcceptedSxgVersion},
 		"AMP-Cache-Transform": {"donotmatch"},
 	})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -783,10 +783,10 @@ func (this *SignerSuite) TestProxyHeadersUnaltered() {
 			Transformers:   []string{"bogus"}}
 	}
 
-	originalHeaders := map[string]string {
-		"Content-Type": "text/html",
-		"Set-Cookie": "chocolate chip",
-		"Cache-Control": "max-age=31536000",
+	originalHeaders := map[string]string{
+		"Content-Type":   "text/html",
+		"Set-Cookie":     "chocolate chip",
+		"Cache-Control":  "max-age=31536000",
 		"Content-Length": fmt.Sprintf("%d", len(fakeBody)),
 	}
 
