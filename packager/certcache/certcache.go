@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
+	"github.com/ampproject/amppackager/packager/certfetcher"
 	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/pkg/errors"
@@ -46,10 +47,19 @@ var infiniteFuture = time.Unix(1<<63-62135596801, 999999999)
 // 1MB is the maximum used by github.com/xenolf/lego/acmev2 in GetOCSPForCert.
 // Alternatively, here's a random documented example of a 20K limit:
 // https://www.ibm.com/support/knowledgecenter/en/SSPREK_9.0.0/com.ibm.isam.doc/wrp_stza_ref/reference/ref_ocsp_max_size.html
-const maxOCSPResponseBytes = 1024 * 1024
+const MaxOCSPResponseBytes = 1024 * 1024
 
 // How often to check if OCSP stapling needs updating.
-const ocspCheckInterval = 1 * time.Hour
+const OcspCheckInterval = 1 * time.Hour
+
+// How often to check if certs needs updating.
+const CertCheckInterval = 24 * time.Hour
+
+// Recommended renewal duration for certs.
+// 8 days is recommended duration to start requesting new certs to allow for ACME server outages.
+// It's 6 days + 2 days renewal grace period.
+// TODO(banaag): make 2 days renewal grace period configurable in toml.
+const CertRenewalInterval = 8 * 24 * time.Hour
 
 type CertHandler interface {
 	GetLatestCert() (*x509.Certificate)
@@ -59,24 +69,33 @@ type CertCache struct {
 	// TODO(twifkak): Support multiple cert chains (for different domains, for different roots).
 	certName          string
 	certs             []*x509.Certificate
+	// If certFetcher is not set, that means cert auto-renewal is not available.
+	certFetcher	  *certfetcher.CertFetcher
+	renewedCertsMu	  sync.RWMutex
+	renewedCerts	  []*x509.Certificate
 	ocspUpdateAfterMu sync.RWMutex
 	ocspUpdateAfter   time.Time
 	// TODO(twifkak): Implement a registry of Updateable instances which can be configured in the toml.
-	ocspFile Updateable
-	client   http.Client
+	ocspFile	  Updateable
+	client		  http.Client
 
 	// "Virtual methods", exposed for testing.
 	// Given a certificate, returns the OCSP responder URL for that cert.
 	extractOCSPServer func(*x509.Certificate) (string, error)
 	// Given an HTTP request/response, returns its cache expiry.
 	httpExpiry func(*http.Request, *http.Response) time.Time
+	// Is CertCache initialized to do cert renewal or OCSP refreshes?
+	isInitialized	  bool
 }
 
-// Must call Init() on the returned CertCache before you can use it.
-func New(certs []*x509.Certificate, ocspCache string) *CertCache {
+// Callers need to call Init() on the returned CertCache before the cache can auto-renew certs.
+// Callers can use the uninitialized CertCache either for testing certificates (without doing OCSP or
+// cert refreshes).
+func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, ocspCache string) *CertCache {
 	return &CertCache{
 		certName:        util.CertName(certs[0]),
 		certs:           certs,
+		certFetcher:	 certFetcher,
 		ocspUpdateAfter: infiniteFuture, // Default, in case initial readOCSP successfully loads from disk.
 		// Distributed OCSP cache to support the following sleevi requirements:
 		// 1. Support for keeping a long-lived (disk) cache of OCSP responses.
@@ -104,6 +123,7 @@ func New(certs []*x509.Certificate, ocspCache string) *CertCache {
 				return expiry
 			}
 		},
+		isInitialized: false,
 	}
 }
 
@@ -122,6 +142,13 @@ func (this *CertCache) Init(stop chan struct{}) error {
 	//    to raise an alert if something has gone really wrong.
 	// 7. The ability to serve old responses while fetching new responses.
 	go this.maintainOCSP(stop)
+
+	if this.certFetcher != nil {
+		// Update Certs in the background.
+		go this.maintainCerts(stop)
+	}
+
+	this.isInitialized = true
 	return nil
 }
 
@@ -129,8 +156,26 @@ func (this *CertCache) Init(stop chan struct{}) error {
 // For follow-on changes, we will transform this to a lambda so that anything
 // that needs a cert can do the cert refresh logic (if needed)  on demand.
 func (this *CertCache) GetLatestCert() (*x509.Certificate) {
-	// TODO(banaag): check if cert is still valid, refresh if not.
-	return this.certs[0]
+	if !this.isInitialized || this.certFetcher == nil {
+		// If certcache is not initialized or certFetcher is not set,
+		// just return cert without checking if it needs auto-renewal.
+		return this.certs[0]
+	}
+	d, err := util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)
+	if err != nil {
+		// Current cert is already invalid. Check if renewal is available.
+		log.Println("Current cert is expired, attempting to renew.")
+		return nil
+	}
+	if d >= time.Duration(CertRenewalInterval) {
+		// Cert is still valid.
+		return this.certs[0]
+	} else if d < time.Duration(CertRenewalInterval) {
+		// Cert is still valid, but we need to start process of requesting new cert.
+		log.Println("Current cert is close to expiry threshold, attempting to renew in the background.")
+		return this.certs[0]
+	}
+	return nil
 }
 
 func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
@@ -263,7 +308,7 @@ func (this *CertCache) maintainOCSP(stop chan struct{}) {
 	//    has trouble getting a request, hopefully it does something
 	//    smarter than just retry in a busy loop, hammering the OCSP server
 	//    into further oblivion.
-	ticker := time.NewTicker(ocspCheckInterval)
+	ticker := time.NewTicker(OcspCheckInterval)
 
 	for {
 		select {
@@ -439,4 +484,60 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 		return orig
 	}
 	return respBytes
+}
+
+
+// Checks for cert updates every certCheckInterval hours. Never terminates.
+func (this *CertCache) maintainCerts(stop chan struct{}) {
+	// Only make one request per certCheckInterval, to minimize the impact
+	// on servers that are buckling under load.
+	ticker := time.NewTicker(CertCheckInterval)
+
+	for {
+		select {
+		case <-ticker.C:
+			this.updateCertIfNecessary()
+		case <-stop:
+			ticker.Stop()
+			return
+		}
+	}
+}
+
+// Set new cert with mutex protection.
+func (this *CertCache) setNewCerts(certs []*x509.Certificate) {
+	this.renewedCertsMu.Lock()
+	defer this.renewedCertsMu.Unlock()
+	this.renewedCerts = certs
+}
+
+// Update the cert in the cache if necessary.
+func (this *CertCache) updateCertIfNecessary() {
+	if this.certFetcher == nil {
+		// Do nothing if certFetcher is not set.
+		return
+	}
+	d, err := util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)
+	if err != nil {
+		// Current cert is already invalid. Try refreshing.
+		log.Println("Warning current cert is expired, attempting to renew: ", err)
+		certs, err := this.certFetcher.FetchNewCert()
+		if err != nil {
+			log.Println("Error trying to fetch new certificates from CA: ", err)
+			return
+		}
+		this.setNewCerts(certs)
+	}
+	if d >= time.Duration(CertRenewalInterval) {
+		// Cert is still valid, don't do anything.
+	} else if d < time.Duration(CertRenewalInterval) {
+		// Cert is still valid, but we need to start process of requesting new cert.
+		log.Println("Warning: Current cert crossed threshold for renewal, attempting to renew.")
+		certs, err := this.certFetcher.FetchNewCert()
+		if err != nil {
+			log.Println("Error trying to fetch new certificates from CA: ", err)
+			return
+		}
+		this.setNewCerts(certs)
+	}
 }

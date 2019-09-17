@@ -74,7 +74,8 @@ type CertCacheSuite struct {
 
 func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(twifkak): Stop the old CertCache's goroutine.
-	certCache := New(pkgt.B3Certs, filepath.Join(this.tempDir, "ocsp"))
+	// TODO(banaag): Set certfetcher.
+	certCache := New(pkgt.B3Certs, nil, filepath.Join(this.tempDir, "ocsp"))
 	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}

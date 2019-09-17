@@ -214,9 +214,13 @@ func TestOptionalACMEConfig(t *testing.T) {
 		  [ACMEConfig.Production]
 		    DiscoURL = "prod.disco.url"
 		    AccountURL = "prod.account.url"
+		    EmailAddress = "prodtest@test.com"
+		    ChallengePort = 777
 		  [ACMEConfig.Development]
 		    DiscoURL = "dev.disco.url"
 		    AccountURL = "dev.account.url"
+		    EmailAddress = "devtest@test.com"
+		    ChallengePort = 888
 	`))
 	require.NoError(t, err)
 	assert.Equal(t, Config{
@@ -228,10 +232,14 @@ func TestOptionalACMEConfig(t *testing.T) {
 			Production: &ACMEServerConfig{
 				DiscoURL: "prod.disco.url",
 				AccountURL: "prod.account.url",
+				EmailAddress: "prodtest@test.com",
+				ChallengePort: 777,
 			},
 			Development: &ACMEServerConfig{
 				DiscoURL: "dev.disco.url",
 				AccountURL: "dev.account.url",
+				EmailAddress: "devtest@test.com",
+				ChallengePort: 888,
 			},
 		},
 		URLSet: []URLSet{{

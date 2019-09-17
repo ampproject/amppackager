@@ -39,6 +39,7 @@ import (
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
 var flagDevelopment = flag.Bool("development", false, "True if this is a development server.")
 var flagInvalidCert = flag.Bool("invalidcert", false, "True if invalid certificate intentionally used in production.")
+var flagAutoRenewCert = flag.Bool("autorenewcert", false, "True if amppackager is to attempt cert auto-renewal.")
 
 // Prints errors returned by pkg/errors with stack traces.
 func die(err interface{}) { log.Fatalf("%+v", err) }
@@ -82,7 +83,7 @@ func main() {
 		die(errors.Wrap(err, "loading key file"))
 	}
 
-	certCache, err := certloader.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert);
+	certCache, err := certloader.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert, *flagAutoRenewCert)
 	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}

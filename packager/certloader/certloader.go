@@ -24,24 +24,48 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/certfetcher"
 	"github.com/ampproject/amppackager/packager/util"
 )
 
 // Creates cert cache by loading certs and keys from disk, doing validation
 // and populating the cert cache with current set of certificate related information.
 // If development mode is true, prints a warning for certs that can't sign HTTP exchanges.
-func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMode bool) (*certcache.CertCache, error) {
+func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
+	developmentMode bool, autoRenewCert bool) (*certcache.CertCache, error) {
+
 	certs, err := loadCertsFromFile(config, developmentMode)
 	if err != nil {
 		return nil, err
 	}
+	domain := ""
 	for _, urlSet := range config.URLSet {
-		domain := urlSet.Sign.Domain
+		domain = urlSet.Sign.Domain
 		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
 			return nil, errors.Wrapf(err, "checking %s", config.CertFile)
 		}
 	}
-	certCache := certcache.New(certs, config.OCSPCache)
+
+	certFetcher := (*certfetcher.CertFetcher)(nil)
+	if autoRenewCert {
+		emailAddress := config.ACMEConfig.Production.EmailAddress
+		acmeDiscoveryURL := config.ACMEConfig.Production.DiscoURL
+		challengePort := config.ACMEConfig.Production.ChallengePort
+		if developmentMode {
+			emailAddress = config.ACMEConfig.Development.EmailAddress
+			acmeDiscoveryURL = config.ACMEConfig.Development.DiscoURL
+			challengePort = config.ACMEConfig.Development.ChallengePort
+		}
+
+		// Create the cert fetcher that will auto-renew the cert.
+		certFetcher, err = certfetcher.NewFetcher(emailAddress, key, acmeDiscoveryURL,
+			[]string{domain}, challengePort, !developmentMode)
+		if err != nil {
+			return nil, errors.Wrap(err, "creating certfetcher")
+		}
+	}
+
+	certCache := certcache.New(certs, certFetcher, config.OCSPCache)
 
 	return certCache, nil
 }

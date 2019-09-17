@@ -59,10 +59,11 @@ func TestPopulateCertCache(t *testing.T) {
 			}},
 		},
 		pkgt.B3Key,
-		true)
+		true,
+		false)
+	assert.Nil(t, err)
 	assert.NotNil(t, certCache)
 	assert.Equal(t, pkgt.B3Certs[0], certCache.GetLatestCert())
-	assert.Nil(t, err)
 }
 
 func TestLoadCertsFromFile(t *testing.T) {

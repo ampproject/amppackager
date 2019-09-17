@@ -68,6 +68,8 @@ type ACMEServerConfig struct {
 	DiscoURL	string // ACME Directory Resource URL
 	AccountURL	string // ACME Account URL. If non-empty, we
 			       // will auto-renew cert via ACME.
+	EmailAddress	string // Email address registered with ACME CA.
+	ChallengePort	int    // ACME challenge port.
 }
 
 // TODO(twifkak): Extract default values into a function separate from the one
