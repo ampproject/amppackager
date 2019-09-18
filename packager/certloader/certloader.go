@@ -48,12 +48,41 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 
 	certFetcher := (*certfetcher.CertFetcher)(nil)
 	if autoRenewCert {
+		if config.ACMEConfig == nil {
+			return nil, errors.New("missing ACMEConfig")
+		}
+		if config.ACMEConfig.Production == nil {
+			return nil, errors.New("missing ACMEConfig.Production")
+		}
+		if config.ACMEConfig.Production.EmailAddress == "" {
+			return nil, errors.New("missing email address")
+		}
 		emailAddress := config.ACMEConfig.Production.EmailAddress
+		if config.ACMEConfig.Production.DiscoURL == "" {
+			return nil, errors.New("missing acme disco url")
+		}
 		acmeDiscoveryURL := config.ACMEConfig.Production.DiscoURL
+		if config.ACMEConfig.Production.ChallengePort == 0 {
+			return nil, errors.New("missing challenge port")
+		}
 		challengePort := config.ACMEConfig.Production.ChallengePort
 		if developmentMode {
+			if config.ACMEConfig.Development == nil {
+				return nil, errors.New("missing ACMEConfig.Development")
+			}
+			if config.ACMEConfig.Development.EmailAddress == "" {
+				return nil, errors.New("missing email address")
+			}
 			emailAddress = config.ACMEConfig.Development.EmailAddress
+
+			if config.ACMEConfig.Development.DiscoURL == "" {
+				return nil, errors.New("missing acme disco url")
+			}
 			acmeDiscoveryURL = config.ACMEConfig.Development.DiscoURL
+
+			if config.ACMEConfig.Development.ChallengePort == 0 {
+				return nil, errors.New("missing challenge port")
+			}
 			challengePort = config.ACMEConfig.Development.ChallengePort
 		}
 
