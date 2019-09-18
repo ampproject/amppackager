@@ -39,6 +39,8 @@ import (
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
 var flagDevelopment = flag.Bool("development", false, "True if this is a development server.")
 var flagInvalidCert = flag.Bool("invalidcert", false, "True if invalid certificate intentionally used in production.")
+
+// IMPORTANT: do not turn on this flag for now, it's still under development.
 var flagAutoRenewCert = flag.Bool("autorenewcert", false, "True if amppackager is to attempt cert auto-renewal.")
 
 // Prints errors returned by pkg/errors with stack traces.

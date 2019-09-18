@@ -68,6 +68,7 @@ type CertHandler interface {
 type CertCache struct {
 	// TODO(twifkak): Support multiple cert chains (for different domains, for different roots).
 	certName          string
+	certsMu		  sync.RWMutex
 	certs             []*x509.Certificate
 	// If certFetcher is not set, that means cert auto-renewal is not available.
 	certFetcher	  *certfetcher.CertFetcher
@@ -504,6 +505,13 @@ func (this *CertCache) maintainCerts(stop chan struct{}) {
 	}
 }
 
+// Set current cert with mutex protection.
+func (this *CertCache) setCerts(certs []*x509.Certificate) {
+	this.certsMu.Lock()
+	defer this.certsMu.Unlock()
+	this.certs = certs
+}
+
 // Set new cert with mutex protection.
 func (this *CertCache) setNewCerts(certs []*x509.Certificate) {
 	this.renewedCertsMu.Lock()
@@ -519,6 +527,15 @@ func (this *CertCache) updateCertIfNecessary() {
 	}
 	d, err := util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)
 	if err != nil {
+		if this.renewedCerts != nil {
+			// If renewedCerts is set, copy that over to certs
+			// and set renewedCerts to nil.
+			// TODO(banaag): do the same cert setting dance on disk.
+			// Purge OCSP cache? Make shouldUpdateOCSP() return true?
+			this.setCerts(this.renewedCerts)
+			this.setNewCerts(nil)
+			return
+		}
 		// Current cert is already invalid. Try refreshing.
 		log.Println("Warning current cert is expired, attempting to renew: ", err)
 		certs, err := this.certFetcher.FetchNewCert()
@@ -526,7 +543,8 @@ func (this *CertCache) updateCertIfNecessary() {
 			log.Println("Error trying to fetch new certificates from CA: ", err)
 			return
 		}
-		this.setNewCerts(certs)
+		this.setCerts(certs)
+		return
 	}
 	if d >= time.Duration(CertRenewalInterval) {
 		// Cert is still valid, don't do anything.
@@ -538,6 +556,7 @@ func (this *CertCache) updateCertIfNecessary() {
 			log.Println("Error trying to fetch new certificates from CA: ", err)
 			return
 		}
+		// TODO(banaag): save this cert to disk.
 		this.setNewCerts(certs)
 	}
 }
