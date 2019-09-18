@@ -74,7 +74,7 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 	}
 
 	// Note: do not initialize certCache, we just want it to hold the certs for now.
-	certCache := certcache.New(certs, "");
+	certCache := certcache.New(certs, nil, "");
 
 	privateKey, err := util.ParsePrivateKey(request.PrivateKey)
 	if err != nil {
