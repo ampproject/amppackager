@@ -55,7 +55,7 @@ const OcspCheckInterval = 1 * time.Hour
 // How often to check if certs needs updating.
 const CertCheckInterval = 24 * time.Hour
 
-// Recommended renewal duration for certs.
+// Recommended renewal duration for certs. This is duration before next cert expiry.
 // 8 days is recommended duration to start requesting new certs to allow for ACME server outages.
 // It's 6 days + 2 days renewal grace period.
 // TODO(banaag): make 2 days renewal grace period configurable in toml.
@@ -129,6 +129,8 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, ocspCa
 }
 
 func (this *CertCache) Init(stop chan struct{}) error {
+	this.updateCertIfNecessary()
+
 	// Prime the OCSP disk and memory cache, so we can start serving immediately.
 	_, _, err := this.readOCSP()
 	if err != nil {
@@ -150,12 +152,14 @@ func (this *CertCache) Init(stop chan struct{}) error {
 	}
 
 	this.isInitialized = true
+
 	return nil
 }
 
-// For now this just returns the first entry in the certs field in the cache.
-// For follow-on changes, we will transform this to a lambda so that anything
-// that needs a cert can do the cert refresh logic (if needed)  on demand.
+// Gets the latest cert.
+// Returns the current cert if the cache has not been initialized or if the certFetcher is not set (good for testing)
+// If cert is invalid, it will attempt to renew.
+// If cert is still valid, returns the current cert.
 func (this *CertCache) GetLatestCert() (*x509.Certificate) {
 	if !this.isInitialized || this.certFetcher == nil {
 		// If certcache is not initialized or certFetcher is not set,
@@ -166,7 +170,8 @@ func (this *CertCache) GetLatestCert() (*x509.Certificate) {
 	if err != nil {
 		// Current cert is already invalid. Check if renewal is available.
 		log.Println("Current cert is expired, attempting to renew.")
-		return nil
+		this.updateCertIfNecessary()
+		return this.certs[0] 
 	}
 	if d >= time.Duration(CertRenewalInterval) {
 		// Cert is still valid.
@@ -521,8 +526,10 @@ func (this *CertCache) setNewCerts(certs []*x509.Certificate) {
 
 // Update the cert in the cache if necessary.
 func (this *CertCache) updateCertIfNecessary() {
+	log.Println("Updating cert if necessary");
 	if this.certFetcher == nil {
 		// Do nothing if certFetcher is not set.
+		log.Println("Certfetcher is not set, skipping cert updates.");
 		return
 	}
 	d, err := util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)

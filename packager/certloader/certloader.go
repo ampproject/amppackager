@@ -92,6 +92,7 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 		if err != nil {
 			return nil, errors.Wrap(err, "creating certfetcher")
 		}
+		log.Println("Certfetcher created successfully.")
 	}
 
 	certCache := certcache.New(certs, certFetcher, config.OCSPCache)
