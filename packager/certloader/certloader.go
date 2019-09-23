@@ -36,13 +36,16 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 
 	certs, err := loadCertsFromFile(config, developmentMode)
 	if err != nil {
-		return nil, err
+		log.Println(errors.Wrap(err, "Can't load cert file."))
+		certs = nil
 	}
 	domain := ""
 	for _, urlSet := range config.URLSet {
 		domain = urlSet.Sign.Domain
-		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
-			return nil, errors.Wrapf(err, "checking %s", config.CertFile)
+		if certs != nil {
+			if err := util.CertificateMatches(certs[0], key, domain); err != nil {
+				return nil, errors.Wrapf(err, "checking %s", config.CertFile)
+			}
 		}
 	}
 
@@ -88,7 +91,7 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 
 		// Create the cert fetcher that will auto-renew the cert.
 		certFetcher, err = certfetcher.NewFetcher(emailAddress, key, acmeDiscoveryURL,
-			[]string{domain}, challengePort, !developmentMode)
+			[]string{domain}, challengePort, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating certfetcher")
 		}

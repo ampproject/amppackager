@@ -93,8 +93,12 @@ type CertCache struct {
 // Callers can use the uninitialized CertCache either for testing certificates (without doing OCSP or
 // cert refreshes).
 func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, ocspCache string) *CertCache {
+	certName := ""
+	if len(certs) > 0 && certs[0] != nil {
+		certName = util.CertName(certs[0])
+	}
 	return &CertCache{
-		certName:        util.CertName(certs[0]),
+		certName:        certName,
 		certs:           certs,
 		certFetcher:	 certFetcher,
 		ocspUpdateAfter: infiniteFuture, // Default, in case initial readOCSP successfully loads from disk.
@@ -110,7 +114,7 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, ocspCa
 		ocspFile: &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
 		client:   http.Client{Timeout: 60 * time.Second},
 		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
-			if len(cert.OCSPServer) < 1 {
+			if cert == nil || len(cert.OCSPServer) < 1 {
 				return "", errors.New("Cert missing OCSPServer.")
 			}
 			// This is a URI, per https://tools.ietf.org/html/rfc5280#section-4.2.2.1.
@@ -164,22 +168,27 @@ func (this *CertCache) GetLatestCert() (*x509.Certificate) {
 	if !this.isInitialized || this.certFetcher == nil {
 		// If certcache is not initialized or certFetcher is not set,
 		// just return cert without checking if it needs auto-renewal.
-		return this.certs[0]
+		return this.getCert()
 	}
+
+	if !this.hasCert() {
+		return nil
+	}
+
 	d, err := util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)
 	if err != nil {
 		// Current cert is already invalid. Check if renewal is available.
 		log.Println("Current cert is expired, attempting to renew.")
 		this.updateCertIfNecessary()
-		return this.certs[0] 
+		return this.getCert()
 	}
 	if d >= time.Duration(CertRenewalInterval) {
 		// Cert is still valid.
-		return this.certs[0]
+		return this.getCert()
 	} else if d < time.Duration(CertRenewalInterval) {
 		// Cert is still valid, but we need to start process of requesting new cert.
 		log.Println("Current cert is close to expiry threshold, attempting to renew in the background.")
-		return this.certs[0]
+		return this.getCert()
 	}
 	return nil
 }
@@ -200,7 +209,7 @@ func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
 }
 
 func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (time.Time, error) {
-	resp, err := ocsp.ParseResponseForCert(bytes, this.certs[0], issuer)
+	resp, err := ocsp.ParseResponseForCert(bytes, this.getCert(), issuer)
 	if err != nil {
 		return time.Time{}, errors.Wrap(err, "Parsing OCSP")
 	}
@@ -267,7 +276,7 @@ func (this *CertCache) isHealthy(ocspResp []byte) bool {
 		log.Println("Cannot find issuer certificate in CertFile.")
 		return false
 	}
-	resp, err := ocsp.ParseResponseForCert(ocspResp, this.certs[0], issuer)
+	resp, err := ocsp.ParseResponseForCert(ocspResp, this.getCert(), issuer)
 	if err != nil {
 		log.Println("Error parsing OCSP response:", err)
 		return false
@@ -374,6 +383,9 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 // Finds the issuer of this cert (i.e. the second from the bottom of the
 // chain).
 func (this *CertCache) findIssuer() *x509.Certificate {
+	if !this.hasCert() { 
+		return nil
+	}
 	issuerName := this.certs[0].Issuer
 	for _, cert := range this.certs {
 		// The subject name is guaranteed to match the issuer name per
@@ -406,13 +418,13 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 
 	// The default SHA1 hash function is mandated by the Lightweight OCSP
 	// Profile, https://tools.ietf.org/html/rfc5019 2.1.1 (sleevi #4, see above).
-	req, err := ocsp.CreateRequest(this.certs[0], issuer, nil)
+	req, err := ocsp.CreateRequest(this.getCert(), issuer, nil)
 	if err != nil {
 		log.Println("Error creating OCSP request:", err)
 		return orig
 	}
 
-	ocspServer, err := this.extractOCSPServer(this.certs[0])
+	ocspServer, err := this.extractOCSPServer(this.getCert())
 	if err != nil {
 		log.Println("Error extracting OCSP server:", err)
 		return orig
@@ -465,7 +477,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// 2. Validate the server responses to make sure it is something the client will accept.
 	// and also per sleevi #4 (see above), as required by
 	// https://tools.ietf.org/html/rfc5019#section-2.2.2.
-	resp, err := ocsp.ParseResponseForCert(respBytes, this.certs[0], issuer)
+	resp, err := ocsp.ParseResponseForCert(respBytes, this.getCert(), issuer)
 	if err != nil {
 		log.Println("Error parsing OCSP response:", err)
 		return orig
@@ -510,6 +522,18 @@ func (this *CertCache) maintainCerts(stop chan struct{}) {
 	}
 }
 
+// Returns true iff cert cache contains at least 1 cert. 
+func (this *CertCache) hasCert() bool {
+	return len(this.certs) > 0 && this.certs[0] != nil
+}
+
+func (this *CertCache) getCert() *x509.Certificate {
+	if !this.hasCert() {
+		return nil
+	}
+	return this.certs[0]
+}
+
 // Set current cert with mutex protection.
 func (this *CertCache) setCerts(certs []*x509.Certificate) {
 	this.certsMu.Lock()
@@ -532,7 +556,11 @@ func (this *CertCache) updateCertIfNecessary() {
 		log.Println("Certfetcher is not set, skipping cert updates.");
 		return
 	}
-	d, err := util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)
+	d := time.Duration(0)
+	err := errors.New("")
+	if this.hasCert() {
+		d, err = util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)
+	}
 	if err != nil {
 		if this.renewedCerts != nil {
 			// If renewedCerts is set, copy that over to certs

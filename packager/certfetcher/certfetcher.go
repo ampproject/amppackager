@@ -23,6 +23,7 @@ import (
 	"github.com/go-acme/lego/v3/certcrypto"
 	"github.com/go-acme/lego/v3/certificate"
 	"github.com/go-acme/lego/v3/challenge/http01"
+	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
 	"github.com/go-acme/lego/v3/lego"
 	"github.com/go-acme/lego/v3/registration"
 	"github.com/pkg/errors"
@@ -79,6 +80,10 @@ func NewFetcher(email string, privateKey crypto.PrivateKey, acmeDiscoURL string,
 		http01.NewProviderServer("", strconv.Itoa(acmeChallengePort)))
 	if err != nil {
 		return nil, errors.Wrap(err, "Setting up HTTP01 challenge provider.")
+	}
+	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", "5001"))
+	if err != nil {
+		return nil, errors.Wrap(err, "Setting up TLSALPN01 challenge provider.")
 	}
 
 	// Theoretically, this should always be set to false as users should have pre-registered for access
