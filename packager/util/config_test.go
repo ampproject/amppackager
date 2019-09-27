@@ -29,6 +29,7 @@ func TestMinimalValidConfig(t *testing.T) {
 	config, err := ReadConfig([]byte(`
 		CertFile = "cert.pem"
 		KeyFile = "key.pem"
+		CSRFile = "file.csr"
 		OCSPCache = "/tmp/ocsp"
 		[[URLSet]]
 		  [URLSet.Sign]
@@ -39,6 +40,7 @@ func TestMinimalValidConfig(t *testing.T) {
 		Port:      8080,
 		CertFile:  "cert.pem",
 		KeyFile:   "key.pem",
+		CSRFile:   "file.csr",
 		OCSPCache: "/tmp/ocsp",
 		URLSet: []URLSet{{
 			Sign: &URLPattern{

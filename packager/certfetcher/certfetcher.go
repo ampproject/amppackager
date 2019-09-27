@@ -17,8 +17,6 @@ package certfetcher
 import (
 	"crypto"
 	"crypto/x509"
-	"encoding/pem"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -38,6 +36,7 @@ type CertFetcher struct {
 	// Domains to validate
 	Domains		[]string
 	legoClient	*lego.Client
+	CertSignRequest	*x509.CertificateRequest
 }
 
 // Implements registration.User
@@ -58,9 +57,9 @@ func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 }
 
 // Initializes the cert fetcher with information it needs to fetch new certificates in the future.
-func NewFetcher(email string, privateKey crypto.PrivateKey, acmeDiscoURL string, domains []string,
-	httpChallengePort int, httpChallengeWebRoot string, tlsChallengePort int, dnsProvider string,
-	shouldRegister bool) (*CertFetcher, error) {
+func NewFetcher(email string, certSignRequest *x509.CertificateRequest, privateKey crypto.PrivateKey,
+	acmeDiscoURL string, domains []string, httpChallengePort int, httpChallengeWebRoot string,
+	tlsChallengePort int, dnsProvider string, shouldRegister bool) (*CertFetcher, error) {
 	acmeUser := AcmeUser{
 		Email: email,
 		key:   privateKey,
@@ -138,23 +137,14 @@ func NewFetcher(email string, privateKey crypto.PrivateKey, acmeDiscoURL string,
 		AcmeUser:	  acmeUser,
 		Domains:	  domains,
 		legoClient:	  client,
+		CertSignRequest:  certSignRequest,
 	}, nil
 }
 
 func (f *CertFetcher) FetchNewCert() ([]*x509.Certificate, error) {
-	data, err := ioutil.ReadFile("/usr/local/google/home/banaag/go/cert/server.csr")
-	if err != nil {
-		return nil, err
-	}
-	block, _ := pem.Decode(data)
-	if block == nil {
-		return nil, errors.New("pem decode: no key found")
-	}
-	csr, _ := x509.ParseCertificateRequest(block.Bytes)
-
 	// Each resource comes back with the cert bytes, the bytes of the client's
 	// private key, and a certificate URL.
-	resource, err := f.legoClient.Certificate.ObtainForCSR(*csr, true)
+	resource, err := f.legoClient.Certificate.ObtainForCSR(*(f.CertSignRequest), true)
 	if err != nil {
 		return nil, err
 	}

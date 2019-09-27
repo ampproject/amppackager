@@ -3,6 +3,8 @@ package certfetcher
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -79,7 +81,15 @@ func TestNewFetcher(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	fetcher, err := NewFetcher("test@test.com", privateKey, apiURL+"/dir",
+	csr := x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "test.example.com",
+			Organization: []string{"Acme Co"},
+		},
+		DNSNames: []string{"test.example.com"},
+	}
+
+	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
 		[]string{"example.com"}, 5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher.legoClient)
@@ -102,7 +112,15 @@ func TestFetchCertSuccess(t *testing.T) {
 		}
 	})
 
-	fetcher, err := NewFetcher("test@test.com", privateKey, apiURL+"/dir",
+	csr := x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "test.example.com",
+			Organization: []string{"Acme Co"},
+		},
+		DNSNames: []string{"test.example.com"},
+	}
+
+	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
 		[]string{"example.com"}, 5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher)
@@ -125,7 +143,15 @@ func TestFetchCertFail(t *testing.T) {
 		http.Error(w, "", http.StatusInternalServerError)
 	})
 
-	fetcher, err := NewFetcher("test@test.com", privateKey, apiURL+"/dir",
+	csr := x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "test.example.com",
+			Organization: []string{"Acme Co"},
+		},
+		DNSNames: []string{"test.example.com"},
+	}
+
+	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
 		[]string{"example.com"}, 5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher)

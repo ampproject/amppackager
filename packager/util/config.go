@@ -28,6 +28,7 @@ type Config struct {
 	Port		int
 	CertFile	string // This must be the full certificate chain.
 	KeyFile		string // Just for the first cert, obviously.
+	CSRFile		string // Certificate Signing Request.
 
 	// When set, both CertFile and NewCertFile will be read/write. CertFile and
 	// NewCertFile will be set when both are valid and that once CertFile becomes

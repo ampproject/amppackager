@@ -17,6 +17,7 @@ package certloader
 import (
 	"crypto"
 	"crypto/x509"
+        "encoding/pem"
 	"io/ioutil"
 	"log"
 
@@ -111,8 +112,13 @@ func createCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 			dnsProvider = config.ACMEConfig.Development.DnsProvider
 		}
 
+		csr, err := loadCSRFromFile(config)
+		if err != nil {
+			return nil, errors.Wrap(err, "missing CSR")
+		}
+
 		// Create the cert fetcher that will auto-renew the cert.
-		certFetcher, err := certfetcher.NewFetcher(emailAddress, key, acmeDiscoveryURL,
+		certFetcher, err := certfetcher.NewFetcher(emailAddress, csr, key, acmeDiscoveryURL,
 			[]string{domain}, httpChallengePort, httpWebRootDir, tlsChallengePort, dnsProvider, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating certfetcher")
@@ -155,6 +161,22 @@ func loadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certi
 	}
 
 	return certs, nil
+}
+
+func loadCSRFromFile(config *util.Config) (*x509.CertificateRequest, error) {
+	data, err := ioutil.ReadFile(config.CSRFile)
+        if err != nil {
+                return nil, errors.Wrapf(err, "reading %s", config.CSRFile)
+        }
+        block, _ := pem.Decode(data)
+        if block == nil {
+                return nil, errors.Errorf("pem decode: no key found in %s", config.CSRFile)
+        }
+        csr, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		return nil, errors.Wrapf(err, "parsing CSR %s", config.CSRFile)
+	}
+	return csr, nil
 }
 
 // Loads private key from file.
