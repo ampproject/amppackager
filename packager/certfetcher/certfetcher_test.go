@@ -80,7 +80,7 @@ func TestNewFetcher(t *testing.T) {
 	require.NoError(t, err, "Could not generate test key")
 
 	fetcher, err := NewFetcher("test@test.com", privateKey, apiURL+"/dir",
-		[]string{"example.com"}, 5002, false)
+		[]string{"example.com"}, 5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher.legoClient)
 	assert.Equal(t, "test@test.com", fetcher.AcmeUser.Email)
@@ -103,7 +103,7 @@ func TestFetchCertSuccess(t *testing.T) {
 	})
 
 	fetcher, err := NewFetcher("test@test.com", privateKey, apiURL+"/dir",
-		[]string{"example.com"}, 5002, false)
+		[]string{"example.com"}, 5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher)
 
@@ -126,7 +126,7 @@ func TestFetchCertFail(t *testing.T) {
 	})
 
 	fetcher, err := NewFetcher("test@test.com", privateKey, apiURL+"/dir",
-		[]string{"example.com"}, 5002, false)
+		[]string{"example.com"}, 5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher)
 

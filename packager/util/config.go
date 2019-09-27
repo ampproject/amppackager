@@ -69,7 +69,19 @@ type ACMEServerConfig struct {
 	AccountURL	string // ACME Account URL. If non-empty, we
 			       // will auto-renew cert via ACME.
 	EmailAddress	string // Email address registered with ACME CA.
-	ChallengePort	int    // ACME challenge port.
+
+	// See: https://letsencrypt.org/docs/challenge-types/
+	// For non-wildcard domains, only one of HttpChallengePort, HttpWebRootDir or
+	// TlsChallengePort needs to be present.
+	// HttpChallengePort means AmpPackager will respond to HTTP challenges via this port.
+	// HttpWebRootDir means AmpPackager will deposit challenge token in this directory.
+	// TlsChallengePort means AmpPackager will respond to TLS challenges via this port.
+	// For wildcard domains, DnsProvider must be set to one of the support LEGO configs:
+	// https://go-acme.github.io/lego/dns/
+	HttpChallengePort	int    // ACME HTTP challenge port.
+	HttpWebRootDir	string // ACME HTTP web root directory where challenge token will be deposited.
+	TlsChallengePort	int	// ACME TLS challenge port.
+	DnsProvider	string // ACME DNS Provider used for challenge.
 }
 
 // TODO(twifkak): Extract default values into a function separate from the one

@@ -49,7 +49,17 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 		}
 	}
 
-	certFetcher := (*certfetcher.CertFetcher)(nil)
+	certFetcher, err := createCertFetcher(config, key, domain, developmentMode, autoRenewCert)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating cert fetcher from config.")
+	}
+	certCache := certcache.New(certs, certFetcher, config.OCSPCache)
+
+	return certCache, nil
+}
+
+func createCertFetcher(config *util.Config, key crypto.PrivateKey, domain string,
+	developmentMode bool, autoRenewCert bool) (*certfetcher.CertFetcher, error) {
 	if autoRenewCert {
 		if config.ACMEConfig == nil {
 			return nil, errors.New("missing ACMEConfig")
@@ -65,10 +75,16 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 			return nil, errors.New("missing acme disco url")
 		}
 		acmeDiscoveryURL := config.ACMEConfig.Production.DiscoURL
-		if config.ACMEConfig.Production.ChallengePort == 0 {
-			return nil, errors.New("missing challenge port")
+		if (config.ACMEConfig.Production.HttpChallengePort == 0 &&
+			config.ACMEConfig.Production.HttpWebRootDir == "" &&
+			config.ACMEConfig.Production.TlsChallengePort == 0 &&
+			config.ACMEConfig.Production.DnsProvider == "") {
+			return nil, errors.New("One of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present.")
 		}
-		challengePort := config.ACMEConfig.Production.ChallengePort
+		httpChallengePort := config.ACMEConfig.Production.HttpChallengePort
+		httpWebRootDir := config.ACMEConfig.Production.HttpWebRootDir
+		tlsChallengePort := config.ACMEConfig.Production.TlsChallengePort
+		dnsProvider := config.ACMEConfig.Production.DnsProvider
 		if developmentMode {
 			if config.ACMEConfig.Development == nil {
 				return nil, errors.New("missing ACMEConfig.Development")
@@ -83,24 +99,29 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 			}
 			acmeDiscoveryURL = config.ACMEConfig.Development.DiscoURL
 
-			if config.ACMEConfig.Development.ChallengePort == 0 {
-				return nil, errors.New("missing challenge port")
+			if (config.ACMEConfig.Development.HttpChallengePort == 0 &&
+				config.ACMEConfig.Development.HttpWebRootDir == "" &&
+				config.ACMEConfig.Development.TlsChallengePort == 0 &&
+				config.ACMEConfig.Development.DnsProvider == "") {
+				return nil, errors.New("One of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present.")
 			}
-			challengePort = config.ACMEConfig.Development.ChallengePort
+			httpChallengePort = config.ACMEConfig.Development.HttpChallengePort
+			httpWebRootDir = config.ACMEConfig.Development.HttpWebRootDir
+			tlsChallengePort = config.ACMEConfig.Development.TlsChallengePort
+			dnsProvider = config.ACMEConfig.Development.DnsProvider
 		}
 
 		// Create the cert fetcher that will auto-renew the cert.
-		certFetcher, err = certfetcher.NewFetcher(emailAddress, key, acmeDiscoveryURL,
-			[]string{domain}, challengePort, true)
+		certFetcher, err := certfetcher.NewFetcher(emailAddress, key, acmeDiscoveryURL,
+			[]string{domain}, httpChallengePort, httpWebRootDir, tlsChallengePort, dnsProvider, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating certfetcher")
 		}
 		log.Println("Certfetcher created successfully.")
+		return certFetcher, nil
 	}
-
-	certCache := certcache.New(certs, certFetcher, config.OCSPCache)
-
-	return certCache, nil
+	// Certfetcher can be nil, if auto renew is off.
+	return nil, nil
 }
 
 // Loads X509 certificates from disk.

@@ -215,12 +215,18 @@ func TestOptionalACMEConfig(t *testing.T) {
 		    DiscoURL = "prod.disco.url"
 		    AccountURL = "prod.account.url"
 		    EmailAddress = "prodtest@test.com"
-		    ChallengePort = 777
+		    HttpChallengePort = 777
+		    HttpWebRootDir = "web.root.dir"
+		    TlsChallengePort = 333
+		    DnsProvider = "gcloud"
 		  [ACMEConfig.Development]
 		    DiscoURL = "dev.disco.url"
 		    AccountURL = "dev.account.url"
 		    EmailAddress = "devtest@test.com"
-		    ChallengePort = 888
+		    HttpChallengePort = 888
+		    HttpWebRootDir = "web.root.dir"
+		    TlsChallengePort = 444
+		    DnsProvider = "gcloud"
 	`))
 	require.NoError(t, err)
 	assert.Equal(t, Config{
@@ -233,13 +239,19 @@ func TestOptionalACMEConfig(t *testing.T) {
 				DiscoURL: "prod.disco.url",
 				AccountURL: "prod.account.url",
 				EmailAddress: "prodtest@test.com",
-				ChallengePort: 777,
+				HttpChallengePort: 777,
+				HttpWebRootDir: "web.root.dir",
+				TlsChallengePort: 333,
+				DnsProvider: "gcloud",
 			},
 			Development: &ACMEServerConfig{
 				DiscoURL: "dev.disco.url",
 				AccountURL: "dev.account.url",
 				EmailAddress: "devtest@test.com",
-				ChallengePort: 888,
+				HttpChallengePort: 888,
+				HttpWebRootDir: "web.root.dir",
+				TlsChallengePort: 444,
+				DnsProvider: "gcloud",
 			},
 		},
 		URLSet: []URLSet{{

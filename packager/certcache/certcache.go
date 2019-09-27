@@ -276,6 +276,7 @@ func (this *CertCache) isHealthy(ocspResp []byte) bool {
 		log.Println("Cannot find issuer certificate in CertFile.")
 		return false
 	}
+log.Println("ocspResp = ", ocspResp)
 	resp, err := ocsp.ParseResponseForCert(ocspResp, this.getCert(), issuer)
 	if err != nil {
 		log.Println("Error parsing OCSP response:", err)
@@ -384,9 +385,11 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 // chain).
 func (this *CertCache) findIssuer() *x509.Certificate {
 	if !this.hasCert() { 
+log.Println("Issuer was nil")
 		return nil
 	}
 	issuerName := this.certs[0].Issuer
+log.Println("Issuer name is ", issuerName)
 	for _, cert := range this.certs {
 		// The subject name is guaranteed to match the issuer name per
 		// https://tools.ietf.org/html/rfc3280#section-4.1.2.4 and
@@ -402,9 +405,11 @@ func (this *CertCache) findIssuer() *x509.Certificate {
 		// https://tools.ietf.org/html/rfc1779 which has many forms),
 		// such that comparing the two strings should be sufficient.
 		if cert.Subject.String() == issuerName.String() {
+log.Println("Found issuer cert.")
 			return cert
 		}
 	}
+log.Println("NOT Found issuer cert.")
 	return nil
 }
 
@@ -423,12 +428,14 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 		log.Println("Error creating OCSP request:", err)
 		return orig
 	}
+log.Println("req = ", req)
 
 	ocspServer, err := this.extractOCSPServer(this.getCert())
 	if err != nil {
 		log.Println("Error extracting OCSP server:", err)
 		return orig
 	}
+log.Println("ocspServer = ", ocspServer)
 
 	// Conform to the Lightweight OCSP Profile, by preferring GET over POST
 	// if the request is small enough (sleevi #4, see above).
@@ -438,6 +445,8 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// the base64 encoding includes '/' and '=' (and therefore should be
 	// StdEncoding).
 	getURL := ocspServer + "/" + url.PathEscape(base64.StdEncoding.EncodeToString(req))
+log.Println("getURL = ", getURL)
+
 	var httpReq *http.Request
 	if len(getURL) <= 255 {
 		httpReq, err = http.NewRequest("GET", getURL, nil)
@@ -469,6 +478,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	*ocspUpdateAfter = this.httpExpiry(httpReq, httpResp)
 
 	respBytes, err := ioutil.ReadAll(io.LimitReader(httpResp.Body, 1024*1024))
+log.Println("respBytes = ", respBytes)
 	if err != nil {
 		log.Println("Error reading OCSP response:", err)
 		return orig
@@ -478,6 +488,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// and also per sleevi #4 (see above), as required by
 	// https://tools.ietf.org/html/rfc5019#section-2.2.2.
 	resp, err := ocsp.ParseResponseForCert(respBytes, this.getCert(), issuer)
+log.Println("resp = ", resp)
 	if err != nil {
 		log.Println("Error parsing OCSP response:", err)
 		return orig
@@ -539,6 +550,7 @@ func (this *CertCache) setCerts(certs []*x509.Certificate) {
 	this.certsMu.Lock()
 	defer this.certsMu.Unlock()
 	this.certs = certs
+	this.certName = util.CertName(certs[0])
 }
 
 // Set new cert with mutex protection.
