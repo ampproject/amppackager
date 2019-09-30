@@ -175,7 +175,7 @@ func (this *CertCache) GetLatestCert() (*x509.Certificate) {
 		return nil
 	}
 
-	d, err := util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)
+	d, err := util.GetDurationToExpiry(this.certs[0], time.Now())
 	if err != nil {
 		// Current cert is already invalid. Check if renewal is available.
 		log.Println("Current cert is expired, attempting to renew.")
@@ -276,7 +276,6 @@ func (this *CertCache) isHealthy(ocspResp []byte) bool {
 		log.Println("Cannot find issuer certificate in CertFile.")
 		return false
 	}
-log.Println("ocspResp = ", ocspResp)
 	resp, err := ocsp.ParseResponseForCert(ocspResp, this.getCert(), issuer)
 	if err != nil {
 		log.Println("Error parsing OCSP response:", err)
@@ -416,7 +415,6 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 		log.Println("Cannot find issuer certificate in CertFile.")
 		return orig
 	}
-
 	// The default SHA1 hash function is mandated by the Lightweight OCSP
 	// Profile, https://tools.ietf.org/html/rfc5019 2.1.1 (sleevi #4, see above).
 	req, err := ocsp.CreateRequest(this.getCert(), issuer, nil)
@@ -439,7 +437,6 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// the base64 encoding includes '/' and '=' (and therefore should be
 	// StdEncoding).
 	getURL := ocspServer + "/" + url.PathEscape(base64.StdEncoding.EncodeToString(req))
-
 	var httpReq *http.Request
 	if len(getURL) <= 255 {
 		httpReq, err = http.NewRequest("GET", getURL, nil)
@@ -475,6 +472,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 		log.Println("Error reading OCSP response:", err)
 		return orig
 	}
+
 	// Validate the response, per sleevi requirement:
 	// 2. Validate the server responses to make sure it is something the client will accept.
 	// and also per sleevi #4 (see above), as required by
@@ -524,7 +522,7 @@ func (this *CertCache) maintainCerts(stop chan struct{}) {
 	}
 }
 
-// Returns true iff cert cache contains at least 1 cert. 
+// Returns true iff cert cache contains at least 1 cert.
 func (this *CertCache) hasCert() bool {
 	return len(this.certs) > 0 && this.certs[0] != nil
 }
@@ -562,7 +560,7 @@ func (this *CertCache) updateCertIfNecessary() {
 	d := time.Duration(0)
 	err := errors.New("")
 	if this.hasCert() {
-		d, err = util.GetDurationToExpiry(this.certs[0], this.certs[0].NotAfter)
+		d, err = util.GetDurationToExpiry(this.certs[0], time.Now())
 	}
 	if err != nil {
 		if this.renewedCerts != nil {
