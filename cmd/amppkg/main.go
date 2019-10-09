@@ -88,7 +88,11 @@ func main() {
 	}
 
 	if err = certCache.Init(nil); err != nil {
-		die(errors.Wrap(err, "initializing cert cache"))
+		if *flagDevelopment {
+			fmt.Println("WARNING:", err)
+		} else {
+			die(errors.Wrap(err, "initializing cert cache"))
+		}
         }
 
 	rtvCache, err := rtv.New()
