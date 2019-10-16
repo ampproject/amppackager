@@ -57,9 +57,19 @@ func TestStripJS(t *testing.T) {
 			Expected: "<head></head><body></body>",
 		},
 		{
-			Desc:     "keeps script corect type",
+			Desc:     "keeps script correct type",
 			Input:    "<script type=application/json>foo</script>",
 			Expected: "<head><script type=application/json>foo</script></head><body></body>",
+		},
+		{
+			Desc:     "keep type=text/plain when child of template (amp-mustache)",
+			Input:    "<body><template type=amp-mustache><script type=text/plain></script></template></body>",
+			Expected: "<body><template type=amp-mustache><script type=text/plain></script></template></body>",
+		},
+		{
+			Desc:     "strips type=text/plain when not child of template (amp-mustache)",
+			Input:    "<body><script type=text/plain></script></body>",
+			Expected: "<body></body>",
 		},
 		{
 			Desc:     "strip tag attr ona",
