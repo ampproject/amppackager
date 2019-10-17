@@ -69,6 +69,10 @@ const maxOCSPTries = 10
 // TODO(banaag): make 2 days renewal grace period configurable in toml.
 const certRenewalInterval = 8 * 24 * time.Hour
 
+// Sentinel value used to communicate that a returned OCSP was fake, and the caller should not attempt to parse it.
+// No, I'm not proud.
+var fakeOCSP = []byte("fake ocsp response")
+
 type CertHandler interface {
 	GetLatestCert() *x509.Certificate
 	IsHealthy() error
@@ -90,6 +94,7 @@ type CertCache struct {
 	ocspFile     Updateable
 	ocspFilePath string
 	client       http.Client
+	developmentMode bool
 	// Domains to validate
 	Domains     []string
 	CertFile    string
@@ -114,7 +119,7 @@ type CertCache struct {
 // An alternative pattern would be to create an IsInitialized() bool or similarly named function that verifies all of the required fields have
 // been set. Then callers can just set fields in the struct by name and assert IsInitialized before doing anything with it.
 func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domains []string,
-	certFile string, newCertFile string, ocspCache string) *CertCache {
+	certFile string, newCertFile string, ocspCache string, developmentMode bool) *CertCache {
 	certName := ""
 	if len(certs) > 0 && certs[0] != nil {
 		certName = util.CertName(certs[0])
@@ -136,6 +141,7 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 		ocspFile:     &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
 		ocspFilePath: ocspCache,
 		client:       http.Client{Timeout: 60 * time.Second},
+		developmentMode: developmentMode,
 		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
 			if cert == nil || len(cert.OCSPServer) < 1 {
 				return "", errors.New("Cert missing OCSPServer.")
@@ -263,15 +269,20 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			util.NewHTTPError(http.StatusInternalServerError, "Error reading OCSP: ", err).LogAndRespond(resp)
 			return
 		}
-		midpoint, err := this.ocspMidpoint(ocsp, this.findIssuer())
-		if err != nil {
-			util.NewHTTPError(http.StatusInternalServerError, "Error computing OCSP midpoint: ", err).LogAndRespond(resp)
-			return
-		}
-		// int is large enough to represent 24855 days in seconds.
-		expiry := int(midpoint.Sub(time.Now()).Seconds())
-		if expiry < 0 {
-			expiry = 0
+		var expiry int
+		if bytes.Equal(ocsp, fakeOCSP) {
+			expiry = int(time.Now().Add(3*24*time.Hour).Unix())
+		} else {
+			midpoint, err := this.ocspMidpoint(ocsp, this.findIssuer())
+			if err != nil {
+				util.NewHTTPError(http.StatusInternalServerError, "Error computing OCSP midpoint: ", err).LogAndRespond(resp)
+				return
+			}
+			// int is large enough to represent 24855 days in seconds.
+			expiry = int(midpoint.Sub(time.Now()).Seconds())
+			if expiry < 0 {
+				expiry = 0
+			}
 		}
 		resp.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(expiry))
 		resp.Header().Set("X-Content-Type-Options", "nosniff")
@@ -313,6 +324,9 @@ func (this *CertCache) isHealthy(ocspResp []byte) error {
 	issuer := this.findIssuer()
 	if issuer == nil {
 		return errors.New("Cannot find issuer certificate in CertFile.")
+	}
+	if bytes.Equal(ocspResp, fakeOCSP) {
+		return nil
 	}
 	resp, err := ocsp.ParseResponseForCert(ocspResp, this.getCert(), issuer)
 	if err != nil {
@@ -441,8 +455,8 @@ func (this *CertCache) maintainOCSP(stop chan struct{}) {
 }
 
 // Returns true if OCSP is expired (or near enough).
-func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
-	if len(bytes) == 0 {
+func (this *CertCache) shouldUpdateOCSP(ocsp []byte) bool {
+	if len(ocsp) == 0 {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; none cached yet.")
 		return true
@@ -453,8 +467,11 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 		// This is a permanent error; do not attempt OCSP update.
 		return false
 	}
+	if bytes.Equal(ocsp, fakeOCSP) {
+		return false
+	}
 	// Compute the midpoint per sleevi #3 (see above).
-	midpoint, err := this.ocspMidpoint(bytes, issuer)
+	midpoint, err := this.ocspMidpoint(ocsp, issuer)
 	if err != nil {
 		log.Println("Error computing OCSP midpoint:", err)
 		return true
@@ -537,6 +554,10 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 
 	ocspServer, err := this.extractOCSPServer(certs[0])
 	if err != nil {
+		if this.developmentMode {
+			log.Println("Cert lacks OCSP URL; using fake OCSP in development mode.")
+			return fakeOCSP
+		}
 		log.Println("Error extracting OCSP server:", err)
 		return orig
 	}
