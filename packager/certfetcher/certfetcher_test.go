@@ -90,7 +90,7 @@ func TestNewFetcher(t *testing.T) {
 	}
 
 	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
-		[]string{"example.com"}, 5002, "", 0, "", false)
+		5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher.legoClient)
 	assert.Equal(t, "test@test.com", fetcher.AcmeUser.Email)
@@ -121,7 +121,7 @@ func TestFetchCertSuccess(t *testing.T) {
 	}
 
 	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
-		[]string{"example.com"}, 5002, "", 0, "", false)
+		5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher)
 
@@ -152,7 +152,7 @@ func TestFetchCertFail(t *testing.T) {
 	}
 
 	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
-		[]string{"example.com"}, 5002, "", 0, "", false)
+		5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher)
 

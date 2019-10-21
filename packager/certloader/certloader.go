@@ -24,42 +24,11 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 
-	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/certfetcher"
 	"github.com/ampproject/amppackager/packager/util"
 )
 
-// Creates cert cache by loading certs and keys from disk, doing validation
-// and populating the cert cache with current set of certificate related information.
-// If development mode is true, prints a warning for certs that can't sign HTTP exchanges.
-func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
-	developmentMode bool, autoRenewCert bool) (*certcache.CertCache, error) {
-
-	certs, err := loadCertsFromFile(config, developmentMode)
-	if err != nil {
-		log.Println(errors.Wrap(err, "Can't load cert file."))
-		certs = nil
-	}
-	domain := ""
-	for _, urlSet := range config.URLSet {
-		domain = urlSet.Sign.Domain
-		if certs != nil {
-			if err := util.CertificateMatches(certs[0], key, domain); err != nil {
-				return nil, errors.Wrapf(err, "checking %s", config.CertFile)
-			}
-		}
-	}
-
-	certFetcher, err := createCertFetcher(config, key, domain, developmentMode, autoRenewCert)
-	if err != nil {
-		return nil, errors.Wrap(err, "creating cert fetcher from config.")
-	}
-	certCache := certcache.New(certs, certFetcher, config.OCSPCache)
-
-	return certCache, nil
-}
-
-func createCertFetcher(config *util.Config, key crypto.PrivateKey, domain string,
+func CreateCertFetcher(config *util.Config, key crypto.PrivateKey, domain string,
 	developmentMode bool, autoRenewCert bool) (*certfetcher.CertFetcher, error) {
 	if !autoRenewCert {
 		// Certfetcher can be nil, if auto renew is off.
@@ -116,14 +85,14 @@ func createCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 		dnsProvider = config.ACMEConfig.Development.DnsProvider
 	}
 
-	csr, err := loadCSRFromFile(config)
+	csr, err := LoadCSRFromFile(config)
 	if err != nil {
 		return nil, errors.Wrap(err, "missing CSR")
 	}
 
 	// Create the cert fetcher that will auto-renew the cert.
 	certFetcher, err := certfetcher.NewFetcher(emailAddress, csr, key, acmeDiscoveryURL,
-		[]string{domain}, httpChallengePort, httpWebRootDir, tlsChallengePort, dnsProvider, true)
+		httpChallengePort, httpWebRootDir, tlsChallengePort, dnsProvider, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating certfetcher")
 	}
@@ -140,21 +109,25 @@ func createCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 //	 (if developmentMode, print a warning that certs can't
 //	 be used to sign HTTP exchanges).
 // If there are no errors, the array of certificates is returned.
-func loadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certificate, error) {
+func LoadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certificate, error) {
+	return LoadAndValidateCertsFromFile(config.CertFile, !developmentMode)
+}
+
+func LoadAndValidateCertsFromFile(certPath string, checkIfCanSign bool) ([]*x509.Certificate, error) {
 	// TODO(twifkak): Document what cert/key storage formats this accepts.
-	certPem, err := ioutil.ReadFile(config.CertFile)
+	certPem, err := ioutil.ReadFile(certPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "reading %s", config.CertFile)
+		return nil, errors.Wrapf(err, "reading %s", certPath)
 	}
 	certs, err := signedexchange.ParseCertificates(certPem)
 	if err != nil {
-		return nil, errors.Wrapf(err, "parsing %s", config.CertFile)
+		return nil, errors.Wrapf(err, "parsing %s", certPath)
 	}
 	if certs == nil || len(certs) == 0 {
-		return nil, errors.Errorf("no cert found in %s", config.CertFile)
+		return nil, errors.Errorf("no cert found in %s", certPath)
 	}
 	if err := util.CanSignHttpExchanges(certs[0]); err != nil {
-		if developmentMode {
+		if !checkIfCanSign {
 			log.Println("WARNING:", err)
 		} else {
 			return nil, err
@@ -164,11 +137,27 @@ func loadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certi
 	return certs, nil
 }
 
-func writeCertsToFile(certs []*x509.Certificate, filepath string) error {
+func WriteCertsToFile(certs []*x509.Certificate, filepath string) error {
+        if len(certs) < 2 {
+                return errors.New("Missing issuer in bundle")
+        }
+        cert := certToPEM(certs[0])
+        issuer := certToPEM(certs[1])
+        bundled := append(cert, issuer...)
+        if err := ioutil.WriteFile(filepath, bundled, 0600); err != nil {
+                return errors.Wrapf(err, "writing %s", filepath)
+        }
+
 	return nil
 }
 
-func loadCSRFromFile(config *util.Config) (*x509.CertificateRequest, error) {
+func certToPEM(cert *x509.Certificate) []byte {
+        pemCert := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
+
+        return pemCert
+}
+
+func LoadCSRFromFile(config *util.Config) (*x509.CertificateRequest, error) {
 	data, err := ioutil.ReadFile(config.CSRFile)
         if err != nil {
                 return nil, errors.Wrapf(err, "reading %s", config.CSRFile)

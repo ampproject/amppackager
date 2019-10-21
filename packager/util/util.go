@@ -123,3 +123,4 @@ func CertificateMatches(cert *x509.Certificate, priv crypto.PrivateKey, domain s
 	}
 	return nil
 }
+

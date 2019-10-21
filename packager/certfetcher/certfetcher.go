@@ -33,8 +33,6 @@ import (
 type CertFetcher struct {
 	AcmeDiscoveryURL string
 	AcmeUser	 AcmeUser
-	// Domains to validate
-	Domains		[]string
 	legoClient	*lego.Client
 	CertSignRequest	*x509.CertificateRequest
 }
@@ -58,8 +56,9 @@ func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 
 // Initializes the cert fetcher with information it needs to fetch new certificates in the future.
 func NewFetcher(email string, certSignRequest *x509.CertificateRequest, privateKey crypto.PrivateKey,
-	acmeDiscoURL string, domains []string, httpChallengePort int, httpChallengeWebRoot string,
+	acmeDiscoURL string, httpChallengePort int, httpChallengeWebRoot string,
 	tlsChallengePort int, dnsProvider string, shouldRegister bool) (*CertFetcher, error) {
+
 	acmeUser := AcmeUser{
 		Email: email,
 		key:   privateKey,
@@ -135,7 +134,6 @@ func NewFetcher(email string, certSignRequest *x509.CertificateRequest, privateK
 	return &CertFetcher{
 		AcmeDiscoveryURL: acmeDiscoURL,
 		AcmeUser:	  acmeUser,
-		Domains:	  domains,
 		legoClient:	  client,
 		CertSignRequest:  certSignRequest,
 	}, nil

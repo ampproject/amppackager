@@ -28,6 +28,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/certloader"
 	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/rtv"
@@ -85,7 +86,7 @@ func main() {
 		die(errors.Wrap(err, "loading key file"))
 	}
 
-	certCache, err := certloader.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert, *flagAutoRenewCert)
+	certCache, err := certcache.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert, *flagAutoRenewCert)
 	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}

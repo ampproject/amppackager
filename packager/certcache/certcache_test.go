@@ -72,11 +72,16 @@ type CertCacheSuite struct {
 	handler             *CertCache
 }
 
+func stringPtr(s string) *string {
+        return &s
+}
+
 func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(twifkak): Stop the old CertCache's goroutine.
 	// TODO(banaag): Consider adding a test with certfetcher set.
 	//  For now, this tests certcache without worrying about certfetcher.
-	certCache := New(pkgt.B3Certs, nil, filepath.Join(this.tempDir, "ocsp"))
+	certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
+			filepath.Join(this.tempDir, "ocsp"))
 	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}
@@ -305,6 +310,30 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 	ocsp, _, err := this.handler.readOCSP()
 	this.Require().NoError(err, "reading OCSP")
 	this.Assert().Equal(staleOCSP, ocsp)
+}
+
+func (this *CertCacheSuite) TestPopulateCertCache() {
+        certCache, err := PopulateCertCache(
+                &util.Config{
+                        CertFile:  "../../testdata/b3/fullchain.cert",
+			NewCertFile: "/tmp/newcert.cert",
+                        KeyFile:   "../../testdata/b3/server.privkey",
+                        OCSPCache: "/tmp/ocsp",
+                        URLSet: []util.URLSet{{
+                                Sign: &util.URLPattern{
+                                        Domain:    "amppackageexample.com",
+                                        PathRE:    stringPtr(".*"),
+                                        QueryRE:   stringPtr(""),
+                                        MaxLength: 2000,
+                                },
+                        }},
+                },
+                pkgt.B3Key,
+                true,
+               false)
+        this.Require().NoError(err)
+        this.Assert().NotNil(certCache)
+        this.Assert().Equal(pkgt.B3Certs[0], certCache.GetLatestCert())
 }
 
 func TestCertCacheSuite(t *testing.T) {
