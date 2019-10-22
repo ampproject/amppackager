@@ -181,6 +181,70 @@ func (this *CertCacheSuite) TestServesCertificate() {
 	this.Assert().NotContains(cbor, "sct")
 }
 
+func (this *CertCacheSuite) TestHealthzOk() {
+	resp := pkgt.Get(this.T(), this.mux(), "/healthz")
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "ok", resp)
+}
+
+func (this *CertCacheSuite) TestHealthzFail() {
+        // Prime memory cache with a past-midpoint OCSP:
+        err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
+        this.Require().NoError(err, "deleting OCSP tempfile")
+        this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
+        this.Require().NoError(err, "creating stale OCSP response")
+        this.Require().True(this.ocspServerCalled(func() {
+                this.handler, err = this.New()
+                this.Require().NoError(err, "reinstantiating CertCache")
+        }))
+
+	// Prime disk cache with a bad OCSP:
+	freshOCSP := []byte("0xdeadbeef")
+	this.fakeOCSP = freshOCSP
+        // freshOCSP, err := FakeOCSPResponse(time.Now())
+        // this.Require().NoError(err, "creating fresh OCSP response")
+        err = ioutil.WriteFile(filepath.Join(this.tempDir, "ocsp"), freshOCSP, 0644)
+        this.Require().NoError(err, "writing fresh OCSP response to disk")
+
+        // On update, verify network is not called (fresh OCSP from disk is used):
+        this.Assert().True(this.ocspServerCalled(func() {
+                this.handler.readOCSP()
+        }))
+
+	resp := pkgt.Get(this.T(), this.mux(), "/healthz")
+	this.Assert().Equal(http.StatusInternalServerError, resp.StatusCode, "error", resp)
+}
+
+func (this *CertCacheSuite) TestCertCacheIsHealthy() {
+	this.Assert().True(this.handler.IsHealthy())
+}
+
+func (this *CertCacheSuite) TestCertCacheIsNotHealthy() {
+        // Prime memory cache with a past-midpoint OCSP:
+        err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
+        this.Require().NoError(err, "deleting OCSP tempfile")
+        this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
+        this.Require().NoError(err, "creating stale OCSP response")
+        this.Require().True(this.ocspServerCalled(func() {
+                this.handler, err = this.New()
+                this.Require().NoError(err, "reinstantiating CertCache")
+        }))
+
+	// Prime disk cache with a bad OCSP:
+	freshOCSP := []byte("0xdeadbeef")
+	this.fakeOCSP = freshOCSP
+        // freshOCSP, err := FakeOCSPResponse(time.Now())
+        // this.Require().NoError(err, "creating fresh OCSP response")
+        err = ioutil.WriteFile(filepath.Join(this.tempDir, "ocsp"), freshOCSP, 0644)
+        this.Require().NoError(err, "writing fresh OCSP response to disk")
+
+        // On update, verify network is not called (fresh OCSP from disk is used):
+        this.Assert().True(this.ocspServerCalled(func() {
+                this.handler.readOCSP()
+        }))
+
+	this.Assert().False(this.handler.IsHealthy())
+}
+
 func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/lalala")
 	this.Assert().Equal(http.StatusNotFound, resp.StatusCode, "incorrect status: %#v", resp)

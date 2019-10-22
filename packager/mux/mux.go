@@ -97,6 +97,8 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			params["certName"] = unescaped
 			this.certCache.ServeHTTP(resp, req)
 		}
+	} else if path == util.HealthzPath {
+		this.certCache.ServeHTTP(resp, req)
 	} else if path == util.ValidityMapPath {
 		this.validityMap.ServeHTTP(resp, req)
 	} else {
