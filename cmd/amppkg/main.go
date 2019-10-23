@@ -29,6 +29,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certloader"
+	"github.com/ampproject/amppackager/packager/healthz"
 	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
@@ -95,6 +96,11 @@ func main() {
 		}
         }
 
+	healthz, err := healthz.New(certCache)
+	if err != nil {
+		die(errors.Wrap(err, "building healthz"))
+	}
+
 	rtvCache, err := rtv.New()
 	if err != nil {
 		die(errors.Wrap(err, "initializing rtv cache"))
@@ -127,7 +133,7 @@ func main() {
 		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
-		Handler:           logIntercept{mux.New(certCache, signer, validityMap)},
+		Handler:           logIntercept{mux.New(certCache, signer, validityMap, healthz)},
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		// If needing to stream the response, disable WriteTimeout and

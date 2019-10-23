@@ -128,7 +128,7 @@ type Signer struct {
 	client                  *http.Client
 	urlSets                 []util.URLSet
 	rtvCache                *rtv.RTVCache
-	shouldPackage           func() bool
+	shouldPackage           func() error
 	overrideBaseURL         *url.URL
 	requireHeaders          bool
 	forwardedRequestHeaders []string
@@ -139,7 +139,7 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 }
 
 func New(certHandler certcache.CertHandler, key crypto.PrivateKey, urlSets []util.URLSet,
-	rtvCache *rtv.RTVCache, shouldPackage func() bool, overrideBaseURL *url.URL,
+	rtvCache *rtv.RTVCache, shouldPackage func() error, overrideBaseURL *url.URL,
 	requireHeaders bool, forwardedRequestHeaders []string) (*Signer, error) {
 	client := http.Client{
 		CheckRedirect: noRedirects,
@@ -307,8 +307,8 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
-	if !this.shouldPackage() {
-		log.Println("Not packaging because server is unhealthy; see above log statements.")
+	if err := this.shouldPackage(); err != nil {
+		log.Println("Not packaging because server is unhealthy; see above log statements.", err)
 		proxy(resp, fetchResp, nil)
 		return
 	}
@@ -460,7 +460,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 			fetchResp.Header.Get("Content-Security-Policy")))
 
 	exchange := signedexchange.NewExchange(
-		accept.SxgVersion, /*uri=*/signURL.String(), /*method=*/"GET",
+		accept.SxgVersion /*uri=*/, signURL.String() /*method=*/, "GET",
 		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)

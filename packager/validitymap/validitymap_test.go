@@ -14,7 +14,7 @@ func TestValidityMap(t *testing.T) {
 	handler, err := New()
 	require.NoError(t, err)
 
-	resp := pkgt.Get(t, mux.New(nil, nil, handler), "/amppkg/validity")
+	resp := pkgt.Get(t, mux.New(nil, nil, handler, nil), "/amppkg/validity")
 	defer resp.Body.Close()
 	assert.Equal(t, "application/cbor", resp.Header.Get("Content-Type"))
 	assert.Equal(t, "public, max-age=604800", resp.Header.Get("Cache-Control"))
