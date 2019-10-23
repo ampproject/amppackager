@@ -182,7 +182,7 @@ func (this *CertCacheSuite) TestServesCertificate() {
 }
 
 func (this *CertCacheSuite) TestCertCacheIsHealthy() {
-	this.Assert().Nil(this.handler.IsHealthy())
+	this.Assert().NoError(this.handler.IsHealthy())
 }
 
 func (this *CertCacheSuite) TestCertCacheIsNotHealthy() {
@@ -207,7 +207,7 @@ func (this *CertCacheSuite) TestCertCacheIsNotHealthy() {
 		this.handler.readOCSP()
 	}))
 
-	this.Assert().NotNil(this.handler.IsHealthy())
+	this.Assert().Error(this.handler.IsHealthy())
 }
 
 func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
