@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/pkg/errors"
 	"github.com/gofrs/flock"
+	"github.com/pkg/errors"
 )
 
 // This is an abstraction over a single file on a remote storage mechanism. It

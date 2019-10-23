@@ -39,8 +39,8 @@ type gatewayServer struct {
 	rtvCache *rtv.RTVCache
 }
 
-func shouldPackage() bool {
-	return true
+func shouldPackage() error {
+	return nil
 }
 
 func errorToSXGResponse(err error) *pb.SXGResponse {

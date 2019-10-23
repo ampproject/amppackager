@@ -3,10 +3,8 @@
 The modifications in this package are described in more detail
 [here](https://github.com/ampproject/amphtml/blob/master/spec/amp-cache-modifications.md).
 
-> NOTE: The transformed AMP HTML produced by the library is only valid inside of
-> a signed exchange, and not to be served as normal HTML. Also, the library is
-> still a work-in-progress and not all transformations described in the link
-> above are implemented.
+The transformed AMP HTML produced by the library is meant to be used inside of
+a signed exchange, but may be valid in other contexts, as well.
 
 ## How to use
 The local transformer can be used separately from the packager/signer. Here's an
