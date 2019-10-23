@@ -45,11 +45,12 @@ type mux struct {
 	certCache   http.Handler
 	signer      http.Handler
 	validityMap http.Handler
+	healthz	    http.Handler
 }
 
 // The main entry point. Use the return value for http.Server.Handler.
-func New(certCache http.Handler, signer http.Handler, validityMap http.Handler) http.Handler {
-	return &mux{certCache, signer, validityMap}
+func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, healthz http.Handler) http.Handler {
+	return &mux{certCache, signer, validityMap, healthz}
 }
 
 func tryTrimPrefix(s, prefix string) (string, bool) {
@@ -98,7 +99,7 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			this.certCache.ServeHTTP(resp, req)
 		}
 	} else if path == util.HealthzPath {
-		this.certCache.ServeHTTP(resp, req)
+		this.healthz.ServeHTTP(resp, req)
 	} else if path == util.ValidityMapPath {
 		this.validityMap.ServeHTTP(resp, req)
 	} else {

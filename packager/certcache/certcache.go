@@ -19,7 +19,6 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -53,7 +52,8 @@ const maxOCSPResponseBytes = 1024 * 1024
 const ocspCheckInterval = 1 * time.Hour
 
 type CertHandler interface {
-	GetLatestCert() (*x509.Certificate)
+	GetLatestCert() *x509.Certificate
+	IsHealthy() error
 }
 
 type CertCache struct {
@@ -129,7 +129,7 @@ func (this *CertCache) Init(stop chan struct{}) error {
 // For now this just returns the first entry in the certs field in the cache.
 // For follow-on changes, we will transform this to a lambda so that anything
 // that needs a cert can do the cert refresh logic (if needed)  on demand.
-func (this *CertCache) GetLatestCert() (*x509.Certificate) {
+func (this *CertCache) GetLatestCert() *x509.Certificate {
 	// TODO(banaag): check if cert is still valid, refresh if not.
 	return this.certs[0]
 }
@@ -158,26 +158,6 @@ func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (tim
 }
 
 func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	// Follow https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-	// for /healthz responses.
-        if req.URL.EscapedPath() == "/healthz" {
-	        ocsp, _, errorOcsp := this.readOCSP()
-	        _, errorHealth := this.isHealthy(ocsp)
-		// errorHealth = errors.New("Error parsing OCSP response.")
-                if errorOcsp != nil || errorHealth != nil {
-		        resp.WriteHeader(500)
-			if errorOcsp != nil {
-			        resp.Write([]byte(fmt.Sprintf("not healthy: %v", errorOcsp)))
-			} else if errorHealth != nil {
-			        resp.Write([]byte(fmt.Sprintf("not healthy: %v", errorHealth)))
-			}
-		} else {
-		        resp.WriteHeader(200)
-		        resp.Write([]byte("ok"))
-		}
-		return
-        }
-
 	params := mux.Params(req)
 	if params["certName"] == this.certName {
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
@@ -222,34 +202,34 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 // 8. Some idea of what to do when "things go bad".
 //    What happens when it's been 7 days, no new OCSP response can be obtained,
 //    and the current response is about to expire?
-func (this *CertCache) IsHealthy() bool {
+func (this *CertCache) IsHealthy() error {
 	ocsp, _, errorOcsp := this.readOCSP()
-	isHealthy, errHealth := this.isHealthy(ocsp)
 	if errorOcsp != nil {
-		return false
+		return errorOcsp
 	}
-	if errHealth != nil {
-		return false
+	errorHealth := this.isHealthy(ocsp)
+	if errorHealth != nil {
+		return errorHealth
 	}
-	return isHealthy
+	return nil
 }
 
-func (this *CertCache) isHealthy(ocspResp []byte) (bool, error) {
+func (this *CertCache) isHealthy(ocspResp []byte) error {
 	if ocspResp == nil {
-		return false, errors.New("OCSP response not yet fetched.")
+		return errors.New("OCSP response not yet fetched.")
 	}
 	issuer := this.findIssuer()
 	if issuer == nil {
-		return false, errors.New("Cannot find issuer certificate in CertFile.")
+		return errors.New("Cannot find issuer certificate in CertFile.")
 	}
 	resp, err := ocsp.ParseResponseForCert(ocspResp, this.certs[0], issuer)
 	if err != nil {
-		return false, errors.Wrap(err, "Error parsing OCSP response.")
+		return errors.Wrap(err, "Error parsing OCSP response.")
 	}
 	if resp.NextUpdate.Before(time.Now()) {
-		return false, errors.Errorf("Cached OCSP is stale, NextUpdate: %v", resp.NextUpdate)
+		return errors.Errorf("Cached OCSP is stale, NextUpdate: %v", resp.NextUpdate)
 	}
-	return true, nil
+	return nil
 }
 
 // Returns the OCSP response and expiry, refreshing if necessary.
@@ -264,9 +244,9 @@ func (this *CertCache) readOCSP() ([]byte, time.Time, error) {
 	if len(ocsp) == 0 {
 		return nil, time.Time{}, errors.New("Missing OCSP response.")
 	}
-	health, err := this.isHealthy(ocsp)
-	if err != nil || !health {
-		return nil, time.Time{}, errors.New("OCSP failed health check.")
+	err = this.isHealthy(ocsp)
+	if err != nil {
+		return nil, time.Time{}, errors.Wrap(err, "OCSP failed health check.")
 	}
 	this.ocspUpdateAfterMu.Lock()
 	defer this.ocspUpdateAfterMu.Unlock()
@@ -459,7 +439,7 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time) []byte
 	// OCSP duration must be <=7 days, per
 	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-trust.
 	// Serving these responses may cause UAs to reject the SXG.
-	if resp.NextUpdate.Sub(resp.ThisUpdate) > time.Hour * 24 * 7 {
+	if resp.NextUpdate.Sub(resp.ThisUpdate) > time.Hour*24*7 {
 		log.Printf("OCSP nextUpdate %+v too far ahead of thisUpdate %+v\n", resp.NextUpdate, resp.ThisUpdate)
 		return orig
 	}
