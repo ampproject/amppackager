@@ -223,6 +223,8 @@ ForwardedRequestHeaders = []
     # 	https://ietf-wg-acme.github.io/acme/draft-ietf-acme-acme.html#identifier-validation-challenges
     #   https://letsencrypt.org/docs/challenge-types/
     # 	https://certbot.eff.org/docs/challenges.html?highlight=http
+    # Note that you don't need to have all the challenges configured, it's typically sufficient to have one configured.
+    # The exception arises when you have to deal with wildcard certificates, see below.
     #
     # This is the port used by the Amp packager to respond to the HTTP challenge issued as part of ACME protocol.
     # Note that if your setup only opens up certain ports, you may need to do a configuration change where you forward
