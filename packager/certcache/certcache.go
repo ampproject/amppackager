@@ -57,8 +57,8 @@ const OcspCheckInterval = 1 * time.Hour
 // How often to check if certs needs updating.
 const CertCheckInterval = 24 * time.Hour
 
-// Max number of OCSP retries.
-const MaxOCSPRetries = 10
+// Max number of OCSP request tries.
+const MaxOCSPTries = 10
 
 // Recommended renewal duration for certs. This is duration before next cert expiry.
 // 8 days is recommended duration to start requesting new certs to allow for ACME server outages.
@@ -311,43 +311,51 @@ func (this *CertCache) isHealthy(ocspResp []byte) error {
 func (this *CertCache) readOCSP() ([]byte, time.Time, error) {
 	var ocspUpdateAfter time.Time
 	var err error
+	var maxTries int
 
 	ocsp := []byte(nil)
 	waitTimeInMinutes := 1
-	for numRetries := 0; numRetries < MaxOCSPRetries; {
+	if this.certFetcher == nil {
+		// If certFetcher is nil, that means we are not auto-renewing so don't retry OCSP.
+		maxTries = 1
+	} else {
+		maxTries = MaxOCSPTries
+	}
+
+	for numTries := 0; numTries < maxTries; {
 		ocsp, err = this.ocspFile.Read(context.Background(), this.shouldUpdateOCSP, func(orig []byte) []byte {
-			return this.fetchOCSP(orig, &ocspUpdateAfter, numRetries > 0)
+			return this.fetchOCSP(orig, &ocspUpdateAfter, numTries > 0)
 		})
 		if err != nil {
-			if numRetries > MaxOCSPRetries {
+			if numTries >= maxTries - 1 {
 				return nil, time.Time{}, errors.Wrap(err, "Updating OCSP cache")
 			} else {
-				numRetries++
-				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numRetries)
+				numTries++
+				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
 				continue;
 			}
 		}
 		if len(ocsp) == 0 {
-			if numRetries > MaxOCSPRetries {
+			if numTries >= maxTries - 1 {
 				return nil, time.Time{}, errors.New("Missing OCSP response.")
 			} else {
-				numRetries++
-				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numRetries)
+				numTries++
+				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
 				continue;
 			}
 		}
 		if err := this.isHealthy(ocsp); err != nil {
-			if numRetries > MaxOCSPRetries {
+			if numTries >= maxTries - 1 {
 				return nil, time.Time{}, errors.Wrap(err, "OCSP failed health check.")
 			} else {
-				numRetries++
-				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numRetries)
+				numTries++
+				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
 				continue;
 			}
 		} else {
 			break;
 		}
-		numRetries++
+		numTries++
 	}
 	this.ocspUpdateAfterMu.Lock()
 	defer this.ocspUpdateAfterMu.Unlock()
