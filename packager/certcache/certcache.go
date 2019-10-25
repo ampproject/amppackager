@@ -620,9 +620,17 @@ func (this *CertCache) setNewCerts(certs []*x509.Certificate) {
 	defer this.renewedCertsMu.Unlock()
 	this.renewedCerts = certs
 
+	if this.renewedCerts == nil {
+		err := certloader.RemoveFile(this.NewCertFile)
+		if err != nil {
+			log.Printf("Unable to remove file: %s", this.NewCertFile)
+		}
+		return
+	}
+
 	err := certloader.WriteCertsToFile(this.renewedCerts, this.NewCertFile)
 	if err != nil {
-		log.Printf("Unable to write certs to file: %s", this.NewCertFile) 
+		log.Printf("Unable to write certs to file: %s", this.NewCertFile)
 	}
 }
 

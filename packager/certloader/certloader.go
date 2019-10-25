@@ -20,8 +20,10 @@ import (
         "encoding/pem"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+        "github.com/gofrs/flock"
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certfetcher"
@@ -114,6 +116,26 @@ func LoadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certi
 }
 
 func LoadAndValidateCertsFromFile(certPath string, checkIfCanSign bool) ([]*x509.Certificate, error) {
+        // Use independent .lock file; necessary on Windows to avoid "The process cannot
+        // access the file because another process has locked a portion of the file."
+        lockPath := certPath + ".lock"
+        lock := flock.New(lockPath)
+	locked, err := lock.TryLock()
+	if err != nil {
+		return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
+	}
+	if !locked {
+		return nil, errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
+	}
+        defer func() {
+                if err = lock.Unlock(); err != nil {
+                        log.Printf("Error unlocking %s; %+v", lockPath, err)
+                }
+		if err := os.Remove(lockPath); err != nil {
+                        log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+        }()
+
 	// TODO(twifkak): Document what cert/key storage formats this accepts.
 	certPem, err := ioutil.ReadFile(certPath)
 	if err != nil {
@@ -141,11 +163,60 @@ func WriteCertsToFile(certs []*x509.Certificate, filepath string) error {
         if len(certs) < 2 {
                 return errors.New("Missing issuer in bundle")
         }
+
+        // Use independent .lock file; necessary on Windows to avoid "The process cannot
+        // access the file because another process has locked a portion of the file."
+        lockPath := filepath + ".lock"
+        lock := flock.New(lockPath)
+	locked, err := lock.TryLock()
+	if err != nil {
+		return errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
+	}
+	if !locked {
+		return errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
+	}
+        defer func() {
+                if err = lock.Unlock(); err != nil {
+                        log.Printf("Error unlocking %s; %+v", lockPath, err)
+                }
+		if err := os.Remove(lockPath); err != nil {
+                        log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+        }()
+
         cert := certToPEM(certs[0])
         issuer := certToPEM(certs[1])
         bundled := append(cert, issuer...)
         if err := ioutil.WriteFile(filepath, bundled, 0600); err != nil {
                 return errors.Wrapf(err, "writing %s", filepath)
+        }
+
+	return nil
+}
+
+func RemoveFile(filepath string) error {
+        // Use independent .lock file; necessary on Windows to avoid "The process cannot
+        // access the file because another process has locked a portion of the file."
+        lockPath := filepath + ".lock"
+        lock := flock.New(lockPath)
+	locked, err := lock.TryLock()
+	if err != nil {
+		return errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
+	}
+	if !locked {
+		return errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
+	}
+        defer func() {
+                if err = lock.Unlock(); err != nil {
+                        log.Printf("Error unlocking %s; %+v", lockPath, err)
+                }
+		if err := os.Remove(lockPath); err != nil {
+                        log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+        }()
+
+        if err := os.Remove(filepath); err != nil {
+                return errors.Wrapf(err, "removing %s", filepath)
         }
 
 	return nil
