@@ -17,13 +17,13 @@ package certloader
 import (
 	"crypto"
 	"crypto/x509"
-        "encoding/pem"
+	"encoding/pem"
 	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-        "github.com/gofrs/flock"
+	"github.com/gofrs/flock"
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certfetcher"
@@ -51,10 +51,10 @@ func CreateCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 		return nil, errors.New("missing acme disco url")
 	}
 	acmeDiscoveryURL := config.ACMEConfig.Production.DiscoURL
-	if (config.ACMEConfig.Production.HttpChallengePort == 0 &&
+	if config.ACMEConfig.Production.HttpChallengePort == 0 &&
 		config.ACMEConfig.Production.HttpWebRootDir == "" &&
 		config.ACMEConfig.Production.TlsChallengePort == 0 &&
-		config.ACMEConfig.Production.DnsProvider == "") {
+		config.ACMEConfig.Production.DnsProvider == "" {
 		return nil, errors.New("One of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present.")
 	}
 	httpChallengePort := config.ACMEConfig.Production.HttpChallengePort
@@ -75,10 +75,10 @@ func CreateCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 		}
 		acmeDiscoveryURL = config.ACMEConfig.Development.DiscoURL
 
-		if (config.ACMEConfig.Development.HttpChallengePort == 0 &&
+		if config.ACMEConfig.Development.HttpChallengePort == 0 &&
 			config.ACMEConfig.Development.HttpWebRootDir == "" &&
 			config.ACMEConfig.Development.TlsChallengePort == 0 &&
-			config.ACMEConfig.Development.DnsProvider == "") {
+			config.ACMEConfig.Development.DnsProvider == "" {
 			return nil, errors.New("One of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present.")
 		}
 		httpChallengePort = config.ACMEConfig.Development.HttpChallengePort
@@ -116,10 +116,10 @@ func LoadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certi
 }
 
 func LoadAndValidateCertsFromFile(certPath string, checkIfCanSign bool) ([]*x509.Certificate, error) {
-        // Use independent .lock file; necessary on Windows to avoid "The process cannot
-        // access the file because another process has locked a portion of the file."
-        lockPath := certPath + ".lock"
-        lock := flock.New(lockPath)
+	// Use independent .lock file; necessary on Windows to avoid "The process cannot
+	// access the file because another process has locked a portion of the file."
+	lockPath := certPath + ".lock"
+	lock := flock.New(lockPath)
 	locked, err := lock.TryLock()
 	if err != nil {
 		return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
@@ -127,14 +127,14 @@ func LoadAndValidateCertsFromFile(certPath string, checkIfCanSign bool) ([]*x509
 	if !locked {
 		return nil, errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
 	}
-        defer func() {
-                if err = lock.Unlock(); err != nil {
-                        log.Printf("Error unlocking %s; %+v", lockPath, err)
-                }
-		if err := os.Remove(lockPath); err != nil {
-                        log.Printf("Error removing %s; %+v", lockPath, err)
+	defer func() {
+		if err = lock.Unlock(); err != nil {
+			log.Printf("Error unlocking %s; %+v", lockPath, err)
 		}
-        }()
+		if err := os.Remove(lockPath); err != nil {
+			log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+	}()
 
 	// TODO(twifkak): Document what cert/key storage formats this accepts.
 	certPem, err := ioutil.ReadFile(certPath)
@@ -160,14 +160,14 @@ func LoadAndValidateCertsFromFile(certPath string, checkIfCanSign bool) ([]*x509
 }
 
 func WriteCertsToFile(certs []*x509.Certificate, filepath string) error {
-        if len(certs) < 2 {
-                return errors.New("Missing issuer in bundle")
-        }
+	if len(certs) < 2 {
+		return errors.New("Missing issuer in bundle")
+	}
 
-        // Use independent .lock file; necessary on Windows to avoid "The process cannot
-        // access the file because another process has locked a portion of the file."
-        lockPath := filepath + ".lock"
-        lock := flock.New(lockPath)
+	// Use independent .lock file; necessary on Windows to avoid "The process cannot
+	// access the file because another process has locked a portion of the file."
+	lockPath := filepath + ".lock"
+	lock := flock.New(lockPath)
 	locked, err := lock.TryLock()
 	if err != nil {
 		return errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
@@ -175,30 +175,30 @@ func WriteCertsToFile(certs []*x509.Certificate, filepath string) error {
 	if !locked {
 		return errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
 	}
-        defer func() {
-                if err = lock.Unlock(); err != nil {
-                        log.Printf("Error unlocking %s; %+v", lockPath, err)
-                }
-		if err := os.Remove(lockPath); err != nil {
-                        log.Printf("Error removing %s; %+v", lockPath, err)
+	defer func() {
+		if err = lock.Unlock(); err != nil {
+			log.Printf("Error unlocking %s; %+v", lockPath, err)
 		}
-        }()
+		if err := os.Remove(lockPath); err != nil {
+			log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+	}()
 
-        cert := certToPEM(certs[0])
-        issuer := certToPEM(certs[1])
-        bundled := append(cert, issuer...)
-        if err := ioutil.WriteFile(filepath, bundled, 0600); err != nil {
-                return errors.Wrapf(err, "writing %s", filepath)
-        }
+	cert := certToPEM(certs[0])
+	issuer := certToPEM(certs[1])
+	bundled := append(cert, issuer...)
+	if err := ioutil.WriteFile(filepath, bundled, 0600); err != nil {
+		return errors.Wrapf(err, "writing %s", filepath)
+	}
 
 	return nil
 }
 
 func RemoveFile(filepath string) error {
-        // Use independent .lock file; necessary on Windows to avoid "The process cannot
-        // access the file because another process has locked a portion of the file."
-        lockPath := filepath + ".lock"
-        lock := flock.New(lockPath)
+	// Use independent .lock file; necessary on Windows to avoid "The process cannot
+	// access the file because another process has locked a portion of the file."
+	lockPath := filepath + ".lock"
+	lock := flock.New(lockPath)
 	locked, err := lock.TryLock()
 	if err != nil {
 		return errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
@@ -206,38 +206,38 @@ func RemoveFile(filepath string) error {
 	if !locked {
 		return errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
 	}
-        defer func() {
-                if err = lock.Unlock(); err != nil {
-                        log.Printf("Error unlocking %s; %+v", lockPath, err)
-                }
-		if err := os.Remove(lockPath); err != nil {
-                        log.Printf("Error removing %s; %+v", lockPath, err)
+	defer func() {
+		if err = lock.Unlock(); err != nil {
+			log.Printf("Error unlocking %s; %+v", lockPath, err)
 		}
-        }()
+		if err := os.Remove(lockPath); err != nil {
+			log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+	}()
 
-        if err := os.Remove(filepath); err != nil {
-                return errors.Wrapf(err, "removing %s", filepath)
-        }
+	if err := os.Remove(filepath); err != nil {
+		return errors.Wrapf(err, "removing %s", filepath)
+	}
 
 	return nil
 }
 
 func certToPEM(cert *x509.Certificate) []byte {
-        pemCert := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
+	pemCert := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
 
-        return pemCert
+	return pemCert
 }
 
 func LoadCSRFromFile(config *util.Config) (*x509.CertificateRequest, error) {
 	data, err := ioutil.ReadFile(config.CSRFile)
-        if err != nil {
-                return nil, errors.Wrapf(err, "reading %s", config.CSRFile)
-        }
-        block, _ := pem.Decode(data)
-        if block == nil {
-                return nil, errors.Errorf("pem decode: no key found in %s", config.CSRFile)
-        }
-        csr, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading %s", config.CSRFile)
+	}
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, errors.Errorf("pem decode: no key found in %s", config.CSRFile)
+	}
+	csr, err := x509.ParseCertificateRequest(block.Bytes)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing CSR %s", config.CSRFile)
 	}

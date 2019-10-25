@@ -32,9 +32,9 @@ import (
 
 type CertFetcher struct {
 	AcmeDiscoveryURL string
-	AcmeUser	 AcmeUser
-	legoClient	*lego.Client
-	CertSignRequest	*x509.CertificateRequest
+	AcmeUser         AcmeUser
+	legoClient       *lego.Client
+	CertSignRequest  *x509.CertificateRequest
 }
 
 // Implements registration.User
@@ -126,15 +126,15 @@ func NewFetcher(email string, certSignRequest *x509.CertificateRequest, privateK
 		// to indicate agreement with TOS.
 		reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if err != nil {
-			return nil, errors.Wrap(err, "ACME CA client registration") 
+			return nil, errors.Wrap(err, "ACME CA client registration")
 		}
 		acmeUser.Registration = reg
 	}
 
 	return &CertFetcher{
 		AcmeDiscoveryURL: acmeDiscoURL,
-		AcmeUser:	  acmeUser,
-		legoClient:	  client,
+		AcmeUser:         acmeUser,
+		legoClient:       client,
 		CertSignRequest:  certSignRequest,
 	}, nil
 }

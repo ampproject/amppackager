@@ -73,18 +73,18 @@ type CertHandler interface {
 
 type CertCache struct {
 	// TODO(twifkak): Support multiple cert chains (for different domains, for different roots).
-	certName          string
-	certsMu		  sync.RWMutex
-	certs             []*x509.Certificate
+	certName string
+	certsMu  sync.RWMutex
+	certs    []*x509.Certificate
 	// If certFetcher is not set, that means cert auto-renewal is not available.
-	certFetcher	  *certfetcher.CertFetcher
-	renewedCertsMu	  sync.RWMutex
-	renewedCerts	  []*x509.Certificate
+	certFetcher       *certfetcher.CertFetcher
+	renewedCertsMu    sync.RWMutex
+	renewedCerts      []*x509.Certificate
 	ocspUpdateAfterMu sync.RWMutex
 	ocspUpdateAfter   time.Time
 	// TODO(twifkak): Implement a registry of Updateable instances which can be configured in the toml.
-	ocspFile	  Updateable
-	client		  http.Client
+	ocspFile Updateable
+	client   http.Client
 
 	// "Virtual methods", exposed for testing.
 	// Given a certificate, returns the OCSP responder URL for that cert.
@@ -93,12 +93,12 @@ type CertCache struct {
 	httpExpiry func(*http.Request, *http.Response) time.Time
 
 	// Domains to validate
-	Domains		  []string
-	CertFile	  string
-	NewCertFile	  string
+	Domains     []string
+	CertFile    string
+	NewCertFile string
 
 	// Is CertCache initialized to do cert renewal or OCSP refreshes?
-	isInitialized	  bool
+	isInitialized bool
 }
 
 // Callers need to call Init() on the returned CertCache before the cache can auto-renew certs.
@@ -113,7 +113,7 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 	return &CertCache{
 		certName:        certName,
 		certs:           certs,
-		certFetcher:	 certFetcher,
+		certFetcher:     certFetcher,
 		ocspUpdateAfter: infiniteFuture, // Default, in case initial readOCSP successfully loads from disk.
 		// Distributed OCSP cache to support the following sleevi requirements:
 		// 1. Support for keeping a long-lived (disk) cache of OCSP responses.
@@ -141,9 +141,9 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 				return expiry
 			}
 		},
-		Domains: domains,
-		CertFile: certFile,
-		NewCertFile: newCertFile,
+		Domains:       domains,
+		CertFile:      certFile,
+		NewCertFile:   newCertFile,
 		isInitialized: false,
 	}
 }
@@ -180,7 +180,7 @@ func (this *CertCache) Init(stop chan struct{}) error {
 // Returns the current cert if the cache has not been initialized or if the certFetcher is not set (good for testing)
 // If cert is invalid, it will attempt to renew.
 // If cert is still valid, returns the current cert.
-func (this *CertCache) GetLatestCert() (*x509.Certificate) {
+func (this *CertCache) GetLatestCert() *x509.Certificate {
 	if !this.isInitialized || this.certFetcher == nil {
 		// If certcache is not initialized or certFetcher is not set,
 		// just return cert without checking if it needs auto-renewal.
@@ -327,33 +327,33 @@ func (this *CertCache) readOCSP() ([]byte, time.Time, error) {
 			return this.fetchOCSP(orig, &ocspUpdateAfter, numTries > 0)
 		})
 		if err != nil {
-			if numTries >= maxTries - 1 {
+			if numTries >= maxTries-1 {
 				return nil, time.Time{}, errors.Wrap(err, "Updating OCSP cache")
 			} else {
 				numTries++
 				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
-				continue;
+				continue
 			}
 		}
 		if len(ocsp) == 0 {
-			if numTries >= maxTries - 1 {
+			if numTries >= maxTries-1 {
 				return nil, time.Time{}, errors.New("Missing OCSP response.")
 			} else {
 				numTries++
 				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
-				continue;
+				continue
 			}
 		}
 		if err := this.isHealthy(ocsp); err != nil {
-			if numTries >= maxTries - 1 {
+			if numTries >= maxTries-1 {
 				return nil, time.Time{}, errors.Wrap(err, "OCSP failed health check.")
 			} else {
 				numTries++
 				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
-				continue;
+				continue
 			}
 		} else {
-			break;
+			break
 		}
 		numTries++
 	}
@@ -450,7 +450,7 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 // Finds the issuer of this cert (i.e. the second from the bottom of the
 // chain).
 func (this *CertCache) findIssuer() *x509.Certificate {
-	if !this.hasCert() { 
+	if !this.hasCert() {
 		return nil
 	}
 	issuerName := this.certs[0].Issuer
@@ -571,7 +571,6 @@ func (this *CertCache) fetchOCSP(orig []byte, ocspUpdateAfter *time.Time, isRetr
 	return respBytes
 }
 
-
 // Checks for cert updates every certCheckInterval hours. Never terminates.
 func (this *CertCache) maintainCerts(stop chan struct{}) {
 	// Only make one request per certCheckInterval, to minimize the impact
@@ -636,12 +635,12 @@ func (this *CertCache) setNewCerts(certs []*x509.Certificate) {
 
 // Update the cert in the cache if necessary.
 func (this *CertCache) updateCertIfNecessary() {
-	log.Println("Updating cert if necessary");
+	log.Println("Updating cert if necessary")
 	if this.certFetcher == nil {
 		// Don't request new certs from CA if certFetcher is not set. This means this instance of the amppackager
 		// is not in autorenewcert mode. Just make an attempt at reading the cert saved on disk to see if
 		// another amppackager instance that is in autorenewcert mode actually updated it with a valid cert.
-		log.Println("Certfetcher is not set, skipping cert updates. Checking cert on disk if updated.");
+		log.Println("Certfetcher is not set, skipping cert updates. Checking cert on disk if updated.")
 		this.reloadCertIfExpired()
 		return
 	}
@@ -687,20 +686,20 @@ func (this *CertCache) updateCertIfNecessary() {
 func (this *CertCache) reloadCertIfExpired() {
 	// We always validate the certs here.  If we are in development mode and the certs don't validate,
 	// it doesn't matter because the old certs won't be overriden (and the old certs are probably invalid, too).
-        certs, err := certloader.LoadAndValidateCertsFromFile(this.CertFile, true)
-        if err != nil {
-                log.Println(errors.Wrap(err, "Can't load cert file."))
-                certs = nil
-        }
+	certs, err := certloader.LoadAndValidateCertsFromFile(this.CertFile, true)
+	if err != nil {
+		log.Println(errors.Wrap(err, "Can't load cert file."))
+		certs = nil
+	}
 	if certs != nil {
 		this.setCerts(certs)
 	}
 
-        newCerts, err := certloader.LoadAndValidateCertsFromFile(this.NewCertFile, true)
-        if err != nil {
-                log.Println(errors.Wrap(err, "Can't load new cert file."))
-                newCerts = nil
-        }
+	newCerts, err := certloader.LoadAndValidateCertsFromFile(this.NewCertFile, true)
+	if err != nil {
+		log.Println(errors.Wrap(err, "Can't load new cert file."))
+		newCerts = nil
+	}
 	if newCerts != nil {
 		this.setNewCerts(newCerts)
 	}
@@ -710,33 +709,32 @@ func (this *CertCache) reloadCertIfExpired() {
 // and populating the cert cache with current set of certificate related information.
 // If development mode is true, prints a warning for certs that can't sign HTTP exchanges.
 func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
-        developmentMode bool, autoRenewCert bool) (*CertCache, error) {
+	developmentMode bool, autoRenewCert bool) (*CertCache, error) {
 
 	if config.CertFile == "" || config.NewCertFile == "" {
 		return nil, errors.New("Missing cert file and new cert file paths in config.")
 	}
 
-        certs, err := certloader.LoadCertsFromFile(config, developmentMode)
-        if err != nil {
-                log.Println(errors.Wrap(err, "Can't load cert file."))
-                certs = nil
-        }
-        domain := ""
-        for _, urlSet := range config.URLSet {
-                domain = urlSet.Sign.Domain
-                if certs != nil {
-                        if err := util.CertificateMatches(certs[0], key, domain); err != nil {
-                                return nil, errors.Wrapf(err, "checking %s", config.CertFile)
-                        }
-                }
-        }
+	certs, err := certloader.LoadCertsFromFile(config, developmentMode)
+	if err != nil {
+		log.Println(errors.Wrap(err, "Can't load cert file."))
+		certs = nil
+	}
+	domain := ""
+	for _, urlSet := range config.URLSet {
+		domain = urlSet.Sign.Domain
+		if certs != nil {
+			if err := util.CertificateMatches(certs[0], key, domain); err != nil {
+				return nil, errors.Wrapf(err, "checking %s", config.CertFile)
+			}
+		}
+	}
 
-        certFetcher, err := certloader.CreateCertFetcher(config, key, domain, developmentMode, autoRenewCert)
-        if err != nil {
-                return nil, errors.Wrap(err, "creating cert fetcher from config.")
-        }
-        certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache)
+	certFetcher, err := certloader.CreateCertFetcher(config, key, domain, developmentMode, autoRenewCert)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating cert fetcher from config.")
+	}
+	certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache)
 
-        return certCache, nil
+	return certCache, nil
 }
-

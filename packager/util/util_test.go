@@ -41,10 +41,10 @@ func TestGetDurationToExpiry(t *testing.T) {
 	assert.EqualError(t, err, "Certificate is expired")
 
 	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], twoDaysBeforeExpiry)
-	assert.Equal(t, time.Duration(2 * time.Hour * 24), d)
+	assert.Equal(t, time.Duration(2*time.Hour*24), d)
 
 	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], oneHourBeforeExpiry)
-	assert.Equal(t, time.Duration(1 * time.Hour), d)
+	assert.Equal(t, time.Duration(1*time.Hour), d)
 
 	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], zeroDaysBeforeExpiry)
 	assert.Equal(t, time.Duration(0), d)
@@ -88,5 +88,5 @@ func TestParseCertificateNotMatchDomain(t *testing.T) {
 
 func TestParse91DaysCertificate(t *testing.T) {
 	assert.Contains(t, errorFrom(util.CanSignHttpExchanges(pkgt.B3Certs91Days[0])),
-	"Certificate MUST have a Validity Period no greater than 90 days")
+		"Certificate MUST have a Validity Period no greater than 90 days")
 }

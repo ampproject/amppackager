@@ -45,7 +45,7 @@ type mux struct {
 	certCache   http.Handler
 	signer      http.Handler
 	validityMap http.Handler
-	healthz	    http.Handler
+	healthz     http.Handler
 }
 
 // The main entry point. Use the return value for http.Server.Handler.

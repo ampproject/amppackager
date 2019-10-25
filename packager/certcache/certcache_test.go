@@ -73,7 +73,7 @@ type CertCacheSuite struct {
 }
 
 func stringPtr(s string) *string {
-        return &s
+	return &s
 }
 
 func (this *CertCacheSuite) New() (*CertCache, error) {
@@ -81,7 +81,7 @@ func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(banaag): Consider adding a test with certfetcher set.
 	//  For now, this tests certcache without worrying about certfetcher.
 	certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
-			filepath.Join(this.tempDir, "ocsp"))
+		filepath.Join(this.tempDir, "ocsp"))
 	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}
@@ -193,27 +193,27 @@ func (this *CertCacheSuite) TestCertCacheIsHealthy() {
 }
 
 func (this *CertCacheSuite) TestCertCacheIsNotHealthy() {
-       // Prime memory cache with a past-midpoint OCSP:
-        err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
-        this.Require().NoError(err, "deleting OCSP tempfile")
-        this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
-        this.Require().NoError(err, "creating stale OCSP response")
-        this.Require().True(this.ocspServerCalled(func() {
-                this.handler, err = this.New()
-                this.Require().NoError(err, "reinstantiating CertCache")
-        }))
+	// Prime memory cache with a past-midpoint OCSP:
+	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
+	this.Require().NoError(err, "deleting OCSP tempfile")
+	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
+	this.Require().NoError(err, "creating stale OCSP response")
+	this.Require().True(this.ocspServerCalled(func() {
+		this.handler, err = this.New()
+		this.Require().NoError(err, "reinstantiating CertCache")
+	}))
 
-        // Prime disk cache with a bad OCSP:
-        freshOCSP := []byte("0xdeadbeef")
-        this.fakeOCSP = freshOCSP
-        err = ioutil.WriteFile(filepath.Join(this.tempDir, "ocsp"), freshOCSP, 0644)
-        this.Require().NoError(err, "writing fresh OCSP response to disk")
+	// Prime disk cache with a bad OCSP:
+	freshOCSP := []byte("0xdeadbeef")
+	this.fakeOCSP = freshOCSP
+	err = ioutil.WriteFile(filepath.Join(this.tempDir, "ocsp"), freshOCSP, 0644)
+	this.Require().NoError(err, "writing fresh OCSP response to disk")
 
-        this.Assert().True(this.ocspServerCalled(func() {
-                this.handler.readOCSP()
-        }))
+	this.Assert().True(this.ocspServerCalled(func() {
+		this.handler.readOCSP()
+	}))
 
-        this.Assert().Error(this.handler.IsHealthy())
+	this.Assert().Error(this.handler.IsHealthy())
 }
 
 func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
@@ -341,27 +341,27 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 }
 
 func (this *CertCacheSuite) TestPopulateCertCache() {
-        certCache, err := PopulateCertCache(
-                &util.Config{
-                        CertFile:  "../../testdata/b3/fullchain.cert",
+	certCache, err := PopulateCertCache(
+		&util.Config{
+			CertFile:    "../../testdata/b3/fullchain.cert",
 			NewCertFile: "/tmp/newcert.cert",
-                        KeyFile:   "../../testdata/b3/server.privkey",
-                        OCSPCache: "/tmp/ocsp",
-                        URLSet: []util.URLSet{{
-                                Sign: &util.URLPattern{
-                                        Domain:    "amppackageexample.com",
-                                        PathRE:    stringPtr(".*"),
-                                        QueryRE:   stringPtr(""),
-                                        MaxLength: 2000,
-                                },
-                        }},
-                },
-                pkgt.B3Key,
-                true,
-               false)
-        this.Require().NoError(err)
-        this.Assert().NotNil(certCache)
-        this.Assert().Equal(pkgt.B3Certs[0], certCache.GetLatestCert())
+			KeyFile:     "../../testdata/b3/server.privkey",
+			OCSPCache:   "/tmp/ocsp",
+			URLSet: []util.URLSet{{
+				Sign: &util.URLPattern{
+					Domain:    "amppackageexample.com",
+					PathRE:    stringPtr(".*"),
+					QueryRE:   stringPtr(""),
+					MaxLength: 2000,
+				},
+			}},
+		},
+		pkgt.B3Key,
+		true,
+		false)
+	this.Require().NoError(err)
+	this.Assert().NotNil(certCache)
+	this.Assert().Equal(pkgt.B3Certs[0], certCache.GetLatestCert())
 }
 
 func TestCertCacheSuite(t *testing.T) {
