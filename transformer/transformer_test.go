@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"github.com/google/go-cmp/cmp"
@@ -109,7 +110,7 @@ func TestPreloads(t *testing.T) {
 				t.Fatalf("unexpected failure: %v", err)
 			}
 
-			if diff := cmp.Diff(tc.expectedPreloads, metadata.Preloads); diff != "" {
+			if diff := cmp.Diff(tc.expectedPreloads, metadata.Preloads, cmp.Comparer(proto.Equal)); diff != "" {
 				t.Errorf("preloads differ (-want +got):\n%s", diff)
 			}
 		})
@@ -118,8 +119,8 @@ func TestPreloads(t *testing.T) {
 
 func TestMaxAge(t *testing.T) {
 	tcs := []struct {
-		html                string
-		expectedMaxAgeSecs  int32
+		html               string
+		expectedMaxAgeSecs int32
 	}{
 		{
 			// No amp-scripts; no constraints on signing duration.
