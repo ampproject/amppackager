@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 
 	"github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
@@ -37,6 +38,7 @@ type Config struct {
 	// ammpackager are running).
 	NewCertFile	string // The new full certificate chain replacing the expired one.
 	OCSPCache	string
+	PublicDir               string
 	ForwardedRequestHeaders []string
 	URLSet		[]URLSet
 	ACMEConfig	*ACMEConfig
@@ -185,7 +187,11 @@ func ReadConfig(configBytes []byte) (*Config, error) {
 	// TODO(twifkak): Return an error if the TOML includes any fields that aren't part of the Config struct.
 
 	if config.Port == 0 {
-		config.Port = 8080
+		if i, err := strconv.ParseInt(os.Getenv("PORT"), 10, 32); err == nil {
+			config.Port = int(i)
+		} else {
+			config.Port = 8080
+		}
 	}
 	if config.CertFile == "" {
 		return nil, errors.New("must specify CertFile")
