@@ -89,7 +89,7 @@ func TestNewFetcher(t *testing.T) {
 		DNSNames: []string{"test.example.com"},
 	}
 
-	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
+	fetcher, err := New("test@test.com", &csr, privateKey, apiURL+"/dir",
 		5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher.legoClient)
@@ -120,7 +120,7 @@ func TestFetchCertSuccess(t *testing.T) {
 		DNSNames: []string{"test.example.com"},
 	}
 
-	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
+	fetcher, err := New("test@test.com", &csr, privateKey, apiURL+"/dir",
 		5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher)
@@ -151,7 +151,7 @@ func TestFetchCertFail(t *testing.T) {
 		DNSNames: []string{"test.example.com"},
 	}
 
-	fetcher, err := NewFetcher("test@test.com", &csr, privateKey, apiURL+"/dir",
+	fetcher, err := New("test@test.com", &csr, privateKey, apiURL+"/dir",
 		5002, "", 0, "", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, fetcher)

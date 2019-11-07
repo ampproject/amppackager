@@ -55,6 +55,7 @@ const maxOCSPResponseBytes = 1024 * 1024
 const ocspCheckInterval = 1 * time.Hour
 
 // How often to check if certs needs updating.
+// This will timeout after 2^10 minutes or ~16 hours.
 const certCheckInterval = 24 * time.Hour
 
 // Max number of OCSP request tries.
@@ -155,7 +156,7 @@ func (this *CertCache) Init(stop chan struct{}) error {
 	this.updateCertIfNecessary()
 
 	// Prime the OCSP disk and memory cache, so we can start serving immediately.
-	_, _, err := this.readOCSP()
+	_, _, err := this.readOCSP(true)
 	if err != nil {
 		return errors.Wrap(err, "initializing CertCache")
 	}
@@ -194,7 +195,7 @@ func (this *CertCache) GetLatestCert() *x509.Certificate {
 		return nil
 	}
 
-	d, err := util.GetDurationToExpiry(this.certs[0], time.Now())
+	d, err := util.GetDurationToExpiry(this.getCert(), time.Now())
 	if err != nil {
 		// Current cert is already invalid. Check if renewal is available.
 		log.Println("Current cert is expired, attempting to renew: ", err)
@@ -213,6 +214,9 @@ func (this *CertCache) GetLatestCert() *x509.Certificate {
 }
 
 func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
+	this.certsMu.RLock()
+	defer this.certsMu.RUnlock()
+
 	certChain := make(certurl.CertChain, len(this.certs))
 	for i, cert := range this.certs {
 		certChain[i] = &certurl.CertChainItem{Cert: cert}
@@ -238,8 +242,9 @@ func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (tim
 func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	params := mux.Params(req)
 
-	this.certsMu.Lock()
-	defer this.certsMu.Unlock()
+	// RLock for the certName
+	this.certsMu.RLock()
+	defer this.certsMu.RUnlock()
 	if params["certName"] == this.certName {
 		// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.3
 		// This content-type is not standard, but included to reduce
@@ -247,7 +252,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "application/cert-chain+cbor")
 		// Instruct the intermediary to reload this cert-chain at the
 		// OCSP midpoint, in case it cannot parse it.
-		ocsp, _, err := this.readOCSP()
+		ocsp, _, err := this.readOCSP(false)
 		if err != nil {
 			util.NewHTTPError(http.StatusInternalServerError, "Error reading OCSP: ", err).LogAndRespond(resp)
 			return
@@ -284,7 +289,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 //    What happens when it's been 7 days, no new OCSP response can be obtained,
 //    and the current response is about to expire?
 func (this *CertCache) IsHealthy() error {
-	ocsp, _, errorOcsp := this.readOCSP()
+	ocsp, _, errorOcsp := this.readOCSP(false)
 	if errorOcsp != nil {
 		return errorOcsp
 	}
@@ -314,14 +319,21 @@ func (this *CertCache) isHealthy(ocspResp []byte) error {
 }
 
 // Returns the OCSP response and expiry, refreshing if necessary.
-func (this *CertCache) readOCSP() ([]byte, time.Time, error) {
+// TODO(banaag): Per twifkak's suggestion, consider:
+// It may also be interesting to try to separate the retry logic from the fetch logic. One approach comes to mind:
+//
+// retryWithBackoff(func() {
+//   ocsp, err := ...
+//   return true if successful
+// }, initialWaitTime, maxTries)
+func (this *CertCache) readOCSP(allowRetries bool) ([]byte, time.Time, error) {
 	var ocspUpdateAfter time.Time
 	var err error
 	var maxTries int
 
 	ocsp := []byte(nil)
 	waitTimeInMinutes := 1
-	if this.certFetcher == nil {
+	if !allowRetries || this.certFetcher == nil {
 		// If certFetcher is nil, that means we are not auto-renewing so don't retry OCSP.
 		maxTries = 1
 	} else {
@@ -329,6 +341,8 @@ func (this *CertCache) readOCSP() ([]byte, time.Time, error) {
 	}
 
 	for numTries := 0; numTries < maxTries; {
+		this.certsMu.RLock()
+		defer this.certsMu.RUnlock()
 		ocsp, err = this.ocspFile.Read(context.Background(), this.shouldUpdateOCSP, func(orig []byte) []byte {
 			return this.fetchOCSP(orig, this.certs, &ocspUpdateAfter, numTries > 0)
 		})
@@ -386,7 +400,8 @@ func waitForSpecifiedTime(waitTimeInMinutes int, numRetries int) int {
 	return newWaitTimeInMinutes
 }
 
-// Checks for OCSP updates every hour. Never terminates.
+// Checks for OCSP updates every hour. Terminates only when stop receives
+// a message.
 func (this *CertCache) maintainOCSP(stop chan struct{}) {
 	// Only make one request per ocspCheckInterval, to minimize the impact
 	// on OCSP servers that are buckling under load, per sleevi requirement:
@@ -401,7 +416,7 @@ func (this *CertCache) maintainOCSP(stop chan struct{}) {
 	for {
 		select {
 		case <-ticker.C:
-			_, _, err := this.readOCSP()
+			_, _, err := this.readOCSP(true)
 			if err != nil {
 				log.Println("Warning: OCSP update failed. Cached response may expire:", err)
 			}
@@ -459,6 +474,8 @@ func (this *CertCache) findIssuer() *x509.Certificate {
 	if !this.hasCert() {
 		return nil
 	}
+	this.certsMu.RLock()
+	defer this.certsMu.RUnlock()
 	issuerName := this.certs[0].Issuer
 	for _, cert := range this.certs {
 		// The subject name is guaranteed to match the issuer name per
@@ -487,6 +504,8 @@ func (this *CertCache) findIssuerUsingCerts(certs []*x509.Certificate) *x509.Cer
 	if certs == nil || len(certs) == 0 {
 		return nil
 	}
+	this.certsMu.RLock()
+	defer this.certsMu.RUnlock()
 	issuerName := this.certs[0].Issuer
 	for _, cert := range this.certs {
 		// The subject name is guaranteed to match the issuer name per
@@ -539,6 +558,7 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 	// StdEncoding).
 	getURL := ocspServer + "/" + url.PathEscape(base64.StdEncoding.EncodeToString(req))
 	var httpReq *http.Request
+	// Logic is a fallback, due to some CAs not responding as expected to a GET.
 	if len(getURL) <= 255 && !isRetry {
 		httpReq, err = http.NewRequest("GET", getURL, nil)
 		if err != nil {
@@ -605,7 +625,8 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 	return respBytes
 }
 
-// Checks for cert updates every certCheckInterval hours. Never terminates.
+// Checks for cert updates every certCheckInterval hours. Terminates only when stop
+// receives a message.
 func (this *CertCache) maintainCerts(stop chan struct{}) {
 	// Only make one request per certCheckInterval, to minimize the impact
 	// on servers that are buckling under load.
@@ -624,6 +645,8 @@ func (this *CertCache) maintainCerts(stop chan struct{}) {
 
 // Returns true iff cert cache contains at least 1 cert.
 func (this *CertCache) hasCert() bool {
+	this.certsMu.RLock()
+	defer this.certsMu.RUnlock()
 	return len(this.certs) > 0 && this.certs[0] != nil
 }
 
@@ -631,15 +654,21 @@ func (this *CertCache) getCert() *x509.Certificate {
 	if !this.hasCert() {
 		return nil
 	}
+	this.certsMu.RLock()
+	defer this.certsMu.RUnlock()
 	return this.certs[0]
 }
 
 // Returns true iff cert cache renewal contains at least 1 cert.
 func (this *CertCache) hasRenewalCert() bool {
+	this.renewedCertsMu.RLock()
+	defer this.renewedCertsMu.RUnlock()
 	return len(this.renewedCerts) > 0 && this.renewedCerts[0] != nil
 }
 
 func (this *CertCache) getRenewalCert() *x509.Certificate {
+	this.renewedCertsMu.RLock()
+	defer this.renewedCertsMu.RUnlock()
 	if !this.hasRenewalCert() {
 		return nil
 	}
@@ -695,9 +724,12 @@ func (this *CertCache) updateCertIfNecessary() {
 	d := time.Duration(0)
 	err := errors.New("")
 	if this.hasCert() {
-		d, err = util.GetDurationToExpiry(this.certs[0], time.Now())
+		d, err = util.GetDurationToExpiry(this.getCert(), time.Now())
 	}
 	if err != nil {
+		this.renewedCertsMu.Lock()
+		defer this.renewedCertsMu.Unlock()
+
 		// Current cert is already invalid, check if we have a pending renewal cert.
 		if this.renewedCerts != nil {
 			// If renewedCerts is set, copy that over to certs
@@ -721,6 +753,9 @@ func (this *CertCache) updateCertIfNecessary() {
 	if d >= time.Duration(certRenewalInterval) {
 		// Cert is still valid, don't do anything.
 	} else if d < time.Duration(certRenewalInterval) {
+		this.renewedCertsMu.Lock()
+		defer this.renewedCertsMu.Unlock()
+
 		// Check if we already have a renewal cert waiting, fetch a new cert if not.
 		if this.renewedCerts == nil {
 			// Cert is still valid, but we need to start process of requesting new cert.
@@ -734,7 +769,7 @@ func (this *CertCache) updateCertIfNecessary() {
 		} else {
 			var ocspUpdateAfter time.Time
 
-			ocsp, _, errorOcsp := this.readOCSP()
+			ocsp, _, errorOcsp := this.readOCSP(true)
 			if errorOcsp != nil {
 				newOcsp := this.fetchOCSP(ocsp, this.renewedCerts, &ocspUpdateAfter, false)
 				// Check if newOcsp != ocsp and that there are no errors, health-wise with new ocsp.
@@ -754,7 +789,7 @@ func (this *CertCache) reloadCertIfExpired() {
         d := time.Duration(0)
         err := errors.New("")
         if this.hasCert() {
-                d, err = util.GetDurationToExpiry(this.certs[0], time.Now())
+                d, err = util.GetDurationToExpiry(this.getCert(), time.Now())
         }
 	if err == nil && d >= time.Duration(certRenewalInterval) {
 		// Cert not expired and still have time before renewing, do nothing.

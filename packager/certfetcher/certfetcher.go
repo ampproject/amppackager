@@ -55,7 +55,7 @@ func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 }
 
 // Initializes the cert fetcher with information it needs to fetch new certificates in the future.
-func NewFetcher(email string, certSignRequest *x509.CertificateRequest, privateKey crypto.PrivateKey,
+func New(email string, certSignRequest *x509.CertificateRequest, privateKey crypto.PrivateKey,
 	acmeDiscoURL string, httpChallengePort int, httpChallengeWebRoot string,
 	tlsChallengePort int, dnsProvider string, shouldRegister bool) (*CertFetcher, error) {
 
@@ -79,7 +79,7 @@ func NewFetcher(email string, certSignRequest *x509.CertificateRequest, privateK
 	// (used later when we attempt to pass challenges). Keep in mind that you still
 	// need to proxy challenge traffic to port `acmeChallengePort`.
 	if httpChallengePort != 0 {
-		err = client.Challenge.SetHTTP01Provider(
+		err := client.Challenge.SetHTTP01Provider(
 			http01.NewProviderServer("", strconv.Itoa(httpChallengePort)))
 		if err != nil {
 			return nil, errors.Wrap(err, "Setting up HTTP01 challenge provider.")
@@ -97,7 +97,7 @@ func NewFetcher(email string, certSignRequest *x509.CertificateRequest, privateK
 	}
 
 	if tlsChallengePort != 0 {
-		err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", strconv.Itoa(tlsChallengePort)))
+		err := client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", strconv.Itoa(tlsChallengePort)))
 		if err != nil {
 			return nil, errors.Wrap(err, "Setting up TLSALPN01 challenge provider.")
 		}
@@ -142,7 +142,7 @@ func NewFetcher(email string, certSignRequest *x509.CertificateRequest, privateK
 func (f *CertFetcher) FetchNewCert() ([]*x509.Certificate, error) {
 	// Each resource comes back with the cert bytes, the bytes of the client's
 	// private key, and a certificate URL.
-	resource, err := f.legoClient.Certificate.ObtainForCSR(*(f.CertSignRequest), true)
+	resource, err := f.legoClient.Certificate.ObtainForCSR(*f.CertSignRequest, true)
 	if err != nil {
 		return nil, err
 	}

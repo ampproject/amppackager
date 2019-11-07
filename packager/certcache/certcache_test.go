@@ -210,7 +210,7 @@ func (this *CertCacheSuite) TestCertCacheIsNotHealthy() {
 	this.Require().NoError(err, "writing fresh OCSP response to disk")
 
 	this.Assert().True(this.ocspServerCalled(func() {
-		this.handler.readOCSP()
+		this.handler.readOCSP(true)
 	}))
 
 	this.Assert().Error(this.handler.IsHealthy())
@@ -238,7 +238,7 @@ func (this *CertCacheSuite) TestOCSP() {
 func (this *CertCacheSuite) TestOCSPCached() {
 	// Verify it is in the memory cache:
 	this.Assert().False(this.ocspServerCalled(func() {
-		_, _, err := this.handler.readOCSP()
+		_, _, err := this.handler.readOCSP(true)
 		this.Assert().NoError(err)
 	}))
 
@@ -266,7 +266,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 
 	// On update, verify network is called:
 	this.Assert().True(this.ocspServerCalled(func() {
-		_, _, err := this.handler.readOCSP()
+		_, _, err := this.handler.readOCSP(true)
 		this.Assert().NoError(err)
 	}))
 }
@@ -290,7 +290,7 @@ func (this *CertCacheSuite) TestOCSPUpdateFromDisk() {
 
 	// On update, verify network is not called (fresh OCSP from disk is used):
 	this.Assert().False(this.ocspServerCalled(func() {
-		_, _, err := this.handler.readOCSP()
+		_, _, err := this.handler.readOCSP(true)
 		this.Assert().NoError(err)
 	}))
 }
@@ -309,7 +309,7 @@ func (this *CertCacheSuite) TestOCSPExpiredViaHTTPHeaders() {
 
 	// Verify that, 2 seconds later, a new fetch is attempted.
 	this.Assert().True(this.ocspServerCalled(func() {
-		_, _, err := this.handler.readOCSP()
+		_, _, err := this.handler.readOCSP(true)
 		this.Require().NoError(err, "updating OCSP")
 	}))
 }
@@ -330,12 +330,12 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-8 * 24 * time.Hour))
 	this.Require().NoError(err, "creating expired OCSP response")
 	this.Assert().True(this.ocspServerCalled(func() {
-		_, _, err := this.handler.readOCSP()
+		_, _, err := this.handler.readOCSP(true)
 		this.Require().NoError(err, "updating OCSP")
 	}))
 
 	// Verify that the invalid update doesn't squash the valid cache entry.
-	ocsp, _, err := this.handler.readOCSP()
+	ocsp, _, err := this.handler.readOCSP(true)
 	this.Require().NoError(err, "reading OCSP")
 	this.Assert().Equal(staleOCSP, ocsp)
 }

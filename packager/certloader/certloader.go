@@ -40,60 +40,50 @@ func CreateCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 	if config.ACMEConfig == nil {
 		return nil, errors.New("missing ACMEConfig")
 	}
-	if config.ACMEConfig.Production == nil {
-		return nil, errors.New("missing ACMEConfig.Production")
+
+	var acmeConfig *util.ACMEServerConfig
+	if developmentMode {
+		acmeConfig = config.ACMEConfig.Development
+	} else {
+		acmeConfig = config.ACMEConfig.Production
 	}
-	if config.ACMEConfig.Production.EmailAddress == "" {
+
+	if acmeConfig == nil {
+		if developmentMode {
+			return nil, errors.New("missing ACMEConfig.Development")
+		} else {
+			return nil, errors.New("missing ACMEConfig.Production")
+		}
+	}
+
+	if acmeConfig.EmailAddress == "" {
 		return nil, errors.New("missing email address")
 	}
-	emailAddress := config.ACMEConfig.Production.EmailAddress
-	if config.ACMEConfig.Production.DiscoURL == "" {
+	emailAddress := acmeConfig.EmailAddress
+	if acmeConfig.DiscoURL == "" {
 		return nil, errors.New("missing acme disco url")
 	}
-	acmeDiscoveryURL := config.ACMEConfig.Production.DiscoURL
-	if config.ACMEConfig.Production.HttpChallengePort == 0 &&
-		config.ACMEConfig.Production.HttpWebRootDir == "" &&
-		config.ACMEConfig.Production.TlsChallengePort == 0 &&
-		config.ACMEConfig.Production.DnsProvider == "" {
+	acmeDiscoveryURL := acmeConfig.DiscoURL
+	if acmeConfig.HttpChallengePort == 0 &&
+		acmeConfig.HttpWebRootDir == "" &&
+		acmeConfig.TlsChallengePort == 0 &&
+		acmeConfig.DnsProvider == "" {
 		return nil, errors.New("One of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present.")
 	}
-	httpChallengePort := config.ACMEConfig.Production.HttpChallengePort
-	httpWebRootDir := config.ACMEConfig.Production.HttpWebRootDir
-	tlsChallengePort := config.ACMEConfig.Production.TlsChallengePort
-	dnsProvider := config.ACMEConfig.Production.DnsProvider
-	if developmentMode {
-		if config.ACMEConfig.Development == nil {
-			return nil, errors.New("missing ACMEConfig.Development")
-		}
-		if config.ACMEConfig.Development.EmailAddress == "" {
-			return nil, errors.New("missing email address")
-		}
-		emailAddress = config.ACMEConfig.Development.EmailAddress
+	httpChallengePort := acmeConfig.HttpChallengePort
+	httpWebRootDir := acmeConfig.HttpWebRootDir
+	tlsChallengePort := acmeConfig.TlsChallengePort
+	dnsProvider := acmeConfig.DnsProvider
 
-		if config.ACMEConfig.Development.DiscoURL == "" {
-			return nil, errors.New("missing acme disco url")
-		}
-		acmeDiscoveryURL = config.ACMEConfig.Development.DiscoURL
-
-		if config.ACMEConfig.Development.HttpChallengePort == 0 &&
-			config.ACMEConfig.Development.HttpWebRootDir == "" &&
-			config.ACMEConfig.Development.TlsChallengePort == 0 &&
-			config.ACMEConfig.Development.DnsProvider == "" {
-			return nil, errors.New("One of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present.")
-		}
-		httpChallengePort = config.ACMEConfig.Development.HttpChallengePort
-		httpWebRootDir = config.ACMEConfig.Development.HttpWebRootDir
-		tlsChallengePort = config.ACMEConfig.Development.TlsChallengePort
-		dnsProvider = config.ACMEConfig.Development.DnsProvider
-	}
-
+	// TODO(banaag): Rather than making them create a CSR, generate one using the given KeyFile/CertFile and
+	// https://golang.org/pkg/crypto/x509/#CreateCertificateRequest.
 	csr, err := LoadCSRFromFile(config)
 	if err != nil {
 		return nil, errors.Wrap(err, "missing CSR")
 	}
 
 	// Create the cert fetcher that will auto-renew the cert.
-	certFetcher, err := certfetcher.NewFetcher(emailAddress, csr, key, acmeDiscoveryURL,
+	certFetcher, err := certfetcher.New(emailAddress, csr, key, acmeDiscoveryURL,
 		httpChallengePort, httpWebRootDir, tlsChallengePort, dnsProvider, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating certfetcher")
@@ -115,12 +105,12 @@ func LoadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certi
 	return LoadAndValidateCertsFromFile(config.CertFile, !developmentMode)
 }
 
-func LoadAndValidateCertsFromFile(certPath string, checkIfCanSign bool) ([]*x509.Certificate, error) {
+func LoadAndValidateCertsFromFile(certPath string, requireSign bool) ([]*x509.Certificate, error) {
 	// Use independent .lock file; necessary on Windows to avoid "The process cannot
 	// access the file because another process has locked a portion of the file."
 	lockPath := certPath + ".lock"
 	lock := flock.New(lockPath)
-	locked, err := lock.TryLock()
+	locked, err := lock.TryRLock()
 	if err != nil {
 		return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
 	}
@@ -149,7 +139,7 @@ func LoadAndValidateCertsFromFile(certPath string, checkIfCanSign bool) ([]*x509
 		return nil, errors.Errorf("no cert found in %s", certPath)
 	}
 	if err := util.CanSignHttpExchanges(certs[0]); err != nil {
-		if !checkIfCanSign {
+		if !requireSign {
 			log.Println("WARNING:", err)
 		} else {
 			return nil, err
@@ -184,9 +174,14 @@ func WriteCertsToFile(certs []*x509.Certificate, filepath string) error {
 		}
 	}()
 
-	cert := certToPEM(certs[0])
-	issuer := certToPEM(certs[1])
-	bundled := append(cert, issuer...)
+	certLen := len(certs)
+	bundled := make([]byte, 0, 0)
+	for i := 0; i < certLen - 1; i++ {
+		cert := certToPEM(certs[i])
+		bundled = append(bundled, cert...)
+	}
+	issuer := certToPEM(certs[certLen])
+	bundled = append(bundled, issuer...)
 	if err := ioutil.WriteFile(filepath, bundled, 0600); err != nil {
 		return errors.Wrapf(err, "writing %s", filepath)
 	}
