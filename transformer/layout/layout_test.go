@@ -115,6 +115,20 @@ func TestApplyLayout(t *testing.T) {
 			`<amp-img height="100" layout="fixed-height" class="i-amphtml-layout-fixed-height i-amphtml-layout-size-defined" style="height:100px;" i-amphtml-layout="fixed-height"></amp-img>`,
 		},
 		{
+			"Fixed when heights is empty",
+			htmlnode.Element(
+				"amp-img",
+				html.Attribute{Key: "height", Val: "100"}, html.Attribute{Key: "heights", Val: ""}, html.Attribute{Key: "width", Val: "300"}),
+			`<amp-img height="100" heights="" width="300" class="i-amphtml-layout-fixed i-amphtml-layout-size-defined" style="width:300px;height:100px;" i-amphtml-layout="fixed"></amp-img>`,
+		},
+		{
+			"Fixed when sizes is empty",
+			htmlnode.Element(
+				"amp-img",
+				html.Attribute{Key: "height", Val: "100"}, html.Attribute{Key: "sizes", Val: ""}, html.Attribute{Key: "width", Val: "300"}),
+			`<amp-img height="100" sizes="" width="300" class="i-amphtml-layout-fixed i-amphtml-layout-size-defined" style="width:300px;height:100px;" i-amphtml-layout="fixed"></amp-img>`,
+		},
+		{
 			"Responsive",
 			htmlnode.Element(
 				"amp-img",

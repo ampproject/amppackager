@@ -133,13 +133,13 @@ func canRemoveBoilerplate(n *html.Node) bool {
 		if n.Data == amphtml.AMPAudio {
 			return false
 		}
-		if htmlnode.HasAttribute(n, "", "heights") {
+		if htmlnode.HasAttributeAndIsNotEmpty(n, "", "heights") {
 			return false
 		}
-		if htmlnode.HasAttribute(n, "", "media") {
+		if htmlnode.HasAttributeAndIsNotEmpty(n, "", "media") {
 			return false
 		}
-		if htmlnode.HasAttribute(n, "", "sizes") {
+		if htmlnode.HasAttributeAndIsNotEmpty(n, "", "sizes") {
 			return false
 		}
 	}
