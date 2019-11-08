@@ -131,6 +131,18 @@ func HasAttribute(n *html.Node, namespace, key string) bool {
 	return ok
 }
 
+// HasAttributeAndIsNotEmpty return true if the node has the attribute named
+// with 'key' and it's value is not empty.
+func HasAttributeAndIsNotEmpty(n *html.Node, namespace, key string) bool {
+	if v, ok := GetAttributeVal(n, namespace, key); ok {
+		if v != "" {
+			return true
+		}
+		return false
+	}
+	return false
+}
+
 // SetAttribute overrides the value of the attribute on node n with
 // namespace and key with val. If the attribute doesn't exist, it adds it.
 func SetAttribute(n *html.Node, namespace, key, val string) {
