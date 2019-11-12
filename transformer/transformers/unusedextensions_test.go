@@ -212,7 +212,7 @@ func TestUnusedExtensions(t *testing.T) {
 				"</body></html>"),
 		},
 		{
-			Desc: "keeps non-grandfathered extension",
+			Desc: "keeps non-legacy-exempted extension",
 			Input: tt.Concat(tt.Doctype,
 				"<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
