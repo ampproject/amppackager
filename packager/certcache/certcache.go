@@ -55,10 +55,10 @@ const maxOCSPResponseBytes = 1024 * 1024
 const ocspCheckInterval = 1 * time.Hour
 
 // How often to check if certs needs updating.
-// This will timeout after 2^10 minutes or ~16 hours.
 const certCheckInterval = 24 * time.Hour
 
 // Max number of OCSP request tries.
+// This will timeout after 2^10 minutes or ~16 hours.
 const maxOCSPTries = 10
 
 // Recommended renewal duration for certs. This is duration before next cert expiry.
@@ -87,9 +87,9 @@ type CertCache struct {
 	ocspUpdateAfterMu sync.RWMutex
 	ocspUpdateAfter   time.Time
 	// TODO(twifkak): Implement a registry of Updateable instances which can be configured in the toml.
-	ocspFile	Updateable
-	ocspFilePath	string
-	client   http.Client
+	ocspFile     Updateable
+	ocspFilePath string
+	client       http.Client
 	// Domains to validate
 	Domains     []string
 	CertFile    string
@@ -127,9 +127,9 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 		//    certificate, all needing to staple an OCSP response. You don't
 		//    want to have all of them hammering the OCSP server - ideally,
 		//    you'd have one request, in the backend, and updating them all.
-		ocspFile: &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
+		ocspFile:     &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
 		ocspFilePath: ocspCache,
-		client:   http.Client{Timeout: 60 * time.Second},
+		client:       http.Client{Timeout: 60 * time.Second},
 		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
 			if cert == nil || len(cert.OCSPServer) < 1 {
 				return "", errors.New("Cert missing OCSPServer.")
@@ -289,9 +289,9 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 //    What happens when it's been 7 days, no new OCSP response can be obtained,
 //    and the current response is about to expire?
 func (this *CertCache) IsHealthy() error {
-	ocsp, _, errorOcsp := this.readOCSP(false)
-	if errorOcsp != nil {
-		return errorOcsp
+	ocsp, _, errorOCSP := this.readOCSP(false)
+	if errorOCSP != nil {
+		return errorOCSP
 	}
 	errorHealth := this.isHealthy(ocsp)
 	if errorHealth != nil {
@@ -474,28 +474,7 @@ func (this *CertCache) findIssuer() *x509.Certificate {
 	if !this.hasCert() {
 		return nil
 	}
-	this.certsMu.RLock()
-	defer this.certsMu.RUnlock()
-	issuerName := this.certs[0].Issuer
-	for _, cert := range this.certs {
-		// The subject name is guaranteed to match the issuer name per
-		// https://tools.ietf.org/html/rfc3280#section-4.1.2.4 and
-		// #section-4.1.2.6. (The latter guarantees that the subject
-		// name will be in the subject field and not the subjectAltName
-		// field for CAs.)
-		//
-		// However, the definition of "match" is more complicated. The
-		// general "Name matching" algorithm is defined in
-		// https://www.itu.int/rec/T-REC-X.501-201610-I/en. However,
-		// RFC3280 defines a subset, and pkix.Name.String() defines an
-		// ad hoc canonical serialization (as opposed to
-		// https://tools.ietf.org/html/rfc1779 which has many forms),
-		// such that comparing the two strings should be sufficient.
-		if cert.Subject.String() == issuerName.String() {
-			return cert
-		}
-	}
-	return nil
+	return this.findIssuerUsingCerts(this.certs)
 }
 
 // Finds the issuer of the specified cert (i.e. the second from the bottom of the
@@ -506,8 +485,8 @@ func (this *CertCache) findIssuerUsingCerts(certs []*x509.Certificate) *x509.Cer
 	}
 	this.certsMu.RLock()
 	defer this.certsMu.RUnlock()
-	issuerName := this.certs[0].Issuer
-	for _, cert := range this.certs {
+	issuerName := certs[0].Issuer
+	for _, cert := range certs {
 		// The subject name is guaranteed to match the issuer name per
 		// https://tools.ietf.org/html/rfc3280#section-4.1.2.4 and
 		// #section-4.1.2.6. (The latter guarantees that the subject
@@ -686,6 +665,9 @@ func (this *CertCache) setCerts(certs []*x509.Certificate) {
 	if err != nil {
 		log.Printf("Unable to write certs to file: %s", this.CertFile)
 	}
+
+	// Purge OCSP cache
+	certloader.RemoveFile(this.ocspFilePath)
 }
 
 // Set new cert with mutex protection.
@@ -736,8 +718,6 @@ func (this *CertCache) updateCertIfNecessary() {
 			// and set renewedCerts to nil.
 			this.setCerts(this.renewedCerts)
 			this.setNewCerts(nil)
-			// Purge OCSP cache
-			certloader.RemoveFile(this.ocspFilePath)
 			return
 		}
 		// Current cert is already invalid. Try refreshing.
@@ -767,32 +747,39 @@ func (this *CertCache) updateCertIfNecessary() {
 			}
 			this.setNewCerts(certs)
 		} else {
+			// TODO(banaag) from twifkak comments:
+			// Note that this logic works, albeit might fail to fetch OCSP the first try, but will succeed 24 hours later.
+			//
+			// I realize it's difficult to use readOCSP here, since it's hard-coded to use this.certs and friends, rather than
+			// this.renewedCerts and friends. That makes me think two things:
+			//
+			// The extraction of the retry logic from readOCSP would be useful.
+			// We should bundle certName, certs, certsMu, ocspFile, ocspFilePath, ocspUpdateAfter, and ocspUpdateAfterMu into
+			// a new struct type, and then have two copies of that in certcache - one for current certs and one for new certs.
 			var ocspUpdateAfter time.Time
 
-			ocsp, _, errorOcsp := this.readOCSP(true)
-			if errorOcsp != nil {
-				newOcsp := this.fetchOCSP(ocsp, this.renewedCerts, &ocspUpdateAfter, false)
-				// Check if newOcsp != ocsp and that there are no errors, health-wise with new ocsp.
-				if !bytes.Equal(newOcsp, ocsp) && this.isHealthy(newOcsp) == nil {
+			ocsp, _, errorOCSP := this.readOCSP(true)
+			if errorOCSP != nil {
+				newOCSP := this.fetchOCSP(ocsp, this.renewedCerts, &ocspUpdateAfter, false)
+				// Check if newOCSP != ocsp and that there are no errors, health-wise with new ocsp.
+				if !bytes.Equal(newOCSP, ocsp) && this.isHealthy(newOCSP) == nil {
 					// We were able to fetch new OCSP with renewal cert, time to switch to new certs.
 					this.setCerts(this.renewedCerts)
 					this.setNewCerts(nil)
-					// Purge OCSP cache
-					certloader.RemoveFile(this.ocspFilePath)
 				}
 			}
 		}
 	}
 }
 
+func (this *CertCache) doesCertNeedReloading() bool {
+	if !this.hasCert() { return true }
+	d, err := util.GetDurationToExpiry(this.getCert(), time.Now())
+	return err != nil || d < certRenewalInterval
+}
+
 func (this *CertCache) reloadCertIfExpired() {
-        d := time.Duration(0)
-        err := errors.New("")
-        if this.hasCert() {
-                d, err = util.GetDurationToExpiry(this.getCert(), time.Now())
-        }
-	if err == nil && d >= time.Duration(certRenewalInterval) {
-		// Cert not expired and still have time before renewing, do nothing.
+	if !this.doesCertNeedReloading() {
 		return
 	}
 
@@ -806,8 +793,6 @@ func (this *CertCache) reloadCertIfExpired() {
 	}
 	if certs != nil {
 		this.setCerts(certs)
-		// Purge OCSP cache
-		certloader.RemoveFile(this.ocspFilePath)
 	}
 
 	newCerts, err := certloader.LoadAndValidateCertsFromFile(this.NewCertFile, true)

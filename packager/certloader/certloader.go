@@ -75,7 +75,7 @@ func CreateCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 	tlsChallengePort := acmeConfig.TlsChallengePort
 	dnsProvider := acmeConfig.DnsProvider
 
-	// TODO(banaag): Rather than making them create a CSR, generate one using the given KeyFile/CertFile and
+	// TODO(banaag): Rather than making publishers create a CSR, generate one using the given KeyFile/CertFile and
 	// https://golang.org/pkg/crypto/x509/#CreateCertificateRequest.
 	csr, err := LoadCSRFromFile(config)
 	if err != nil {
@@ -174,14 +174,11 @@ func WriteCertsToFile(certs []*x509.Certificate, filepath string) error {
 		}
 	}()
 
-	certLen := len(certs)
-	bundled := make([]byte, 0, 0)
-	for i := 0; i < certLen - 1; i++ {
-		cert := certToPEM(certs[i])
-		bundled = append(bundled, cert...)
+	bundled := []byte{}
+	for _, cert := range certs {
+		pem := certToPEM(cert)
+		bundled = append(bundled, pem...)
 	}
-	issuer := certToPEM(certs[certLen])
-	bundled = append(bundled, issuer...)
 	if err := ioutil.WriteFile(filepath, bundled, 0600); err != nil {
 		return errors.Wrapf(err, "writing %s", filepath)
 	}
