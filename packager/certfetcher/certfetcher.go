@@ -55,6 +55,12 @@ func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 }
 
 // Initializes the cert fetcher with information it needs to fetch new certificates in the future.
+// TODO(banaag): per gregable@ comments:
+// Callsite could have some structure like:
+//
+// fetcher := CertFetcher()
+// fetcher.setUser(email, privateKey)
+// fetcher.bindToPort(port)
 func New(email string, certSignRequest *x509.CertificateRequest, privateKey crypto.PrivateKey,
 	acmeDiscoURL string, httpChallengePort int, httpChallengeWebRoot string,
 	tlsChallengePort int, dnsProvider string, shouldRegister bool) (*CertFetcher, error) {

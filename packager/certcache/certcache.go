@@ -107,6 +107,12 @@ type CertCache struct {
 // Callers need to call Init() on the returned CertCache before the cache can auto-renew certs.
 // Callers can use the uninitialized CertCache for testing certificates (without doing OCSP or
 // cert refreshes).
+//
+// TODO(banaag): per greigable@ comments:
+// The long argument list makes the callsites tricky to read and easy to get wrong, especially if several of the arguments have the same type.
+//
+// An alternative pattern would be to create an IsInitialized() bool or similarly named function that verifies all of the required fields have
+// been set. Then callers can just set fields in the struct by name and assert IsInitialized before doing anything with it.
 func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domains []string,
 	certFile string, newCertFile string, ocspCache string) *CertCache {
 	certName := ""
@@ -318,6 +324,39 @@ func (this *CertCache) isHealthy(ocspResp []byte) error {
 	return nil
 }
 
+func (this *CertCache) readOCSPHelper(numTries int, exhaustedRetries bool) ([]byte, time.Time, error) {
+	var ocspUpdateAfter time.Time
+
+	this.certsMu.RLock()
+	defer this.certsMu.RUnlock()
+	ocsp, err := this.ocspFile.Read(context.Background(), this.shouldUpdateOCSP, func(orig []byte) []byte {
+		return this.fetchOCSP(orig, this.certs, &ocspUpdateAfter, numTries > 0)
+	})
+	if err != nil {
+		if exhaustedRetries {
+			return nil, time.Time{}, errors.Wrap(err, "Updating OCSP cache")
+		} else {
+			return nil, time.Time{}, nil
+		}
+	}
+	if len(ocsp) == 0 {
+		if exhaustedRetries {
+			return nil, time.Time{}, errors.New("Missing OCSP response.")
+		} else {
+			return nil, time.Time{}, nil
+		}
+	}
+	if err := this.isHealthy(ocsp); err != nil {
+		if exhaustedRetries {
+			return nil, time.Time{}, errors.Wrap(err, "OCSP failed health check.")
+		} else {
+			return nil, time.Time{}, nil
+		}
+	}
+
+	return ocsp, ocspUpdateAfter, nil
+}
+
 // Returns the OCSP response and expiry, refreshing if necessary.
 // TODO(banaag): Per twifkak's suggestion, consider:
 // It may also be interesting to try to separate the retry logic from the fetch logic. One approach comes to mind:
@@ -341,39 +380,15 @@ func (this *CertCache) readOCSP(allowRetries bool) ([]byte, time.Time, error) {
 	}
 
 	for numTries := 0; numTries < maxTries; {
-		this.certsMu.RLock()
-		defer this.certsMu.RUnlock()
-		ocsp, err = this.ocspFile.Read(context.Background(), this.shouldUpdateOCSP, func(orig []byte) []byte {
-			return this.fetchOCSP(orig, this.certs, &ocspUpdateAfter, numTries > 0)
-		})
+		ocsp, ocspUpdateAfter, err = this.readOCSPHelper(numTries, numTries >= maxTries - 1)
 		if err != nil {
-			if numTries >= maxTries-1 {
-				return nil, time.Time{}, errors.Wrap(err, "Updating OCSP cache")
+			if numTries >= maxTries - 1 {
+				return nil, ocspUpdateAfter, err
 			} else {
 				numTries++
 				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
 				continue
 			}
-		}
-		if len(ocsp) == 0 {
-			if numTries >= maxTries-1 {
-				return nil, time.Time{}, errors.New("Missing OCSP response.")
-			} else {
-				numTries++
-				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
-				continue
-			}
-		}
-		if err := this.isHealthy(ocsp); err != nil {
-			if numTries >= maxTries-1 {
-				return nil, time.Time{}, errors.Wrap(err, "OCSP failed health check.")
-			} else {
-				numTries++
-				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
-				continue
-			}
-		} else {
-			break
 		}
 		numTries++
 	}
@@ -396,6 +411,10 @@ func waitForSpecifiedTime(waitTimeInMinutes int, numRetries int) int {
 	waitTimeDuration := time.Duration(waitTimeInMinutes) * time.Minute
 	// For exponential backoff.
 	newWaitTimeInMinutes := 2 * waitTimeInMinutes
+	if newWaitTimeInMinutes > 10 {
+		// Cap the wait time at 10 minutes.
+		newWaitTimeInMinutes = 10
+	}
 	time.Sleep(waitTimeDuration)
 	return newWaitTimeInMinutes
 }
