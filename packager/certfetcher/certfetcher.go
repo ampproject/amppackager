@@ -21,19 +21,20 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/go-acme/lego/v3/certcrypto"
-	"github.com/go-acme/lego/v3/certificate"
 	"github.com/go-acme/lego/v3/challenge/http01"
+	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
 	"github.com/go-acme/lego/v3/lego"
+	"github.com/go-acme/lego/v3/providers/dns"
+	"github.com/go-acme/lego/v3/providers/http/webroot"
 	"github.com/go-acme/lego/v3/registration"
 	"github.com/pkg/errors"
 )
 
 type CertFetcher struct {
 	AcmeDiscoveryURL string
-	AcmeUser	 AcmeUser
-	// Domains to validate
-	Domains		[]string
-	legoClient	*lego.Client
+	AcmeUser         AcmeUser
+	legoClient       *lego.Client
+	CertSignRequest  *x509.CertificateRequest
 }
 
 // Implements registration.User
@@ -54,8 +55,16 @@ func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 }
 
 // Initializes the cert fetcher with information it needs to fetch new certificates in the future.
-func NewFetcher(email string, privateKey crypto.PrivateKey, acmeDiscoURL string,
-	domains []string, acmeChallengePort int, shouldRegister bool) (*CertFetcher, error) {
+// TODO(banaag): per gregable@ comments:
+// Callsite could have some structure like:
+//
+// fetcher := CertFetcher()
+// fetcher.setUser(email, privateKey)
+// fetcher.bindToPort(port)
+func New(email string, certSignRequest *x509.CertificateRequest, privateKey crypto.PrivateKey,
+	acmeDiscoURL string, httpChallengePort int, httpChallengeWebRoot string,
+	tlsChallengePort int, dnsProvider string, shouldRegister bool) (*CertFetcher, error) {
+
 	acmeUser := AcmeUser{
 		Email: email,
 		key:   privateKey,
@@ -71,14 +80,44 @@ func NewFetcher(email string, privateKey crypto.PrivateKey, acmeDiscoURL string,
 		return nil, errors.Wrap(err, "Obtaining LEGO client.")
 	}
 
-	// We specify an http port of `acmeChallengePort`
+	// We specify an http port of `httpChallengePort`
 	// because we aren't running as root and can't bind a listener to port 80 and 443
 	// (used later when we attempt to pass challenges). Keep in mind that you still
 	// need to proxy challenge traffic to port `acmeChallengePort`.
-	err = client.Challenge.SetHTTP01Provider(
-		http01.NewProviderServer("", strconv.Itoa(acmeChallengePort)))
-	if err != nil {
-		return nil, errors.Wrap(err, "Setting up HTTP01 challenge provider.")
+	if httpChallengePort != 0 {
+		err := client.Challenge.SetHTTP01Provider(
+			http01.NewProviderServer("", strconv.Itoa(httpChallengePort)))
+		if err != nil {
+			return nil, errors.Wrap(err, "Setting up HTTP01 challenge provider.")
+		}
+	}
+	if httpChallengeWebRoot != "" {
+		httpProvider, err := webroot.NewHTTPProvider(httpChallengeWebRoot)
+		if err != nil {
+			return nil, errors.Wrap(err, "Getting HTTP01 challenge provider.")
+		}
+		err = client.Challenge.SetHTTP01Provider(httpProvider)
+		if err != nil {
+			return nil, errors.Wrap(err, "Setting up HTTP01 challenge provider.")
+		}
+	}
+
+	if tlsChallengePort != 0 {
+		err := client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", strconv.Itoa(tlsChallengePort)))
+		if err != nil {
+			return nil, errors.Wrap(err, "Setting up TLSALPN01 challenge provider.")
+		}
+	}
+
+	if dnsProvider != "" {
+		provider, err := dns.NewDNSChallengeProviderByName(dnsProvider)
+		if err != nil {
+			return nil, errors.Wrap(err, "Getting DNS01 challenge provider.")
+		}
+		err = client.Challenge.SetDNS01Provider(provider)
+		if err != nil {
+			return nil, errors.Wrap(err, "Setting up DNS01 challenge provider.")
+		}
 	}
 
 	// Theoretically, this should always be set to false as users should have pre-registered for access
@@ -93,28 +132,23 @@ func NewFetcher(email string, privateKey crypto.PrivateKey, acmeDiscoURL string,
 		// to indicate agreement with TOS.
 		reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if err != nil {
-			return nil, errors.Wrap(err, "ACME CA client registration") 
+			return nil, errors.Wrap(err, "ACME CA client registration")
 		}
 		acmeUser.Registration = reg
 	}
 
 	return &CertFetcher{
 		AcmeDiscoveryURL: acmeDiscoURL,
-		AcmeUser:	  acmeUser,
-		Domains:	  domains,
-		legoClient:	  client,
+		AcmeUser:         acmeUser,
+		legoClient:       client,
+		CertSignRequest:  certSignRequest,
 	}, nil
 }
 
 func (f *CertFetcher) FetchNewCert() ([]*x509.Certificate, error) {
-	request := certificate.ObtainRequest{
-		Domains: f.Domains,
-		Bundle:  true,
-	}
-
 	// Each resource comes back with the cert bytes, the bytes of the client's
 	// private key, and a certificate URL.
-	resource, err := f.legoClient.Certificate.Obtain(request)
+	resource, err := f.legoClient.Certificate.ObtainForCSR(*f.CertSignRequest, true)
 	if err != nil {
 		return nil, err
 	}

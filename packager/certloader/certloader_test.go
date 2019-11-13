@@ -20,7 +20,6 @@ import (
 	"io/ioutil"
 	"testing"
 
-	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -43,31 +42,9 @@ var caKey = func() *rsa.PrivateKey {
 	return key.(*rsa.PrivateKey)
 }()
 
-func TestPopulateCertCache(t *testing.T) {
-	certCache, err := PopulateCertCache(
-		&util.Config{
-			CertFile:  "../../testdata/b3/fullchain.cert",
-			KeyFile:   "../../testdata/b3/server.privkey",
-			OCSPCache: "/tmp/ocsp",
-			URLSet: []util.URLSet{{
-				Sign: &util.URLPattern{
-					Domain:    "amppackageexample.com",
-					PathRE:    stringPtr(".*"),
-					QueryRE:   stringPtr(""),
-					MaxLength: 2000,
-				},
-			}},
-		},
-		pkgt.B3Key,
-		true)
-	assert.NotNil(t, certCache)
-	assert.Equal(t, pkgt.B3Certs[0], certCache.GetLatestCert())
-	assert.Nil(t, err)
-}
-
 func TestLoadCertsFromFile(t *testing.T) {
 	// Cert file does not exist.
-	certs, err := loadCertsFromFile(
+	certs, err := LoadCertsFromFile(
 		&util.Config{
 			CertFile: "file_does_not_exist",
 		},
@@ -75,7 +52,7 @@ func TestLoadCertsFromFile(t *testing.T) {
 	assert.Contains(t, err.Error(), "no such file or directory")
 
 	// Cert file is ok for dev mode.
-	certs, err = loadCertsFromFile(
+	certs, err = LoadCertsFromFile(
 		&util.Config{
 			CertFile: "../../testdata/b3/ca.cert",
 		},
@@ -84,7 +61,7 @@ func TestLoadCertsFromFile(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Cert file is not ok for prod mode.
-	certs, err = loadCertsFromFile(
+	certs, err = LoadCertsFromFile(
 		&util.Config{
 			CertFile: "../../testdata/b3/ca.cert",
 		},

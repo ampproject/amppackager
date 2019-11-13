@@ -17,33 +17,79 @@ package certloader
 import (
 	"crypto"
 	"crypto/x509"
+	"encoding/pem"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/WICG/webpackage/go/signedexchange"
+	"github.com/gofrs/flock"
 	"github.com/pkg/errors"
 
-	"github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/certfetcher"
 	"github.com/ampproject/amppackager/packager/util"
 )
 
-// Creates cert cache by loading certs and keys from disk, doing validation
-// and populating the cert cache with current set of certificate related information.
-// If development mode is true, prints a warning for certs that can't sign HTTP exchanges.
-func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMode bool) (*certcache.CertCache, error) {
-	certs, err := loadCertsFromFile(config, developmentMode)
-	if err != nil {
-		return nil, err
+func CreateCertFetcher(config *util.Config, key crypto.PrivateKey, domain string,
+	developmentMode bool, autoRenewCert bool) (*certfetcher.CertFetcher, error) {
+	if !autoRenewCert {
+		// Certfetcher can be nil, if auto renew is off.
+		return nil, nil
 	}
-	for _, urlSet := range config.URLSet {
-		domain := urlSet.Sign.Domain
-		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
-			return nil, errors.Wrapf(err, "checking %s", config.CertFile)
+
+	if config.ACMEConfig == nil {
+		return nil, errors.New("missing ACMEConfig")
+	}
+
+	var acmeConfig *util.ACMEServerConfig
+	if developmentMode {
+		acmeConfig = config.ACMEConfig.Development
+	} else {
+		acmeConfig = config.ACMEConfig.Production
+	}
+
+	if acmeConfig == nil {
+		if developmentMode {
+			return nil, errors.New("missing ACMEConfig.Development")
+		} else {
+			return nil, errors.New("missing ACMEConfig.Production")
 		}
 	}
-	certCache := certcache.New(certs, config.OCSPCache)
 
-	return certCache, nil
+	if acmeConfig.EmailAddress == "" {
+		return nil, errors.New("missing email address")
+	}
+	emailAddress := acmeConfig.EmailAddress
+	if acmeConfig.DiscoURL == "" {
+		return nil, errors.New("missing acme disco url")
+	}
+	acmeDiscoveryURL := acmeConfig.DiscoURL
+	if acmeConfig.HttpChallengePort == 0 &&
+		acmeConfig.HttpWebRootDir == "" &&
+		acmeConfig.TlsChallengePort == 0 &&
+		acmeConfig.DnsProvider == "" {
+		return nil, errors.New("One of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present.")
+	}
+	httpChallengePort := acmeConfig.HttpChallengePort
+	httpWebRootDir := acmeConfig.HttpWebRootDir
+	tlsChallengePort := acmeConfig.TlsChallengePort
+	dnsProvider := acmeConfig.DnsProvider
+
+	// TODO(banaag): Rather than making publishers create a CSR, generate one using the given KeyFile/CertFile and
+	// https://golang.org/pkg/crypto/x509/#CreateCertificateRequest.
+	csr, err := LoadCSRFromFile(config)
+	if err != nil {
+		return nil, errors.Wrap(err, "missing CSR")
+	}
+
+	// Create the cert fetcher that will auto-renew the cert.
+	certFetcher, err := certfetcher.New(emailAddress, csr, key, acmeDiscoveryURL,
+		httpChallengePort, httpWebRootDir, tlsChallengePort, dnsProvider, true)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating certfetcher")
+	}
+	log.Println("Certfetcher created successfully.")
+	return certFetcher, nil
 }
 
 // Loads X509 certificates from disk.
@@ -55,21 +101,45 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey, developmentMo
 //	 (if developmentMode, print a warning that certs can't
 //	 be used to sign HTTP exchanges).
 // If there are no errors, the array of certificates is returned.
-func loadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certificate, error) {
-	// TODO(twifkak): Document what cert/key storage formats this accepts.
-	certPem, err := ioutil.ReadFile(config.CertFile)
+func LoadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certificate, error) {
+	return LoadAndValidateCertsFromFile(config.CertFile, !developmentMode)
+}
+
+func LoadAndValidateCertsFromFile(certPath string, requireSign bool) ([]*x509.Certificate, error) {
+	// Use independent .lock file; necessary on Windows to avoid "The process cannot
+	// access the file because another process has locked a portion of the file."
+	lockPath := certPath + ".lock"
+	lock := flock.New(lockPath)
+	locked, err := lock.TryRLock()
 	if err != nil {
-		return nil, errors.Wrapf(err, "reading %s", config.CertFile)
+		return nil, errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
+	}
+	if !locked {
+		return nil, errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
+	}
+	defer func() {
+		if err = lock.Unlock(); err != nil {
+			log.Printf("Error unlocking %s; %+v", lockPath, err)
+		}
+		if err := os.Remove(lockPath); err != nil {
+			log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+	}()
+
+	// TODO(twifkak): Document what cert/key storage formats this accepts.
+	certPem, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading %s", certPath)
 	}
 	certs, err := signedexchange.ParseCertificates(certPem)
 	if err != nil {
-		return nil, errors.Wrapf(err, "parsing %s", config.CertFile)
+		return nil, errors.Wrapf(err, "parsing %s", certPath)
 	}
 	if certs == nil || len(certs) == 0 {
-		return nil, errors.Errorf("no cert found in %s", config.CertFile)
+		return nil, errors.Errorf("no cert found in %s", certPath)
 	}
 	if err := util.CanSignHttpExchanges(certs[0]); err != nil {
-		if developmentMode {
+		if !requireSign {
 			log.Println("WARNING:", err)
 		} else {
 			return nil, err
@@ -77,6 +147,93 @@ func loadCertsFromFile(config *util.Config, developmentMode bool) ([]*x509.Certi
 	}
 
 	return certs, nil
+}
+
+func WriteCertsToFile(certs []*x509.Certificate, filepath string) error {
+	if len(certs) < 2 {
+		return errors.New("Missing issuer in bundle")
+	}
+
+	// Use independent .lock file; necessary on Windows to avoid "The process cannot
+	// access the file because another process has locked a portion of the file."
+	lockPath := filepath + ".lock"
+	lock := flock.New(lockPath)
+	locked, err := lock.TryLock()
+	if err != nil {
+		return errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
+	}
+	if !locked {
+		return errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
+	}
+	defer func() {
+		if err = lock.Unlock(); err != nil {
+			log.Printf("Error unlocking %s; %+v", lockPath, err)
+		}
+		if err := os.Remove(lockPath); err != nil {
+			log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+	}()
+
+	bundled := []byte{}
+	for _, cert := range certs {
+		pem := certToPEM(cert)
+		bundled = append(bundled, pem...)
+	}
+	if err := ioutil.WriteFile(filepath, bundled, 0600); err != nil {
+		return errors.Wrapf(err, "writing %s", filepath)
+	}
+
+	return nil
+}
+
+func RemoveFile(filepath string) error {
+	// Use independent .lock file; necessary on Windows to avoid "The process cannot
+	// access the file because another process has locked a portion of the file."
+	lockPath := filepath + ".lock"
+	lock := flock.New(lockPath)
+	locked, err := lock.TryLock()
+	if err != nil {
+		return errors.Wrapf(err, "obtaining exclusive lock for %s", lockPath)
+	}
+	if !locked {
+		return errors.Errorf("unable to obtain exclusive lock for %s", lockPath)
+	}
+	defer func() {
+		if err = lock.Unlock(); err != nil {
+			log.Printf("Error unlocking %s; %+v", lockPath, err)
+		}
+		if err := os.Remove(lockPath); err != nil {
+			log.Printf("Error removing %s; %+v", lockPath, err)
+		}
+	}()
+
+	if err := os.Remove(filepath); err != nil {
+		return errors.Wrapf(err, "removing %s", filepath)
+	}
+
+	return nil
+}
+
+func certToPEM(cert *x509.Certificate) []byte {
+	pemCert := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
+
+	return pemCert
+}
+
+func LoadCSRFromFile(config *util.Config) (*x509.CertificateRequest, error) {
+	data, err := ioutil.ReadFile(config.CSRFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading %s", config.CSRFile)
+	}
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, errors.Errorf("pem decode: no key found in %s", config.CSRFile)
+	}
+	csr, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		return nil, errors.Wrapf(err, "parsing CSR %s", config.CSRFile)
+	}
+	return csr, nil
 }
 
 // Loads private key from file.

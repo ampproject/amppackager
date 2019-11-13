@@ -2,8 +2,8 @@ package util
 
 import (
 	"fmt"
-	"regexp"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -43,13 +43,13 @@ var ConditionalRequestHeaders = map[string]bool{
 // Proxy-Connection should also be deleted, per
 // https://github.com/WICG/webpackage/pull/339.
 var legacyHeaders = map[string]bool{
-	"Connection": true,
-	"Keep-Alive": true,
+	"Connection":         true,
+	"Keep-Alive":         true,
 	"Proxy-Authenticate": true,
-	"Proxy-Connection": true,
-	"Trailer": true,
-	"Transfer-Encoding": true,
-	"Upgrade": true,
+	"Proxy-Connection":   true,
+	"Trailer":            true,
+	"Transfer-Encoding":  true,
+	"Upgrade":            true,
 }
 
 // Via is implicitly forwarded and disallowed to be included in
@@ -59,8 +59,8 @@ var legacyHeaders = map[string]bool{
 // remove it to mitigate the risk of over-signing.
 var notForwardedRequestHeader = map[string]bool{
 	"Proxy-Authorization": true,
-	"Te": true,
-	"Via": true,
+	"Te":                  true,
+	"Via":                 true,
 }
 
 // Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
