@@ -39,15 +39,17 @@ type URLSet struct {
 }
 
 type URLPattern struct {
-	Scheme                 []string
+        CertFile               string
 	DomainRE               string
 	Domain                 string
+        ErrorOnStatefulHeaders bool
+        KeyFile                string
+        MaxLength              int
 	PathRE                 *string
 	PathExcludeRE          []string
 	QueryRE                *string
-	ErrorOnStatefulHeaders bool
-	MaxLength              int
 	SamePath               *bool
+        Scheme                 []string
 }
 
 // TODO(twifkak): Extract default values into a function separate from the one
@@ -195,9 +197,10 @@ func ReadConfig(configBytes []byte) (*Config, error) {
 				return nil, errors.Wrapf(err, "parsing URLSet.%d.Fetch", i)
 			}
 		}
-		if err := ValidateSignURLPattern(config.URLSet[i].Sign); err != nil {
+	        //fmt.Printf("%+v\n", config.URLSet[i].Sign)
+	        if err := ValidateSignURLPattern(config.URLSet[i].Sign); err != nil {
 			return nil, errors.Wrapf(err, "parsing URLSet.%d.Sign", i)
-		}
+	        }
 	}
 	return &config, nil
 }

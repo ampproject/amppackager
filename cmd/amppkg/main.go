@@ -18,6 +18,8 @@
 package main
 
 import (
+	"crypto"
+	"crypto/x509"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -74,37 +76,26 @@ func main() {
 	}
 
 	// TODO(twifkak): Document what cert/key storage formats this accepts.
-	certPem, err := ioutil.ReadFile(config.CertFile)
-	if err != nil {
-		die(errors.Wrapf(err, "reading %s", config.CertFile))
-	}
-	keyPem, err := ioutil.ReadFile(config.KeyFile)
-	if err != nil {
-		die(errors.Wrapf(err, "reading %s", config.KeyFile))
-	}
-
-	certs, err := signedexchange.ParseCertificates(certPem)
-	if err != nil {
-		die(errors.Wrapf(err, "parsing %s", config.CertFile))
-	}
-	if certs == nil || len(certs) == 0 {
-		die(fmt.Sprintf("no cert found in %s", config.CertFile))
-	}
-	if err := util.CanSignHttpExchanges(certs[0], time.Now()); err != nil {
-		if *flagDevelopment || *flagInvalidCert {
-			log.Println("WARNING:", err)
-		} else {
-			die(err)
-		}
-	}
-
-	key, err := util.ParsePrivateKey(keyPem)
-	if err != nil {
-		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
-	}
+	certPem := readFile(config.CertFile)
+	keyPem := readFile(config.KeyFile)
+	certs := parseCertificates(certPem, config.CertFile)
+	canSignHttpExchanges(certs[0], time.Now())
+	key := parsePrivateKey(keyPem, config.KeyFile)
 
 	for _, urlSet := range config.URLSet {
 		domain := urlSet.Sign.Domain
+		// Check for CertFile and/or KeyFile for usage, otherwise use the one
+		// defined at the top level.
+		signCert := urlSet.Sign.CertFile
+		if signCert != "" {
+			certPem = readFile(signCert)
+			certs := parseCertificates(certPem, signCert)
+			canSignHttpExchanges(certs[0], time.Now())
+		}
+		if urlSet.Sign.KeyFile != "" {
+			keyPem = readFile(urlSet.Sign.KeyFile)
+			key = parsePrivateKey(keyPem, urlSet.Sign.KeyFile)
+		}
 		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
 			die(errors.Wrapf(err, "checking %s", config.CertFile))
 		}
@@ -135,7 +126,7 @@ func main() {
 	}
 
 	signer, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
+		overrideBaseURL /*requireHeaders=*/, !*flagDevelopment, config.ForwardedRequestHeaders)
 	if err != nil {
 		die(errors.Wrap(err, "building signer"))
 	}
@@ -179,4 +170,41 @@ func main() {
 	} else {
 		log.Fatal(server.ListenAndServe())
 	}
+}
+
+func canSignHttpExchanges(cert *x509.Certificate, now time.Time) {
+	if err := util.CanSignHttpExchanges(cert, time.Now()); err != nil {
+		if *flagDevelopment || *flagInvalidCert {
+			log.Println("WARNING:", err)
+		} else {
+			die(err)
+		}
+	}
+}
+
+func readFile(fileName string) []byte {
+	file, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		die(errors.Wrapf(err, "reading %s", fileName))
+	}
+	return file
+}
+
+func parseCertificates(certPem []byte, certFileName string) []*x509.Certificate {
+	certs, err := signedexchange.ParseCertificates(certPem)
+	if err != nil {
+		die(errors.Wrapf(err, "parsing %s", certFileName))
+	}
+	if certs == nil || len(certs) == 0 {
+		die(fmt.Sprintf("no cert found in %s", certFileName))
+	}
+	return certs
+}
+
+func parsePrivateKey(keyPem []byte, keyFileName string) crypto.PrivateKey {
+	key, err := util.ParsePrivateKey(keyPem)
+	if err != nil {
+		die(errors.Wrapf(err, "parsing %s", keyFileName))
+	}
+	return key
 }
