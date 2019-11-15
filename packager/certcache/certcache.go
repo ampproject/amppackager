@@ -58,7 +58,7 @@ const ocspCheckInterval = 1 * time.Hour
 const certCheckInterval = 24 * time.Hour
 
 // Max number of OCSP request tries.
-// This will timeout after 2^10 minutes or ~16 hours.
+// This will timeout after 1 + 2 + 4 + 8 + 10 * 6 = 75 minutes.
 const maxOCSPTries = 10
 
 // Recommended renewal duration for certs. This is duration before next cert expiry.
@@ -108,7 +108,7 @@ type CertCache struct {
 // Callers can use the uninitialized CertCache for testing certificates (without doing OCSP or
 // cert refreshes).
 //
-// TODO(banaag): per greigable@ comments:
+// TODO(banaag): per gregable@ comments:
 // The long argument list makes the callsites tricky to read and easy to get wrong, especially if several of the arguments have the same type.
 //
 // An alternative pattern would be to create an IsInitialized() bool or similarly named function that verifies all of the required fields have
@@ -358,13 +358,6 @@ func (this *CertCache) readOCSPHelper(numTries int, exhaustedRetries bool) ([]by
 }
 
 // Returns the OCSP response and expiry, refreshing if necessary.
-// TODO(banaag): Per twifkak's suggestion, consider:
-// It may also be interesting to try to separate the retry logic from the fetch logic. One approach comes to mind:
-//
-// retryWithBackoff(func() {
-//   ocsp, err := ...
-//   return true if successful
-// }, initialWaitTime, maxTries)
 func (this *CertCache) readOCSP(allowRetries bool) ([]byte, time.Time, error) {
 	var ocspUpdateAfter time.Time
 	var err error
