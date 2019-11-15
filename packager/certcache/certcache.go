@@ -823,8 +823,12 @@ func (this *CertCache) reloadCertIfExpired() {
 func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 	developmentMode bool, autoRenewCert bool) (*CertCache, error) {
 
-	if config.CertFile == "" || config.NewCertFile == "" {
-		return nil, errors.New("Missing cert file and new cert file paths in config.")
+	if config.CertFile == "" {
+		return nil, errors.New("Missing cert file path in config.")
+	}
+
+	if autoRenewCert && config.NewCertFile == "" {
+		return nil, errors.New("Missing new cert file path in config.")
 	}
 
 	certs, err := certloader.LoadCertsFromFile(config, developmentMode)
