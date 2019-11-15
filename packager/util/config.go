@@ -206,7 +206,7 @@ func ReadConfig(configBytes []byte) (*Config, error) {
 			if port, err := strconv.Atoi(os.Getenv("PORT")); err == nil {
 				config.Port = port
 			} else {
-				return nil, errors.New("environment variable PORT is not an integer")
+				return nil, errors.Errorf("environment variable PORT is \"%s\", not an integer", os.Getenv("PORT"))
 			}
 		} else {
 			config.Port = 8080
