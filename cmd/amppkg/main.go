@@ -84,7 +84,7 @@ func main() {
 		die(errors.Wrap(err, "loading key file"))
 	}
 
-	certCache, err := certloader.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert);
+	certCache, err := certloader.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert)
 	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
@@ -95,7 +95,7 @@ func main() {
 		} else {
 			die(errors.Wrap(err, "initializing cert cache"))
 		}
-        }
+	}
 
 	healthz, err := healthz.New(certCache)
 	if err != nil {
@@ -118,7 +118,7 @@ func main() {
 	}
 
 	signer, err := signer.New(certCache, key, config.PublicDir, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
+		overrideBaseURL /*requireHeaders=*/, !*flagDevelopment, config.ForwardedRequestHeaders)
 	if err != nil {
 		die(errors.Wrap(err, "building signer"))
 	}
@@ -148,11 +148,11 @@ func main() {
 
 	// TODO(twifkak): Add monitoring (e.g. per the above Cloudflare blog).
 
-	var d []string
-	for i := range config.URLSet {
-		d = append(d, config.URLSet[i].Sign.Domain)
+	var domains []string
+	for _, urlset := range config.URLSet {
+		domains = append(domains, urlset.Sign.Domain)
 	}
-	log.Printf("Serving SXG for \"%s\" on port %d\n", strings.Join(d, ", "), config.Port)
+	log.Printf("Serving SXG for \"%s\" on port %d\n", strings.Join(domains, ", "), config.Port)
 
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,
 	// follow the above Cloudflare blog.

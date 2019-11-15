@@ -141,23 +141,23 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 func New(certHandler certcache.CertHandler, key crypto.PrivateKey, publicDir string, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() error, overrideBaseURL *url.URL,
 	requireHeaders bool, forwardedRequestHeaders []string) (*Signer, error) {
-	var rt http.RoundTripper
+	var roundTripper http.RoundTripper
 	if publicDir != "" {
-		t := &http.Transport{}
+		transport := &http.Transport{}
 		r := http.NewFileTransport(http.Dir(publicDir))
-		t.RegisterProtocol("http", r)
-		t.RegisterProtocol("https", r)
-		log.Printf("AMP source is \"%s\"", publicDir)
-		rt = t
+		transport.RegisterProtocol("http", r)
+		transport.RegisterProtocol("https", r)
+		log.Printf("AMP pages will be fetched from the directory \"%s\"", publicDir)
+		roundTripper = transport
 	} else {
-		rt = http.DefaultTransport
-		log.Printf("AMP source is network")
+		roundTripper = http.DefaultTransport
+		log.Printf("AMP pages will be fetched from network")
 	}
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout:   60 * time.Second,
-		Transport: rt,
+		Transport: roundTripper,
 	}
 
 	return &Signer{certHandler, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders}, nil

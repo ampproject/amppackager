@@ -1,6 +1,7 @@
 # This is a TOML 0.4.0 file, as specified by https://github.com/toml-lang/toml.
 
-# The port to listen on; 8080 is the default.
+# The port to listen on. If unspecified, will fall back to: (1) the environment
+# variable PORT; and finally (2) 8080.
 # Port = 8080
 
 # Uncomment this line to serve only to localhost clients, e.g. for testing, by

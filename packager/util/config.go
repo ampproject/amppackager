@@ -25,10 +25,10 @@ import (
 )
 
 type Config struct {
-	LocalOnly	bool
-	Port		int
-	CertFile	string // This must be the full certificate chain.
-	KeyFile		string // Just for the first cert, obviously.
+	LocalOnly bool
+	Port      int
+	CertFile  string // This must be the full certificate chain.
+	KeyFile   string // Just for the first cert, obviously.
 
 	// When set, both CertFile and NewCertFile will be read/write. CertFile and
 	// NewCertFile will be set when both are valid and that once CertFile becomes
@@ -36,12 +36,12 @@ type Config struct {
 	// will be set to empty.  This will also apply to disk copies as well (which
 	// we may require to be some sort of shared filesystem, if multiple replicas of
 	// ammpackager are running).
-	NewCertFile	string // The new full certificate chain replacing the expired one.
-	OCSPCache	string
+	NewCertFile             string // The new full certificate chain replacing the expired one.
+	OCSPCache               string
 	PublicDir               string
 	ForwardedRequestHeaders []string
-	URLSet		[]URLSet
-	ACMEConfig	*ACMEConfig
+	URLSet                  []URLSet
+	ACMEConfig              *ACMEConfig
 }
 
 type URLSet struct {
@@ -62,14 +62,14 @@ type URLPattern struct {
 }
 
 type ACMEConfig struct {
-	Production	*ACMEServerConfig
-	Development	*ACMEServerConfig
+	Production  *ACMEServerConfig
+	Development *ACMEServerConfig
 }
 
 type ACMEServerConfig struct {
-	DiscoURL	string // ACME Directory Resource URL
-	AccountURL	string // ACME Account URL. If non-empty, we
-			       // will auto-renew cert via ACME.
+	DiscoURL   string // ACME Directory Resource URL
+	AccountURL string // ACME Account URL. If non-empty, we
+	// will auto-renew cert via ACME.
 }
 
 // TODO(twifkak): Extract default values into a function separate from the one
@@ -187,8 +187,12 @@ func ReadConfig(configBytes []byte) (*Config, error) {
 	// TODO(twifkak): Return an error if the TOML includes any fields that aren't part of the Config struct.
 
 	if config.Port == 0 {
-		if i, err := strconv.ParseInt(os.Getenv("PORT"), 10, 32); err == nil {
-			config.Port = int(i)
+		if os.Getenv("PORT") != "" {
+			if port, err := strconv.Atoi(os.Getenv("PORT")); err == nil {
+				config.Port = port
+			} else {
+				return nil, errors.New("environment variable PORT is not an integer")
+			}
 		} else {
 			config.Port = 8080
 		}
