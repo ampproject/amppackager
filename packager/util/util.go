@@ -100,7 +100,7 @@ func CanSignHttpExchanges(cert *x509.Certificate) error {
 	if !hasCanSignHttpExchangesExtension(cert) {
 		return errors.New("Certificate is missing CanSignHttpExchanges extension")
 	}
-	if cert.NotBefore.AddDate(0,0,90).Before(cert.NotAfter) {
+	if cert.NotBefore.AddDate(0, 0, 90).Before(cert.NotAfter) {
 		return errors.New("Certificate MUST have a Validity Period no greater than 90 days")
 	}
 	return nil

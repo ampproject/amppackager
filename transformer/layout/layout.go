@@ -86,8 +86,8 @@ func ApplyLayout(n *html.Node) error {
 	}
 	actualLayout, err := getNormalizedLayout(
 		inputLayout, dimensions,
-		htmlnode.GetAttributeValOrNil(n, "", "sizes"),
-		htmlnode.GetAttributeValOrNil(n, "", "heights"))
+		htmlnode.HasAttributeAndIsNotEmpty(n, "", "sizes"),
+		htmlnode.HasAttributeAndIsNotEmpty(n, "", "heights"))
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func getNormalizedDimensions(n *html.Node, layout amppb.AmpLayout_Layout) (cssDi
 
 // getNormalizedLayout returns the normalized AmpLayout based on the
 // provided dimensions, or an error if it is not supported.
-func getNormalizedLayout(layout amppb.AmpLayout_Layout, dimensions cssDimensions, sizes, heights *string) (amppb.AmpLayout_Layout, error) {
+func getNormalizedLayout(layout amppb.AmpLayout_Layout, dimensions cssDimensions, sizes, heights bool) (amppb.AmpLayout_Layout, error) {
 	var result amppb.AmpLayout_Layout
 	if layout != amppb.AmpLayout_UNKNOWN {
 		result = layout
@@ -153,7 +153,7 @@ func getNormalizedLayout(layout amppb.AmpLayout_Layout, dimensions cssDimensions
 		result = amppb.AmpLayout_FLUID
 	} else if dimensions.height.isSet && (!dimensions.width.isSet || dimensions.width.isAuto) {
 		result = amppb.AmpLayout_FIXED_HEIGHT
-	} else if dimensions.height.isSet && dimensions.width.isSet && (sizes != nil || heights != nil) {
+	} else if dimensions.height.isSet && dimensions.width.isSet && (sizes || heights) {
 		result = amppb.AmpLayout_RESPONSIVE
 	} else {
 		result = amppb.AmpLayout_FIXED

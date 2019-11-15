@@ -131,7 +131,9 @@ For now, productionizing is a bit manual. The minimum steps are:
      team will release a new version approximately this often. Soon after each
      release, Googlebot will increment the version it requests with
      `AMP-Cache-Transform`. Googlebot will only allow the latest 2-3 versions
-     (details are still TBD), so an update is necessary but not immediately.
+     (details are still TBD), so an update is necessary but not immediately. If
+     amppkg doesn't support the requested version range, it will fall back to
+     serving unsigned AMP.
 
      To keep subscribed to releases, you can select "Releases only" from the
      "Watch" dropdown in GitHub, or use [various tools](https://stackoverflow.com/questions/9845655/how-do-i-get-notifications-for-commits-to-a-repository)

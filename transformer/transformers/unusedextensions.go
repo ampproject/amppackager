@@ -22,17 +22,17 @@ import (
 	"golang.org/x/net/html"
 )
 
-// elementGrandfatheredExtensions are names of elements that indicate usage
+// elementExemptedExtensions are names of elements that indicate usage
 // of an equally named extension. e.g. If the <amp-iframe> element is present,
 // then the amp-iframe extension is in use. Used by insertMatchingExtensions.
-var /* const */ elementGrandfatheredExtensions = map[string]string{"amp-accordion": "", "amp-ad": "", "amp-anim": "", "amp-apester-media": "", "amp-audio": "", "amp-brid-player": "", "amp-brightcove": "", "amp-call-tracking": "", "amp-carousel": "", "amp-dailymotion": "", "amp-experiment": "", "amp-facebook": "", "amp-fit-text": "", "amp-font": "", "amp-fx-flying-carpet": "", "amp-gfycat": "", "amp-iframe": "", "amp-image-lightbox": "", "amp-instagram": "", "amp-install-serviceworker": "", "amp-izlesene": "", "amp-jwplayer": "", "amp-kaltura-player": "", "amp-lightbox": "", "amp-list": "", "amp-live-list": "", "amp-o2-player": "", "amp-pinterest": "", "amp-reach-player": "", "amp-selector": "", "amp-sidebar": "", "amp-social-share": "", "amp-soundcloud": "", "amp-springboard-player": "", "amp-sticky-ad": "", "amp-twitter": "", "amp-user-notification": "", "amp-vimeo": "", "amp-vine": "", "amp-youtube": ""}
+var /* const */ elementExemptedExtensions = map[string]string{"amp-accordion": "", "amp-ad": "", "amp-anim": "", "amp-apester-media": "", "amp-audio": "", "amp-brid-player": "", "amp-brightcove": "", "amp-call-tracking": "", "amp-carousel": "", "amp-dailymotion": "", "amp-experiment": "", "amp-facebook": "", "amp-fit-text": "", "amp-font": "", "amp-fx-flying-carpet": "", "amp-gfycat": "", "amp-iframe": "", "amp-image-lightbox": "", "amp-instagram": "", "amp-install-serviceworker": "", "amp-izlesene": "", "amp-jwplayer": "", "amp-kaltura-player": "", "amp-lightbox": "", "amp-list": "", "amp-live-list": "", "amp-o2-player": "", "amp-pinterest": "", "amp-reach-player": "", "amp-selector": "", "amp-sidebar": "", "amp-social-share": "", "amp-soundcloud": "", "amp-springboard-player": "", "amp-sticky-ad": "", "amp-twitter": "", "amp-user-notification": "", "amp-vimeo": "", "amp-vine": "", "amp-youtube": ""}
 
-// differentElementGrandfatheredExtensions are names of extensions that indicate
+// differentElementExemptedExtensions are names of extensions that indicate
 // usage by a differently named tag or tag with attribute. e.g. If the <form>
 // element is present, then the amp-form extension is in use.
-var /* const */ differentElementGrandfatheredExtensions = map[string]string{"amp-access": "", "amp-form": "", "amp-mustache": ""}
+var /* const */ differentElementExemptedExtensions = map[string]string{"amp-access": "", "amp-form": "", "amp-mustache": ""}
 
-// UnusedExtensions removes script tags for unused grandfathered extensions.
+// UnusedExtensions removes script tags for unused legacy-exempted extensions.
 func UnusedExtensions(e *Context) error {
 	extensionsUsed := make(map[string]string)
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
@@ -40,7 +40,7 @@ func UnusedExtensions(e *Context) error {
 	}
 	for c := e.DOM.HeadNode.FirstChild; c != nil; c = c.NextSibling {
 		if ext, ok := amphtml.AMPExtensionName(c); ok {
-			if len(ext) > 0 && (isStringKeyInMap(ext, elementGrandfatheredExtensions) || isStringKeyInMap(ext, differentElementGrandfatheredExtensions)) && !isStringKeyInMap(ext, extensionsUsed) {
+			if len(ext) > 0 && (isStringKeyInMap(ext, elementExemptedExtensions) || isStringKeyInMap(ext, differentElementExemptedExtensions)) && !isStringKeyInMap(ext, extensionsUsed) {
 				htmlnode.RemoveNode(&c)
 			}
 		}
@@ -55,8 +55,7 @@ func UnusedExtensions(e *Context) error {
 // extension that's needed).
 //
 // This logic should match the requires_extension fields in the
-// validator-*.protoascii files that correspond to GRANDFATHERED
-// extension_specs.
+// validator-*.protoascii files that correspond to EXEMPTED extension_specs.
 func insertMatchingExtensions(n *html.Node, e map[string]string) {
 	if n.Type != html.ElementNode {
 		return
@@ -76,7 +75,7 @@ func insertMatchingExtensions(n *html.Node, e map[string]string) {
 	case "template":
 		e["amp-mustache"] = ""
 	default:
-		if _, ok := elementGrandfatheredExtensions[n.Data]; ok {
+		if _, ok := elementExemptedExtensions[n.Data]; ok {
 			e[n.Data] = ""
 		}
 	}
