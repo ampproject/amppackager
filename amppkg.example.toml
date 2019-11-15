@@ -59,9 +59,11 @@ KeyFile = './pems/privkey.pem'
 # locking; consider this especially when utilizing network-mounted storage.
 OCSPCache = '/tmp/amppkg-ocsp'
 
-# If a PublicDir is specified, amppkg will look in this directory for
-# valid AMPs to package (instead of fetching AMPs from the network).
-# PublicDir = "public"
+# If a PublicDir is specified, amppkg will look in this directory for valid AMPs
+# to package (instead of fetching AMPs from the network). The host is ignored,
+# as is the query string. For example a request for
+# https://amppackageexample.com/foo/page?q=bar will return "./public/foo/page".
+# PublicDir = "./public"
 
 # The list of request header names to be forwarded in a fetch request.
 # Hop-by-hop headers, conditional request headers and Via cannot be included.
