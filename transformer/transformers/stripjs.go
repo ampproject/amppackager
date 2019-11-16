@@ -69,10 +69,13 @@ func StripJS(e *Context) error {
 						htmlnode.RemoveNode(&n)
 					}
 				case "text/plain":
-					// ok to keep only for children of template (amp-mustache)
-					if !htmlnode.IsDescendantOf(n, atom.Template) {
-						htmlnode.RemoveNode(&n)
+					// ok to keep only when attribute template=amp-mustache is present
+					if t, ok := htmlnode.GetAttributeVal(n, "", "template"); ok {
+						if t == "amp-mustache" {
+							continue
+						}
 					}
+					htmlnode.RemoveNode(&n)
 				default:
 					htmlnode.RemoveNode(&n)
 				}
