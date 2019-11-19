@@ -39,15 +39,17 @@ type URLSet struct {
 }
 
 type URLPattern struct {
-	Scheme                 []string
-	DomainRE               string
-	Domain                 string
-	PathRE                 *string
-	PathExcludeRE          []string
-	QueryRE                *string
-	ErrorOnStatefulHeaders bool
-	MaxLength              int
-	SamePath               *bool
+  CertFile               string
+  DomainRE               string
+  Domain                 string
+  ErrorOnStatefulHeaders bool
+  KeyFile                string
+  MaxLength              int
+  PathRE                 *string
+  PathExcludeRE          []string
+  QueryRE                *string
+  SamePath               *bool
+  Scheme                 []string  
 }
 
 // TODO(twifkak): Extract default values into a function separate from the one
