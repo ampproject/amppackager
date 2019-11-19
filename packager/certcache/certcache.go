@@ -375,13 +375,14 @@ func (this *CertCache) readOCSP(allowRetries bool) ([]byte, time.Time, error) {
 	for numTries := 0; numTries < maxTries; {
 		ocsp, ocspUpdateAfter, err = this.readOCSPHelper(numTries, numTries >= maxTries - 1)
 		if err != nil {
-			if numTries >= maxTries - 1 {
-				return nil, ocspUpdateAfter, err
-			} else {
-				numTries++
-				waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
-				continue
-			}
+			return nil, ocspUpdateAfter, err
+		}
+		if !this.shouldUpdateOCSP(ocsp) {
+			break;
+		}
+		// Wait only if are not on our last try.
+		if numTries < maxTries - 1 {
+			waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
 		}
 		numTries++
 	}
