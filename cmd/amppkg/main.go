@@ -84,17 +84,23 @@ func main() {
 
   for _, urlSet := range config.URLSet {
     domain := urlSet.Sign.Domain
-    // Check for CertFile and/or KeyFile for usage, otherwise use the one
+    // Check for Sign level CertFile and/or KeyFile, otherwise use the one
     // defined at the top level.
     signCert := urlSet.Sign.CertFile
     if signCert != "" {
+      fmt.Println("Using Cert: ", signCert, "for domain: ", domain)
       certPem = readFile(signCert)
-      certs := parseCertificates(certPem, signCert)
+      certs = parseCertificates(certPem, signCert)
       canSignHttpExchanges(certs[0], time.Now())
+    } else {
+      fmt.Println("Using Cert: ", config.CertFile, "for domain: ", domain)
     }
     if urlSet.Sign.KeyFile != "" {
+      fmt.Println("Using key: ", urlSet.Sign.KeyFile, "for domain: ", domain)
       keyPem = readFile(urlSet.Sign.KeyFile)
       key = parsePrivateKey(keyPem, urlSet.Sign.KeyFile)
+    } else {
+      fmt.Println("Using Key: ", config.KeyFile, "for domain: ", domain)
     }
     if err := util.CertificateMatches(certs[0], key, domain); err != nil {
       die(errors.Wrapf(err, "checking %s", config.CertFile))
