@@ -90,6 +90,12 @@ ForwardedRequestHeaders = []
     # certificate must cover this domain.
     Domain = "amppackageexample.com"
 
+    # The CertFile used, defaulting to the top level defined CertFile if not provided.
+    # CertFile = "./pems/amppackageexample.com/cert.pem"
+    
+    # The KeyFile used, defaulting to the top level defined KeyFile if not provided.
+    # KeyFile = "./pems/amppackageexample.com/privkey.pem"
+
     # A full-match regexp on the path (not including the ?query). Defaults to
     # ".*".
     #
