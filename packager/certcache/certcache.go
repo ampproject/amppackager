@@ -872,7 +872,7 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 	if err != nil {
 		return nil, errors.Wrap(err, "creating cert fetcher from config.")
 	}
-	certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache)
+	certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache, developmentMode)
 
 	return certCache, nil
 }
