@@ -316,7 +316,7 @@ func (this *CertCache) isHealthy(ocspResp []byte) error {
 	}
 	resp, err := ocsp.ParseResponseForCert(ocspResp, this.getCert(), issuer)
 	if err != nil {
-		return errors.Wrap(err, "Error parsing OCSP response.")
+		return errors.Wrap(err, "Error parsing OCSP response")
 	}
 	if resp.NextUpdate.Before(time.Now()) {
 		return errors.Errorf("Cached OCSP is stale, NextUpdate: %v", resp.NextUpdate)
@@ -348,7 +348,7 @@ func (this *CertCache) readOCSPHelper(numTries int, exhaustedRetries bool) ([]by
 	}
 	if err := this.isHealthy(ocsp); err != nil {
 		if exhaustedRetries {
-			return nil, time.Time{}, errors.Wrap(err, "OCSP failed health check.")
+			return nil, time.Time{}, errors.Wrap(err, "OCSP failed health check")
 		} else {
 			return nil, time.Time{}, nil
 		}
@@ -801,7 +801,7 @@ func (this *CertCache) reloadCertIfExpired() {
 	// it doesn't matter because the old certs won't be overridden (and the old certs are probably invalid, too).
 	certs, err := certloader.LoadAndValidateCertsFromFile(this.CertFile, true)
 	if err != nil {
-		log.Println(errors.Wrap(err, "Can't load cert file."))
+		log.Println(errors.Wrap(err, "Can't load cert file"))
 		certs = nil
 	}
 	if certs != nil {
@@ -810,7 +810,7 @@ func (this *CertCache) reloadCertIfExpired() {
 
 	newCerts, err := certloader.LoadAndValidateCertsFromFile(this.NewCertFile, true)
 	if err != nil {
-		log.Println(errors.Wrap(err, "Can't load new cert file."))
+		log.Println(errors.Wrap(err, "Can't load new cert file"))
 		newCerts = nil
 	}
 	if newCerts != nil {
@@ -834,7 +834,7 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 
 	certs, err := certloader.LoadCertsFromFile(config, developmentMode)
 	if err != nil {
-		log.Println(errors.Wrap(err, "Can't load cert file."))
+		log.Println(errors.Wrap(err, "Can't load cert file"))
 		certs = nil
 	}
 	domain := ""
@@ -849,7 +849,7 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 
 	certFetcher, err := certloader.CreateCertFetcher(config, key, domain, developmentMode, autoRenewCert)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating cert fetcher from config.")
+		return nil, errors.Wrap(err, "creating cert fetcher from config")
 	}
 	certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache)
 
