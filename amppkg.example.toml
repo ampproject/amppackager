@@ -221,12 +221,10 @@ ForwardedRequestHeaders = []
     # doles out the certificates.
     # Currently, the only CA that supports automatic signed exchange cert renewals is Digicert:
     # https://docs.digicert.com/certificate-tools/acme-user-guide/acme-directory-urls-signed-http-exchange-certificates/
-
     # DiscoURL = "https://production-acme.discovery.url/"
 
     # This is the email address you used to create an account with the Certificate Authority that is registered to
     # request signed exchange certificates.
-
     # EmailAddress = "user@company.com"
 
     # For the remaining configuration items, it's important to understand the different challenges employed as
@@ -258,6 +256,7 @@ ForwardedRequestHeaders = []
     # the DNS provider that you use to fulfill the DNS challenge.  See:
     # 	https://go-acme.github.io/lego/dns/
     # DnsProvider = "gcloud"
+
   # This config will be used if 'autorenewcert' is turned on and 'development' is turned on.
   # If the flags above are on but we don't have an entry here, AMP Packager will not start.
   # All the other fields below have the same semantics as the one in ACMEConfig.Production above.
@@ -269,4 +268,3 @@ ForwardedRequestHeaders = []
     # HttpWebRootDir = '/path/to/www_root_dir'
     # TlsChallengePort = 5003
     # DnsProvider = "gcloud"
-
