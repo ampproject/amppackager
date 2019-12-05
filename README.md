@@ -34,7 +34,7 @@ own and can obtain certificates for.
   1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
      is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
-  2. `go get -u github.com/ampproject/amppackager/cmd/amppkg`
+  2. `go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg`
 
      Optionally, move the built `~/go/bin/amppkg` wherever you like.
   3. Create a file `amppkg.toml`. A minimal config looks like this:
