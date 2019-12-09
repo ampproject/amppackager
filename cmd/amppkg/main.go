@@ -18,6 +18,7 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -87,7 +88,12 @@ func main() {
 		die(errors.Wrap(err, "loading key file"))
 	}
 
-	certCache, err := certcache.PopulateCertCache(config, key, *flagDevelopment || *flagInvalidCert, *flagAutoRenewCert)
+	var responder certcache.OCSPResponder = nil
+	if *flagDevelopment {
+		// Key is guaranteed to be ECDSA by signedexchange.ParsePrivateKey. This may change in future versions of SXG.
+		responder = fakeOCSPResponder{key: key.(*ecdsa.PrivateKey)}.Respond
+	}
+	certCache, err := certcache.PopulateCertCache(config, key, responder, *flagDevelopment || *flagInvalidCert, *flagAutoRenewCert)
 	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
