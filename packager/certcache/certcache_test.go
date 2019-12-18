@@ -68,7 +68,6 @@ type CertCacheSuite struct {
 	ocspServerWasCalled bool
 	ocspHandler         func(w http.ResponseWriter, req *http.Request)
 	tempDir             string
-	stop                chan struct{}
 	handler             *CertCache
 }
 
@@ -93,7 +92,7 @@ func (this *CertCacheSuite) New() (*CertCache, error) {
 			return defaultHttpExpiry(req, resp)
 		}
 	}
-	err := certCache.Init(this.stop)
+	err := certCache.Init()
 	return certCache, err
 }
 
@@ -121,8 +120,6 @@ func (this *CertCacheSuite) SetupTest() {
 	this.tempDir, err = ioutil.TempDir(os.TempDir(), "certcache_test")
 	this.Require().NoError(err, "setting up test harness")
 
-	this.stop = make(chan struct{})
-
 	this.handler, err = this.New()
 	this.Require().NoError(err, "instantiating CertCache")
 }
@@ -132,7 +129,7 @@ func (this *CertCacheSuite) TearDownTest() {
 	this.fakeOCSPExpiry = nil
 
 	// Reverse SetupTest.
-	this.stop <- struct{}{}
+	this.handler.Stop()
 
 	err := os.RemoveAll(this.tempDir)
 	if err != nil {
