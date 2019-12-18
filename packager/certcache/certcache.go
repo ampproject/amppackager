@@ -69,6 +69,8 @@ const maxOCSPTries = 10
 // TODO(banaag): make 2 days renewal grace period configurable in toml.
 const certRenewalInterval = 8 * 24 * time.Hour
 
+type OCSPResponder func(*x509.Certificate) ([]byte, error)
+
 type CertHandler interface {
 	GetLatestCert() *x509.Certificate
 	IsHealthy() error
@@ -90,6 +92,10 @@ type CertCache struct {
 	ocspFile     Updateable
 	ocspFilePath string
 	client       http.Client
+	// Given a certificate, returns a current OCSP response for the cert;
+	// this is a fallback, called when in development mode and there is no
+	// OCSP URL.
+	generateOCSPResponse OCSPResponder
 	// Domains to validate
 	Domains     []string
 	CertFile    string
@@ -114,7 +120,7 @@ type CertCache struct {
 // An alternative pattern would be to create an IsInitialized() bool or similarly named function that verifies all of the required fields have
 // been set. Then callers can just set fields in the struct by name and assert IsInitialized before doing anything with it.
 func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domains []string,
-	certFile string, newCertFile string, ocspCache string) *CertCache {
+	certFile string, newCertFile string, ocspCache string, generateOCSPResponse OCSPResponder) *CertCache {
 	certName := ""
 	if len(certs) > 0 && certs[0] != nil {
 		certName = util.CertName(certs[0])
@@ -135,6 +141,7 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 		//    you'd have one request, in the backend, and updating them all.
 		ocspFile:     &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
 		ocspFilePath: ocspCache,
+		generateOCSPResponse: generateOCSPResponse,
 		client:       http.Client{Timeout: 60 * time.Second},
 		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
 			if cert == nil || len(cert.OCSPServer) < 1 {
@@ -441,8 +448,8 @@ func (this *CertCache) maintainOCSP(stop chan struct{}) {
 }
 
 // Returns true if OCSP is expired (or near enough).
-func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
-	if len(bytes) == 0 {
+func (this *CertCache) shouldUpdateOCSP(ocsp []byte) bool {
+	if len(ocsp) == 0 {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; none cached yet.")
 		return true
@@ -454,7 +461,7 @@ func (this *CertCache) shouldUpdateOCSP(bytes []byte) bool {
 		return false
 	}
 	// Compute the midpoint per sleevi #3 (see above).
-	midpoint, err := this.ocspMidpoint(bytes, issuer)
+	midpoint, err := this.ocspMidpoint(ocsp, issuer)
 	if err != nil {
 		log.Println("Error computing OCSP midpoint:", err)
 		return true
@@ -537,8 +544,17 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 
 	ocspServer, err := this.extractOCSPServer(certs[0])
 	if err != nil {
-		log.Println("Error extracting OCSP server:", err)
-		return orig
+		if this.generateOCSPResponse == nil {
+			log.Println("Error extracting OCSP server:", err)
+			return orig
+		}
+		log.Println("Cert lacks OCSP URL; using fake OCSP in development mode.")
+		resp, err := this.generateOCSPResponse(certs[0])
+		if err != nil {
+			log.Println("error generating fake OCSP response:", err)
+			return orig
+		}
+		return resp
 	}
 
 	// Conform to the Lightweight OCSP Profile, by preferring GET over POST
@@ -821,7 +837,7 @@ func (this *CertCache) reloadCertIfExpired() {
 // Creates cert cache by loading certs and keys from disk, doing validation
 // and populating the cert cache with current set of certificate related information.
 // If development mode is true, prints a warning for certs that can't sign HTTP exchanges.
-func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
+func PopulateCertCache(config *util.Config, key crypto.PrivateKey, generateOCSPResponse OCSPResponder,
 	developmentMode bool, autoRenewCert bool) (*CertCache, error) {
 
 	if config.CertFile == "" {
@@ -851,7 +867,7 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey,
 	if err != nil {
 		return nil, errors.Wrap(err, "creating cert fetcher from config")
 	}
-	certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache)
+	certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache, generateOCSPResponse)
 
 	return certCache, nil
 }
