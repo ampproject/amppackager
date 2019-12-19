@@ -40,7 +40,7 @@ func NewDefaultConfig() *Config {
 	}
 }
 
-// DNSProvider is an implementation of the acme.ChallengeProvider interface
+// DNSProvider is an implementation of the challenge.Provider interface
 // used to store the reusable token and DNS API endpoint
 type DNSProvider struct {
 	config           *Config
@@ -98,7 +98,6 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		token:            identity.Access.Token.ID,
 		cloudDNSEndpoint: dnsEndpoint,
 	}, nil
-
 }
 
 // Present creates a TXT record to fulfill the dns-01 challenge
