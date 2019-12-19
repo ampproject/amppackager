@@ -8,6 +8,7 @@ import (
 	"github.com/go-acme/lego/v3/providers/dns/acmedns"
 	"github.com/go-acme/lego/v3/providers/dns/alidns"
 	"github.com/go-acme/lego/v3/providers/dns/auroradns"
+	"github.com/go-acme/lego/v3/providers/dns/autodns"
 	"github.com/go-acme/lego/v3/providers/dns/azure"
 	"github.com/go-acme/lego/v3/providers/dns/bindman"
 	"github.com/go-acme/lego/v3/providers/dns/bluecat"
@@ -41,6 +42,7 @@ import (
 	"github.com/go-acme/lego/v3/providers/dns/lightsail"
 	"github.com/go-acme/lego/v3/providers/dns/linode"
 	"github.com/go-acme/lego/v3/providers/dns/linodev4"
+	"github.com/go-acme/lego/v3/providers/dns/liquidweb"
 	"github.com/go-acme/lego/v3/providers/dns/mydnsjp"
 	"github.com/go-acme/lego/v3/providers/dns/namecheap"
 	"github.com/go-acme/lego/v3/providers/dns/namedotcom"
@@ -77,6 +79,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return azure.NewDNSProvider()
 	case "auroradns":
 		return auroradns.NewDNSProvider()
+	case "autodns":
+		return autodns.NewDNSProvider()
 	case "bindman":
 		return bindman.NewDNSProvider()
 	case "bluecat":
@@ -141,6 +145,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return linode.NewDNSProvider()
 	case "linodev4":
 		return linodev4.NewDNSProvider()
+	case "liquidweb":
+		return liquidweb.NewDNSProvider()
 	case "manual":
 		return dns01.NewDNSProviderManual()
 	case "mydnsjp":
