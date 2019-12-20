@@ -98,7 +98,7 @@ func main() {
 		die(errors.Wrap(err, "building cert cache"))
 	}
 
-	if err = certCache.Init(nil); err != nil {
+	if err = certCache.Init(); err != nil {
 		if *flagDevelopment {
 			fmt.Println("WARNING:", err)
 		} else {

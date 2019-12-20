@@ -88,6 +88,7 @@ type CertCache struct {
 	renewedCerts      []*x509.Certificate
 	ocspUpdateAfterMu sync.RWMutex
 	ocspUpdateAfter   time.Time
+	stop              chan struct{}
 	// TODO(twifkak): Implement a registry of Updateable instances which can be configured in the toml.
 	ocspFile     Updateable
 	ocspFilePath string
@@ -141,6 +142,7 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 		//    you'd have one request, in the backend, and updating them all.
 		ocspFile:     &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
 		ocspFilePath: ocspCache,
+		stop:         make(chan struct{}),
 		generateOCSPResponse: generateOCSPResponse,
 		client:       http.Client{Timeout: 60 * time.Second},
 		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
@@ -165,7 +167,7 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 	}
 }
 
-func (this *CertCache) Init(stop chan struct{}) error {
+func (this *CertCache) Init() error {
 	this.updateCertIfNecessary()
 
 	// Prime the OCSP disk and memory cache, so we can start serving immediately.
@@ -181,16 +183,29 @@ func (this *CertCache) Init(stop chan struct{}) error {
 	//    like the OCSP responder giving you junk, but also sufficient time
 	//    to raise an alert if something has gone really wrong.
 	// 7. The ability to serve old responses while fetching new responses.
-	go this.maintainOCSP(stop)
+	go this.maintainOCSP()
 
 	if this.certFetcher != nil {
 		// Update Certs in the background.
-		go this.maintainCerts(stop)
+		go this.maintainCerts()
 	}
 
 	this.isInitialized = true
 
 	return nil
+}
+
+// Stop stops the goroutines spawned in Init, which are automatically updating the certificate and the OCSP response.
+// It returns true if the call actually stops them, false if they have already been stopped.
+func (this *CertCache) Stop() bool {
+	select {
+	// this.stop will never be used for sending a value. Thus this case matches only when it has already been closed.
+	case <-this.stop:
+		return false
+	default:
+		close(this.stop)
+		return true
+	}
 }
 
 // Gets the latest cert.
@@ -422,7 +437,7 @@ func waitForSpecifiedTime(waitTimeInMinutes int, numRetries int) int {
 
 // Checks for OCSP updates every hour. Terminates only when stop receives
 // a message.
-func (this *CertCache) maintainOCSP(stop chan struct{}) {
+func (this *CertCache) maintainOCSP() {
 	// Only make one request per ocspCheckInterval, to minimize the impact
 	// on OCSP servers that are buckling under load, per sleevi requirement:
 	// 5. As with any system doing background requests on a remote server,
@@ -440,7 +455,7 @@ func (this *CertCache) maintainOCSP(stop chan struct{}) {
 			if err != nil {
 				log.Println("Warning: OCSP update failed. Cached response may expire:", err)
 			}
-		case <-stop:
+		case <-this.stop:
 			ticker.Stop()
 			return
 		}
@@ -635,7 +650,7 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 
 // Checks for cert updates every certCheckInterval hours. Terminates only when stop
 // receives a message.
-func (this *CertCache) maintainCerts(stop chan struct{}) {
+func (this *CertCache) maintainCerts() {
 	// Only make one request per certCheckInterval, to minimize the impact
 	// on servers that are buckling under load.
 	ticker := time.NewTicker(certCheckInterval)
@@ -644,7 +659,7 @@ func (this *CertCache) maintainCerts(stop chan struct{}) {
 		select {
 		case <-ticker.C:
 			this.updateCertIfNecessary()
-		case <-stop:
+		case <-this.stop:
 			ticker.Stop()
 			return
 		}
