@@ -34,7 +34,7 @@ import (
 
 var documentURLFlag = flag.String("url", "", "The URL of the document being processed, e.g. https://example.com/amphtml/article1234")
 var configFlag = flag.String("config", "DEFAULT", "The configuration that determines the transformations to run. Valid values are DEFAULT, NONE, VALIDATION. See transformer.go for more info.")
-var skipNewlineFlag = flag.Bool("noeol", false, "do not output the trailing newline")
+var skipNewlineFlag = flag.Bool("noeol", true, "do not output the trailing newline")
 
 func checkErr(e error) {
 	if e != nil {
