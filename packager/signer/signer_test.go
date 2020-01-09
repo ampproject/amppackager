@@ -183,6 +183,8 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
 	this.Assert().Equal(userAgent, this.lastRequest.Header.Get("User-Agent"))
 	this.Assert().Equal("1.1 amppkg", this.lastRequest.Header.Get("Via"))
+	this.Assert().Equal(`host="example.com"`, this.lastRequest.Header.Get("Forwarded"))
+	this.Assert().Equal("example.com", this.lastRequest.Header.Get("X-Forwarded-Host"))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal(fmt.Sprintf(`google;v="%d"`, transformer.SupportedVersions[0].Max), resp.Header.Get("AMP-Cache-Transform"))
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))

@@ -177,6 +177,17 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		}
 		req.Header.Set("Via", via)
 	}
+	if quotedHost, err := util.QuotedString(serveHTTPReq.Host); err == nil {
+		// TODO(twifkak): Extract host from upstream Forwarded header
+		// and concatenate. (Do not include any other parameters, as
+		// they may lead to over-signing.)
+		req.Header.Set("Forwarded", `host=` + quotedHost)
+		xfh := serveHTTPReq.Host
+		if oldXFH := serveHTTPReq.Header.Get("X-Forwarded-Host"); oldXFH != "" {
+			xfh = oldXFH + "," + xfh
+		}
+		req.Header.Set("X-Forwarded-Host", xfh)
+	}
 	// Set conditional headers that were included in ServeHTTP's Request.
 	for header := range util.ConditionalRequestHeaders {
 		if value := GetJoined(serveHTTPReq.Header, header); value != "" {
