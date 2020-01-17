@@ -274,6 +274,25 @@ func (this *SignerSuite) TestFetchSignWithForwardedRequestHeaders() {
 	this.Assert().Equal(append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)
 }
 
+func (this *SignerSuite) TestForwardedHost() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
+	}}
+	header := http.Header{
+		"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion},
+		"Forwarded": {`host="www.example.com";for=192.0.0.1`},
+		"X-Forwarded-For": {"192.0.0.1"},
+		"X-Forwarded-Host": {"www.example.com"}}
+	this.getFRH(this.T(), this.new(urlSets),
+		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath)+
+			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath),
+		"example.com", header)
+
+	this.Assert().Equal(`host="example.com"`, this.lastRequest.Header.Get("Forwarded"))
+	this.Assert().Equal("www.example.com,example.com", this.lastRequest.Header.Get("X-Forwarded-Host"))
+}
+
 func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
 	urlSets := []util.URLSet{{
 		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(".*"), false, 2000, nil},
