@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // A comma, as defined in https://tools.ietf.org/html/rfc7230#section-7, with
@@ -90,4 +92,27 @@ func haveInvalidForwardedRequestHeader(h string) string {
 		return fmt.Sprintf("include request header of %s", h)
 	}
 	return ""
+}
+
+// Escapes the input and surrounds it in quotes, so it's a valid quoted-string,
+// per https://tools.ietf.org/html/rfc7230#section-3.2.6. Returns error if the
+// input contains any chars outside of HTAB / SP / VCHAR
+// (https://tools.ietf.org/html/rfc5234#appendix-B.1) and thus isn't even
+// quotable.
+func QuotedString(input string) (string, error) {
+	var ret strings.Builder
+	ret.WriteByte('"')
+	for i := 0; i < len(input); i++ {
+		b := input[i]
+		if (b < 0x20 || b > 0x7e) && b != 0x09 {
+			return "", errors.New("contains non-printable char")
+		}
+		if b == '"' || b == '\\' {
+			ret.Write([]byte{'\\', b})
+		} else {
+			ret.WriteByte(b)
+		}
+	}
+	ret.WriteByte('"')
+	return ret.String(), nil
 }

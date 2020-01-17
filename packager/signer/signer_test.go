@@ -183,6 +183,8 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
 	this.Assert().Equal(userAgent, this.lastRequest.Header.Get("User-Agent"))
 	this.Assert().Equal("1.1 amppkg", this.lastRequest.Header.Get("Via"))
+	this.Assert().Equal(`host="example.com"`, this.lastRequest.Header.Get("Forwarded"))
+	this.Assert().Equal("example.com", this.lastRequest.Header.Get("X-Forwarded-Host"))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal(fmt.Sprintf(`google;v="%d"`, transformer.SupportedVersions[0].Max), resp.Header.Get("AMP-Cache-Transform"))
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
@@ -270,6 +272,25 @@ func (this *SignerSuite) TestFetchSignWithForwardedRequestHeaders() {
 	var payloadPrefix bytes.Buffer
 	binary.Write(&payloadPrefix, binary.BigEndian, uint64(miRecordSize))
 	this.Assert().Equal(append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)
+}
+
+func (this *SignerSuite) TestForwardedHost() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
+	}}
+	header := http.Header{
+		"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion},
+		"Forwarded": {`host="www.example.com";for=192.0.0.1`},
+		"X-Forwarded-For": {"192.0.0.1"},
+		"X-Forwarded-Host": {"www.example.com"}}
+	this.getFRH(this.T(), this.new(urlSets),
+		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath)+
+			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath),
+		"example.com", header)
+
+	this.Assert().Equal(`host="example.com"`, this.lastRequest.Header.Get("Forwarded"))
+	this.Assert().Equal("www.example.com,example.com", this.lastRequest.Header.Get("X-Forwarded-Host"))
 }
 
 func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
