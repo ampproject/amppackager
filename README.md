@@ -78,7 +78,7 @@ container.
 #### Demonstrate privacy-preserving prefetch
 
 This step is optional; just to show how [privacy-preserving
-prefetch](https://wicg.github.io/webpackage/draft-yasskin-webpackage-use-cases.html#private-prefetch)
+prefetch](https://wicg.github.io/webpackage/draft-yasskin-wpack-use-cases.html#private-prefetch)
 works with SXGs.
 
   1. `go get -u github.com/ampproject/amppackager/cmd/amppkg_dl_sxg`.
