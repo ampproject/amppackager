@@ -18,8 +18,10 @@
 package transformer
 
 import (
+	"math"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
@@ -48,6 +50,7 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"reorderhead":           transformers.ReorderHead,
 	"serversiderendering":   transformers.ServerSideRendering,
 	"stripjs":               transformers.StripJS,
+	"stripscriptcomments":   transformers.StripScriptComments,
 	"transformedidentifier": transformers.TransformedIdentifier,
 	"unusedextensions":      transformers.UnusedExtensions,
 	"urlrewrite":            transformers.URLRewrite,
@@ -60,6 +63,7 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 		// NodeCleanup should be first.
 		transformers.NodeCleanup,
 		transformers.StripJS,
+		transformers.StripScriptComments,
 		transformers.LinkTag,
 		transformers.AbsoluteURL,
 		transformers.AMPBoilerplate,
@@ -171,6 +175,22 @@ func requireAMPAttribute(dom *amphtml.DOM, allowedFormats []rpb.Request_HtmlForm
 	return errors.New("html tag is missing an AMP attribute")
 }
 
+// setBaseURL derives the absolute base URL, and sets it on c.BaseURL. The value
+// is derived using the <base> href in the DOM, if it exists. If the href is
+// relative, it is parsed in the context of the document URL.
+// This must run after DocumentURL is set on the context.
+func setBaseURL(c *transformers.Context) {
+	if n, ok := htmlnode.FindNode(c.DOM.HeadNode, atom.Base); ok {
+		if v, ok := htmlnode.GetAttributeVal(n, "", "href"); ok {
+			if u, err := c.DocumentURL.Parse(v); err == nil {
+				c.BaseURL = u
+				return
+			}
+		}
+	}
+	c.BaseURL = c.DocumentURL
+}
+
 // extractPreloads returns a list of absolute URLs of the resources to preload,
 // in the order to preload them. It depends on transformers.ReorderHead having
 // run.
@@ -200,20 +220,43 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 	return preloads
 }
 
-// setBaseURL derives the absolute base URL, and sets it on c.BaseURL. The value
-// is derived using the <base> href in the DOM, if it exists. If the href is
-// relative, it is parsed in the context of the document URL.
-// This must run after DocumentURL is set on the context.
-func setBaseURL(c *transformers.Context) {
-	if n, ok := htmlnode.FindNode(c.DOM.HeadNode, atom.Base); ok {
-		if v, ok := htmlnode.GetAttributeVal(n, "", "href"); ok {
-			if u, err := c.DocumentURL.Parse(v); err == nil {
-				c.BaseURL = u
-				return
+// defaultMaxAgeSeconds is the max-age to apply when there is an inline
+// amp-script without an explicit max-age. This is 1 day, to parallel the
+// security precautions put in place around service workers:
+// https://dev.chromium.org/Home/chromium-security/security-faq/service-worker-security-faq#TOC-Do-Service-Workers-live-forever-
+const defaultMaxAgeSeconds int32 = 86400  // number of seconds in a day
+
+// maxMaxAgeSeconds is the max duration of an SXG, per
+// https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#signature-validity.
+const maxMaxAgeSeconds int32 = 7*86400
+
+// computeMaxAgeSeconds returns the suggested max-age based on the presence of
+// any inline <amp-script> tags on the page; callers should min() the return
+// value against any other they constraints they have (e.g. the max allowed
+// duration of an SXG).
+func computeMaxAgeSeconds(dom *amphtml.DOM) int32 {
+	var maxAge int32 = math.MaxInt32
+	for node := dom.RootNode; node != nil; node = htmlnode.Next(node) {
+		// The html parser downcases tag and attribute names, so we needn't.
+		if node.Type == html.ElementNode && node.Data == "amp-script" && htmlnode.HasAttribute(node, "", "script") {
+			nodeMaxAge := defaultMaxAgeSeconds
+			if value, ok := htmlnode.GetAttributeVal(node, "", "max-age"); ok {
+				if num, err := strconv.ParseInt(value, 10, 32); err == nil {
+					if num < 0 {
+						num = 0
+					}
+					nodeMaxAge = int32(num)
+				}
+			}
+			if nodeMaxAge < maxAge {
+				maxAge = nodeMaxAge
 			}
 		}
 	}
-	c.BaseURL = c.DocumentURL
+	if maxAge > maxMaxAgeSeconds {
+		maxAge = maxMaxAgeSeconds
+	}
+	return maxAge
 }
 
 // Process will parse the given request, which contains the HTML to
@@ -273,5 +316,9 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 	if err := printer.Print(&o, context.DOM.RootNode); err != nil {
 		return "", nil, err
 	}
-	return o.String(), &rpb.Metadata{Preloads: extractPreloads(context.DOM)}, nil
+	metadata := rpb.Metadata{
+		Preloads: extractPreloads(context.DOM),
+		MaxAgeSecs: computeMaxAgeSeconds(context.DOM),
+	}
+	return o.String(), &metadata, nil
 }

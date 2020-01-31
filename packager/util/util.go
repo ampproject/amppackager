@@ -31,12 +31,6 @@ import (
 
 const CertURLPrefix = "/amppkg/cert"
 
-// https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#cross-origin-cert-req
-// Clients MUST reject certificates with this extension that were issued after 2019-05-01 and have a Validity Period longer than 90 days.
-// After 2019-08-01, clients MUST reject all certificates with this extension that have a Validity Period longer than 90 days.
-var start90DayGracePeriod = time.Date(2019, time.May, 1,  0, 0, 0, 0, time.UTC)
-var end90DayGracePeriod = time.Date(2019, time.August, 1, 0, 0, 0, 0, time.UTC)
-
 // CertName returns the basename for the given cert, as served by this
 // packager's cert cache. Should be stable and unique (e.g.
 // content-addressing). Clients should url.PathEscape this, just in case its
@@ -47,6 +41,7 @@ func CertName(cert *x509.Certificate) string {
 }
 
 const ValidityMapPath = "/amppkg/validity"
+const HealthzPath = "/healthz"
 
 // ParsePrivateKey returns the first PEM block that looks like a private key.
 func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
@@ -82,20 +77,31 @@ func hasCanSignHttpExchangesExtension(cert *x509.Certificate) bool {
 	return false
 }
 
+// Returns the Duration of time before cert expires with given deadline.
+// Note that the certExpiryDeadline should be the expected SXG expiration time.
+// Returns error if cert is already expired. This will be used to periodically check if cert
+// is still within validity range.
+func GetDurationToExpiry(cert *x509.Certificate, certExpiryDeadline time.Time) (time.Duration, error) {
+	if cert.NotBefore.After(certExpiryDeadline) {
+		return 0, errors.New("Certificate is future-dated")
+	}
+	if cert.NotAfter.Before(certExpiryDeadline) {
+		return 0, errors.New("Certificate is expired")
+	}
+
+	return cert.NotAfter.Sub(certExpiryDeadline), nil
+}
+
 // CanSignHttpExchanges returns nil if the given certificate has the
 // CanSignHttpExchanges extension, and a valid lifetime per the SXG spec;
 // otherwise it returns an error. These are not the only requirements for SXGs;
 // it also needs to use the right public key type, which is not checked here.
-func CanSignHttpExchanges(cert *x509.Certificate, now time.Time) error {
+func CanSignHttpExchanges(cert *x509.Certificate) error {
 	if !hasCanSignHttpExchangesExtension(cert) {
 		return errors.New("Certificate is missing CanSignHttpExchanges extension")
 	}
-
-	// TODO: remove issue date and current time check after 2019-08-01
-	if cert.NotBefore.After(start90DayGracePeriod) || now.After(end90DayGracePeriod) {
-		if cert.NotBefore.AddDate(0,0,90).Before(cert.NotAfter) {
-			return errors.New("Certificate MUST have a Validity Period no greater than 90 days")
-		}
+	if cert.NotBefore.AddDate(0, 0, 90).Before(cert.NotAfter) {
+		return errors.New("Certificate MUST have a Validity Period no greater than 90 days")
 	}
 	return nil
 }

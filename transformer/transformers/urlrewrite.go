@@ -368,6 +368,9 @@ func (ctx *urlRewriteContext) parseNewSrcset(n *html.Node, src string) {
 	if len(src) == 0 || strings.HasPrefix(src, "data:image/") || amphtml.IsCacheURL(src) {
 		return
 	}
+	if strings.HasSuffix(src, ",") {
+		return
+	}
 	var width int
 	if widthVal, ok := htmlnode.GetAttributeVal(n, "", "width"); ok {
 		var err error

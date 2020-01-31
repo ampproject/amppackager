@@ -21,6 +21,7 @@ import (
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
 	pb "github.com/ampproject/amppackager/cmd/gateway_server/gateway"
+	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
 	"github.com/ampproject/amppackager/packager/util"
@@ -38,8 +39,8 @@ type gatewayServer struct {
 	rtvCache *rtv.RTVCache
 }
 
-func shouldPackage() bool {
-	return true
+func shouldPackage() error {
+	return nil
 }
 
 func errorToSXGResponse(err error) *pb.SXGResponse {
@@ -71,6 +72,9 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 	if err != nil {
 		return errorToSXGResponse(err), nil
 	}
+
+	// Note: do not initialize certCache, we just want it to hold the certs for now.
+	certCache := certcache.New(certs, nil, []string{""}, "", "", "", nil);
 
 	privateKey, err := util.ParsePrivateKey(request.PrivateKey)
 	if err != nil {
@@ -112,7 +116,7 @@ func (s *gatewayServer) GenerateSXG(ctx context.Context, request *pb.SXGRequest)
 		},
 	}
 
-	packager, err := signer.New(certs[0], privateKey, urlSets, s.rtvCache, shouldPackage, signUrl, false, []string{})
+	packager, err := signer.New(certCache, privateKey, urlSets, s.rtvCache, shouldPackage, signUrl, false, []string{})
 
 	if err != nil {
 		return errorToSXGResponse(err), nil

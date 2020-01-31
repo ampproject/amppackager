@@ -29,6 +29,7 @@ func TestMinimalValidConfig(t *testing.T) {
 	config, err := ReadConfig([]byte(`
 		CertFile = "cert.pem"
 		KeyFile = "key.pem"
+		CSRFile = "file.csr"
 		OCSPCache = "/tmp/ocsp"
 		[[URLSet]]
 		  [URLSet.Sign]
@@ -39,12 +40,13 @@ func TestMinimalValidConfig(t *testing.T) {
 		Port:      8080,
 		CertFile:  "cert.pem",
 		KeyFile:   "key.pem",
+		CSRFile:   "file.csr",
 		OCSPCache: "/tmp/ocsp",
 		URLSet: []URLSet{{
 			Sign: &URLPattern{
-				Domain:  "example.com",
-				PathRE:  stringPtr(".*"),
-				QueryRE: stringPtr(""),
+				Domain:    "example.com",
+				PathRE:    stringPtr(".*"),
+				QueryRE:   stringPtr(""),
 				MaxLength: 2000,
 			},
 		}},
@@ -63,16 +65,16 @@ func TestForwardedRequestHeader(t *testing.T) {
 	`))
 	require.NoError(t, err)
 	assert.Equal(t, Config{
-		Port:      8080,
-		CertFile:  "cert.pem",
-		KeyFile:   "key.pem",
-		OCSPCache: "/tmp/ocsp",
+		Port:                    8080,
+		CertFile:                "cert.pem",
+		KeyFile:                 "key.pem",
+		OCSPCache:               "/tmp/ocsp",
 		ForwardedRequestHeaders: []string{"X-Foo", "X-Bar"},
 		URLSet: []URLSet{{
 			Sign: &URLPattern{
-				Domain:  "example.com",
-				PathRE:  stringPtr(".*"),
-				QueryRE: stringPtr(""),
+				Domain:    "example.com",
+				PathRE:    stringPtr(".*"),
+				QueryRE:   stringPtr(""),
 				MaxLength: 2000,
 			},
 		}},
@@ -172,6 +174,97 @@ func TestInvalidQueryRE(t *testing.T) {
 		    Domain = "example.com"
 		    QueryRE = "["
 	`))), "QueryRE must be a valid regexp")
+}
+
+func TestOptionalNewCert(t *testing.T) {
+	config, err := ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		NewCertFile = "newcert.pem"
+		OCSPCache = "/tmp/ocsp"
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+	`))
+	require.NoError(t, err)
+	assert.Equal(t, Config{
+		Port:        8080,
+		CertFile:    "cert.pem",
+		KeyFile:     "key.pem",
+		NewCertFile: "newcert.pem",
+		OCSPCache:   "/tmp/ocsp",
+		URLSet: []URLSet{{
+			Sign: &URLPattern{
+				Domain:    "example.com",
+				PathRE:    stringPtr(".*"),
+				QueryRE:   stringPtr(""),
+				MaxLength: 2000,
+			},
+		}},
+	}, *config)
+}
+
+func TestOptionalACMEConfig(t *testing.T) {
+	config, err := ReadConfig([]byte(`
+		CertFile = "cert.pem"
+		KeyFile = "key.pem"
+		OCSPCache = "/tmp/ocsp"
+		[[URLSet]]
+		  [URLSet.Sign]
+		    Domain = "example.com"
+		[ACMEConfig]
+		  [ACMEConfig.Production]
+		    DiscoURL = "prod.disco.url"
+		    AccountURL = "prod.account.url"
+		    EmailAddress = "prodtest@test.com"
+		    HttpChallengePort = 777
+		    HttpWebRootDir = "web.root.dir"
+		    TlsChallengePort = 333
+		    DnsProvider = "gcloud"
+		  [ACMEConfig.Development]
+		    DiscoURL = "dev.disco.url"
+		    AccountURL = "dev.account.url"
+		    EmailAddress = "devtest@test.com"
+		    HttpChallengePort = 888
+		    HttpWebRootDir = "web.root.dir"
+		    TlsChallengePort = 444
+		    DnsProvider = "gcloud"
+	`))
+	require.NoError(t, err)
+	assert.Equal(t, Config{
+		Port:      8080,
+		CertFile:  "cert.pem",
+		KeyFile:   "key.pem",
+		OCSPCache: "/tmp/ocsp",
+		ACMEConfig: &ACMEConfig{
+			Production: &ACMEServerConfig{
+				DiscoURL:          "prod.disco.url",
+				AccountURL:        "prod.account.url",
+				EmailAddress:      "prodtest@test.com",
+				HttpChallengePort: 777,
+				HttpWebRootDir:    "web.root.dir",
+				TlsChallengePort:  333,
+				DnsProvider:       "gcloud",
+			},
+			Development: &ACMEServerConfig{
+				DiscoURL:          "dev.disco.url",
+				AccountURL:        "dev.account.url",
+				EmailAddress:      "devtest@test.com",
+				HttpChallengePort: 888,
+				HttpWebRootDir:    "web.root.dir",
+				TlsChallengePort:  444,
+				DnsProvider:       "gcloud",
+			},
+		},
+		URLSet: []URLSet{{
+			Sign: &URLPattern{
+				Domain:    "example.com",
+				PathRE:    stringPtr(".*"),
+				QueryRE:   stringPtr(""),
+				MaxLength: 2000,
+			},
+		}},
+	}, *config)
 }
 
 func TestSignMissing(t *testing.T) {

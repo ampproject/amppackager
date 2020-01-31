@@ -18,6 +18,7 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -26,10 +27,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/pkg/errors"
 
 	"github.com/ampproject/amppackager/packager/certcache"
+	"github.com/ampproject/amppackager/packager/certloader"
+	"github.com/ampproject/amppackager/packager/healthz"
 	"github.com/ampproject/amppackager/packager/mux"
 	"github.com/ampproject/amppackager/packager/rtv"
 	"github.com/ampproject/amppackager/packager/signer"
@@ -40,6 +42,9 @@ import (
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
 var flagDevelopment = flag.Bool("development", false, "True if this is a development server.")
 var flagInvalidCert = flag.Bool("invalidcert", false, "True if invalid certificate intentionally used in production.")
+
+// IMPORTANT: do not turn on this flag for now, it's still under development.
+var flagAutoRenewCert = flag.Bool("autorenewcert", false, "True if amppackager is to attempt cert auto-renewal.")
 
 // Prints errors returned by pkg/errors with stack traces.
 func die(err interface{}) { log.Fatalf("%+v", err) }
@@ -73,52 +78,39 @@ func main() {
 		die(errors.Wrapf(err, "parsing config at %s", *flagConfig))
 	}
 
-	// TODO(twifkak): Document what cert/key storage formats this accepts.
-	certPem, err := ioutil.ReadFile(config.CertFile)
-	if err != nil {
-		die(errors.Wrapf(err, "reading %s", config.CertFile))
-	}
-	keyPem, err := ioutil.ReadFile(config.KeyFile)
-	if err != nil {
-		die(errors.Wrapf(err, "reading %s", config.KeyFile))
-	}
-
-	certs, err := signedexchange.ParseCertificates(certPem)
-	if err != nil {
-		die(errors.Wrapf(err, "parsing %s", config.CertFile))
-	}
-	if certs == nil || len(certs) == 0 {
-		die(fmt.Sprintf("no cert found in %s", config.CertFile))
-	}
-	if err := util.CanSignHttpExchanges(certs[0], time.Now()); err != nil {
-		if *flagDevelopment || *flagInvalidCert {
-			log.Println("WARNING:", err)
-		} else {
-			die(err)
-		}
-	}
-
-	key, err := util.ParsePrivateKey(keyPem)
-	if err != nil {
-		die(errors.Wrapf(err, "parsing %s", config.KeyFile))
-	}
-
-	for _, urlSet := range config.URLSet {
-		domain := urlSet.Sign.Domain
-		if err := util.CertificateMatches(certs[0], key, domain); err != nil {
-			die(errors.Wrapf(err, "checking %s", config.CertFile))
-		}
-	}
-
 	validityMap, err := validitymap.New()
 	if err != nil {
 		die(errors.Wrap(err, "building validity map"))
 	}
 
-	certCache := certcache.New(certs, config.OCSPCache)
-	if err = certCache.Init(nil); err != nil {
+	key, err := certloader.LoadKeyFromFile(config)
+	if err != nil {
+		die(errors.Wrap(err, "loading key file"))
+	}
+
+	var responder certcache.OCSPResponder = nil
+	if *flagDevelopment {
+		// Key is guaranteed to be ECDSA by signedexchange.ParsePrivateKey. This may change in future versions of SXG.
+		responder = fakeOCSPResponder{key: key.(*ecdsa.PrivateKey)}.Respond
+	}
+	certCache, err := certcache.PopulateCertCache(config, key, responder, *flagDevelopment || *flagInvalidCert, *flagAutoRenewCert)
+	if err != nil {
 		die(errors.Wrap(err, "building cert cache"))
 	}
+
+	if err = certCache.Init(); err != nil {
+		if *flagDevelopment {
+			fmt.Println("WARNING:", err)
+		} else {
+			die(errors.Wrap(err, "initializing cert cache"))
+		}
+        }
+
+	healthz, err := healthz.New(certCache)
+	if err != nil {
+		die(errors.Wrap(err, "building healthz"))
+	}
+
 	rtvCache, err := rtv.New()
 	if err != nil {
 		die(errors.Wrap(err, "initializing rtv cache"))
@@ -134,7 +126,7 @@ func main() {
 		}
 	}
 
-	signer, err := signer.New(certs[0], key, config.URLSet, rtvCache, certCache.IsHealthy,
+	signer, err := signer.New(certCache, key, config.URLSet, rtvCache, certCache.IsHealthy,
 		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
 	if err != nil {
 		die(errors.Wrap(err, "building signer"))
@@ -151,7 +143,7 @@ func main() {
 		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
-		Handler:           logIntercept{mux.New(certCache, signer, validityMap)},
+		Handler:           logIntercept{mux.New(certCache, signer, validityMap, healthz)},
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		// If needing to stream the response, disable WriteTimeout and

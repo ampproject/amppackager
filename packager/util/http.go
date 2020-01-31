@@ -2,9 +2,11 @@ package util
 
 import (
 	"fmt"
-	"regexp"
 	"net/http"
+	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // A comma, as defined in https://tools.ietf.org/html/rfc7230#section-7, with
@@ -43,13 +45,13 @@ var ConditionalRequestHeaders = map[string]bool{
 // Proxy-Connection should also be deleted, per
 // https://github.com/WICG/webpackage/pull/339.
 var legacyHeaders = map[string]bool{
-	"Connection": true,
-	"Keep-Alive": true,
+	"Connection":         true,
+	"Keep-Alive":         true,
 	"Proxy-Authenticate": true,
-	"Proxy-Connection": true,
-	"Trailer": true,
-	"Transfer-Encoding": true,
-	"Upgrade": true,
+	"Proxy-Connection":   true,
+	"Trailer":            true,
+	"Transfer-Encoding":  true,
+	"Upgrade":            true,
 }
 
 // Via is implicitly forwarded and disallowed to be included in
@@ -59,8 +61,8 @@ var legacyHeaders = map[string]bool{
 // remove it to mitigate the risk of over-signing.
 var notForwardedRequestHeader = map[string]bool{
 	"Proxy-Authorization": true,
-	"Te": true,
-	"Via": true,
+	"Te":                  true,
+	"Via":                 true,
 }
 
 // Remove hop-by-hop headers, per https://tools.ietf.org/html/rfc7230#section-6.1.
@@ -90,4 +92,27 @@ func haveInvalidForwardedRequestHeader(h string) string {
 		return fmt.Sprintf("include request header of %s", h)
 	}
 	return ""
+}
+
+// Escapes the input and surrounds it in quotes, so it's a valid quoted-string,
+// per https://tools.ietf.org/html/rfc7230#section-3.2.6. Returns error if the
+// input contains any chars outside of HTAB / SP / VCHAR
+// (https://tools.ietf.org/html/rfc5234#appendix-B.1) and thus isn't even
+// quotable.
+func QuotedString(input string) (string, error) {
+	var ret strings.Builder
+	ret.WriteByte('"')
+	for i := 0; i < len(input); i++ {
+		b := input[i]
+		if (b < 0x20 || b > 0x7e) && b != 0x09 {
+			return "", errors.New("contains non-printable char")
+		}
+		if b == '"' || b == '\\' {
+			ret.Write([]byte{'\\', b})
+		} else {
+			ret.WriteByte(b)
+		}
+	}
+	ret.WriteByte('"')
+	return ret.String(), nil
 }

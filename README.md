@@ -34,7 +34,7 @@ own and can obtain certificates for.
   1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
      is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
-  2. `go get -u github.com/ampproject/amppackager/cmd/amppkg`
+  2. `go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg`
 
      Optionally, move the built `~/go/bin/amppkg` wherever you like.
   3. Create a file `amppkg.toml`. A minimal config looks like this:
@@ -78,7 +78,7 @@ container.
 #### Demonstrate privacy-preserving prefetch
 
 This step is optional; just to show how [privacy-preserving
-prefetch](https://wicg.github.io/webpackage/draft-yasskin-webpackage-use-cases.html#private-prefetch)
+prefetch](https://wicg.github.io/webpackage/draft-yasskin-wpack-use-cases.html#private-prefetch)
 works with SXGs.
 
   1. `go get -u github.com/ampproject/amppackager/cmd/amppkg_dl_sxg`.
@@ -131,7 +131,9 @@ For now, productionizing is a bit manual. The minimum steps are:
      team will release a new version approximately this often. Soon after each
      release, Googlebot will increment the version it requests with
      `AMP-Cache-Transform`. Googlebot will only allow the latest 2-3 versions
-     (details are still TBD), so an update is necessary but not immediately.
+     (details are still TBD), so an update is necessary but not immediately. If
+     amppkg doesn't support the requested version range, it will fall back to
+     serving unsigned AMP.
 
      To keep subscribed to releases, you can select "Releases only" from the
      "Watch" dropdown in GitHub, or use [various tools](https://stackoverflow.com/questions/9845655/how-do-i-get-notifications-for-commits-to-a-repository)

@@ -20,23 +20,47 @@ func errorFrom(err error) string {
 }
 
 func TestCertName(t *testing.T) {
-	assert.Equal(t, "PJ1IwfP1igOlJd2oTUVs2mj4dWIZcOWHMk5jfJYS2Qc", util.CertName(pkgt.Certs[0]))
+	assert.Equal(t, "Qk83Jo8qB8cEtxfb_7eit0SWVt0pdj5e7oDCqEgf77o", util.CertName(pkgt.B3Certs[0]))
 }
 
-// ParsePrivateKey() is tested indirectly via the definition of pkgt.Key.
+func TestGetDurationToExpiry(t *testing.T) {
+	// Time before the cert validity.
+	beforeCert := time.Date(2019, time.May, 8, 0, 0, 0, 0, time.UTC)
+	// Time after the cert validity.
+	afterCert := time.Date(2019, time.August, 8, 0, 0, 0, 0, time.UTC)
+	// Time 2 days before cert validity expiration.
+	twoDaysBeforeExpiry := time.Date(2019, time.August, 5, 5, 43, 32, 0, time.UTC)
+	// Time 0 days, 1 hour before cert validity expiration.
+	oneHourBeforeExpiry := time.Date(2019, time.August, 7, 4, 43, 32, 0, time.UTC)
+	// Time 0 days before cert validity expiration.
+	zeroDaysBeforeExpiry := time.Date(2019, time.August, 7, 5, 43, 32, 0, time.UTC)
+
+	d, err := util.GetDurationToExpiry(pkgt.B3Certs[0], beforeCert)
+	assert.EqualError(t, err, "Certificate is future-dated")
+	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], afterCert)
+	assert.EqualError(t, err, "Certificate is expired")
+
+	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], twoDaysBeforeExpiry)
+	assert.Equal(t, time.Duration(2*time.Hour*24), d)
+
+	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], oneHourBeforeExpiry)
+	assert.Equal(t, time.Duration(1*time.Hour), d)
+
+	d, err = util.GetDurationToExpiry(pkgt.B3Certs[0], zeroDaysBeforeExpiry)
+	assert.Equal(t, time.Duration(0), d)
+}
+
+// ParsePrivateKey() is tested indirectly via the definition of pkgt.B3Key.
 func TestParsePrivateKey(t *testing.T) {
-	require.IsType(t, &ecdsa.PrivateKey{}, pkgt.Key)
-	assert.Equal(t, elliptic.P256(), pkgt.Key.(*ecdsa.PrivateKey).PublicKey.Curve)
+	require.IsType(t, &ecdsa.PrivateKey{}, pkgt.B3Key)
+	assert.Equal(t, elliptic.P256(), pkgt.B3Key.(*ecdsa.PrivateKey).PublicKey.Curve)
 }
 
 func TestCanSignHttpExchangesExtension(t *testing.T) {
-	// Before grace period, to allow the >90-day lifetime.
-	now := time.Date(2019, time.July, 31, 0, 0, 0, 0, time.UTC)
-
 	// Leaf node has the extension.
-	assert.Nil(t, util.CanSignHttpExchanges(pkgt.Certs[0], now))
+	assert.Nil(t, util.CanSignHttpExchanges(pkgt.B3Certs[0]))
 	// CA node does not.
-	assert.EqualError(t, util.CanSignHttpExchanges(pkgt.Certs[1], now), "Certificate is missing CanSignHttpExchanges extension")
+	assert.EqualError(t, util.CanSignHttpExchanges(pkgt.B3Certs[1]), "Certificate is missing CanSignHttpExchanges extension")
 }
 
 func TestParseCertificate(t *testing.T) {
@@ -62,23 +86,7 @@ func TestParseCertificateNotMatchDomain(t *testing.T) {
 		pkgt.B3Key2, "amppackageexample.com")), "x509: certificate is valid for amppackageexample2.com, www.amppackageexample2.com, not amppackageexample.com")
 }
 
-func TestParse90DaysCertificateAfterGracePeriod(t *testing.T) {
-	now := time.Date(2019, time.August, 1, 0, 0, 0, 1, time.UTC)
-	assert.Nil(t, util.CanSignHttpExchanges(pkgt.B3Certs[0], now))
-}
-
 func TestParse91DaysCertificate(t *testing.T) {
-	assert.Contains(t, errorFrom(util.CanSignHttpExchanges(pkgt.B3Certs91Days[0],
-		time.Now())), "Certificate MUST have a Validity Period no greater than 90 days")
-}
-
-func TestParseCertificateIssuedBeforeMay1InGarcePeriod(t *testing.T) {
-	now := time.Date(2019, time.July, 31, 0, 0, 0, 0, time.UTC)
-	assert.Nil(t, util.CanSignHttpExchanges(pkgt.Certs[0], now))
-}
-
-func TestParseCertificateIssuedBeforeMay1AfterGracePeriod(t *testing.T) {
-	now := time.Date(2019, time.August, 1, 0, 0, 0, 1, time.UTC)
-	assert.Contains(t, errorFrom(util.CanSignHttpExchanges(pkgt.Certs[0],
-		now)), "Certificate MUST have a Validity Period no greater than 90 days")
+	assert.Contains(t, errorFrom(util.CanSignHttpExchanges(pkgt.B3Certs91Days[0])),
+		"Certificate MUST have a Validity Period no greater than 90 days")
 }

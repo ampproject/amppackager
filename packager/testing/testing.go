@@ -29,14 +29,14 @@ import (
 
 // A cert (with its issuer chain) for testing.
 var Certs = func() []*x509.Certificate {
-	certPem, _ := ioutil.ReadFile("../../testdata/b1/fullchain.cert")
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/fullchain.cert")
 	certs, _ := signedexchange.ParseCertificates(certPem)
 	return certs
 }()
 
 // Its corresponding private key.
 var Key = func() crypto.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("../../testdata/b1/server.privkey")
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/server.privkey")
 	// This call to ParsePrivateKey() is needed by util_test.go.
 	key, _ := util.ParsePrivateKey(keyPem)
 	return key
