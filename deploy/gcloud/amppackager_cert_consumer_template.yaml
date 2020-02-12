@@ -5,7 +5,7 @@ metadata:
   labels:
     app: amppackager-consumer
 spec:
-  replicas: 2
+  replicas: $(AMP_PACKAGER_NUM_REPLICAS)
   selector:
     matchLabels:
       app: amppackager-consumer
