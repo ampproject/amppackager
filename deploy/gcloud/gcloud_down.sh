@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./setup.sh
+source $(dirname $0)/setup.sh
 
 gcloud config set project $PROJECT_ID
 gcloud config set compute/zone $COMPUTE_ENGINE_ZONE
