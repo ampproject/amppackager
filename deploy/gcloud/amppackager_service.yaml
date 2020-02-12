@@ -18,4 +18,4 @@ spec:
  #  https://www.digitalocean.com/community/tutorials/understanding-ip-addresses-subnets-and-cidr-notation-for-networking
 
  #  loadBalancerSourceRanges:
- #  - x.x.x.x/32
+ #  - 35.212.176.108/32

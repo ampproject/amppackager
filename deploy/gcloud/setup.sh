@@ -13,8 +13,8 @@
 
 # GCloud project information
 # REQUIRED
-export PROJECT_ID="YOUR_GCLOUD_PROJECT_ID"
-export COMPUTE_ENGINE_ZONE="YOUR_GCLOUD_COMPUTE_ENGINE_ZONE"
+export PROJECT_ID="amp-packager-on-gcloud-test"
+export COMPUTE_ENGINE_ZONE="us-west1-a"
 
 # The version tag of the docker build of amppackager you want to build/use.
 # You can leave it as the default unless you want to use a specific version
@@ -22,18 +22,22 @@ export COMPUTE_ENGINE_ZONE="YOUR_GCLOUD_COMPUTE_ENGINE_ZONE"
 # OPTIONAL
 export AMP_PACKAGER_VERSION_TAG="latest"
 
+# The number of amppackager consumer replicas you'd like to run to which the
+# load balancer can forward requests.
+export AMP_PACKAGER_NUM_REPLICAS=2
+
 # The domain you want to use for the signed exchange.
 # REQUIRED
-export AMP_PACKAGER_DOMAIN="YOUR_DOMAIN"
-export AMP_PACKAGER_COUNTRY="YOUR_COUNTRY"
-export AMP_PACKAGER_STATE="YOUR_STATE"
-export AMP_PACKAGER_LOCALITY="YOUR_LOCALITY"
-export AMP_PACKAGER_ORGANIZATION="YOUR_ORGANIZATION"
+export AMP_PACKAGER_DOMAIN="azei-package-test.com"
+export AMP_PACKAGER_COUNTRY="US"
+export AMP_PACKAGER_STATE="California"
+export AMP_PACKAGER_LOCALITY="San Jose"
+export AMP_PACKAGER_ORGANIZATION="Greg Grothaus"
 
 # ACME API related information
 # REQUIRED
-export ACME_EMAIL_ADDRESS="YOUR_EMAIL_ADDRESS"
-export ACME_DIRECTORY_URL="YOUR_ACME_URL"
+export ACME_EMAIL_ADDRESS="banaag@google.com"
+export ACME_DIRECTORY_URL="https://acme.digicert.com/v2/acme/directory/q-L_oMUirCjCLx2HXXz8eSRjUqfqsRSCfnVlySntl8E"
 
 # The Signed Exchange Certificate you got from your certificate authority
 # (Digicert) using the domain/location information above.
