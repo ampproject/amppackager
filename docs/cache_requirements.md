@@ -33,8 +33,8 @@ These include:
    * matching one of the versions requested by the `AMP-Cache-Transform` header.
      Note that this version range will increase over time, at a cadence TBD
      (likely 6-8 weeks with 2 or 3 supported latest versions).
- * If the signed `cache-control` header has a `no-cache` directive, it cannot
-   have a value (i.e. `no-cache=some-header` is disallowed).
+ * If the signed `cache-control` header has a `no-cache` or `private` directive,
+   it cannot have a value (i.e. `no-cache=some-header` is disallowed).
  * The signed `content-security-policy` header must be present and comply with
    these rules:
    * `default-src`, `script-src`, `object-src`, `style-src`, and `report-uri`
