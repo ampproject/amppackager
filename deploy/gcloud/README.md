@@ -13,7 +13,7 @@ This page shows you how to deploy a [Kubernetes](https://kubernetes.io/) cluster
 
 These instructions are mostly lifted from the [Google Kubernetes Engine tutorial](https://cloud.google.com/kubernetes-engine/docs/tutorials/hello-app).  You may want to consult that page for further reference.  The following items are required before you can begin your deployment:
 
-  1. Visit the [Kubernetes Engine page](https://pantheon.corp.google.com/projectselector2/kubernetes?_ga=2.129894223.2142802049.1581352297-128100078.1565897713) in the Google Cloud Console.
+  1. Visit the [Kubernetes Engine page](https://console.cloud.google.com/) in the Google Cloud Console.
 
   2. Create or select an existing [Google Cloud Project](https://cloud.google.com/appengine/docs/standard/nodejs/building-app/creating-project)
 
