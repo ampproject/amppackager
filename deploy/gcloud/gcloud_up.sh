@@ -196,6 +196,33 @@ if [ -f "$GENFILES_DIR/$AMP_PACKAGER_CERT_FILENAME" ]; then
 fi
 
 kubectl apply -f $GENFILES_DIR/amppackager_cert_renewer.yaml
+
+# Wait until either the cert is present on disk in the NFS mount or X number
+# of retries are finished. If cert is being requested via ACME, this may take
+# some time.
+result=1
+retries=0
+while true
+do
+  if [ $result -eq 0 ]; then
+    echo "Cert is available!"
+    break
+  else
+    sleep 60
+    retries=$((retries+1))
+    if [ "$retries" -ge 10 ]; then
+      echo "Cert not present, giving up."
+      break
+    else
+      echo "Waiting for cert ..."
+    fi
+    # TODO(banaag): need to fix hardcoded /exports/amppkg.cert after you
+    # decipher kubectl set env craziness.
+    kubectl exec -it $AMPPACKAGER_NFS_SERVER -- test -f /exports/amppkg.cert 2> /dev/null
+    result=$?
+  fi
+done
+
 kubectl apply -f $GENFILES_DIR/amppackager_cert_consumer.yaml
 kubectl apply -f amppackager_service.yaml
 
