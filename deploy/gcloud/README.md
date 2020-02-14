@@ -88,8 +88,9 @@ The following information can be customized in setup.sh, but the default also wo
      Ingress".
 
      Clusters will have "amppackager-cluster".
-     Workloads will have "user spec number of replicas of amppackager-cert-consumer-deployment,
-      amppackager-cert-renewer-pd and amppackager-nfs-server".
+     Workloads will have "amppackager-cert-renewer-pd",
+      "amppackager-nfs-server", and user-specified number of replicas of
+      "amppackager-cert-consumer-deployment".
      Service & Ingress will have "amppackager-nfs-service and
       amppackager-service".
 
@@ -99,9 +100,22 @@ The following information can be customized in setup.sh, but the default also wo
     curl http://AMP_PACKAGER_SERVICE_IP_ADDRESS:AMP_PACKAGER_SERVICE_PORT/healthz
 
   3. Issue curl command to test if you can download the sample signed exchange
-     in https://amppackageexample.com:
+     in your domain ($AMP_PACKAGER_DOMAIN in setup.sh). 
 
-    curl -H 'Accept: application/signed-exchange;v=b3' -H 'AMP-Cache-Transform: google;v="1..2"' -i http://AMP_PACKAGER_SERVICE_IP_ADDRESS:AMP_PACKAGER_SERVICE_PORT/priv/doc/https://amppackageexample.com/
+    curl -H 'Accept: application/signed-exchange;v=b3' -H 'AMP-Cache-Transform: google;v="1..2"' -i http://AMP_PACKAGER_SERVICE_IP_ADDRESS:AMP_PACKAGER_SERVICE_PORT/priv/doc/https://$AMP_PACKAGER_DOMAIN/
+
+  4. After you finish testing, lock down the amppackager service so that it's
+     only visible to your frontend server.  You do this by modifying the
+     following section of amppackage_service.yaml:
+
+      #  loadBalancerSourceRanges:
+      - YOUR_FRONTEND_SERVER_IP_ADDRESS_HERE in CIDR format. CIDR is explained
+        in the comments before this section in the yaml file.
+
+  5. After you make the modifications in step 4, issue the following command to
+     apply changes to you cluster:
+
+  kubectl apply -f amppackager_service.yaml
 
 ## Optionally, run the teardown script (gcloud_down.sh)
 
