@@ -1,0 +1,19 @@
+CertFile = '/renewer/$(AMP_PACKAGER_CERT_FILENAME)'
+NewCertFile = '/renewer/new.cert'
+CSRFile = '/renewer/$(AMP_PACKAGER_CSR_FILENAME)'
+KeyFile = '/renewer/$(AMP_PACKAGER_PRIV_KEY_FILENAME)'
+OCSPCache = '/renewer/amppkg-ocsp'
+
+[[URLSet]]
+  [URLSet.Sign]
+    Domain = "$(AMP_PACKAGER_DOMAIN)"
+
+[ACMEConfig]
+  [ACMEConfig.Production]
+    DiscoURL = "$(ACME_DIRECTORY_URL)"
+    EmailAddress = "$(ACME_EMAIL_ADDRESS)"
+    HttpChallengePort = 5002
+    HttpWebRootDir = '/renewer/www'
+    TlsChallengePort = 5003
+    # Uncomment if you need wildcard domains in your certs
+    # DnsProvider = "gcloud"
