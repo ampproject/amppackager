@@ -95,7 +95,8 @@ The following information can be customized in setup.sh, but the default also wo
       amppackager-service".
 
   2. Issue curl command to check on the health of the amppackager. It should
-     return "ok".
+     return "ok". The amppackager service IP address could be using "kubectl get
+     service, it will be under EXTERNAL-IP column.
 
     curl http://AMP_PACKAGER_SERVICE_IP_ADDRESS:AMP_PACKAGER_SERVICE_PORT/healthz
 
