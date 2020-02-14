@@ -80,6 +80,29 @@ The following information can be customized in setup.sh, but the default also wo
      continues.
   4. Wait for script to finish.
 
+## Make sure the deployment is up and ready
+
+  1. Check that all the components of the deployment are up in the Kubernetes
+     page. If everything is alright, everything should have a green check mark
+     in the console. Check everything under Cluster, Workloads and "Service &
+     Ingress".
+
+     Clusters will have "amppackager-cluster".
+     Workloads will have "user spec number of replicas of amppackager-cert-consumer-deployment,
+      amppackager-cert-renewer-pd and amppackager-nfs-server".
+     Service & Ingress will have "amppackager-nfs-service and
+      amppackager-service".
+
+  2. Issue curl command to check on the health of the amppackager. It should
+     return "ok".
+
+    curl http://AMP_PACKAGER_SERVICE_IP_ADDRESS:AMP_PACKAGER_SERVICE_PORT/healthz
+
+  3. Issue curl command to test if you can download the sample signed exchange
+     in https://amppackageexample.com:
+
+    curl -H 'Accept: application/signed-exchange;v=b3' -H 'AMP-Cache-Transform: google;v="1..2"' -i http://AMP_PACKAGER_SERVICE_IP_ADDRESS:AMP_PACKAGER_SERVICE_PORT/priv/doc/https://amppackageexample.com/
+
 ## Optionally, run the teardown script (gcloud_down.sh)
 
   1. Go to the directory where you installed amppackager.
