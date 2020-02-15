@@ -24,7 +24,6 @@ import (
 	"github.com/go-acme/lego/v3/challenge/http01"
 	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
 	"github.com/go-acme/lego/v3/lego"
-	"github.com/go-acme/lego/v3/providers/dns"
 	"github.com/go-acme/lego/v3/providers/http/webroot"
 	"github.com/go-acme/lego/v3/registration"
 	"github.com/pkg/errors"
@@ -110,7 +109,7 @@ func New(email string, certSignRequest *x509.CertificateRequest, privateKey cryp
 	}
 
 	if dnsProvider != "" {
-		provider, err := dns.NewDNSChallengeProviderByName(dnsProvider)
+		provider, err := DNSProvider(dnsProvider)
 		if err != nil {
 			return nil, errors.Wrap(err, "Getting DNS01 challenge provider.")
 		}
