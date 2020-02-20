@@ -525,7 +525,7 @@ func (this *SignerSuite) TestLimitsDuration() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
-		resp.Write([]byte("<html amp><body><amp-script script max-age=4000>"))
+		resp.Write([]byte("<html amp><body><amp-script script max-age=123456>"))
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -539,7 +539,7 @@ func (this *SignerSuite) TestLimitsDuration() {
 	this.Require().True(ok)
 	expires, ok := signatures[0].Params["expires"].(int64)
 	this.Require().True(ok)
-	this.Assert().Equal(int64(4000), expires-date)
+	this.Assert().Equal(int64(123456), expires-date)
 }
 
 func (this *SignerSuite) TestDoesNotExtendDuration() {
@@ -562,6 +562,22 @@ func (this *SignerSuite) TestDoesNotExtendDuration() {
 	expires, ok := signatures[0].Params["expires"].(int64)
 	this.Require().True(ok)
 	this.Assert().Equal(int64(604800), expires-date)
+}
+
+func (this *SignerSuite) TestProxyUnsignedIfExpired() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
+	fakeBody := []byte("<html amp><body><amp-script script max-age=86400>")
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Write(fakeBody)
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
 }
 
 func (this *SignerSuite) TestErrorNoCache() {
