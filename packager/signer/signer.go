@@ -495,9 +495,15 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		duration = maxAge
 	}
 	date := now.Add(-24 * time.Hour)
+	expires := date.Add(duration)
+	if !expires.After(now) {
+		log.Printf("Not packaging because computed max-age %d places expiry in the past\n", metadata.MaxAgeSecs)
+		proxy(resp, fetchResp, fetchBody)
+		return
+	}
 	signer := signedexchange.Signer{
 		Date:        date,
-		Expires:     date.Add(duration),
+		Expires:     expires,
 		Certs:       []*x509.Certificate{cert},
 		CertUrl:     certURL,
 		ValidityUrl: signURL.ResolveReference(validityHRef),

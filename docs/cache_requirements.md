@@ -52,7 +52,9 @@ These include:
    (e.g. max 20 urls, rel=preload only, as=script|style only). URLs must be
    limited to `cdn.ampproject.org` and the allowlisted [font provider URLs](https://github.com/ampproject/amphtml/blob/b0ff92429923c86f3973009a84ff02f4f1868b4d/validator/validator-main.protoascii#L310).
  * There must not be a signed `variant-key-04` or `variants-04` header.
- * The signature's duration (expiry minus date) must be >= 4 days.
+ * The signature's lifetime (`expires` minus request time) must be >= 3 days;
+   given AMP Packager's behavior of [backdating by 1 day](https://github.com/ampproject/amppackager/blob/cc38c5fad40fc603119a298700820b97a4f0c54f/packager/signer/signer.go#L497),
+   this effectively means a minimum duration (`expires` minus `date`) of 4 days.
 
 The above is an attempt at a complete list of SXG-related requirements, but it
 is not guaranteed to be complete.
