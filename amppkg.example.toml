@@ -255,6 +255,7 @@ ForwardedRequestHeaders = []
     # For the DNS challenge, go-acme/lego, there are certain environment variables that need to be set up which depends on
     # the DNS provider that you use to fulfill the DNS challenge.  See:
     # 	https://go-acme.github.io/lego/dns/
+    # To use this, build amppkg with `go build -tags dns01`; it is disabled by default because it bloats the binary.
     # DnsProvider = "gcloud"
 
   # This config will be used if 'autorenewcert' is turned on and 'development' is turned on.
