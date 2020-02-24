@@ -503,7 +503,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	}
 	signer := signedexchange.Signer{
 		Date:        date,
-		Expires:     date.Add(duration),
+		Expires:     expires,
 		Certs:       []*x509.Certificate{cert},
 		CertUrl:     certURL,
 		ValidityUrl: signURL.ResolveReference(validityHRef),
