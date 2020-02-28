@@ -259,12 +259,16 @@ func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (this *CertCache) ocspMidpoint(bytes []byte, issuer *x509.Certificate) (time.Time, error) {
+func (this *CertCache) parseOCSP(bytes []byte, issuer *x509.Certificate) (*ocsp.Response, error){
 	resp, err := ocsp.ParseResponseForCert(bytes, this.getCert(), issuer)
 	if err != nil {
-		return time.Time{}, errors.Wrap(err, "Parsing OCSP")
+		return nil, errors.Wrap(err, "Parsing OCSP")
 	}
-	return resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate) / 2), nil
+	return resp, nil
+}
+
+func (this *CertCache) ocspMidpoint(resp *ocsp.Response) (time.Time) {
+	return resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate) / 2)
 }
 
 func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -285,11 +289,13 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			util.NewHTTPError(http.StatusInternalServerError, "Error reading OCSP: ", err).LogAndRespond(resp)
 			return
 		}
-		midpoint, err := this.ocspMidpoint(ocsp, this.findIssuer())
+		ocspResp, err := this.parseOCSP(ocsp, this.findIssuer())
 		if err != nil {
-			util.NewHTTPError(http.StatusInternalServerError, "Error computing OCSP midpoint: ", err).LogAndRespond(resp)
+			log.Println("Invalid OCSP:", err)
+			util.NewHTTPError(http.StatusInternalServerError, "Invalid OCSP: ", err).LogAndRespond(resp)
 			return
 		}
+		midpoint := this.ocspMidpoint(ocspResp)
 		// int is large enough to represent 24855 days in seconds.
 		expiry := int(midpoint.Sub(time.Now()).Seconds())
 		if expiry < 0 {
@@ -475,12 +481,16 @@ func (this *CertCache) shouldUpdateOCSP(ocsp []byte) bool {
 		// This is a permanent error; do not attempt OCSP update.
 		return false
 	}
-	// Compute the midpoint per sleevi #3 (see above).
-	midpoint, err := this.ocspMidpoint(ocsp, issuer)
+	ocspResp, err := this.parseOCSP(ocsp, issuer)
 	if err != nil {
-		log.Println("Error computing OCSP midpoint:", err)
+		// An old ocsp cache causes a parse error in case of cert renewal. Do not log it.
+		if this.isInitialized {
+			log.Println("Invalid OCSP:", err)
+		}
 		return true
 	}
+	// Compute the midpoint per sleevi #3 (see above).
+	midpoint := this.ocspMidpoint(ocspResp)
 	if time.Now().After(midpoint) {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; after midpoint: ", midpoint)
