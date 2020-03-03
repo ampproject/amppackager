@@ -225,6 +225,21 @@ amp-install-serviceworker will still succeed in the unsigned AMP viewer case,
 and crawlers may reuse the contents of the signed exchange when displaying an
 AMP viewer to browser versions that don't support SXG.
 
+#### `<amp-script>`
+
+If you have any inline `<amp-script>`s (those with a `script` attribute), then
+the expiration of the SXG will be set based on the minimum `max-age` of those
+`<amp-script>`s, minus one day (due to
+[backdating](https://github.com/ampproject/amppackager/issues/397)). If
+possible, prefer external `<amp-script>`s (those with a `src` attribute), which
+do not have this limitation.
+
+If inline is necessary, you will need to weigh the [security
+risks](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#seccons-downgrades)
+against the [AMP Cache requirement](docs/cache_requirements.md) for a minimum
+`max-age` of `345600` (4 days). For SXGs shorter than that, the Google AMP Cache
+will treat them as if unsigned (by showing an AMP Viewer).
+
 ## Local Transformer
 
 The local transformer is a library within the AMP Packager that transforms AMP
