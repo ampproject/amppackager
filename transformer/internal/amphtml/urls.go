@@ -231,6 +231,7 @@ func ToCacheURLSubdomain(originHost string) string {
 	if err != nil {
 		return fallbackCacheURLSubdomain(originHost)
 	}
+
 	var sb strings.Builder
 	for _, rune := range unicode {
 		switch rune {
@@ -242,10 +243,34 @@ func ToCacheURLSubdomain(originHost string) string {
 			sb.WriteRune(rune)
 		}
 	}
-	if result, err := p.ToASCII(sb.String()); err == nil && strings.ContainsRune(sb.String(), '-') {
+
+	utf8 := sb.String()
+	result, err := p.ToASCII(utf8)
+	if err == nil && isValidCurls(result) {
 		return result
 	}
+
+	// If there was an error due to the hyphen being in positions 3 and 4, try
+	// to create a human readable version for CURLS label v2. Since err does not
+	// tell us the specific error, check the hyphens manually.
+	if utf8[2] == '-' && utf8[3] == '-' {
+		var sb2 strings.Builder
+		sb2.WriteString("0-")
+		sb2.WriteString(utf8)
+		sb2.WriteString("-0")
+
+		utf8 = sb2.String()
+		result, err = p.ToASCII(utf8)
+		if err == nil && isValidCurls(result) {
+			return result
+		}
+	}
+
 	return fallbackCacheURLSubdomain(originHost)
+}
+
+func isValidCurls(result string) bool {
+	return strings.ContainsRune(result, '-')
 }
 
 
