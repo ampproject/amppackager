@@ -366,12 +366,12 @@ func TestToCacheURLDomain(t *testing.T) {
 		{
 			desc:     "R-LDH #2",
 			input:    "in-trouble.com",
-			expected: "j7pweznglei73fva3bo6oidjt74j3hx4tfyncjsdwud7r7cci4va",
+			expected: "0-in--trouble-com-0",
 		},
 		{
 			desc:     "R-LDH #3",
 			input:    "a--problem.com",
-			expected: "a47psvede4jpgjom2kzmuhop74zzmdpjzasoctyoqqaxbkdbsyiq",
+			expected: "0-a----problem-com-0",
 		},
 		{
 			desc:     "Transition mapping per UTS #46",
