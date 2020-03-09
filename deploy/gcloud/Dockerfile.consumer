@@ -34,9 +34,16 @@ RUN git clone -b master https://github.com/ampproject/amppackager.git /data/ampp
 WORKDIR /data/amppackager/cmd/amppkg
 
 # Build the binary.
+# See: https://medium.com/on-docker/use-multi-stage-builds-to-inject-ca-certs-ad1e8f01de1b
+#      https://github.com/kelseyhightower/contributors
+# Avoid "x509: failed to load system roots and no roots provided" by bundling root certificates.
+# Avoid dynamic linking by using the pure Go net package (-tags netgo)
+# Avoid dynamic linking by disabling cgo (CGO_ENABLED=0)
+# Reduce binary size by omitting dwarf information (-ldflags '-w')
 RUN CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' -o /go/bin/amppkg
 
 FROM alpine:latest as certs
+
 RUN apk --update add ca-certificates
 
 # Build a small executable from docker scratch.
