@@ -12,25 +12,60 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Used https://medium.com/@chemidy/create-the-smallest-and-secured-golang-docker-image-based-on-scratch-4752223b7324
+# as a guide.
+
 # Use an official Go runtime as a parent image
-FROM golang:1.13
+FROM golang:1.13 as builder
 
 ENV GO111MODULE=on
 
-# Install AMP Packager
-RUN go get -v github.com/ampproject/amppackager/cmd/amppkg@master
+# Install git.
+# Git is required for fetching the dependencies.
+RUN apt-get update \
+    && apt-get install -y git
 
-WORKDIR /go/src/app
+WORKDIR /data
+
+# Run this if you clone from master branch.
+RUN git clone -b master https://github.com/ampproject/amppackager.git /data/amppackager
+# RUN git clone https://github.com/ampproject/amppackager.git /data/amppackager
+
+WORKDIR /data/amppackager/cmd/amppkg
+
+# Build the binary.
+# See: https://medium.com/on-docker/use-multi-stage-builds-to-inject-ca-certs-ad1e8f01de1b
+#      https://github.com/kelseyhightower/contributors
+# Avoid "x509: failed to load system roots and no roots provided" by bundling root certificates.
+# Avoid dynamic linking by using the pure Go net package (-tags netgo)
+# Avoid dynamic linking by disabling cgo (CGO_ENABLED=0)
+# Reduce binary size by omitting dwarf information (-ldflags '-w')
+RUN CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' -o /go/bin/amppkg
+
+FROM alpine:latest as certs
+
+RUN apk --update add ca-certificates
+
+# Build a small executable from docker scratch
+FROM scratch
+
+ENV PATH=/bin
+
+# Copy the certs from the certs image.
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
 # Copy the AMP packager binary into our app dir inside the container.
-RUN cp /go/bin/amppkg .
+COPY --from=builder /go/bin/amppkg .
 
 # Make port 8080 available to the world outside this container. This
 # port must match the AMP Packager port configured in the toml file.
 EXPOSE 8080
 
+ENV PATH=$PATH:.
+
 # Start the AMP Packager
 ENTRYPOINT ["amppkg"]
 
-# Set default flags to run in development mode.
+# Set default flags to run in autorenew cert mode.
 CMD ["-autorenewcert", "-config=/renewer/amppkg_renewer.toml"]
 
