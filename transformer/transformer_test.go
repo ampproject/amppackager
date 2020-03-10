@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"google3/net/proto2/go/proto"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"github.com/google/go-cmp/cmp"
+	"github.com/golang/protobuf/proto"
 )
 
 func TestProcess(t *testing.T) {
