@@ -109,6 +109,9 @@ func fetchURLMatches(url *url.URL, pattern *util.URLPattern) error {
 			return errors.New("If URLSet.Fetch is unspecified, then so should ?fetch= be.")
 		}
 	}
+	if url == nil {
+		return errors.New("?fetch= is unspecified")
+	}
 	// The fetch block may specify which schemes are allowed.
 	if !schemeMatches(url.Scheme, pattern.Scheme) {
 		return errors.New("Scheme doesn't match")

@@ -309,6 +309,26 @@ func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
 	this.Assert().Equal(this.httpSignURL()+fakePath+"?%3Chi%3E", exchange.RequestURI)
 }
 
+func (this *SignerSuite) TestMissingFetchParam() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
+	}}
+	resp := this.get(this.T(), this.new(urlSets),
+		"/priv/doc?sign="+url.QueryEscape(this.httpSignURL()+fakePath))
+	this.Assert().Equal(http.StatusBadRequest, resp.StatusCode, "incorrect status: %#v", resp)
+}
+
+func (this *SignerSuite) TestMissingSignParam() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
+	}}
+	resp := this.get(this.T(), this.new(urlSets),
+		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath))
+	this.Assert().Equal(http.StatusBadRequest, resp.StatusCode, "incorrect status: %#v", resp)
+}
+
 func (this *SignerSuite) TestDisallowInvalidCharsSign() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
