@@ -247,7 +247,7 @@ func MutateFetchedContentSecurityPolicy(fetched string) string {
 	// Add missing directives or replace the ones that were removed in some cases
 	newCsp.WriteString(
 		"default-src * blob: data:;" +
-			"report-uri https://csp-collector.appspot.com/csp/amp;" +
+			"report-uri https://csp.withgoogle.com/csp/amp;" +
 			"script-src blob: https://cdn.ampproject.org/rtv/ " +
 			"https://cdn.ampproject.org/v0.js " +
 			"https://cdn.ampproject.org/v0/ " +
