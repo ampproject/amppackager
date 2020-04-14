@@ -1,0 +1,34 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: amppackager-cert-renewer-pd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: amppackager-cert-renewer-pd
+  template:
+    metadata:
+      name: amppackager-cert-renewer-pd
+      labels:
+        app: amppackager-cert-renewer-pd
+    spec:
+      containers:
+      - image: gcr.io/$(PROJECT_ID)/amppackager_renewer:$(AMP_PACKAGER_VERSION_TAG)
+        name: amppackager-cert-renewer-container
+        imagePullPolicy: Always
+        name: amppackager
+        volumeMounts:
+          # name should match from volumes section
+          - name: nfs-volume-renewer
+            mountPath: "/renewer"
+          - name: nfs-volume-consumer
+            mountPath: "/consumer"
+      volumes:
+      - name: nfs-volume-renewer
+        persistentVolumeClaim:
+          claimName: nfs-renewer-pvc
+      - name: nfs-volume-consumer
+        persistentVolumeClaim:
+           claimName: nfs-consumer-pvc
+

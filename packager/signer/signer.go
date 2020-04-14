@@ -190,6 +190,17 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		}
 		req.Header.Set("Via", via)
 	}
+	if quotedHost, err := util.QuotedString(serveHTTPReq.Host); err == nil {
+		// TODO(twifkak): Extract host from upstream Forwarded header
+		// and concatenate. (Do not include any other parameters, as
+		// they may lead to over-signing.)
+		req.Header.Set("Forwarded", `host=` + quotedHost)
+		xfh := serveHTTPReq.Host
+		if oldXFH := serveHTTPReq.Header.Get("X-Forwarded-Host"); oldXFH != "" {
+			xfh = oldXFH + "," + xfh
+		}
+		req.Header.Set("X-Forwarded-Host", xfh)
+	}
 	// Set conditional headers that were included in ServeHTTP's Request.
 	for header := range util.ConditionalRequestHeaders {
 		if value := GetJoined(serveHTTPReq.Header, header); value != "" {
@@ -249,7 +260,7 @@ func MutateFetchedContentSecurityPolicy(fetched string) string {
 	// Add missing directives or replace the ones that were removed in some cases
 	newCsp.WriteString(
 		"default-src * blob: data:;" +
-			"report-uri https://csp-collector.appspot.com/csp/amp;" +
+			"report-uri https://csp.withgoogle.com/csp/amp;" +
 			"script-src blob: https://cdn.ampproject.org/rtv/ " +
 			"https://cdn.ampproject.org/v0.js " +
 			"https://cdn.ampproject.org/v0/ " +
@@ -497,9 +508,15 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		duration = maxAge
 	}
 	date := now.Add(-24 * time.Hour)
+	expires := date.Add(duration)
+	if !expires.After(now) {
+		log.Printf("Not packaging because computed max-age %d places expiry in the past\n", metadata.MaxAgeSecs)
+		proxy(resp, fetchResp, fetchBody)
+		return
+	}
 	signer := signedexchange.Signer{
 		Date:        date,
-		Expires:     date.Add(duration),
+		Expires:     expires,
 		Certs:       []*x509.Certificate{cert},
 		CertUrl:     certURL,
 		ValidityUrl: signURL.ResolveReference(validityHRef),

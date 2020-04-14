@@ -20,6 +20,9 @@ These include:
    * Parameter values of type string, binary, or identifier.
  * The payload must be:
    * non-empty.
+   * well-formed UTF-8 that doesn't contain:
+     * any characters that cause a parse-error during [HTML preprocessing](https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream)
+     * U+0000 NULL
    * valid transformed AMP. The canonical definition of transformed AMP is the
      return value of [`transform.Process()`](https://github.com/ampproject/amppackager/blob/e4bf0430ba152cfe82ccf063df92021dfc0f26a5/transformer/transformer.go#L219).
      If given a [valid AMP](https://github.com/ampproject/amphtml/tree/master/validator)
@@ -30,8 +33,8 @@ These include:
    * matching one of the versions requested by the `AMP-Cache-Transform` header.
      Note that this version range will increase over time, at a cadence TBD
      (likely 6-8 weeks with 2 or 3 supported latest versions).
- * If the signed `cache-control` header has a `no-cache` directive, it cannot
-   have a value (i.e. `no-cache=some-header` is disallowed).
+ * If the signed `cache-control` header has a `no-cache` or `private` directive,
+   it cannot have a value (i.e. `no-cache=some-header` is disallowed).
  * The signed `content-security-policy` header must be present and comply with
    these rules:
    * `default-src`, `script-src`, `object-src`, `style-src`, and `report-uri`
@@ -49,7 +52,9 @@ These include:
    (e.g. max 20 urls, rel=preload only, as=script|style only). URLs must be
    limited to `cdn.ampproject.org` and the allowlisted [font provider URLs](https://github.com/ampproject/amphtml/blob/b0ff92429923c86f3973009a84ff02f4f1868b4d/validator/validator-main.protoascii#L310).
  * There must not be a signed `variant-key-04` or `variants-04` header.
- * The signature's duration (expiry minus date) must be >= 4 days.
+ * The signature's lifetime (`expires` minus request time) must be >= 3 days;
+   given AMP Packager's behavior of [backdating by 1 day](https://github.com/ampproject/amppackager/blob/cc38c5fad40fc603119a298700820b97a4f0c54f/packager/signer/signer.go#L497),
+   this effectively means a minimum duration (`expires` minus `date`) of 4 days.
 
 The above is an attempt at a complete list of SXG-related requirements, but it
 is not guaranteed to be complete.

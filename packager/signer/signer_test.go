@@ -183,6 +183,8 @@ func (this *SignerSuite) TestSimple() {
 	this.Assert().Equal(fakePath, this.lastRequest.URL.String())
 	this.Assert().Equal(userAgent, this.lastRequest.Header.Get("User-Agent"))
 	this.Assert().Equal("1.1 amppkg", this.lastRequest.Header.Get("Via"))
+	this.Assert().Equal(`host="example.com"`, this.lastRequest.Header.Get("Forwarded"))
+	this.Assert().Equal("example.com", this.lastRequest.Header.Get("X-Forwarded-Host"))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal(fmt.Sprintf(`google;v="%d"`, transformer.SupportedVersions[0].Max), resp.Header.Get("AMP-Cache-Transform"))
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
@@ -272,6 +274,25 @@ func (this *SignerSuite) TestFetchSignWithForwardedRequestHeaders() {
 	this.Assert().Equal(append(payloadPrefix.Bytes(), transformedBody...), exchange.Payload)
 }
 
+func (this *SignerSuite) TestForwardedHost() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
+	}}
+	header := http.Header{
+		"AMP-Cache-Transform": {"google"}, "Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion},
+		"Forwarded": {`host="www.example.com";for=192.0.0.1`},
+		"X-Forwarded-For": {"192.0.0.1"},
+		"X-Forwarded-Host": {"www.example.com"}}
+	this.getFRH(this.T(), this.new(urlSets),
+		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath)+
+			"&sign="+url.QueryEscape(this.httpSignURL()+fakePath),
+		"example.com", header)
+
+	this.Assert().Equal(`host="example.com"`, this.lastRequest.Header.Get("Forwarded"))
+	this.Assert().Equal("www.example.com,example.com", this.lastRequest.Header.Get("X-Forwarded-Host"))
+}
+
 func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
 	urlSets := []util.URLSet{{
 		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(".*"), false, 2000, nil},
@@ -286,6 +307,26 @@ func (this *SignerSuite) TestEscapeQueryParamsInFetchAndSign() {
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
 	this.Assert().Equal(this.httpSignURL()+fakePath+"?%3Chi%3E", exchange.RequestURI)
+}
+
+func (this *SignerSuite) TestMissingFetchParam() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
+	}}
+	resp := this.get(this.T(), this.new(urlSets),
+		"/priv/doc?sign="+url.QueryEscape(this.httpSignURL()+fakePath))
+	this.Assert().Equal(http.StatusBadRequest, resp.StatusCode, "incorrect status: %#v", resp)
+}
+
+func (this *SignerSuite) TestMissingSignParam() {
+	urlSets := []util.URLSet{{
+		Sign:  &util.URLPattern{[]string{"https"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+		Fetch: &util.URLPattern{[]string{"http"}, "", this.httpHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, boolPtr(true)},
+	}}
+	resp := this.get(this.T(), this.new(urlSets),
+		"/priv/doc?fetch="+url.QueryEscape(this.httpURL()+fakePath))
+	this.Assert().Equal(http.StatusBadRequest, resp.StatusCode, "incorrect status: %#v", resp)
 }
 
 func (this *SignerSuite) TestDisallowInvalidCharsSign() {
@@ -434,7 +475,7 @@ func (this *SignerSuite) TestMutatesCspHeaders() {
 		"base-uri http://*.example.com;"+
 			"block-all-mixed-content;"+
 			"default-src * blob: data:;"+
-			"report-uri https://csp-collector.appspot.com/csp/amp;"+
+			"report-uri https://csp.withgoogle.com/csp/amp;"+
 			"script-src blob: https://cdn.ampproject.org/rtv/ https://cdn.ampproject.org/v0.js https://cdn.ampproject.org/v0/ https://cdn.ampproject.org/viewer/;"+
 			"style-src 'unsafe-inline' https://cdn.materialdesignicons.com https://cloud.typography.com https://fast.fonts.net https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com https://p.typekit.net https://pro.fontawesome.com https://use.fontawesome.com https://use.typekit.net;"+
 			"object-src 'none'",
@@ -504,7 +545,7 @@ func (this *SignerSuite) TestLimitsDuration() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
-		resp.Write([]byte("<html amp><body><amp-script script max-age=4000>"))
+		resp.Write([]byte("<html amp><body><amp-script script max-age=123456>"))
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
@@ -518,7 +559,7 @@ func (this *SignerSuite) TestLimitsDuration() {
 	this.Require().True(ok)
 	expires, ok := signatures[0].Params["expires"].(int64)
 	this.Require().True(ok)
-	this.Assert().Equal(int64(4000), expires-date)
+	this.Assert().Equal(int64(123456), expires-date)
 }
 
 func (this *SignerSuite) TestDoesNotExtendDuration() {
@@ -541,6 +582,22 @@ func (this *SignerSuite) TestDoesNotExtendDuration() {
 	expires, ok := signatures[0].Params["expires"].(int64)
 	this.Require().True(ok)
 	this.Assert().Equal(int64(604800), expires-date)
+}
+
+func (this *SignerSuite) TestProxyUnsignedIfExpired() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
+	fakeBody := []byte("<html amp><body><amp-script script max-age=86400>")
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+		resp.Write(fakeBody)
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
 }
 
 func (this *SignerSuite) TestErrorNoCache() {

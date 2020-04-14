@@ -34,7 +34,7 @@ own and can obtain certificates for.
   1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
      is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
-  2. `go get -u github.com/ampproject/amppackager/cmd/amppkg`
+  2. `go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg`
 
      Optionally, move the built `~/go/bin/amppkg` wherever you like.
   3. Create a file `amppkg.toml`. A minimal config looks like this:
@@ -78,7 +78,7 @@ container.
 #### Demonstrate privacy-preserving prefetch
 
 This step is optional; just to show how [privacy-preserving
-prefetch](https://wicg.github.io/webpackage/draft-yasskin-webpackage-use-cases.html#private-prefetch)
+prefetch](https://wicg.github.io/webpackage/draft-yasskin-wpack-use-cases.html#private-prefetch)
 works with SXGs.
 
   1. `go get -u github.com/ampproject/amppackager/cmd/amppkg_dl_sxg`.
@@ -224,6 +224,21 @@ recommendation is to ignore the console error, for now. This is because
 amp-install-serviceworker will still succeed in the unsigned AMP viewer case,
 and crawlers may reuse the contents of the signed exchange when displaying an
 AMP viewer to browser versions that don't support SXG.
+
+#### `<amp-script>`
+
+If you have any inline `<amp-script>`s (those with a `script` attribute), then
+the expiration of the SXG will be set based on the minimum `max-age` of those
+`<amp-script>`s, minus one day (due to
+[backdating](https://github.com/ampproject/amppackager/issues/397)). If
+possible, prefer external `<amp-script>`s (those with a `src` attribute), which
+do not have this limitation.
+
+If inline is necessary, you will need to weigh the [security
+risks](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#seccons-downgrades)
+against the [AMP Cache requirement](docs/cache_requirements.md) for a minimum
+`max-age` of `345600` (4 days). For SXGs shorter than that, the Google AMP Cache
+will treat them as if unsigned (by showing an AMP Viewer).
 
 ## Local Transformer
 

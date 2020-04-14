@@ -34,8 +34,7 @@ var eventRE = func() *regexp.Regexp {
 // - For <script> elements, remove where any of the following is true:
 //     - It has a src attribute whose value is not prefixed by https://cdn.ampproject.org/ (case-insensitive match).
 //     - It has no src attribute and no type attribute (case-insensitive match).
-//     - It has a type attribute whose value is neither application/json nor application/ld+json (case-insensitive match on both name and value).
-//       - Unless it is a child of template (amp-mustache) and has type=text/plain.
+//     - It has a type attribute whose value is not application/json, application/ld+json, or text/plain (case-insensitive match on both name and value).
 //
 // - For all other elements, remove any event attribute that matches "on[A-Za-z].*".
 func StripJS(e *Context) error {
@@ -61,16 +60,11 @@ func StripJS(e *Context) error {
 			}
 			if typeOk {
 				switch strings.ToLower(typeVal) {
-				case "application/json", "application/ld+json":
+				case "application/json", "application/ld+json", "text/plain":
 					// ok to keep
 				case "text/javascript":
 					// ok to keep only for AMP Cache scripts
 					if !isCacheSrc {
-						htmlnode.RemoveNode(&n)
-					}
-				case "text/plain":
-					// ok to keep only for children of template (amp-mustache)
-					if !htmlnode.IsDescendantOf(n, atom.Template) {
 						htmlnode.RemoveNode(&n)
 					}
 				default:

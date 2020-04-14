@@ -48,6 +48,26 @@
 # SHA-256).
 CertFile = './pems/cert.pem'
 
+# The path to save a new cert retrieved from the CA if the current cert in
+# 'CertFile' above is still valid.
+# This is optional and is needed only if you have 'autorenewcert' turned on.
+# For multi-replica setups (multiple AMP Packager instances), only the replica
+# that will do the autorenewal of certs needs this config item set.
+# NewCertFile = './pems/newcert.pem'
+
+# The path to the Certificate Signing Request (CSR) that is needed to request
+# new certificates from the Certificate Authority using ACME.
+# CSRs are typically created using the openssl command:
+# 	openssl req -new -key /path/to/privkey -out /path/to/cert.csr
+# To verify:
+# 	openssl req -text -noout -verify -in cert.csr
+# The following docs list examples on how to go about generating CSRs:
+#      https://www.digicert.com/csr-creation.htm?rid=011592
+#      https://www.ssl.com/how-to/manually-generate-a-certificate-signing-request-csr-using-openssl/
+#      https://geekflare.com/san-ssl-certificate/
+# This is optional and is needed only if you have 'autorenewcert' turned on.
+# CSRFile = './pems/cert.csr'
+
 # The path to the PEM file containing the private key that corresponds to the
 # leaf certificate in CertFile.
 KeyFile = './pems/privkey.pem'
@@ -177,3 +197,82 @@ ForwardedRequestHeaders = []
   # Domain = "www.corp.amppackageexample.com"
   # PathRE = "/world/.*"
   # QueryRE = ""
+
+# IMPORTANT NOTE: the support of the ACME protocol and automatic renewal of certificates is currently in the
+# EXPERIMENTAL stage.  Once we have more experience with people using it out in the wild, we will gradually
+# move it to PRODUCTION mode.
+#
+# ACME is a protocol that allows for automatic renewal of certificates. AMP Packager uses an ACME library
+# https://github.com/go-acme/lego to handle certificate renewal. Automatic certificate renewal is enabled
+# in AMP Packager via the 'autorenewcert' flag. Turning the flag on will enable AMP Packager to automatically
+# request certificate renewals whenever it has determined that the current certificate is expired or about to
+# expire.
+#
+# ACMEConfig only needs to be present in the toml file if 'autorenewcert' command line flag was turned on.
+# If the flag is on, at least one of ACMEConfig.Production or ACMEConfig.Development should be present.
+# Note that a recommended best practice for setting up the cert renewal that minimizes both cost and bombarding
+# your Certificate Authority with requests is that for a multi-instance setup of AMP packager, only one instance is
+# setup to do automatic cert renewals and the rest of the instances will just be configured to reload the fresh
+# certificate from disk when their in-memory copies expire.  This also implies that the cert paths configured above
+# in 'CertFile' and 'NewCertFile' are located on a shared filesystem accessible by all AMP packager instances.
+#
+# For the full ACME spec, see:
+# 	https://tools.ietf.org/html/draft-ietf-acme-acme-02
+# 	https://ietf-wg-acme.github.io/acme/draft-ietf-acme-acme.html
+# TODO(banaag): consider renaming ACMEConfig to ACME
+# [ACMEConfig]
+  # This config will be used if 'autorenewcert' is turned on and 'development' is turned off.
+  # If the flags above are on but we don't have an entry here, AMP Packager will not start.
+  # [ACMEConfig.Production]
+    # This is the ACME discovery URL that is used for ACME http requests to the Certificate Authority that
+    # doles out the certificates.
+    # Currently, the only CA that supports automatic signed exchange cert renewals is Digicert:
+    # https://docs.digicert.com/certificate-tools/acme-user-guide/acme-directory-urls-signed-http-exchange-certificates/
+    # DiscoURL = "https://production-acme.discovery.url/"
+
+    # This is the email address you used to create an account with the Certificate Authority that is registered to
+    # request signed exchange certificates.
+    # EmailAddress = "user@company.com"
+
+    # For the remaining configuration items, it's important to understand the different challenges employed as
+    # part of the ACME protocol.  See:
+    #   https://ietf-wg-acme.github.io/acme/draft-ietf-acme-acme.html#identifier-validation-challenges
+    #   https://letsencrypt.org/docs/challenge-types/
+    #   https://certbot.eff.org/docs/challenges.html?highlight=http
+    # Note that you don't need to have all the challenges configured, it's typically sufficient to have one configured.
+    # The exception arises when you have to deal with wildcard certificates, see below.
+
+    # This is the http server root directory where the ACME http challenge token could be deposited. Note that you may
+    # need to do some configuration work to get this setup to work where multiple instances of AMP Packager is running.
+    # For example:
+    # 	https://community.letsencrypt.org/t/how-to-nginx-configuration-to-enable-acme-challenge-support-on-all-http-virtual-hosts/5622/3
+    # HttpWebRootDir = '/path/to/www_root_dir'
+
+    # This is the port used by the AMP Packager to respond to the HTTP challenge issued as part of ACME protocol.
+    # Note that if your setup only opens up certain ports, you may need to do a configuration change where you forward
+    # requests to this port using proxy_pass, for example:
+    # 	https://medium.com/@dipeshwagle/add-https-using-lets-encrypt-to-nginx-configured-as-a-reverse-proxy-on-ubuntu-b4455a729176
+    # HttpChallengePort = 5002
+
+    # This is the port used by AMP packager to respond to the TLS challenge issued as part of the ACME protocol.
+    # TlsChallengePort = 5003
+
+    # This is the DnsProvider to be used in fulfilling the ACME DNS challenge. Note that you only need the DNS challenge
+    # setup if you have wildcard certificates. See: https://searchsecurity.techtarget.com/definition/wildcard-certificate
+    # For the DNS challenge, go-acme/lego, there are certain environment variables that need to be set up which depends on
+    # the DNS provider that you use to fulfill the DNS challenge.  See:
+    # 	https://go-acme.github.io/lego/dns/
+    # To use this, build amppkg with `go build -tags dns01`; it is disabled by default because it bloats the binary.
+    # DnsProvider = "gcloud"
+
+  # This config will be used if 'autorenewcert' is turned on and 'development' is turned on.
+  # If the flags above are on but we don't have an entry here, AMP Packager will not start.
+  # All the other fields below have the same semantics as the one in ACMEConfig.Production above.
+  # For development mode, given that we don't require the SXG extension, one can use Let's Encrypt CA to generate the certs.
+  # [ACMEConfig.Development]
+    # DiscoURL = "https://development-acme.discovery.url/"
+    # EmailAddress = "user@company.com"
+    # HttpChallengePort = 5002
+    # HttpWebRootDir = '/path/to/www_root_dir'
+    # TlsChallengePort = 5003
+    # DnsProvider = "gcloud"
