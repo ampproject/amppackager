@@ -12,8 +12,11 @@
 # the CSR file).
 
 # GCloud project information
+# Note that if your project id is scoped by a domain, you need to replace the
+# ':' with a '/'.  See: https://cloud.google.com/container-registry/docs/overview#domain-scoped_projects
 # REQUIRED
 export PROJECT_ID="YOUR_GCLOUD_PROJECT_ID"
+# For compute zones, see: https://console.cloud.google.com/compute/zones
 export COMPUTE_ENGINE_ZONE="YOUR_COMPUTE_ENGINE_ZONE"
 
 # The version tag of the docker build of amppackager you want to build/use.
