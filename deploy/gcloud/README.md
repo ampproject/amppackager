@@ -35,9 +35,9 @@ These instructions are mostly lifted from the [Google Kubernetes Engine tutorial
 
 The following information is required to be entered into setup.sh:
 
-  1. PROJECT_ID. This is your Google Cloud Project ID where you want your cluster to reside.
+  1. PROJECT_ID. This is your Google Cloud Project ID where you want your cluster to reside. Note that if your project ID is scoped by a domain, you need to replace the ':' with a '/' in the project id name. See: [Google Cloud domain scoped projects](https://cloud.google.com/container-registry/docs/overview#domain-scoped_projects).
 
-  2. COMPUTE_ENGINE_ZONE. Select a region where you want your app's computing resources located. See: [App Engine Locations](https://cloud.google.com/appengine/docs/locations)
+  2. COMPUTE_ENGINE_ZONE. Select a region where you want your app's computing resources located. See: [Compute Zone Locations](https://console.cloud.google.com/compute/zones)
 
   3. AMP_PACKAGER_DOMAIN.  The domain you want to use for the [Certificate Signing Request](https://www.digicert.com/ecc-csr-creation-ssl-installation-apache.htm).
 
@@ -109,7 +109,7 @@ The following information can be customized in setup.sh, but the default also wo
      only visible to your frontend server.  You do this by modifying the
      following section of amppackage_service.yaml:
 
-      #  loadBalancerSourceRanges:
+      loadBalancerSourceRanges:
       - YOUR_FRONTEND_SERVER_IP_ADDRESS_HERE in CIDR format. CIDR is explained
         in the comments before this section in the yaml file.
 
