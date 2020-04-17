@@ -61,8 +61,6 @@ const (
 
 	AMPStory = "amp-story"
 
-	AMPViewerIntegration = "amp-viewer-integration"
-
 	IAMPHTMLLayout = "i-amphtml-layout"
 )
 
@@ -126,12 +124,14 @@ func IsScriptRenderDelaying(n *html.Node) bool {
 	if n.DataAtom != atom.Script {
 		return false
 	}
+	if IsScriptAMPViewer(n) {
+		return true
+	}
 	if v, ok := htmlnode.GetAttributeVal(n, "", AMPCustomElement); ok {
 		// TODO(b/77581738): Remove amp-story from this list.
 		return (v == AMPDynamicCSSClasses ||
 			v == AMPExperiment ||
-			v == AMPStory ||
-			v == AMPViewerIntegration)
+			v == AMPStory)
 	}
 	return false
 }
