@@ -29,108 +29,122 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// Propagate hardcoded values into template test url.
-func Expand(templateURL string) string {
-	templateURL = strings.Replace(templateURL, "$HOST",
-		"http://www.publisher_amp_server.com", 1)
-	templateURL = strings.Replace(templateURL, "$FETCH",
-		"http://www.publisher_main_server.com/some_page", 1)
-	templateURL = strings.Replace(templateURL, "$SIGN",
-		"https://www.publisher_main_server.com/some_page", 1)
+// expand propagates hardcoded values into template test url.
+func expand(templateURL string) string {
+	templateURL = strings.Replace(templateURL, "$HOST", "http://www.publisher_amp_server.com", 1)
+	templateURL = strings.Replace(templateURL, "$FETCH", "http://www.publisher_main_server.com/some_page", 1)
+	templateURL = strings.Replace(templateURL, "$SIGN", "https://www.publisher_main_server.com/some_page", 1)
 	templateURL = strings.Replace(templateURL, "$CERT", pkgt.CertName, 1)
 	return templateURL
 }
 
-// Dedicated type for annotated params - for tests readability.
-type params map[string]string
-
-// Mock for underlying http handlers - signer, cert etc.
-type MockedHandler struct {
+// mockedHandler mocks mux' underlying http handlers - signer, cert etc.
+type mockedHandler struct {
 	mock.Mock
 }
 
-// Mock ServeHTTP: record annotated params, don't forward the call.
-func (m *MockedHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	// Convert annotated parameters to dedicated "params" type for tests readability.
-	m.Called(params(Params(req)))
+func (m *mockedHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	m.Called(Params(req))
 }
 
 func TestServeHTTPSuccess(t *testing.T) {
-	tests := []struct {
-		expectedHandlerName  string
-		testScenario         string
-		url                  string
-		expectedParsedParams params
+	templateTests := []struct {
+		testName      string
+		testURL       string
+		expectHandler string
+		expectParams  map[string]string
 	}{
-		{"signer",
-			" empty",
-			Expand("$HOST/priv/doc"),
-			params{}},
-		{"signer",
-			" with query, empty",
-			Expand("$HOST/priv/doc?"),
-			params{}},
-		{"signer",
-			" with query, regular",
-			Expand("$HOST/priv/doc?fetch=$FETCH&sign=$SIGN"),
-			params{}},
-		{"signer",
-			" with query, escaping",
-			Expand("$HOST/priv/doc?fetch=$FETCH&sign=$SIGN%2A\\"),
-			params{}},
-		{"signer",
-			" with path, empty",
-			Expand("$HOST/priv/doc/"),
-			params{"signURL": ""}},
-		{"signer",
-			"  with path, regular",
-			Expand("$HOST/priv/doc/$FETCH"),
-			params{"signURL": Expand("$FETCH")}},
-		{"signer",
-			" with path, escaping",
-			Expand("$HOST/priv/doc/$FETCH%2A\\"),
-			params{"signURL": Expand("$FETCH%2A%5C")}},
-		{"signer",
-			" with path and query, regular",
-			Expand("$HOST/priv/doc/$FETCH?amp=1"),
-			params{"signURL": Expand("$FETCH?amp=1")}},
-		{"signer",
-			" with path and query, escaping",
-			Expand("$HOST/priv/doc/$FETCH%2A\\?amp=1%2A\\"),
-			params{"signURL": Expand("$FETCH%2A%5C?amp=1%2A\\")}},
-		{"cert",
-			" empty",
-			Expand("$HOST/amppkg/cert/"),
-			params{"certName": ""}},
-		{"cert",
-			" regular",
-			Expand("$HOST/amppkg/cert/$CERT"),
-			params{"certName": Expand("$CERT")}},
-		{"cert",
-			" escaping",
-			Expand("$HOST/amppkg/cert/$CERT%2A\\"),
-			params{"certName": Expand("$CERT*\\")}},
-		{"validityMap",
-			" regular",
-			Expand("$HOST/amppkg/validity"),
-			params{}},
-		{"healthz",
-			" regular",
-			Expand("$HOST/healthz"),
-			params{}},
+		{
+			testName:      "Signer - empty",
+			testURL:       "$HOST/priv/doc",
+			expectHandler: "signer",
+			expectParams:  map[string]string{},
+		}, {
+			testName:      "Signer - with query, empty",
+			testURL:       "$HOST/priv/doc?",
+			expectHandler: "signer",
+			expectParams:  map[string]string{},
+		}, {
+			testName:      "Signer - with query, regular",
+			testURL:       "$HOST/priv/doc?fetch=$FETCH&sign=$SIGN",
+			expectHandler: "signer",
+			expectParams:  map[string]string{},
+		},
+		{
+			testName:      "Signer - with query, escaping",
+			testURL:       "$HOST/priv/doc?fetch=$FETCH&sign=$SIGN%2A\\",
+			expectHandler: "signer",
+			expectParams:  map[string]string{},
+		}, {
+			testName:      "Signer - with path, empty",
+			testURL:       "$HOST/priv/doc/",
+			expectHandler: "signer",
+			expectParams:  map[string]string{"signURL": ""},
+		}, {
+			testName:      "Signer -  with path, regular",
+			testURL:       "$HOST/priv/doc/$FETCH",
+			expectHandler: "signer",
+			expectParams:  map[string]string{"signURL": "$FETCH"},
+		}, {
+			testName:      "Signer - with path, escaping",
+			testURL:       "$HOST/priv/doc/$FETCH%2A\\",
+			expectHandler: "signer",
+			expectParams:  map[string]string{"signURL": "$FETCH%2A%5C"},
+		}, {
+			testName:      "Signer - with path and query, regular",
+			testURL:       "$HOST/priv/doc/$FETCH?amp=1",
+			expectHandler: "signer",
+			expectParams:  map[string]string{"signURL": "$FETCH?amp=1"},
+		}, {
+			testName:      "Signer - with path and query, escaping",
+			testURL:       "$HOST/priv/doc/$FETCH%2A\\?amp=1%2A\\",
+			expectHandler: "signer",
+			expectParams:  map[string]string{"signURL": "$FETCH%2A%5C?amp=1%2A\\"},
+		}, {
+			testName:      "Cert - empty",
+			testURL:       "$HOST/amppkg/cert/",
+			expectHandler: "cert",
+			expectParams:  map[string]string{"certName": ""},
+		}, {
+			testName:      "Cert - regular",
+			testURL:       "$HOST/amppkg/cert/$CERT",
+			expectHandler: "cert",
+			expectParams:  map[string]string{"certName": "$CERT"},
+		}, {
+			testName:      "Cert - escaping",
+			testURL:       "$HOST/amppkg/cert/$CERT%2A\\",
+			expectHandler: "cert",
+			expectParams:  map[string]string{"certName": "$CERT*\\"},
+		}, {
+			testName:      "ValidityMap - regular",
+			testURL:       "$HOST/amppkg/validity",
+			expectHandler: "validityMap",
+			expectParams:  map[string]string{},
+		}, {
+			testName:      "Healthz - regular",
+			testURL:       "$HOST/healthz",
+			expectHandler: "healthz",
+			expectParams:  map[string]string{},
+		},
 	}
-	for _, tt := range tests {
-		testName := tt.expectedHandlerName + tt.testScenario
+	for _, tt := range templateTests {
+		testName := tt.testName
 		t.Run(testName, func(t *testing.T) {
-			mocks := map[string](*MockedHandler){"signer": &MockedHandler{}, "healthz": &MockedHandler{}, "cert": &MockedHandler{}, "validityMap": &MockedHandler{}}
+			mocks := map[string](*mockedHandler){"signer": &mockedHandler{}, "healthz": &mockedHandler{}, "cert": &mockedHandler{}, "validityMap": &mockedHandler{}}
 			mux := New(mocks["cert"], mocks["signer"], mocks["validityMap"], mocks["healthz"])
 
+			// expand template URL and expectParams.
+			tt.testURL = expand(tt.testURL)
+			for v, k := range tt.expectParams {
+				tt.expectParams[v] = expand(k)
+			}
+
 			// Set expectation.
-			expectedMockedHandler := mocks[tt.expectedHandlerName]
-			expectedMockedHandler.On("ServeHTTP", tt.expectedParsedParams)
+			expectMockedHandler := mocks[tt.expectHandler]
+			expectMockedHandler.On("ServeHTTP", tt.expectParams)
 
 			// Run.
-			actualResp := pkgt.Get(t, mux, tt.url)
+			actualResp := pkgt.Get(t, mux, tt.testURL)
 
 			// Expect no errors.
 			assert.Equal(t, 200, actualResp.StatusCode, "No error expected: %#v", actualResp)
@@ -143,9 +157,9 @@ func TestServeHTTPSuccess(t *testing.T) {
 	}
 }
 
-func ExpectError(t *testing.T, url string, expectedErrorMessage string, expectedErrorCode int, body io.Reader) {
-	// Initialize mux with 4 identical mocked handlers, because no calls are expected to any of them.
-	mockedHandler := new(MockedHandler)
+func expectError(t *testing.T, url string, expectErrorMessage string, expectErrorCode int, body io.Reader) {
+	// Initialize mux with 4 identical mocked handlers, because no calls are expect to any of them.
+	mockedHandler := new(mockedHandler)
 	mux := New(mockedHandler, mockedHandler, mockedHandler, mockedHandler)
 
 	// Run and extract error.
@@ -154,38 +168,35 @@ func ExpectError(t *testing.T, url string, expectedErrorMessage string, expected
 	actualErrorMessage := fmt.Sprintf("%s", actualErrorMessageBuffer)
 
 	// Expect the right error.
-	assert.Equal(t, expectedErrorCode, actualResp.StatusCode,
-		"incorrect error code: %#v", actualResp)
-	assert.Equal(t, expectedErrorMessage, actualErrorMessage,
-		"incorrect error message: %#v", actualErrorMessage)
+	assert.Equal(t, expectErrorCode, actualResp.StatusCode)
+	assert.Equal(t, expectErrorMessage, actualErrorMessage)
 
 	// Expect no calls to mocks.
 	mockedHandler.AssertExpectations(t)
 }
 
-func TestServeHTTPExpected404s(t *testing.T) {
-	tests := []struct {
+func TestServeHTTPexpect404s(t *testing.T) {
+	templateTests := []struct {
 		testName string
-		url      string
+		URL      string
 	}{
-		{"No such endpoint                      ", Expand("$HOST/abc")},
-		{"Signer - unexpected extra char        ", Expand("$HOST/priv/doc1")},
-		{"Cert - no closing slash               ", Expand("$HOST/amppkg/cert")},
-		{"ValidityMap - unexpected closing slash", Expand("$HOST/amppkg/validity/")},
-		{"Healthz - unexpected closing slash    ", Expand("$HOST/healthz/")},
-		{"Healthz - unexpected extra char       ", Expand("$HOST/healthz1")},
+		{"No such endpoint                      ", "$HOST/abc"},
+		{"Signer - unexpected extra char        ", "$HOST/priv/doc1"},
+		{"Cert - no closing slash               ", "$HOST/amppkg/cert"},
+		{"ValidityMap - unexpected closing slash", "$HOST/amppkg/validity/"},
+		{"Healthz - unexpected closing slash    ", "$HOST/healthz/"},
+		{"Healthz - unexpected extra char       ", "$HOST/healthz1"},
 	}
-	for _, tt := range tests {
+	for _, tt := range templateTests {
 		t.Run(tt.testName, func(t *testing.T) {
-			ExpectError(t, tt.url, "404 page not found\n", http.StatusNotFound, nil)
+			expectError(t, expand(tt.URL), "404 page not found\n", http.StatusNotFound, nil)
 		})
 	}
 }
 
-func TestServeHTTPExpected405(t *testing.T) {
+func TestServeHTTPexpect405(t *testing.T) {
 	body := strings.NewReader("Non empty body so GetBHH sends a POST request")
-	ExpectError(t, Expand("$HOST/healthz"),
-		"405 method not allowed\n", http.StatusMethodNotAllowed, body)
+	expectError(t, expand("$HOST/healthz"), "405 method not allowed\n", http.StatusMethodNotAllowed, body)
 }
 
 func TestParamsIncorrectValueType(t *testing.T) {
