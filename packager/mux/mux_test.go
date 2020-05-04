@@ -55,83 +55,93 @@ func TestServeHTTPSuccess(t *testing.T) {
 		expectParams  map[string]string
 	}{
 		{
-			testName:      "Signer - empty",
-			testURL:       "$HOST/priv/doc",
-			expectHandler: "signer",
+			testName:      `Signer - empty`,
+			testURL:       `$HOST/priv/doc`,
+			expectHandler: `signer`,
 			expectParams:  map[string]string{},
 		}, {
-			testName:      "Signer - with query, empty",
-			testURL:       "$HOST/priv/doc?",
-			expectHandler: "signer",
+			testName:      `Signer - with query, empty`,
+			testURL:       `$HOST/priv/doc?`,
+			expectHandler: `signer`,
 			expectParams:  map[string]string{},
 		}, {
-			testName:      "Signer - with query, regular",
-			testURL:       "$HOST/priv/doc?fetch=$FETCH&sign=$SIGN",
-			expectHandler: "signer",
+			testName:      `Signer - with query, regular`,
+			testURL:       `$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`,
+			expectHandler: `signer`,
 			expectParams:  map[string]string{},
 		},
 		{
-			testName:      "Signer - with query, escaping",
-			testURL:       "$HOST/priv/doc?fetch=$FETCH&sign=$SIGN%2A\\",
-			expectHandler: "signer",
+			testName:      `Signer - with query, escaping`,
+			testURL:       `$HOST/priv/doc?fetch=$FETCH&sign=$SIGN%2A\`,
+			expectHandler: `signer`,
 			expectParams:  map[string]string{},
 		}, {
-			testName:      "Signer - with path, empty",
-			testURL:       "$HOST/priv/doc/",
-			expectHandler: "signer",
-			expectParams:  map[string]string{"signURL": ""},
+			testName:      `Signer - with path, empty`,
+			testURL:       `$HOST/priv/doc/`,
+			expectHandler: `signer`,
+			expectParams:  map[string]string{`signURL`: ``},
 		}, {
-			testName:      "Signer -  with path, regular",
-			testURL:       "$HOST/priv/doc/$FETCH",
-			expectHandler: "signer",
-			expectParams:  map[string]string{"signURL": "$FETCH"},
+			testName:      `Signer -  with path, regular`,
+			testURL:       `$HOST/priv/doc/$FETCH`,
+			expectHandler: `signer`,
+			expectParams:  map[string]string{`signURL`: `$FETCH`},
 		}, {
-			testName:      "Signer - with path, escaping",
-			testURL:       "$HOST/priv/doc/$FETCH%2A\\",
-			expectHandler: "signer",
-			expectParams:  map[string]string{"signURL": "$FETCH%2A%5C"},
+			testName:      `Signer - with path, escaping`,
+			testURL:       `$HOST/priv/doc/$FETCH%2A\`,
+			expectHandler: `signer`,
+			expectParams:  map[string]string{`signURL`: `$FETCH%2A%5C`},
 		}, {
-			testName:      "Signer - with path and query, regular",
-			testURL:       "$HOST/priv/doc/$FETCH?amp=1",
-			expectHandler: "signer",
-			expectParams:  map[string]string{"signURL": "$FETCH?amp=1"},
+			testName:      `Signer - with path and query, regular`,
+			testURL:       `$HOST/priv/doc/$FETCH?amp=1`,
+			expectHandler: `signer`,
+			expectParams:  map[string]string{`signURL`: `$FETCH?amp=1`},
 		}, {
-			testName:      "Signer - with path and query, escaping",
-			testURL:       "$HOST/priv/doc/$FETCH%2A\\?amp=1%2A\\",
-			expectHandler: "signer",
-			expectParams:  map[string]string{"signURL": "$FETCH%2A%5C?amp=1%2A\\"},
+			testName:      `Signer - with path and query, escaping`,
+			testURL:       `$HOST/priv/doc/$FETCH%2A\?amp=1%2A\`,
+			expectHandler: `signer`,
+			expectParams:  map[string]string{`signURL`: `$FETCH%2A%5C?amp=1%2A\`},
 		}, {
-			testName:      "Cert - empty",
-			testURL:       "$HOST/amppkg/cert/",
-			expectHandler: "cert",
-			expectParams:  map[string]string{"certName": ""},
+			testName:      `Cert - empty`,
+			testURL:       `$HOST/amppkg/cert/`,
+			expectHandler: `cert`,
+			expectParams:  map[string]string{`certName`: ``},
 		}, {
-			testName:      "Cert - regular",
-			testURL:       "$HOST/amppkg/cert/$CERT",
-			expectHandler: "cert",
-			expectParams:  map[string]string{"certName": "$CERT"},
+			testName:      `Cert - regular`,
+			testURL:       `$HOST/amppkg/cert/$CERT`,
+			expectHandler: `cert`,
+			expectParams:  map[string]string{`certName`: `$CERT`},
 		}, {
-			testName:      "Cert - escaping",
-			testURL:       "$HOST/amppkg/cert/$CERT%2A\\",
-			expectHandler: "cert",
-			expectParams:  map[string]string{"certName": "$CERT*\\"},
+			testName:      `Cert - escaping`,
+			testURL:       `$HOST/amppkg/cert/$CERT%2A\`,
+			expectHandler: `cert`,
+			expectParams:  map[string]string{`certName`: `$CERT*\`},
 		}, {
-			testName:      "ValidityMap - regular",
-			testURL:       "$HOST/amppkg/validity",
-			expectHandler: "validityMap",
+			testName:      `ValidityMap - regular`,
+			testURL:       `$HOST/amppkg/validity`,
+			expectHandler: `validityMap`,
 			expectParams:  map[string]string{},
 		}, {
-			testName:      "Healthz - regular",
-			testURL:       "$HOST/healthz",
-			expectHandler: "healthz",
+			testName:      `Healthz - regular`,
+			testURL:       `$HOST/healthz`,
+			expectHandler: `healthz`,
 			expectParams:  map[string]string{},
 		},
 	}
 	for _, tt := range templateTests {
 		testName := tt.testName
 		t.Run(testName, func(t *testing.T) {
+			// Defer validation to ensure it does happen.
 			mocks := map[string](*mockedHandler){"signer": &mockedHandler{}, "healthz": &mockedHandler{}, "cert": &mockedHandler{}, "validityMap": &mockedHandler{}}
-			mux := New(mocks["cert"], mocks["signer"], mocks["validityMap"], mocks["healthz"])
+			var actualResp *http.Response
+			defer func() {
+				// Expect no errors.
+				assert.Equal(t, 200, actualResp.StatusCode, "No error expected: %#v", actualResp)
+
+				// Expect the right call to the right handler, and no calls to the rest.
+				for _, mockedHandler := range mocks {
+					mockedHandler.AssertExpectations(t)
+				}
+			}()
 
 			// expand template URL and expectParams.
 			tt.testURL = expand(tt.testURL)
@@ -144,35 +154,34 @@ func TestServeHTTPSuccess(t *testing.T) {
 			expectMockedHandler.On("ServeHTTP", tt.expectParams)
 
 			// Run.
-			actualResp := pkgt.Get(t, mux, tt.testURL)
-
-			// Expect no errors.
-			assert.Equal(t, 200, actualResp.StatusCode, "No error expected: %#v", actualResp)
-
-			// Expect the right call to the right handler, and no calls to the rest.
-			for _, mockedHandler := range mocks {
-				mockedHandler.AssertExpectations(t)
-			}
+			mux := New(mocks["cert"], mocks["signer"], mocks["validityMap"], mocks["healthz"])
+			actualResp = pkgt.Get(t, mux, tt.testURL)
 		})
 	}
 }
 
 func expectError(t *testing.T, url string, expectErrorMessage string, expectErrorCode int, body io.Reader) {
-	// Initialize mux with 4 identical mocked handlers, because no calls are expect to any of them.
+	// Defer validation to ensure it does happen.
 	mockedHandler := new(mockedHandler)
+	var actualResp *http.Response
+	var actualErrorMessage string
+	defer func() {
+		// Expect the right error.
+		assert.Equal(t, expectErrorCode, actualResp.StatusCode)
+		assert.Equal(t, expectErrorMessage, actualErrorMessage)
+
+		// Expect no calls to mocks.
+		mockedHandler.AssertExpectations(t)
+	}()
+
+	// Initialize mux with 4 identical mocked handlers, because no calls are expect to any of them.
 	mux := New(mockedHandler, mockedHandler, mockedHandler, mockedHandler)
 
 	// Run and extract error.
-	actualResp := pkgt.GetBHH(t, mux, url, "", body, http.Header{})
+	actualResp = pkgt.GetBHH(t, mux, url, "", body, http.Header{})
 	actualErrorMessageBuffer, _ := ioutil.ReadAll(actualResp.Body)
-	actualErrorMessage := fmt.Sprintf("%s", actualErrorMessageBuffer)
+	actualErrorMessage = fmt.Sprintf("%s", actualErrorMessageBuffer)
 
-	// Expect the right error.
-	assert.Equal(t, expectErrorCode, actualResp.StatusCode)
-	assert.Equal(t, expectErrorMessage, actualErrorMessage)
-
-	// Expect no calls to mocks.
-	mockedHandler.AssertExpectations(t)
 }
 
 func TestServeHTTPexpect404s(t *testing.T) {
