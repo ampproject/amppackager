@@ -149,6 +149,8 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	path := req.URL.EscapedPath()
 
 	// Find the first matching routing rule.
+	// Note that matchingRule won't be nil because the last rule in routing
+	// matrix has an emptry string and therefore matches any path.
 	var matchingRule *routingRule
 	var suffix string
 	for _, currentRule := range this.routingMatrix {
