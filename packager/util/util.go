@@ -30,6 +30,7 @@ import (
 )
 
 const CertURLPrefix = "/amppkg/cert"
+const SignerURLPrefix = "/priv/doc"
 
 // CertName returns the basename for the given cert, as served by this
 // packager's cert cache. Should be stable and unique (e.g.
