@@ -43,6 +43,7 @@ func CertName(cert *x509.Certificate) string {
 
 const ValidityMapPath = "/amppkg/validity"
 const HealthzPath = "/healthz"
+const MetricsPath = "/metrics"
 
 // ParsePrivateKey returns the first PEM block that looks like a private key.
 func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
