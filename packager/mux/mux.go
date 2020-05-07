@@ -41,7 +41,7 @@ import (
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	// "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // routingRule maps a URL path prefix to three entities:
@@ -102,7 +102,9 @@ func expectCertQuery(suffix string, req *http.Request, params *map[string]string
 }
 
 // New is the main entry point. Use the return value for http.Server.Handler.
-func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, healthz http.Handler, metrics http.Handler) http.Handler {
+func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, healthz http.Handler
+	// , metrics http.Handler
+	) http.Handler {
 	return &mux{
 		// Note that the order of rules in the matrix matters: the first
 		// matching rule will be applied, so the rule for “/priv/doc/” precedes
@@ -114,7 +116,7 @@ func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, 
 			{util.CertURLPrefix + "/", expectCertQuery, certCache, "certCache"},
 			{util.ValidityMapPath, expectNoSuffix, validityMap, "validityMap"},
 			{util.HealthzPath, expectNoSuffix, healthz, "healthz"},
-			{util.MetricsPath, expectNoSuffix, metrics, "metrics"},
+			// {util.MetricsPath, expectNoSuffix, metrics, "metrics"},
 			{"", return404, nil, "handler_not_assigned"},
 		}}
 }
@@ -182,9 +184,11 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// Decorate the call to handlerFunc with a Prometheus requests counter
 	// pre-labelled (curried) with the right handler label.
-	promhttp.InstrumentHandlerCounter(promTotalRequests.MustCurryWith(
-		prometheus.Labels{"handler": matchingRule.handlerPrometheusLabel}),
-		handlerFunc).ServeHTTP(resp, req)
+
+	handlerFunc.ServeHTTP(resp, req)
+	// promhttp.InstrumentHandlerCounter(promTotalRequests.MustCurryWith(
+	// 	prometheus.Labels{"handler": matchingRule.handlerPrometheusLabel}),
+	// 	handlerFunc).ServeHTTP(resp, req)
 }
 
 type paramsKeyType struct{}
