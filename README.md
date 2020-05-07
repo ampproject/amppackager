@@ -48,7 +48,7 @@ own and can obtain certificates for.
        go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg
        ```
 
-  1.` Optionally, move the built `~/go/bin/amppkg` wherever you like.
+  1. Optionally, move the built `~/go/bin/amppkg` wherever you like.
   1. Prepare a temporary certificate and private key pair to use for signing the
      exchange when testing your config. Follow WICG
      [instructions](https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange)
