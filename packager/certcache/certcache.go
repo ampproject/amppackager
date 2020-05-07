@@ -140,11 +140,11 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 		//    certificate, all needing to staple an OCSP response. You don't
 		//    want to have all of them hammering the OCSP server - ideally,
 		//    you'd have one request, in the backend, and updating them all.
-		ocspFile:     &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
-		ocspFilePath: ocspCache,
-		stop:         make(chan struct{}),
+		ocspFile:             &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
+		ocspFilePath:         ocspCache,
+		stop:                 make(chan struct{}),
 		generateOCSPResponse: generateOCSPResponse,
-		client:       http.Client{Timeout: 60 * time.Second},
+		client:               http.Client{Timeout: 60 * time.Second},
 		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
 			if cert == nil || len(cert.OCSPServer) < 1 {
 				return "", errors.New("Cert missing OCSPServer.")
@@ -259,7 +259,7 @@ func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (this *CertCache) parseOCSP(bytes []byte, issuer *x509.Certificate) (*ocsp.Response, error){
+func (this *CertCache) parseOCSP(bytes []byte, issuer *x509.Certificate) (*ocsp.Response, error) {
 	resp, err := ocsp.ParseResponseForCert(bytes, this.getCert(), issuer)
 	if err != nil {
 		return nil, errors.Wrap(err, "Parsing OCSP")
@@ -267,7 +267,7 @@ func (this *CertCache) parseOCSP(bytes []byte, issuer *x509.Certificate) (*ocsp.
 	return resp, nil
 }
 
-func (this *CertCache) ocspMidpoint(resp *ocsp.Response) (time.Time) {
+func (this *CertCache) ocspMidpoint(resp *ocsp.Response) time.Time {
 	return resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate) / 2)
 }
 
@@ -401,15 +401,15 @@ func (this *CertCache) readOCSP(allowRetries bool) ([]byte, time.Time, error) {
 	}
 
 	for numTries := 0; numTries < maxTries; {
-		ocsp, ocspUpdateAfter, err = this.readOCSPHelper(numTries, numTries >= maxTries - 1)
+		ocsp, ocspUpdateAfter, err = this.readOCSPHelper(numTries, numTries >= maxTries-1)
 		if err != nil {
 			return nil, ocspUpdateAfter, err
 		}
 		if !this.shouldUpdateOCSP(ocsp) {
-			break;
+			break
 		}
 		// Wait only if are not on our last try.
-		if numTries < maxTries - 1 {
+		if numTries < maxTries-1 {
 			waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
 		}
 		numTries++
@@ -827,7 +827,9 @@ func (this *CertCache) updateCertIfNecessary() {
 }
 
 func (this *CertCache) doesCertNeedReloading() bool {
-	if !this.hasCert() { return true }
+	if !this.hasCert() {
+		return true
+	}
 	d, err := util.GetDurationToExpiry(this.getCert(), time.Now())
 	return err != nil || d < certRenewalInterval
 }

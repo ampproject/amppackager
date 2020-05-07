@@ -181,7 +181,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		// TODO(twifkak): Extract host from upstream Forwarded header
 		// and concatenate. (Do not include any other parameters, as
 		// they may lead to over-signing.)
-		req.Header.Set("Forwarded", `host=` + quotedHost)
+		req.Header.Set("Forwarded", `host=`+quotedHost)
 		xfh := serveHTTPReq.Host
 		if oldXFH := serveHTTPReq.Header.Get("X-Forwarded-Host"); oldXFH != "" {
 			xfh = oldXFH + "," + xfh
