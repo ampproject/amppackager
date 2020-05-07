@@ -40,6 +40,7 @@ import (
 
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/prometheus/client_golang/prometheus"
+	pro "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -120,7 +121,7 @@ func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, 
 }
 
 var promTotalRequests = promauto.NewCounterVec(
-	prometheus.CounterOpts{
+	pro.CounterOpts{
 		Name: "total_requests_by_code_and_url",
 		Help: "Total number of requests by HTTP code and URL.",
 	},
