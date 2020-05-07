@@ -121,13 +121,13 @@ func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, 
 		}}
 }
 
-var promTotalRequests = promauto.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "total_requests_by_code_and_url",
-		Help: "Total number of requests by HTTP code and URL.",
-	},
-	[]string{"code", "handler"},
-)
+// var promTotalRequests = promauto.NewCounterVec(
+// 	prometheus.CounterOpts{
+// 		Name: "total_requests_by_code_and_url",
+// 		Help: "Total number of requests by HTTP code and URL.",
+// 	},
+// 	[]string{"code", "handler"},
+// )
 
 // tryTrimPrefix trims prefix off s if s starts with prefix, and keeps s as is
 // otherwise. It returns the remaining suffix and a boolean success indicator.
