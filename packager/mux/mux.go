@@ -39,6 +39,8 @@ import (
 	"strings"
 
 	"github.com/ampproject/amppackager/packager/util"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // routingRule maps a URL path prefix to three entities:
@@ -54,6 +56,14 @@ type routingRule struct {
 	handler                http.Handler
 	handlerPrometheusLabel string
 }
+
+var promTotalRequests = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "total_requests_by_code_and_url",
+		Help: "Total number of requests by HTTP code and URL.",
+	},
+	[]string{"code", "handler"},
+)
 
 // mux stores a routingMatrix, an array of routing rules that define the mux'
 // routing logic. Note that the order of rules in the matrix is important: the
