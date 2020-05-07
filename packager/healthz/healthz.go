@@ -16,9 +16,8 @@ package healthz
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/ampproject/amppackager/packager/certcache"
+	"net/http"
 )
 
 type Healthz struct {
