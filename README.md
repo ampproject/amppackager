@@ -34,7 +34,9 @@ own and can obtain certificates for.
   1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
      is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
-  1. Get amppackager. 
+  1. Get amppackager.
+
+     Check your Go version by running `go version`.
   
      For Go 1.14 and higher versions run:
 
