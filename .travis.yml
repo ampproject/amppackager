@@ -1,3 +1,6 @@
 # https://docs.travis-ci.com/user/languages/go/
 language: go
-go: ["1.10"]
+
+# Ask gimme to choose latest stable minor release of Go 1.10.
+# https://github.com/travis-ci/gimme
+go: ["1.10.x"] 
