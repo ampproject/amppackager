@@ -1,4 +1,4 @@
-// Copyright 2018 Google LLC
+// TESTRYBAK Copyright 2018 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ func main() {
 		} else {
 			die(errors.Wrap(err, "initializing cert cache"))
 		}
-        }
+	}
 
 	healthz, err := healthz.New(certCache)
 	if err != nil {
@@ -127,7 +127,7 @@ func main() {
 	}
 
 	signer, err := signer.New(certCache, key, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
+		overrideBaseURL /*requireHeaders=*/, !*flagDevelopment, config.ForwardedRequestHeaders)
 	if err != nil {
 		die(errors.Wrap(err, "building signer"))
 	}
