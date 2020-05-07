@@ -41,6 +41,7 @@ import (
 	"github.com/ampproject/amppackager/packager/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // routingRule maps a URL path prefix to three entities:
@@ -56,14 +57,6 @@ type routingRule struct {
 	handler                http.Handler
 	handlerPrometheusLabel string
 }
-
-var promTotalRequests = promauto.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "total_requests_by_code_and_url",
-		Help: "Total number of requests by HTTP code and URL.",
-	},
-	[]string{"code", "handler"},
-)
 
 // mux stores a routingMatrix, an array of routing rules that define the mux'
 // routing logic. Note that the order of rules in the matrix is important: the
@@ -109,7 +102,7 @@ func expectCertQuery(suffix string, req *http.Request, params *map[string]string
 }
 
 // New is the main entry point. Use the return value for http.Server.Handler.
-func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, healthz http.Handler) http.Handler {
+func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, healthz http.Handler, metrics http.Handler) http.Handler {
 	return &mux{
 		// Note that the order of rules in the matrix matters: the first
 		// matching rule will be applied, so the rule for “/priv/doc/” precedes
@@ -121,9 +114,18 @@ func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, 
 			{util.CertURLPrefix + "/", expectCertQuery, certCache, "certCache"},
 			{util.ValidityMapPath, expectNoSuffix, validityMap, "validityMap"},
 			{util.HealthzPath, expectNoSuffix, healthz, "healthz"},
+			{util.MetricsPath, expectNoSuffix, metrics, "metrics"},
 			{"", return404, nil, "handler_not_assigned"},
 		}}
 }
+
+var promTotalRequests = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "total_requests_by_code_and_url",
+		Help: "Total number of requests by HTTP code and URL.",
+	},
+	[]string{"code", "handler"},
+)
 
 // tryTrimPrefix trims prefix off s if s starts with prefix, and keeps s as is
 // otherwise. It returns the remaining suffix and a boolean success indicator.
@@ -147,6 +149,8 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	path := req.URL.EscapedPath()
 
 	// Find the first matching routing rule.
+	// Note that matchingRule won't be nil because the last rule in routing
+	// matrix has an emptry string and therefore matches any path.
 	var matchingRule *routingRule
 	var suffix string
 	for _, currentRule := range this.routingMatrix {
@@ -159,18 +163,13 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	errorMsg := ""
 	errorCode := 0
-	if matchingRule == nil {
-		// Should never happen, because the last rule matches any path.
-		errorMsg, errorCode = "500 internal error", http.StatusInternalServerError
+	// Validate HTTP method and params, parse params and attach them to req.
+	if !allowedMethods[req.Method] {
+		errorMsg, errorCode = "405 method not allowed", http.StatusMethodNotAllowed
 	} else {
-		// Validate HTTP method and params, parse params and attach them to req.
-		if !allowedMethods[req.Method] {
-			errorMsg, errorCode = "405 method not allowed", http.StatusMethodNotAllowed
-		} else {
-			params := map[string]string{}
-			req = WithParams(req, params)
-			matchingRule.suffixValidatorFunc(suffix, req, &params, &errorMsg, &errorCode)
-		}
+		params := map[string]string{}
+		req = WithParams(req, params)
+		matchingRule.suffixValidatorFunc(suffix, req, &params, &errorMsg, &errorCode)
 	}
 
 	// Prepare the handler.
@@ -181,7 +180,11 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		handlerFunc = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, errorMsg, errorCode) })
 	}
 
-	handlerFunc.ServeHTTP(resp, req)
+	// Decorate the call to handlerFunc with a Prometheus requests counter
+	// pre-labelled (curried) with the right handler label.
+	promhttp.InstrumentHandlerCounter(promTotalRequests.MustCurryWith(
+		prometheus.Labels{"handler": matchingRule.handlerPrometheusLabel}),
+		handlerFunc).ServeHTTP(resp, req)
 }
 
 type paramsKeyType struct{}
