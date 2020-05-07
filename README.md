@@ -31,10 +31,10 @@ own and can obtain certificates for.
 
 ##### Manual installation
 
-  1. Install Go version 1.10. Optionally, set
+  1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
      is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
-  1. `go get -u github.com/ampproject/amppackager/cmd/amppkg`
+  1. `go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg`
 
      Optionally, move the built `~/go/bin/amppkg` wherever you like.
   1. Prepare a temporary certificate and private key pair to use for signing the
