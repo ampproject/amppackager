@@ -69,6 +69,7 @@ type routingRule struct {
 // any URL. This ensures there's at least one matching rule for any URL.
 type mux struct {
 	routingMatrix []routingRule
+	defaultRule   routingRule
 }
 
 // return404 is a URL Path Suffix Validator that always returns 404.
@@ -115,8 +116,9 @@ func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, 
 			{util.ValidityMapPath, expectNoSuffix, validityMap, "validityMap"},
 			{util.HealthzPath, expectNoSuffix, healthz, "healthz"},
 			{util.MetricsPath, expectNoSuffix, metrics, "metrics"},
-			{"", return404, nil, "handler_not_assigned"},
-		}}
+		},
+		/* defaultRule= */ routingRule{"", return404, nil, "handler_not_assigned"},
+	}
 }
 
 var promTotalRequests = promauto.NewCounterVec(
@@ -149,8 +151,6 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	path := req.URL.EscapedPath()
 
 	// Find the first matching routing rule.
-	// Note that matchingRule won't be nil because the last rule in routing
-	// matrix has an emptry string and therefore matches any path.
 	var matchingRule *routingRule
 	var suffix string
 	for _, currentRule := range this.routingMatrix {
@@ -159,6 +159,10 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			suffix = currentSuffix
 			break
 		}
+	}
+
+	if matchingRule == nil {
+		matchingRule = &this.defaultRule
 	}
 
 	errorMsg := ""
