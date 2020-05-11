@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/certloader"
@@ -104,7 +105,7 @@ func main() {
 		} else {
 			die(errors.Wrap(err, "initializing cert cache"))
 		}
-        }
+	}
 
 	healthz, err := healthz.New(certCache)
 	if err != nil {
@@ -126,8 +127,9 @@ func main() {
 		}
 	}
 
+	signerRequireHeaders := !*flagDevelopment
 	signer, err := signer.New(certCache, key, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, /*requireHeaders=*/!*flagDevelopment, config.ForwardedRequestHeaders)
+		overrideBaseURL, signerRequireHeaders, config.ForwardedRequestHeaders)
 	if err != nil {
 		die(errors.Wrap(err, "building signer"))
 	}
@@ -143,7 +145,7 @@ func main() {
 		Addr: addr,
 		// Don't use DefaultServeMux, per
 		// https://blog.cloudflare.com/exposing-go-on-the-internet/.
-		Handler:           logIntercept{mux.New(certCache, signer, validityMap, healthz)},
+		Handler:           logIntercept{mux.New(certCache, signer, validityMap, healthz, promhttp.Handler())},
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		// If needing to stream the response, disable WriteTimeout and

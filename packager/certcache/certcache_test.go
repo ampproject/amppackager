@@ -138,7 +138,7 @@ func (this *CertCacheSuite) TearDownTest() {
 }
 
 func (this *CertCacheSuite) mux() http.Handler {
-	return mux.New(this.handler, nil, nil, nil)
+	return mux.New(this.handler, nil, nil, nil, nil)
 }
 
 func (this *CertCacheSuite) ocspServerCalled(f func()) bool {
