@@ -225,78 +225,149 @@ func TestParamsIncorrectValueType(t *testing.T) {
 	assert.Equal(t, Params(req), map[string]string{})
 }
 
+const promResultHeader = `
+	# HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
+	# TYPE total_requests_by_code_and_url counter
+	`
+
+// TestPrometheusMetrics tests counting of Prometheus metrics. Test each
+// scenario in isolation to make sure each of them works, then test them
+// alltogether to make sure they don't interfere with each other.
 func TestPrometheusMetrics(t *testing.T) {
-	promTotalRequests.Reset()
-	expectedMetrics := `
-		# HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
-		# TYPE total_requests_by_code_and_url counter
-		`
-
-	// Make requests to mux with all handlers being NOPs returning 200.
-	// Request Healthz twice to test aggregation of identical requests.
 	nopHandler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-	pkgt.Get(t, mux, expand(`$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`))
-	pkgt.Get(t, mux, expand(`$HOST/amppkg/cert/$CERT`))
-	pkgt.Get(t, mux, expand(`$HOST/amppkg/validity`))
-	pkgt.Get(t, mux, expand(`$HOST/healthz`))
-	pkgt.Get(t, mux, expand(`$HOST/healthz`))
-	expectedMetrics += `
-		total_requests_by_code_and_url{code="200",handler="signer"} 1
-		total_requests_by_code_and_url{code="200",handler="certCache"} 1
-		total_requests_by_code_and_url{code="200",handler="validityMap"} 1
-		total_requests_by_code_and_url{code="200",handler="healthz"} 2
-		`
 
-	// Test counting requests to same handler that returned different codes.
-	// Trigger a 404 attributed to healthz by adding an unexpected suffix to path.
-	pkgt.Get(t, mux, expand(`$HOST/healthzSOME_SUFFIX`))
-	expectedMetrics += `
-		total_requests_by_code_and_url{code="404",handler="healthz"} 1
-		`
+	tests := []struct {
+		testName        string
+		testHint        string
+		testFunc        func()
+		expectedMetrics string
+	}{
+		{
+			/* testName= */ `AllHandlersNOP200`,
+			/* testHint= */ `
+				Make requests to mux with all handlers being NOPs returning 200.
+				Request Healthz twice to test aggregation of identical requests.
+			`,
+			/* testFunc= */ func() {
+				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
+				pkgt.Get(t, mux, expand(`$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`))
+				pkgt.Get(t, mux, expand(`$HOST/amppkg/cert/$CERT`))
+				pkgt.Get(t, mux, expand(`$HOST/amppkg/validity`))
+				pkgt.Get(t, mux, expand(`$HOST/healthz`))
+				pkgt.Get(t, mux, expand(`$HOST/healthz`))
+			},
+			/* expectedMetrics = */ `
+				total_requests_by_code_and_url{code="200",handler="signer"} 1
+				total_requests_by_code_and_url{code="200",handler="certCache"} 1
+				total_requests_by_code_and_url{code="200",handler="validityMap"} 1
+				total_requests_by_code_and_url{code="200",handler="healthz"} 2
+			`,
+		},
+		{
+			/* testName= */ `ErrorsReturnedByMuxDirectly`,
+			/* testHint= */ `
+				Test counting requests to same handler that returned different codes.
+				Trigger a 404 attributed to healthz by adding an unexpected suffix to path.
+			`,
+			/* testFunc= */ func() {
+				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
+				pkgt.Get(t, mux, expand(`$HOST/healthzSOME_SUFFIX`))
+			},
+			/* expectedMetrics = */ `
+				total_requests_by_code_and_url{code="404",handler="healthz"} 1
+			`,
+		},
+		{
+			/* testName= */ `UnassignedRequests`,
+			/* testHint= */ `
+				Test counting request not assigned to a handler.
+			`,
+			/* testFunc= */ func() {
+				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
+				pkgt.Get(t, mux, expand(`$HOST/abc`))
+				pkgt.Get(t, mux, expand(`$HOST/def`))
+				pkgt.Get(t, mux, expand(`$HOST/ghi`))
+			},
+			/* expectedMetrics = */ `
+				total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 3
+			`,
+		},
+		{
+			/* testName= */ `ForbiddenMethod`,
+			/* testHint= */ `
+				Special case: forbidden method.
+			`,
+			/* testFunc= */ func() {
+				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
+				body := strings.NewReader("Non empty body so GetBHH sends a POST request")
+				pkgt.GetBHH(t, mux, expand("$HOST/healthz"), "", body, http.Header{})
+			},
+			/* expectedMetrics = */ `
+				total_requests_by_code_and_url{code="405",handler="healthz"} 1
+			`,
+		},
+		{
+			/* testName= */ `ErrorReturnedByHandler`,
+			/* testHint= */ `
+				Some of the above requests generated errors, but those errors were thrown
+				by mux, not by handlers. Handlers were no-ops. Now let's simulate a
+				request that triggers a handler-generated error.
+				Specifically let's simulate signer returning a 400.
+			`,
+			/* testFunc= */ func() {
+				signerMockReturning400 := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "Bad Request", 400) }))
+				mux := New(nopHandler, signerMockReturning400, nopHandler, nopHandler, nopHandler)
+				pkgt.Get(t, mux, expand("$HOST/priv/doc/abc"))
+			},
+			/* expectedMetrics = */ `
+				total_requests_by_code_and_url{code="400",handler="signer"} 1
+			`,
+		},
+		{
+			/* testName= */ `FetchMetricsEndpoint`,
+			/* testHint= */ `
+				Special case: send a request to "metrics" endpoint, which results in two actions:
+				1) Previously collected metrics are returned in response with status 200.
+				2) Prometheus requests counter is incremented for respective handler and code ("metric", 200).
+				Let's test that these actions work fine together.
+				Let's send a "metric" request to a new mux instance that has a real, non-mocked
+				metric handler. Such request, along with downstream validation, checks
+				that the "metric" endpoint's underlying logic doesn't interfere
+				with accounting for the actual metric request.
+			`,
+			/* testFunc= */ func() {
+				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, promhttp.Handler())
+				pkgt.Get(t, mux, expand(`$HOST/metrics`))
+			},
+			/* expectedMetrics = */ `
+				total_requests_by_code_and_url{code="200",handler="metrics"} 1
+			`,
+		},
+	}
 
-	// Test counting request not assigned to a handler.
-	pkgt.Get(t, mux, expand(`$HOST/abc`))
-	pkgt.Get(t, mux, expand(`$HOST/def`))
-	pkgt.Get(t, mux, expand(`$HOST/ghi`))
-	expectedMetrics += `
-		total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 3
-		`
+	// Test each scenario in isolation.
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			promTotalRequests.Reset()
+			expectedMetrics := promResultHeader + tt.expectedMetrics
+			tt.testFunc()
+			expectation := strings.NewReader(expectedMetrics)
+			if err := promtest.CollectAndCompare(promTotalRequests, expectation, "total_requests_by_code_and_url"); err != nil {
+				t.Errorf("TestPrometheusMetrics - "+tt.testName+": unexpected collecting result:\n%s", err)
+			}
+		})
+	}
 
-	// Special case: forbidden method.
-	body := strings.NewReader("Non empty body so GetBHH sends a POST request")
-	pkgt.GetBHH(t, mux, expand("$HOST/healthz"), "", body, http.Header{})
-	expectedMetrics += `
-		total_requests_by_code_and_url{code="405",handler="healthz"} 1
-		`
-
-	// Some of the above requests generated errors, but those errors were thrown
-	// by mux, not by handlers. Handlers were no-ops. Now let's simulate a
-	// request that triggers a handler-generated error.
-	// Specifically let's simulate signer returning a 400.
-	signerMockReturning400 := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "Bad Request", 400) }))
-	mux = New(nopHandler, signerMockReturning400, nopHandler, nopHandler, nopHandler)
-	pkgt.Get(t, mux, expand("$HOST/priv/doc/abc"))
-	expectedMetrics += `
-		total_requests_by_code_and_url{code="400",handler="signer"} 1
-		`
-
-	// Special case: send a request to "metrics" endpoint, which results in two actions:
-	// 1) Previously collected metrics are returned in response with status 200.
-	// 2) Prometheus requests counter is incremented for respective handler and code ("metric", 200).
-	// Let's test that these actions work fine together.
-	// Let's send a "metric" request to a new mux instance that has a real, non-mocked
-	// metric handler. Such request, along with downstream validation, checks
-	// that the "metric" endpoint's underlying logic doesn't interfere
-	// with accounting for the actual metric request.
-	mux = New(nopHandler, nopHandler, nopHandler, nopHandler, promhttp.Handler())
-	pkgt.Get(t, mux, expand(`$HOST/metrics`))
-	expectedMetrics += `
-		total_requests_by_code_and_url{code="200",handler="metrics"} 1
-		`
-
+	// Test all scenarios together.
+	promTotalRequests.Reset()
+	expectedMetrics := promResultHeader
+	for _, tt := range tests {
+		expectedMetrics += tt.expectedMetrics
+		tt.testFunc()
+	}
 	expectation := strings.NewReader(expectedMetrics)
 	if err := promtest.CollectAndCompare(promTotalRequests, expectation, "total_requests_by_code_and_url"); err != nil {
-		t.Errorf("TestPrometheusMetrics: unexpected collecting result:\n%s", err)
+		t.Errorf("TestPrometheusMetrics - all scenarios in single run: unexpected collecting result:\n%s", err)
 	}
+
 }
