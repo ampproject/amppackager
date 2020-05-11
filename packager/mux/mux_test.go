@@ -232,7 +232,7 @@ const promResultHeader = `
 
 // TestPrometheusMetrics tests counting of Prometheus metrics. Test each
 // scenario in isolation to make sure each of them works, then test them
-// alltogether to make sure they don't interfere with each other.
+// altogether to make sure they don't interfere with each other.
 func TestPrometheusMetrics(t *testing.T) {
 	nopHandler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
