@@ -476,17 +476,17 @@ func TestPrometheusMetricRequestsLatency_OneHandlerManyResults(t *testing.T) {
 	}
 
 	expectedMetrics := promExpectedHeaderRequestsLatency + `
-            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.5"} 5
-            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.9"} 7
-            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.99"} 7
-            request_latencies_in_seconds_sum{code="200",handler="certCache"} 32
-            request_latencies_in_seconds_count{code="200",handler="certCache"} 6
-            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.5"} 8
-            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.9"} 8
-            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.99"} 8
-            request_latencies_in_seconds_sum{code="404",handler="certCache"} 8
-            request_latencies_in_seconds_count{code="404",handler="certCache"} 1
-			`
+		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.5"} 5
+		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.9"} 7
+		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.99"} 7
+		request_latencies_in_seconds_sum{code="200",handler="certCache"} 32
+		request_latencies_in_seconds_count{code="200",handler="certCache"} 6
+		request_latencies_in_seconds{code="404",handler="certCache",quantile="0.5"} 8
+		request_latencies_in_seconds{code="404",handler="certCache",quantile="0.9"} 8
+		request_latencies_in_seconds{code="404",handler="certCache",quantile="0.99"} 8
+		request_latencies_in_seconds_sum{code="404",handler="certCache"} 8
+		request_latencies_in_seconds_count{code="404",handler="certCache"} 1
+		`
 
 	expectation := strings.NewReader(expectedMetrics)
 	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
