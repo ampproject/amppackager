@@ -121,7 +121,7 @@ func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, 
 	}
 }
 
-// Prometheus counter that observes total requests count.
+// promRequestsTotal is a Prometheus counter that observes total requests count.
 var promRequestsTotal = promauto.NewCounterVec(
 	prometheus.CounterOpts{
 		Name: "total_requests_by_code_and_url",
@@ -130,7 +130,7 @@ var promRequestsTotal = promauto.NewCounterVec(
 	[]string{"code", "handler"},
 )
 
-// Prometheus summary that observes requests latencies.
+// promRequestsLatency is a Prometheus summary that observes requests latencies.
 // Objectives key value pairs set target quantiles and respective allowed rank variance.
 // Upon query, for each Objective quantile (0.5, 0.9, 0.99) the summary returns
 // an actual observed latency value that is ranked close to the Objective value.
