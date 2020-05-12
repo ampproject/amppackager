@@ -27,7 +27,6 @@ import (
 
 	"bou.ke/monkey"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	promtest "github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
@@ -454,7 +453,6 @@ func TestPrometheusMetricRequestsLatency_AllHandlers(t *testing.T) {
 	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
 		t.Errorf("TestPrometheusMetricRequestsLatency_AllHandlers - unexpected collecting result:\n%s", err)
 	}
-
 }
 
 func TestPrometheusMetricRequestsLatency_OneHandlerManyResults(t *testing.T) {
@@ -493,146 +491,5 @@ func TestPrometheusMetricRequestsLatency_OneHandlerManyResults(t *testing.T) {
 	expectation := strings.NewReader(expectedMetrics)
 	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
 		t.Errorf("TestPrometheusMetricRequestsLatency_OneHandlerManyResults - unexpected collecting result:\n%s", err)
-	}
-}
-
-// TestPrometheusMetricRequestsLatency tests the end-to-end latencies metrics.
-// It checks that the right error codes and handlers are accounted for. It also
-// checks that the latencies are positive, but doesn't expect exact values,
-// because latencies are non-deterministic.
-// It would be nice to mock time (e.g. patch the time.Since function) to test
-// the exact latencies values produced, and to simulate slow execution, too.
-// However, seems like there's no "native" way to monkey-patch in Go.
-// There is an option that doesn't look safe enough:
-// https://www.reddit.com/r/golang/comments/30try1/monkey_patching_in_go/
-// https://news.ycombinator.com/item?id=22442170.
-func TestPrometheusMetricRequestsLatency(t *testing.T) {
-	hintPrefix := "TestPrometheusMetricRequestsLatency"
-
-	type metricRecordKey struct {
-		codeLabelPair, handlerLabelPair string
-	}
-
-	type scenarioRequests []struct {
-		urlTemplate          string
-		mockHandlerThrows404 bool
-	}
-
-	type scenarioExpectedSampleCountMap map[metricRecordKey]uint64
-
-	scenarios := []struct {
-		requests               scenarioRequests
-		expectedSampleCountMap scenarioExpectedSampleCountMap
-	}{
-		{
-			scenarioRequests{
-				{urlTemplate: `$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`, mockHandlerThrows404: true},
-				{urlTemplate: `$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`, mockHandlerThrows404: false},
-			},
-			scenarioExpectedSampleCountMap{
-				{`name:"code" value:"404" `, `name:"handler" value:"signer" `}: 1,
-				{`name:"code" value:"200" `, `name:"handler" value:"signer" `}: 1,
-			},
-		},
-		{
-			scenarioRequests{
-				{urlTemplate: `$HOST/amppkg/cert/$CERT`, mockHandlerThrows404: false},
-			},
-			scenarioExpectedSampleCountMap{
-				{`name:"code" value:"200" `, `name:"handler" value:"certCache" `}: 1,
-			},
-		},
-		{
-			scenarioRequests{
-				{urlTemplate: `$HOST/amppkg/validity`, mockHandlerThrows404: false},
-			},
-			scenarioExpectedSampleCountMap{
-				{`name:"code" value:"200" `, `name:"handler" value:"validityMap" `}: 1,
-			},
-		},
-		{
-			scenarioRequests{
-				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
-				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
-				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
-			},
-			scenarioExpectedSampleCountMap{
-				{`name:"code" value:"200" `, `name:"handler" value:"healthz" `}: 3,
-			},
-		},
-		{
-			scenarioRequests{
-				{urlTemplate: `$HOST/metrics`, mockHandlerThrows404: false},
-			},
-			scenarioExpectedSampleCountMap{
-				{`name:"code" value:"200" `, `name:"handler" value:"metrics" `}: 1,
-			},
-		},
-		{
-			scenarioRequests{
-				{urlTemplate: `$HOST/abc`, mockHandlerThrows404: false},
-				{urlTemplate: `$HOST/def`, mockHandlerThrows404: false},
-			},
-			scenarioExpectedSampleCountMap{
-				{`name:"code" value:"404" `, `name:"handler" value:"handler_not_assigned" `}: 2,
-			},
-		},
-	}
-
-	for _, scenario := range scenarios {
-		promRequestsLatency.Reset()
-
-		for _, req := range scenario.requests {
-			mockHandler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if req.mockHandlerThrows404 {
-					http.Error(w, "404 page not found", 404)
-				}
-			}))
-			mux := New(mockHandler, mockHandler, mockHandler, mockHandler, mockHandler)
-			pkgt.Get(t, mux, expand(req.urlTemplate))
-
-		}
-
-		expectedSampleCountMap := scenario.expectedSampleCountMap
-
-		reg := prometheus.NewPedanticRegistry()
-		if err := reg.Register(promRequestsLatency); err != nil {
-			t.Errorf(hintPrefix+" - registering collector failed: %s", err)
-		}
-
-		actualMetricFamilyArr, err := reg.Gather()
-		if err != nil {
-			t.Errorf(hintPrefix+" - gathering metrics failed: %s", err)
-		}
-
-		assert.Equal(t, 1, len(actualMetricFamilyArr),
-			hintPrefix+" expects exactly one metric family.")
-
-		assert.Equal(t, "request_latencies_in_seconds", *actualMetricFamilyArr[0].Name,
-			hintPrefix+" expects the right metric name.")
-
-		assert.Equal(t, len(expectedSampleCountMap), len(actualMetricFamilyArr[0].Metric),
-			hintPrefix+" expects the right amount of metrics collected and gathered.")
-
-		for _, actualMetric := range actualMetricFamilyArr[0].Metric {
-			// Expect the right sample count.
-			code := actualMetric.Label[0].String()
-			handler := actualMetric.Label[1].String()
-			expectedSampleCount := expectedSampleCountMap[metricRecordKey{code, handler}]
-			actualSampleCount := actualMetric.Summary.GetSampleCount()
-			assert.Equal(t, expectedSampleCount, actualSampleCount, hintPrefix+" expects the right sample count for "+code+" "+handler)
-
-			// Expect the right number of quantiles.
-			assert.Equal(t, 3, len(actualMetric.Summary.Quantile), hintPrefix+" expects the right number of quantiles.")
-
-			// Expect the right quantiles.
-			// Expect positive quantile values, because latencies are non-zero.
-			// Don't check the exact values, because latencies are non-deterministic.
-			expectedQuantileKeys := []float64{0.5, 0.9, 0.99}
-			for i, quantile := range actualMetric.Summary.Quantile {
-				assert.Equal(t, expectedQuantileKeys[i], quantile.GetQuantile(), hintPrefix+" expects the right quantile.")
-				assert.True(t, quantile.GetValue() > .0, hintPrefix+" expects non-zero quantile value (latency).")
-			}
-		}
 	}
 }
