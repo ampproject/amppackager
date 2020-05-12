@@ -23,7 +23,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"bou.ke/monkey"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -369,6 +371,128 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 	expectation := strings.NewReader(expectedMetrics)
 	if err := promtest.CollectAndCompare(promRequestsTotal, expectation, "total_requests_by_code_and_url"); err != nil {
 		t.Errorf("TestPrometheusMetricRequestsTotal - all scenarios in single run: unexpected collecting result:\n%s", err)
+	}
+}
+
+const promExpectedHeaderRequestsLatency = `
+		# HELP request_latencies_in_seconds Requests end-to-end latencies in seconds.
+		# TYPE request_latencies_in_seconds summary
+	`
+
+// PatchHandlerDurationAndRequest patches time.Since func to return mockHandlerDurationSeconds.
+// Prometheus uses time.Since to measure duration, so the patch tricks Prometheus
+// into thinking that the handler took mockHandlerDurationSeconds to run.
+func PatchHandlerDurationAndRequest(t *testing.T, urlTemplate string, mockHandlerDurationSeconds int, mockHandlerThrows404 bool) {
+	mockHandler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if mockHandlerThrows404 {
+			http.Error(w, "404 page not found", 404)
+		}
+	}))
+	mux := New(mockHandler, mockHandler, mockHandler, mockHandler, mockHandler)
+
+	patch := monkey.Patch(time.Since, func(time.Time) time.Duration {
+		return time.Second * time.Duration(mockHandlerDurationSeconds)
+	})
+	defer patch.Unpatch()
+
+	pkgt.Get(t, mux, expand(urlTemplate))
+}
+
+func TestPrometheusMetricRequestsLatency_AllHandlers(t *testing.T) {
+	urlTemplates := []string{
+		`$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`,
+		`$HOST/amppkg/cert/`,
+		`$HOST/amppkg/validity`,
+		`$HOST/healthz`,
+		`$HOST/metrics`,
+		`$HOST/abc`,
+		`$HOST/def`,
+	}
+
+	promRequestsLatency.Reset()
+	for _, url := range urlTemplates {
+		PatchHandlerDurationAndRequest(
+			t, url,
+			/* mockHandlerDurationSeconds= */ 5,
+			/* mockHandlerThrows404= */ false)
+	}
+
+	expectedMetrics := promExpectedHeaderRequestsLatency + `
+		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.5"} 5
+		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.9"} 5
+		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.99"} 5
+		request_latencies_in_seconds_sum{code="200",handler="certCache"} 5
+		request_latencies_in_seconds_count{code="200",handler="certCache"} 1
+		request_latencies_in_seconds{code="200",handler="healthz",quantile="0.5"} 5
+		request_latencies_in_seconds{code="200",handler="healthz",quantile="0.9"} 5
+		request_latencies_in_seconds{code="200",handler="healthz",quantile="0.99"} 5
+		request_latencies_in_seconds_sum{code="200",handler="healthz"} 5
+		request_latencies_in_seconds_count{code="200",handler="healthz"} 1
+		request_latencies_in_seconds{code="200",handler="metrics",quantile="0.5"} 5
+		request_latencies_in_seconds{code="200",handler="metrics",quantile="0.9"} 5
+		request_latencies_in_seconds{code="200",handler="metrics",quantile="0.99"} 5
+		request_latencies_in_seconds_sum{code="200",handler="metrics"} 5
+		request_latencies_in_seconds_count{code="200",handler="metrics"} 1
+		request_latencies_in_seconds{code="200",handler="signer",quantile="0.5"} 5
+		request_latencies_in_seconds{code="200",handler="signer",quantile="0.9"} 5
+		request_latencies_in_seconds{code="200",handler="signer",quantile="0.99"} 5
+		request_latencies_in_seconds_sum{code="200",handler="signer"} 5
+		request_latencies_in_seconds_count{code="200",handler="signer"} 1
+		request_latencies_in_seconds{code="200",handler="validityMap",quantile="0.5"} 5
+		request_latencies_in_seconds{code="200",handler="validityMap",quantile="0.9"} 5
+		request_latencies_in_seconds{code="200",handler="validityMap",quantile="0.99"} 5
+		request_latencies_in_seconds_sum{code="200",handler="validityMap"} 5
+		request_latencies_in_seconds_count{code="200",handler="validityMap"} 1
+		request_latencies_in_seconds{code="404",handler="handler_not_assigned",quantile="0.5"} 5
+		request_latencies_in_seconds{code="404",handler="handler_not_assigned",quantile="0.9"} 5
+		request_latencies_in_seconds{code="404",handler="handler_not_assigned",quantile="0.99"} 5
+		request_latencies_in_seconds_sum{code="404",handler="handler_not_assigned"} 10
+		request_latencies_in_seconds_count{code="404",handler="handler_not_assigned"} 2
+		`
+
+	expectation := strings.NewReader(expectedMetrics)
+	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
+		t.Errorf("TestPrometheusMetricRequestsLatency_AllHandlers - unexpected collecting result:\n%s", err)
+	}
+
+}
+
+func TestPrometheusMetricRequestsLatency_OneHandlerManyResults(t *testing.T) {
+	requests := []struct {
+		urlTemplate                string
+		mockHandlerDurationSeconds int
+		mockHandlerThrows404       bool
+	}{
+		{`$HOST/amppkg/cert/$CERT`, 5, false},
+		{`$HOST/amppkg/cert/$CERT`, 5, false},
+		{`$HOST/amppkg/cert/$CERT`, 5, false},
+		{`$HOST/amppkg/cert/$CERT`, 5, false},
+		{`$HOST/amppkg/cert/$CERT`, 5, false},
+		{`$HOST/amppkg/cert/$CERT`, 7, false},
+		{`$HOST/amppkg/cert/$CERT`, 8, true},
+	}
+
+	promRequestsLatency.Reset()
+	for _, r := range requests {
+		PatchHandlerDurationAndRequest(t, r.urlTemplate, r.mockHandlerDurationSeconds, r.mockHandlerThrows404)
+	}
+
+	expectedMetrics := promExpectedHeaderRequestsLatency + `
+            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.5"} 5
+            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.9"} 7
+            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.99"} 7
+            request_latencies_in_seconds_sum{code="200",handler="certCache"} 32
+            request_latencies_in_seconds_count{code="200",handler="certCache"} 6
+            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.5"} 8
+            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.9"} 8
+            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.99"} 8
+            request_latencies_in_seconds_sum{code="404",handler="certCache"} 8
+            request_latencies_in_seconds_count{code="404",handler="certCache"} 1
+			`
+
+	expectation := strings.NewReader(expectedMetrics)
+	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
+		t.Errorf("TestPrometheusMetricRequestsLatency_OneHandlerManyResults - unexpected collecting result:\n%s", err)
 	}
 }
 
