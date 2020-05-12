@@ -453,7 +453,6 @@ func TestPrometheusMetricRequestsLatency_AllHandlers(t *testing.T) {
 	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
 		t.Errorf("TestPrometheusMetricRequestsLatency_AllHandlers - unexpected collecting result:\n%s", err)
 	}
-
 }
 
 func TestPrometheusMetricRequestsLatency_OneHandlerManyResults(t *testing.T) {
@@ -493,5 +492,4 @@ func TestPrometheusMetricRequestsLatency_OneHandlerManyResults(t *testing.T) {
 	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
 		t.Errorf("TestPrometheusMetricRequestsLatency_OneHandlerManyResults - unexpected collecting result:\n%s", err)
 	}
-
 }
