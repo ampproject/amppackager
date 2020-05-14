@@ -3,7 +3,6 @@ module github.com/ampproject/amppackager
 go 1.13
 
 require (
-	bou.ke/monkey v1.0.2
 	github.com/WICG/webpackage v0.0.0-20190215052515-70386c3750f2
 	github.com/ampproject/amphtml v0.0.0-20180912232012-d3df64d07ae9
 	github.com/go-acme/lego/v3 v3.2.0
