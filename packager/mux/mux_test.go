@@ -23,10 +23,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
-	"bou.ke/monkey"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	promtest "github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
@@ -373,123 +372,134 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 	}
 }
 
-const promExpectedHeaderRequestsLatency = `
-		# HELP request_latencies_in_seconds Requests end-to-end latencies in seconds.
-		# TYPE request_latencies_in_seconds summary
-	`
+func TestPrometheusMetricRequestsLatency(t *testing.T) {
+	hintPrefix := "TestPrometheusMetricRequestsLatency"
 
-// PatchHandlerDurationAndRequest patches time.Since func to return mockHandlerDurationSeconds.
-// Prometheus uses time.Since to measure duration, so the patch tricks Prometheus
-// into thinking that the handler took mockHandlerDurationSeconds to run.
-func PatchHandlerDurationAndRequest(t *testing.T, urlTemplate string, mockHandlerDurationSeconds int, mockHandlerThrows404 bool) {
-	mockHandler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if mockHandlerThrows404 {
-			http.Error(w, "404 page not found", 404)
-		}
-	}))
-	mux := New(mockHandler, mockHandler, mockHandler, mockHandler, mockHandler)
-
-	patch := monkey.Patch(time.Since, func(time.Time) time.Duration {
-		return time.Second * time.Duration(mockHandlerDurationSeconds)
-	})
-	defer patch.Unpatch()
-
-	pkgt.Get(t, mux, expand(urlTemplate))
-}
-
-func TestPrometheusMetricRequestsLatency_AllHandlers(t *testing.T) {
-	urlTemplates := []string{
-		`$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`,
-		`$HOST/amppkg/cert/`,
-		`$HOST/amppkg/validity`,
-		`$HOST/healthz`,
-		`$HOST/metrics`,
-		`$HOST/abc`,
-		`$HOST/def`,
+	type metricRecordKey struct {
+		codeLabelPair, handlerLabelPair string
 	}
 
-	promRequestsLatency.Reset()
-	for _, url := range urlTemplates {
-		PatchHandlerDurationAndRequest(
-			t, url,
-			/* mockHandlerDurationSeconds= */ 5,
-			/* mockHandlerThrows404= */ false)
+	type scenarioRequests []struct {
+		urlTemplate          string
+		mockHandlerThrows404 bool
 	}
 
-	expectedMetrics := promExpectedHeaderRequestsLatency + `
-		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.5"} 5
-		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.9"} 5
-		request_latencies_in_seconds{code="200",handler="certCache",quantile="0.99"} 5
-		request_latencies_in_seconds_sum{code="200",handler="certCache"} 5
-		request_latencies_in_seconds_count{code="200",handler="certCache"} 1
-		request_latencies_in_seconds{code="200",handler="healthz",quantile="0.5"} 5
-		request_latencies_in_seconds{code="200",handler="healthz",quantile="0.9"} 5
-		request_latencies_in_seconds{code="200",handler="healthz",quantile="0.99"} 5
-		request_latencies_in_seconds_sum{code="200",handler="healthz"} 5
-		request_latencies_in_seconds_count{code="200",handler="healthz"} 1
-		request_latencies_in_seconds{code="200",handler="metrics",quantile="0.5"} 5
-		request_latencies_in_seconds{code="200",handler="metrics",quantile="0.9"} 5
-		request_latencies_in_seconds{code="200",handler="metrics",quantile="0.99"} 5
-		request_latencies_in_seconds_sum{code="200",handler="metrics"} 5
-		request_latencies_in_seconds_count{code="200",handler="metrics"} 1
-		request_latencies_in_seconds{code="200",handler="signer",quantile="0.5"} 5
-		request_latencies_in_seconds{code="200",handler="signer",quantile="0.9"} 5
-		request_latencies_in_seconds{code="200",handler="signer",quantile="0.99"} 5
-		request_latencies_in_seconds_sum{code="200",handler="signer"} 5
-		request_latencies_in_seconds_count{code="200",handler="signer"} 1
-		request_latencies_in_seconds{code="200",handler="validityMap",quantile="0.5"} 5
-		request_latencies_in_seconds{code="200",handler="validityMap",quantile="0.9"} 5
-		request_latencies_in_seconds{code="200",handler="validityMap",quantile="0.99"} 5
-		request_latencies_in_seconds_sum{code="200",handler="validityMap"} 5
-		request_latencies_in_seconds_count{code="200",handler="validityMap"} 1
-		request_latencies_in_seconds{code="404",handler="handler_not_assigned",quantile="0.5"} 5
-		request_latencies_in_seconds{code="404",handler="handler_not_assigned",quantile="0.9"} 5
-		request_latencies_in_seconds{code="404",handler="handler_not_assigned",quantile="0.99"} 5
-		request_latencies_in_seconds_sum{code="404",handler="handler_not_assigned"} 10
-		request_latencies_in_seconds_count{code="404",handler="handler_not_assigned"} 2
-		`
+	type scenarioExpectedSampleCountMap map[metricRecordKey]uint64
 
-	expectation := strings.NewReader(expectedMetrics)
-	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
-		t.Errorf("TestPrometheusMetricRequestsLatency_AllHandlers - unexpected collecting result:\n%s", err)
-	}
-}
-
-func TestPrometheusMetricRequestsLatency_OneHandlerManyResults(t *testing.T) {
-	requests := []struct {
-		urlTemplate                string
-		mockHandlerDurationSeconds int
-		mockHandlerThrows404       bool
+	scenarios := []struct {
+		requests               scenarioRequests
+		expectedSampleCountMap scenarioExpectedSampleCountMap
 	}{
-		{`$HOST/amppkg/cert/$CERT`, 5, false},
-		{`$HOST/amppkg/cert/$CERT`, 5, false},
-		{`$HOST/amppkg/cert/$CERT`, 5, false},
-		{`$HOST/amppkg/cert/$CERT`, 5, false},
-		{`$HOST/amppkg/cert/$CERT`, 5, false},
-		{`$HOST/amppkg/cert/$CERT`, 7, false},
-		{`$HOST/amppkg/cert/$CERT`, 8, true},
+		{
+			scenarioRequests{
+				{urlTemplate: `$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`, mockHandlerThrows404: true},
+				{urlTemplate: `$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`, mockHandlerThrows404: false},
+			},
+			scenarioExpectedSampleCountMap{
+				{`name:"code" value:"404" `, `name:"handler" value:"signer" `}: 1,
+				{`name:"code" value:"200" `, `name:"handler" value:"signer" `}: 1,
+			},
+		},
+		{
+			scenarioRequests{
+				{urlTemplate: `$HOST/amppkg/cert/$CERT`, mockHandlerThrows404: false},
+			},
+			scenarioExpectedSampleCountMap{
+				{`name:"code" value:"200" `, `name:"handler" value:"certCache" `}: 1,
+			},
+		},
+		{
+			scenarioRequests{
+				{urlTemplate: `$HOST/amppkg/validity`, mockHandlerThrows404: false},
+			},
+			scenarioExpectedSampleCountMap{
+				{`name:"code" value:"200" `, `name:"handler" value:"validityMap" `}: 1,
+			},
+		},
+		{
+			scenarioRequests{
+				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
+				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
+				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
+			},
+			scenarioExpectedSampleCountMap{
+				{`name:"code" value:"200" `, `name:"handler" value:"healthz" `}: 3,
+			},
+		},
+		{
+			scenarioRequests{
+				{urlTemplate: `$HOST/metrics`, mockHandlerThrows404: false},
+			},
+			scenarioExpectedSampleCountMap{
+				{`name:"code" value:"200" `, `name:"handler" value:"metrics" `}: 1,
+			},
+		},
+		{
+			scenarioRequests{
+				{urlTemplate: `$HOST/abc`, mockHandlerThrows404: false},
+				{urlTemplate: `$HOST/def`, mockHandlerThrows404: false},
+			},
+			scenarioExpectedSampleCountMap{
+				{`name:"code" value:"404" `, `name:"handler" value:"handler_not_assigned" `}: 2,
+			},
+		},
 	}
 
-	promRequestsLatency.Reset()
-	for _, r := range requests {
-		PatchHandlerDurationAndRequest(t, r.urlTemplate, r.mockHandlerDurationSeconds, r.mockHandlerThrows404)
-	}
+	for _, scenario := range scenarios {
+		promRequestsLatency.Reset()
 
-	expectedMetrics := promExpectedHeaderRequestsLatency + `
-            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.5"} 5
-            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.9"} 7
-            request_latencies_in_seconds{code="200",handler="certCache",quantile="0.99"} 7
-            request_latencies_in_seconds_sum{code="200",handler="certCache"} 32
-            request_latencies_in_seconds_count{code="200",handler="certCache"} 6
-            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.5"} 8
-            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.9"} 8
-            request_latencies_in_seconds{code="404",handler="certCache",quantile="0.99"} 8
-            request_latencies_in_seconds_sum{code="404",handler="certCache"} 8
-            request_latencies_in_seconds_count{code="404",handler="certCache"} 1
-			`
+		for _, req := range scenario.requests {
+			mockHandler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if req.mockHandlerThrows404 {
+					http.Error(w, "404 page not found", 404)
+				}
+			}))
+			mux := New(mockHandler, mockHandler, mockHandler, mockHandler, mockHandler)
+			pkgt.Get(t, mux, expand(req.urlTemplate))
 
-	expectation := strings.NewReader(expectedMetrics)
-	if err := promtest.CollectAndCompare(promRequestsLatency, expectation, "request_latencies_in_seconds"); err != nil {
-		t.Errorf("TestPrometheusMetricRequestsLatency_OneHandlerManyResults - unexpected collecting result:\n%s", err)
+		}
+
+		expectedSampleCountMap := scenario.expectedSampleCountMap
+
+		reg := prometheus.NewPedanticRegistry()
+		if err := reg.Register(promRequestsLatency); err != nil {
+			t.Errorf(hintPrefix+" - registering collector failed: %s", err)
+		}
+
+		actualMetricFamilyArr, err := reg.Gather()
+		if err != nil {
+			t.Errorf(hintPrefix+" - gathering metrics failed: %s", err)
+
+		}
+
+		assert.Equal(t, 1, len(actualMetricFamilyArr),
+			hintPrefix+" expects exactly one metric family.")
+
+		assert.Equal(t, "request_latencies_in_seconds", *actualMetricFamilyArr[0].Name,
+			hintPrefix+" expects the right metric name.")
+
+		assert.Equal(t, len(expectedSampleCountMap), len(actualMetricFamilyArr[0].Metric),
+			hintPrefix+" expects the right amount of metrics collected and gathered.")
+
+		for _, actualMetric := range actualMetricFamilyArr[0].Metric {
+			// Expect the right sample count.
+			code := actualMetric.Label[0].String()
+			handler := actualMetric.Label[1].String()
+			expectedSampleCount := expectedSampleCountMap[metricRecordKey{code, handler}]
+			actualSampleCount := actualMetric.Summary.GetSampleCount()
+			assert.Equal(t, expectedSampleCount, actualSampleCount, hintPrefix+" expects the right sample count for "+code+" "+handler)
+
+			// Expect the right number of quantiles.
+			assert.Equal(t, 3, len(actualMetric.Summary.Quantile), hintPrefix+" expects the right number of quantiles.")
+
+			// Expect the right quantiles.
+			// Expect positive quantile values (because latencies are non-zero).
+			// Don't check the exact values, because latencies are non-deterministic.
+			expectedQuantileKeys := []float64{0.5, 0.9, 0.99}
+			for i, quantile := range actualMetric.Summary.Quantile {
+				assert.Equal(t, expectedQuantileKeys[i], quantile.GetQuantile(), hintPrefix+" expects the right quantile.")
+				assert.True(t, quantile.GetValue() > .0, hintPrefix+" expects non-zero quantile value (latency).")
+			}
+		}
 	}
 }
