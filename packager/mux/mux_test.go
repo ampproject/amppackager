@@ -372,6 +372,16 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 	}
 }
 
+// TestPrometheusMetricRequestsLatency tests the end-to-end latencies metrics.
+// It checks that the right error codes and handlers are accounted for. It also
+// checks that the latencies are positive, but doesn't expect exact values,
+// because latencies are non-deterministic.
+// It would be nice to mock time (e.g. patch the time.Since function) to test
+// the exact latencies values produced, and to simulate slow execution, too.
+// However, seems like there's no "native" way to monkey-patch in Go.
+// There is an option that doesn't look safe enough:
+// https://www.reddit.com/r/golang/comments/30try1/monkey_patching_in_go/
+// https://news.ycombinator.com/item?id=22442170.
 func TestPrometheusMetricRequestsLatency(t *testing.T) {
 	hintPrefix := "TestPrometheusMetricRequestsLatency"
 
