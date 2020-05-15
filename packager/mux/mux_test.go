@@ -479,7 +479,6 @@ func TestPrometheusMetricRequestsLatency(t *testing.T) {
 		actualMetricFamilyArr, err := reg.Gather()
 		if err != nil {
 			t.Errorf(hintPrefix+" - gathering metrics failed: %s", err)
-
 		}
 
 		assert.Equal(t, 1, len(actualMetricFamilyArr),
