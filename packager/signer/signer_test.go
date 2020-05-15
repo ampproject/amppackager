@@ -879,7 +879,7 @@ func TestSignerSuite(t *testing.T) {
 	suite.Run(t, new(SignerSuite))
 }
 
-func (this *SignerSuite) minimalisticRequestWithFakeGatewayRequest(handler http.Handler, urlSuffix string, fakeErrorCode int) {
+func (this *SignerSuite) minimalisticRequestWithFakeFetch(handler http.Handler, urlSuffix string, fakeErrorCode int) {
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(fakeErrorCode)
 	}
@@ -900,11 +900,11 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsTotal() {
 	this.get(this.T(), handler, suffix)
 
 	// One request with gateway request returning 304.
-	this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 304)
+	this.minimalisticRequestWithFakeFetch(handler, suffix, 304)
 
 	// Two requests with gateway request returning something else.
-	this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 502)
-	this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 503)
+	this.minimalisticRequestWithFakeFetch(handler, suffix, 502)
+	this.minimalisticRequestWithFakeFetch(handler, suffix, 503)
 
 	expectation := strings.NewReader(`
 		# HELP total_gateway_requests_by_code Total number of underlying requests to AMP document server - by HTTP response status code.
