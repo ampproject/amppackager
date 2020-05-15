@@ -121,25 +121,10 @@ func New(certCache http.Handler, signer http.Handler, validityMap http.Handler, 
 	}
 }
 
-// Prometheus counter that observes total requests count.
-var promRequestsTotal = promauto.NewCounterVec(
+var promTotalRequests = promauto.NewCounterVec(
 	prometheus.CounterOpts{
 		Name: "total_requests_by_code_and_url",
 		Help: "Total number of requests by HTTP code and URL.",
-	},
-	[]string{"code", "handler"},
-)
-
-// Prometheus summary that observes requests latencies.
-// Objectives key value pairs set target quantiles and respective allowed rank variance.
-// Upon query, for each Objective quantile (0.5, 0.9, 0.99) the summary returns
-// an actual observed latency value that is ranked close to the Objective value.
-// For more intuition on the Objectives see http://alexandrutopliceanu.ro/post/targeted-quantiles/.
-var promRequestsLatency = promauto.NewSummaryVec(
-	prometheus.SummaryOpts{
-		Name:       "request_latencies_in_seconds",
-		Help:       "Requests end-to-end latencies in seconds.",
-		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
 	},
 	[]string{"code", "handler"},
 )
@@ -199,12 +184,11 @@ func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		handlerFunc = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, errorMsg, errorCode) })
 	}
 
-	// Decorate the call to handlerFunc with Prometheus measurers of requests
-	// count and latency, pre-labelled (curried) with the right handler label.
-	label := prometheus.Labels{"handler": matchingRule.handlerPrometheusLabel}
-	promhttp.InstrumentHandlerDuration(promRequestsLatency.MustCurryWith(label),
-		promhttp.InstrumentHandlerCounter(promRequestsTotal.MustCurryWith(label),
-			handlerFunc)).ServeHTTP(resp, req)
+	// Decorate the call to handlerFunc with a Prometheus requests counter
+	// pre-labelled (curried) with the right handler label.
+	promhttp.InstrumentHandlerCounter(promTotalRequests.MustCurryWith(
+		prometheus.Labels{"handler": matchingRule.handlerPrometheusLabel}),
+		handlerFunc).ServeHTTP(resp, req)
 }
 
 type paramsKeyType struct{}
