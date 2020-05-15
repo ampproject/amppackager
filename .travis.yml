@@ -3,7 +3,9 @@ language: go
 
 # Ask gimme to choose latest stable minor release of Go 1.10.
 # https://github.com/travis-ci/gimme
-go: ["1.10.x"] 
+go: 
+  - 1.10.x
+  - 1.11.x
 
-after_script: >
-  echo RYBAK
+after_script:
+  - echo RYBAK
