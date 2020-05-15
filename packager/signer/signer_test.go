@@ -38,6 +38,7 @@ import (
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/pkg/errors"
+	promtest "github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -876,4 +877,43 @@ func (this *SignerSuite) TestProxyHeadersUnaltered() {
 
 func TestSignerSuite(t *testing.T) {
 	suite.Run(t, new(SignerSuite))
+}
+
+func (this *SignerSuite) minimalisticRequestWithFakeFetch(handler http.Handler, urlSuffix string, fakeErrorCode int) {
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.WriteHeader(fakeErrorCode)
+	}
+	this.get(this.T(), handler, urlSuffix)
+}
+
+func (this *SignerSuite) TestPrometheusMetricGatewayRequestsTotal() {
+	promGatewayRequestsTotal.Reset()
+
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	suffix := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
+	handler := this.new(urlSets)
+
+	// Two requests with gateway request returning 200 (unmocked).
+	this.get(this.T(), handler, suffix)
+	this.get(this.T(), handler, suffix)
+
+	// One request with gateway request returning 304.
+	this.minimalisticRequestWithFakeFetch(handler, suffix, 304)
+
+	// Two requests with gateway request returning something else.
+	this.minimalisticRequestWithFakeFetch(handler, suffix, 502)
+	this.minimalisticRequestWithFakeFetch(handler, suffix, 503)
+
+	expectation := strings.NewReader(`
+		# HELP total_gateway_requests_by_code Total number of underlying requests to AMP document server - by HTTP response status code.
+		# TYPE total_gateway_requests_by_code counter
+		total_gateway_requests_by_code{code="200"} 2
+		total_gateway_requests_by_code{code="304"} 1
+		total_gateway_requests_by_code{code="502"} 1
+		total_gateway_requests_by_code{code="503"} 1
+		`)
+
+	this.Require().NoError(promtest.CollectAndCompare(promGatewayRequestsTotal, expectation, "total_gateway_requests_by_code"))
 }
