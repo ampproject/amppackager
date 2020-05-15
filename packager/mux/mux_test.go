@@ -502,7 +502,7 @@ func TestPrometheusMetricRequestsLatency(t *testing.T) {
 			assert.Equal(t, 3, len(actualMetric.Summary.Quantile), hintPrefix+" expects the right number of quantiles.")
 
 			// Expect the right quantiles.
-			// Expect positive quantile values (because latencies are non-zero).
+			// Expect positive quantile values, because latencies are non-zero.
 			// Don't check the exact values, because latencies are non-deterministic.
 			expectedQuantileKeys := []float64{0.5, 0.9, 0.99}
 			for i, quantile := range actualMetric.Summary.Quantile {
