@@ -138,7 +138,7 @@ var promRequestsTotal = promauto.NewCounterVec(
 var promRequestsLatency = promauto.NewSummaryVec(
 	prometheus.SummaryOpts{
 		Name:       "request_latencies_in_seconds",
-		Help:       "Requests end-to-end latencies in seconds.",
+		Help:       "Requests latencies in seconds, from the moment the routing is complete, to the moment the response is returned.",
 		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
 	},
 	[]string{"code", "handler"},
