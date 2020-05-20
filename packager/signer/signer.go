@@ -331,10 +331,12 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	// According to the check above httpErr is nil, i.e. the gateway request did
 	// succeed. Let Prometheus observe the gateway request along with the response code.
-	// Note that if httpErr was not nil, ServeHTTP wouldn't have reached the code
-	// below. Instead it would let mux's promRequestsTotal observe the non-gateway
-	// request (along with the response code) - by calling LogAndRespond with resp
-	// that mux have decorated with a promRequestsTotal InstrumentHandler.
+	// Note: consider the opposite case, when httpErr is not nil, e.g. it's
+	// http.StatusBadGateway (502), which is the most probable error fetchURL
+	// will return if failed. In this case this.ServeHTTP wouldn't have reached the
+	// code below. Instead it would let mux's promRequestsTotal observe the
+	// non-gateway request (along with the response code 502) - by calling
+	// LogAndRespond with resp that mux have decorated with a promRequestsTotal InstrumentHandler.
 	promGatewayRequestsTotal.With(prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}).Inc()
 
 	if err := this.shouldPackage(); err != nil {
