@@ -39,6 +39,8 @@ import (
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // The user agent to send when issuing fetches. Should look like a mobile device.
@@ -181,7 +183,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		// TODO(twifkak): Extract host from upstream Forwarded header
 		// and concatenate. (Do not include any other parameters, as
 		// they may lead to over-signing.)
-		req.Header.Set("Forwarded", `host=` + quotedHost)
+		req.Header.Set("Forwarded", `host=`+quotedHost)
 		xfh := serveHTTPReq.Host
 		if oldXFH := serveHTTPReq.Header.Get("X-Forwarded-Host"); oldXFH != "" {
 			xfh = oldXFH + "," + xfh
@@ -277,6 +279,15 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 	return ret, nil
 }
 
+// promGatewayRequestsTotal is a Prometheus counter that observes total gateway requests count.
+var promGatewayRequestsTotal = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "total_gateway_requests_by_code",
+		Help: "Total number of underlying requests to AMP document server - by HTTP response status code.",
+	},
+	[]string{"code"},
+)
+
 func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Add("Vary", "Accept, AMP-Cache-Transform")
 
@@ -317,6 +328,16 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			log.Println("Error closing fetchResp body:", err)
 		}
 	}()
+
+	// According to the check above httpErr is nil, i.e. the gateway request did
+	// succeed. Let Prometheus observe the gateway request along with the response code.
+	// Note: consider the opposite case, when httpErr is not nil, e.g. it's
+	// http.StatusBadGateway (502), which is the most probable error fetchURL
+	// will return if failed. In this case this.ServeHTTP wouldn't have reached the
+	// code below. Instead it would let mux's promRequestsTotal observe the
+	// non-gateway request (along with the response code 502) - by calling
+	// LogAndRespond with resp that mux have decorated with a promRequestsTotal InstrumentHandler.
+	promGatewayRequestsTotal.With(prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}).Inc()
 
 	if err := this.shouldPackage(); err != nil {
 		log.Println("Not packaging because server is unhealthy; see above log statements.", err)
