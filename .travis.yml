@@ -3,4 +3,9 @@ language: go
 
 # Ask gimme to choose latest stable minor release of Go 1.10.
 # https://github.com/travis-ci/gimme
-go: ["1.10.x"] 
+go: 
+  - 1.10.x
+  - 1.11.x
+  - 1.12.x
+  - 1.13.x
+  - 1.14.x
