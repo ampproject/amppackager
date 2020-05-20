@@ -288,6 +288,21 @@ var promGatewayRequestsTotal = promauto.NewCounterVec(
 	[]string{"code"},
 )
 
+func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
+	fetchReq, fetchResp, httpErr := this.fetchURL(fetch, serveHTTPReq)
+	if httpErr == nil {
+		// httpErr is nil, i.e. the gateway request did succeed. Let Prometheus observe
+		// the gateway request along with the response code.
+		promGatewayRequestsTotal.With(prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}).Inc()
+	} else {
+		// If httpErr is not nil, don't observe the request - instead
+		// do nothing, and let mux's promRequestsTotal observe the top level
+		// non-gateway request once signer has completed handling it.
+	}
+
+	return fetchReq, fetchResp, httpErr
+}
+
 func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Add("Vary", "Accept, AMP-Cache-Transform")
 
@@ -317,7 +332,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req)
+	fetchReq, fetchResp, httpErr := this.fetchURLAndMeasure(fetchURL, req)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
@@ -328,14 +343,6 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			log.Println("Error closing fetchResp body:", err)
 		}
 	}()
-
-	// According to the check above httpErr is nil, i.e. the gateway request did
-	// succeed. Let Prometheus observe the gateway request along with the response code.
-	// Note that if httpErr was not nil, ServeHTTP wouldn't have reached the code
-	// below. Instead it would let mux's promRequestsTotal observe the non-gateway
-	// request (along with the response code) - by calling LogAndRespond with resp
-	// that mux have decorated with a promRequestsTotal InstrumentHandler.
-	promGatewayRequestsTotal.With(prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}).Inc()
 
 	if err := this.shouldPackage(); err != nil {
 		log.Println("Not packaging because server is unhealthy; see above log statements.", err)
