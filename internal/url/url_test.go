@@ -34,13 +34,6 @@ func TestString(t *testing.T) {
 			"https://foo.com/i%20haz%20spaces?q=i%20haz%20spaces",
 		},
 		{
-			// TODO(b/123017837): Go escapes only certain chars in fragments.
-			"fragment not entirely reescaped", // This is intrinsic Go URL behavior.
-			"https://example.com/amp.html#htmlURL=http%3A%2F%2Fbar.com%2Fbaz",
-			//does not produce: "https://example.com/amp.html#htmlURL=http%3A%2F%2Fbar.com%2Fbaz",
-			"https://example.com/amp.html#htmlURL=http://bar.com/baz",
-		},
-		{
 			"fragment with space and quote reescaped",
 			"https://example.com/amp.html#fragment-\" ",
 			"https://example.com/amp.html#fragment-%22%20",

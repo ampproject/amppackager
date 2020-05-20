@@ -135,15 +135,6 @@ func TestToAbsoluteURL(t *testing.T) {
 			expected:    rootURL + "#dogs",
 		},
 		{
-			// TODO(b/123017837): Go escapes only certain chars in fragments.
-			desc:        "fragment not entirely reescaped", // This is intrinsic Go URL behavior.
-			input:       "https://example.com/amp.html#htmlURL=http%3A%2F%2Fbar.com%2Fbaz",
-			baseURL:     rootURL,
-			documentURL: rootURL,
-			//expected:    "https://example.com/amp.html#htmlURL=http%3A%2F%2Fbar.com%2Fbaz",
-			expected: "https://example.com/amp.html#htmlURL=http://bar.com/baz",
-		},
-		{
 			desc:        "fragment with space and quote reescaped",
 			input:       "https://example.com/amp.html#fragment-\" ",
 			baseURL:     rootURL,
