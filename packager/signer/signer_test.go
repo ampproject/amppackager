@@ -941,16 +941,6 @@ const promExpectedHeaderGatewayRequestsLatency = `
 	# TYPE gateway_request_latencies_in_seconds summary
 	`
 
-// TestPrometheusMetricGatewayRequestsLatency tests the latencies metrics.
-// It checks that the right error codes are accounted for. It also
-// checks that the latencies are positive, but doesn't expect exact values,
-// because latencies are non-deterministic.
-// It would be nice to mock time (e.g. patch the time.Since function) to test
-// the exact latencies values produced, and to simulate slow execution, too.
-// However, seems like there's no "native" way to monkey-patch in Go.
-// There is an option that doesn't look safe enough:
-// https://www.reddit.com/r/golang/comments/30try1/monkey_patching_in_go/
-// https://news.ycombinator.com/item?id=22442170.
 func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
