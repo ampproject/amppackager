@@ -38,14 +38,8 @@ import (
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/pkg/errors"
-
-	// "github.com/prometheus/client_golang/prometheus"
-
 	"github.com/prometheus/client_golang/prometheus"
 	promtest "github.com/prometheus/client_golang/prometheus/testutil"
-
-	// "github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -939,14 +933,13 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsTotal() {
 func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 	hintPrefix := "TestPrometheusMetricGatewayRequestsLatency"
 
-	type codeLabelPair string
-
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
 	}}
 	suffix := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
 	handler := this.new(urlSets)
 
+	type codeLabelPair string
 	type scenarioExpectedSampleCountMap map[codeLabelPair]uint64
 
 	scenarios := []struct {

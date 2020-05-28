@@ -317,7 +317,7 @@ func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Reques
 		// is the most probable error fetchURL returns if failed. In case of
 		// non-nil httpErr don't observe the request. Instead do nothing and let
 		// mux's promRequestsTotal observe the top level non-gateway request (along
-		// with the response code 502) once signer has completed handling it.
+		// with the response code e.g. 502) once signer has completed handling it.
 	}
 
 	return fetchReq, fetchResp, httpErr
