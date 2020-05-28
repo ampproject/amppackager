@@ -464,6 +464,20 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 	return strings.Join(values, ","), nil
 }
 
+// promGatewayResponseSize is a Prometheus summary that observes gateway response body size.
+// Objectives key value pairs set target quantiles and respective allowed rank variance.
+// Upon query, for each Objective quantile (0.5, 0.9, 0.99) the summary returns
+// an actual observed latency value that is ranked close to the Objective value.
+// For more intuition on the Objectives see http://alexandrutopliceanu.ro/post/targeted-quantiles/.
+var promGatewayResponseSize = promauto.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Name:       "gateway_response_size_in_bytes",
+		Help:       "Size (in bytes) of gateway response body from AMP document server.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	},
+	[]string{},
+)
+
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
 func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, act string, transformVersion int64) {
 	// After this, fetchResp.Body is consumed, and attempts to read or proxy it will result in an empty body.
@@ -472,6 +486,8 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		util.NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
 		return
 	}
+
+	promGatewayResponseSize.WithLabelValues().Observe(float64(len(fetchBody)))
 
 	// Perform local transformations.
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())

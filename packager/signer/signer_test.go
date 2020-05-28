@@ -1041,3 +1041,40 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 	}
 
 }
+
+func (this *SignerSuite) TestPrometheusMetricGatewayResponseSize() {
+	promGatewayResponseSize.Reset()
+
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	suffix := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
+	handler := this.new(urlSets)
+
+	// One request with expected response body equal to "abcde" (5 chars).
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Write([]byte("abcde"))
+	}
+	this.get(this.T(), handler, suffix)
+
+	// Two requests with expected response body equal to "abc" (3 chars).
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Write([]byte("abc"))
+	}
+	this.get(this.T(), handler, suffix)
+	this.get(this.T(), handler, suffix)
+
+	expectation := strings.NewReader(`
+		# HELP gateway_response_size_in_bytes Size (in bytes) of gateway response body from AMP document server.
+		# TYPE gateway_response_size_in_bytes summary
+		gateway_response_size_in_bytes{quantile="0.5"} 3
+		gateway_response_size_in_bytes{quantile="0.9"} 5
+		gateway_response_size_in_bytes{quantile="0.99"} 5
+		gateway_response_size_in_bytes_sum 11
+		gateway_response_size_in_bytes_count 3
+		`)
+
+	this.Require().NoError(promtest.CollectAndCompare(promGatewayResponseSize, expectation, "gateway_response_size_in_bytes"))
+}
