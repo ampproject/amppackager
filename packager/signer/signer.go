@@ -308,16 +308,15 @@ func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Reques
 	fetchReq, fetchResp, httpErr := this.fetchURL(fetch, serveHTTPReq)
 	if httpErr == nil {
 		// httpErr is nil, i.e. the gateway request did succeed. Let Prometheus
-		// observe the gateway request and it's latency - along with the response code.
+		// observe the gateway request and its latency - along with the response code.
 		label := prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}
 		promGatewayRequestsTotal.With(label).Inc()
 		promGatewayRequestsLatency.With(label).Observe(time.Since(now).Seconds())
-		// obs.With(labels(code, method, r.Method, d.Status())).Observe(time.Since(now).Seconds())
 	} else {
-		// httpErr can have a non-nil value like http.StatusBadGateway (502),
-		// which is the most probable error fetchURL returns if failed. In such
-		// case don't observe the request. Instead do nothing and let mux's
-		// promRequestsTotal observe the top level non-gateway request (along
+		// httpErr can have a non-nil value. E.g. http.StatusBadGateway (502)
+		// is the most probable error fetchURL returns if failed. In case of
+		// non-nil httpErr don't observe the request. Instead do nothing and let
+		// mux's promRequestsTotal observe the top level non-gateway request (along
 		// with the response code 502) once signer has completed handling it.
 	}
 
