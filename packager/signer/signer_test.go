@@ -38,7 +38,15 @@ import (
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/pkg/errors"
+
+	// "github.com/prometheus/client_golang/prometheus"
+
+	"github.com/prometheus/client_golang/prometheus"
 	promtest "github.com/prometheus/client_golang/prometheus/testutil"
+
+	// "github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -916,4 +924,118 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsTotal() {
 		`)
 
 	this.Require().NoError(promtest.CollectAndCompare(promGatewayRequestsTotal, expectation, "total_gateway_requests_by_code"))
+}
+
+// TestPrometheusMetricGatewayRequestsLatency tests the latencies metrics.
+// It checks that the right error codes are accounted for. It also
+// checks that the latencies are positive, but doesn't expect exact values,
+// because latencies are non-deterministic.
+// It would be nice to mock time (e.g. patch the time.Since function) to test
+// the exact latencies values produced, and to simulate slow execution, too.
+// However, seems like there's no "native" way to monkey-patch in Go.
+// There is an option that doesn't look safe enough:
+// https://www.reddit.com/r/golang/comments/30try1/monkey_patching_in_go/
+// https://news.ycombinator.com/item?id=22442170.
+func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
+	hintPrefix := "TestPrometheusMetricGatewayRequestsLatency"
+
+	type codeLabelPair string
+
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	suffix := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
+	handler := this.new(urlSets)
+
+	type scenarioExpectedSampleCountMap map[codeLabelPair]uint64
+
+	scenarios := []struct {
+		requestsFunc           func()
+		expectedSampleCountMap scenarioExpectedSampleCountMap
+	}{
+		{
+			func() {
+				this.get(this.T(), handler, suffix)
+				this.get(this.T(), handler, suffix)
+			},
+			scenarioExpectedSampleCountMap{
+				`name:"code" value:"200" `: 2,
+			},
+		},
+		{
+			func() {
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 304)
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 502)
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 502)
+			},
+			scenarioExpectedSampleCountMap{
+				`name:"code" value:"304" `: 1,
+				`name:"code" value:"502" `: 2,
+			},
+		},
+		{
+			func() {
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 200)
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 200)
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 200)
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 304)
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 502)
+				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 502)
+			},
+			scenarioExpectedSampleCountMap{
+				`name:"code" value:"200" `: 3,
+				`name:"code" value:"304" `: 1,
+				`name:"code" value:"502" `: 2,
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		promGatewayRequestsLatency.Reset()
+
+		scenario.requestsFunc()
+
+		expectedSampleCountMap := scenario.expectedSampleCountMap
+
+		reg := prometheus.NewPedanticRegistry()
+		if err := reg.Register(promGatewayRequestsLatency); err != nil {
+			this.T().Errorf(hintPrefix+" - registering collector failed: %s", err)
+		}
+
+		actualMetricFamilyArr, err := reg.Gather()
+		if err != nil {
+			this.T().Errorf(hintPrefix+" - gathering metrics failed: %s", err)
+		}
+
+		assert.Equal(this.T(), 1, len(actualMetricFamilyArr),
+			hintPrefix+" expects exactly one metric family.")
+
+		assert.Equal(this.T(), "gateway_request_latencies_in_seconds", *actualMetricFamilyArr[0].Name,
+			hintPrefix+" expects the right metric name.")
+
+		assert.Equal(this.T(), len(expectedSampleCountMap), len(actualMetricFamilyArr[0].Metric),
+			hintPrefix+" expects the right amount of metrics collected and gathered.")
+
+		for _, actualMetric := range actualMetricFamilyArr[0].Metric {
+			// Expect the right sample count.
+			code := actualMetric.Label[0].String()
+			expectedSampleCount := expectedSampleCountMap[codeLabelPair(code)]
+			actualSampleCount := actualMetric.Summary.GetSampleCount()
+			assert.Equal(this.T(), expectedSampleCount, actualSampleCount, hintPrefix+" expects the right sample count for "+code)
+
+			// Test quantiles.
+			expectedQuantileKeys := []float64{0.5, 0.9, 0.99}
+
+			// Expect the right number of quantiles.
+			assert.Equal(this.T(), len(expectedQuantileKeys), len(actualMetric.Summary.Quantile), hintPrefix+" expects the right number of quantiles.")
+
+			// Expect the right quantiles.
+			// Expect positive quantile values, because latencies are non-zero.
+			// Don't check the exact values, because latencies are non-deterministic.
+			for i, quantile := range actualMetric.Summary.Quantile {
+				assert.Equal(this.T(), expectedQuantileKeys[i], quantile.GetQuantile(), hintPrefix+" expects the right quantile.")
+				assert.True(this.T(), quantile.GetValue() > .0, hintPrefix+" expects non-zero quantile value (latency).")
+			}
+		}
+	}
 }
