@@ -288,16 +288,37 @@ var promGatewayRequestsTotal = promauto.NewCounterVec(
 	[]string{"code"},
 )
 
+// promGatewayRequestsLatency is a Prometheus summary that observes requests latencies.
+// Objectives key value pairs set target quantiles and respective allowed rank variance.
+// Upon query, for each Objective quantile (0.5, 0.9, 0.99) the summary returns
+// an actual observed latency value that is ranked close to the Objective value.
+// For more intuition on the Objectives see http://alexandrutopliceanu.ro/post/targeted-quantiles/.
+var promGatewayRequestsLatency = promauto.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Name:       "gateway_request_latencies_in_seconds",
+		Help:       "Latencies (in seconds) of gateway requests to AMP document server - by HTTP response status code.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	},
+	[]string{"code"},
+)
+
 func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
+	now := time.Now()
+
 	fetchReq, fetchResp, httpErr := this.fetchURL(fetch, serveHTTPReq)
 	if httpErr == nil {
-		// httpErr is nil, i.e. the gateway request did succeed. Let Prometheus observe
-		// the gateway request along with the response code.
-		promGatewayRequestsTotal.With(prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}).Inc()
+		// httpErr is nil, i.e. the gateway request did succeed. Let Prometheus
+		// observe the gateway request and it's latency - along with the response code.
+		label := prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}
+		promGatewayRequestsTotal.With(label).Inc()
+		promGatewayRequestsLatency.With(label).Observe(time.Since(now).Seconds())
+		// obs.With(labels(code, method, r.Method, d.Status())).Observe(time.Since(now).Seconds())
 	} else {
-		// If httpErr is not nil, don't observe the request - instead
-		// do nothing, and let mux's promRequestsTotal observe the top level
-		// non-gateway request once signer has completed handling it.
+		// httpErr can have a non-nil value like http.StatusBadGateway (502),
+		// which is the most probable error fetchURL returns if failed. In such
+		// case don't observe the request. Instead do nothing and let mux's
+		// promRequestsTotal observe the top level non-gateway request (along
+		// with the response code 502) once signer has completed handling it.
 	}
 
 	return fetchReq, fetchResp, httpErr
