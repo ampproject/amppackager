@@ -129,7 +129,7 @@ func main() {
 
 	signerRequireHeaders := !*flagDevelopment
 	signer, err := signer.New(certCache, key, config.URLSet, rtvCache, certCache.IsHealthy,
-		overrideBaseURL, signerRequireHeaders, config.ForwardedRequestHeaders)
+		overrideBaseURL, signerRequireHeaders, config.ForwardedRequestHeaders, time.Now)
 	if err != nil {
 		die(errors.Wrap(err, "building signer"))
 	}
