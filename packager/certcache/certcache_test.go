@@ -69,6 +69,7 @@ type CertCacheSuite struct {
 	ocspHandler         func(w http.ResponseWriter, req *http.Request)
 	tempDir             string
 	handler             *CertCache
+	fakeClock           *fakeClock
 }
 
 func stringPtr(s string) *string {
@@ -79,8 +80,11 @@ func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(twifkak): Stop the old CertCache's goroutine.
 	// TODO(banaag): Consider adding a test with certfetcher set.
 	//  For now, this tests certcache without worrying about certfetcher.
+	this.fakeClock = NewFakeClock()
 	certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
-		filepath.Join(this.tempDir, "ocsp"), nil)
+		filepath.Join(this.tempDir, "ocsp"), nil, time.Now)
+	// certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
+	// 	filepath.Join(this.tempDir, "ocsp"), nil, this.fakeClock.Now)
 	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}
@@ -219,6 +223,21 @@ func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 	body, _ := ioutil.ReadAll(resp.Body)
 	// Small enough not to fit a cert or key:
 	this.Assert().Condition(func() bool { return len(body) <= 20 }, "body too large: %q", body)
+}
+
+type fakeClock struct {
+	secondsSince0 time.Duration
+	delta         time.Duration
+}
+
+func NewFakeClock() *fakeClock {
+	return &fakeClock{time.Now().Sub(time.Unix(0, 0)), time.Second}
+}
+
+func (this *fakeClock) Now() time.Time {
+	secondsSince0 := this.secondsSince0
+	this.secondsSince0 = secondsSince0 + this.delta
+	return time.Unix(0, 0).Add(secondsSince0)
 }
 
 func (this *CertCacheSuite) TestOCSP() {

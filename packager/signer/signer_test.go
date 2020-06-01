@@ -75,7 +75,7 @@ type fakeClock struct {
 }
 
 func NewFakeClock() *fakeClock {
-	return &fakeClock{0, time.Second}
+	return &fakeClock{time.Now().Sub(time.Unix(0, 0)), time.Second}
 }
 
 func (this *fakeClock) Now() time.Time {
