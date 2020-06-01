@@ -102,6 +102,7 @@ func GetHH(t *testing.T, handler http.Handler, target string, host string, heade
 }
 
 func GetBHH(t *testing.T, handler http.Handler, target string, host string, body io.Reader, headers http.Header) *http.Response {
+	// time.Sleep(time.Duration(2) * time.Second)
 	rec := httptest.NewRecorder()
 	method := ""
 	if body != nil {
