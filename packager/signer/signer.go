@@ -134,7 +134,7 @@ type Signer struct {
 	overrideBaseURL         *url.URL
 	requireHeaders          bool
 	forwardedRequestHeaders []string
-	timeNowFunc             func() time.Time
+	timeNow                 func() time.Time
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
@@ -143,14 +143,14 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 
 func New(certHandler certcache.CertHandler, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() error, overrideBaseURL *url.URL,
-	requireHeaders bool, forwardedRequestHeaders []string, timeNowFunc func() time.Time) (*Signer, error) {
+	requireHeaders bool, forwardedRequestHeaders []string, timeNow func() time.Time) (*Signer, error) {
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
 
-	return &Signer{certHandler, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders, timeNowFunc}, nil
+	return &Signer{certHandler, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders, timeNow}, nil
 }
 
 func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
@@ -304,7 +304,7 @@ var promGatewayRequestsLatency = promauto.NewSummaryVec(
 )
 
 func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
-	startTime := this.timeNowFunc()
+	startTime := this.timeNow()
 
 	fetchReq, fetchResp, httpErr := this.fetchURL(fetch, serveHTTPReq)
 	if httpErr == nil {
@@ -313,7 +313,7 @@ func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Reques
 		label := prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}
 		promGatewayRequestsTotal.With(label).Inc()
 
-		latency := this.timeNowFunc().Sub(startTime)
+		latency := this.timeNow().Sub(startTime)
 		promGatewayRequestsLatency.With(label).Observe(latency.Seconds())
 	} else {
 		// httpErr can have a non-nil value. E.g. http.StatusBadGateway (502)
