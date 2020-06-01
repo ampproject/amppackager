@@ -22,7 +22,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/util"
@@ -103,7 +102,7 @@ func GetHH(t *testing.T, handler http.Handler, target string, host string, heade
 }
 
 func GetBHH(t *testing.T, handler http.Handler, target string, host string, body io.Reader, headers http.Header) *http.Response {
-	time.Sleep(time.Duration(2) * time.Second)
+	// time.Sleep(time.Duration(2) * time.Second)
 	rec := httptest.NewRecorder()
 	method := ""
 	if body != nil {
