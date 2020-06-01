@@ -81,10 +81,10 @@ func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(banaag): Consider adding a test with certfetcher set.
 	//  For now, this tests certcache without worrying about certfetcher.
 	this.fakeClock = NewFakeClock()
-	certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
-		filepath.Join(this.tempDir, "ocsp"), nil, time.Now)
 	// certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
-	// 	filepath.Join(this.tempDir, "ocsp"), nil, this.fakeClock.Now)
+	// 	filepath.Join(this.tempDir, "ocsp"), nil, time.Now)
+	certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
+		filepath.Join(this.tempDir, "ocsp"), nil, this.fakeClock.Now)
 	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}
