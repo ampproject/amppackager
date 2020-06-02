@@ -69,7 +69,7 @@ type CertCacheSuite struct {
 	ocspHandler         func(w http.ResponseWriter, req *http.Request)
 	tempDir             string
 	handler             *CertCache
-	fakeClock           *fakeClock
+	fakeClock           *pkgt.FakeClock
 }
 
 func stringPtr(s string) *string {
@@ -110,7 +110,7 @@ func (this *CertCacheSuite) TearDownSuite() {
 }
 
 func (this *CertCacheSuite) SetupTest() {
-	this.fakeClock = NewFakeClock()
+	this.fakeClock = pkgt.NewFakeClock()
 	var err error
 	this.fakeOCSP, err = FakeOCSPResponse(this.fakeClock.Now())
 	this.Require().NoError(err, "creating fake OCSP response")
@@ -223,21 +223,6 @@ func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 	body, _ := ioutil.ReadAll(resp.Body)
 	// Small enough not to fit a cert or key:
 	this.Assert().Condition(func() bool { return len(body) <= 20 }, "body too large: %q", body)
-}
-
-type fakeClock struct {
-	secondsSince0 time.Duration
-	delta         time.Duration
-}
-
-func NewFakeClock() *fakeClock {
-	return &fakeClock{time.Now().Sub(time.Unix(0, 0)), time.Second}
-}
-
-func (this *fakeClock) Now() time.Time {
-	secondsSince0 := this.secondsSince0
-	this.secondsSince0 = secondsSince0 + this.delta
-	return time.Unix(0, 0).Add(secondsSince0)
 }
 
 func (this *CertCacheSuite) TestOCSP() {

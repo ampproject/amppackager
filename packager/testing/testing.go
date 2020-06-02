@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/util"
@@ -102,7 +103,6 @@ func GetHH(t *testing.T, handler http.Handler, target string, host string, heade
 }
 
 func GetBHH(t *testing.T, handler http.Handler, target string, host string, body io.Reader, headers http.Header) *http.Response {
-	// time.Sleep(time.Duration(2) * time.Second)
 	rec := httptest.NewRecorder()
 	method := ""
 	if body != nil {
@@ -120,4 +120,19 @@ func GetBHH(t *testing.T, handler http.Handler, target string, host string, body
 	}
 	handler.ServeHTTP(rec, req)
 	return rec.Result()
+}
+
+type FakeClock struct {
+	secondsSince0 time.Duration
+	Delta         time.Duration
+}
+
+func NewFakeClock() *FakeClock {
+	return &FakeClock{time.Now().Sub(time.Unix(0, 0)), time.Second}
+}
+
+func (this *FakeClock) Now() time.Time {
+	secondsSince0 := this.secondsSince0
+	this.secondsSince0 = secondsSince0 + this.Delta
+	return time.Unix(0, 0).Add(secondsSince0)
 }
