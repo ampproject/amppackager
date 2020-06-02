@@ -165,6 +165,7 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 		CertFile:      certFile,
 		NewCertFile:   newCertFile,
 		isInitialized: false,
+		timeNow:       timeNow,
 	}
 }
 
@@ -224,7 +225,7 @@ func (this *CertCache) GetLatestCert() *x509.Certificate {
 		return nil
 	}
 
-	d, err := util.GetDurationToExpiry(this.getCert(), time.Now())
+	d, err := util.GetDurationToExpiry(this.getCert(), this.timeNow())
 	if err != nil {
 		// Current cert is already invalid. Check if renewal is available.
 		log.Println("Current cert is expired, attempting to renew: ", err)
@@ -298,7 +299,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 		midpoint := this.ocspMidpoint(ocspResp)
 		// int is large enough to represent 24855 days in seconds.
-		expiry := int(midpoint.Sub(time.Now()).Seconds())
+		expiry := int(midpoint.Sub(this.timeNow()).Seconds())
 		if expiry < 0 {
 			expiry = 0
 		}
@@ -347,7 +348,7 @@ func (this *CertCache) isHealthy(ocspResp []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "Error parsing OCSP response")
 	}
-	if resp.NextUpdate.Before(time.Now()) {
+	if resp.NextUpdate.Before(this.timeNow()) {
 		return errors.Errorf("Cached OCSP is stale, NextUpdate: %v", resp.NextUpdate)
 	}
 	return nil
@@ -492,7 +493,7 @@ func (this *CertCache) shouldUpdateOCSP(ocsp []byte) bool {
 	}
 	// Compute the midpoint per sleevi #3 (see above).
 	midpoint := this.ocspMidpoint(ocspResp)
-	if time.Now().After(midpoint) {
+	if this.timeNow().After(midpoint) {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; after midpoint: ", midpoint)
 		return true
@@ -504,7 +505,7 @@ func (this *CertCache) shouldUpdateOCSP(ocsp []byte) bool {
 	//    possible, and observe HTTP cache semantics."
 	this.ocspUpdateAfterMu.RLock()
 	defer this.ocspUpdateAfterMu.RUnlock()
-	if time.Now().After(this.ocspUpdateAfter) {
+	if this.timeNow().After(this.ocspUpdateAfter) {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; expired by HTTP cache headers: ", this.ocspUpdateAfter)
 		return true
@@ -641,11 +642,11 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 		log.Println("Invalid OCSP status:", resp.Status)
 		return orig
 	}
-	if resp.ThisUpdate.After(time.Now()) {
+	if resp.ThisUpdate.After(this.timeNow()) {
 		log.Println("OCSP thisUpdate in the future:", resp.ThisUpdate)
 		return orig
 	}
-	if resp.NextUpdate.Before(time.Now()) {
+	if resp.NextUpdate.Before(this.timeNow()) {
 		log.Println("OCSP nextUpdate in the past:", resp.NextUpdate)
 		return orig
 	}
@@ -761,7 +762,7 @@ func (this *CertCache) updateCertIfNecessary() {
 	d := time.Duration(0)
 	err := errors.New("")
 	if this.hasCert() {
-		d, err = util.GetDurationToExpiry(this.getCert(), time.Now())
+		d, err = util.GetDurationToExpiry(this.getCert(), this.timeNow())
 	}
 	if err != nil {
 		this.renewedCertsMu.Lock()
@@ -831,7 +832,7 @@ func (this *CertCache) doesCertNeedReloading() bool {
 	if !this.hasCert() {
 		return true
 	}
-	d, err := util.GetDurationToExpiry(this.getCert(), time.Now())
+	d, err := util.GetDurationToExpiry(this.getCert(), this.timeNow())
 	return err != nil || d < certRenewalInterval
 }
 

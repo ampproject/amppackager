@@ -246,7 +246,7 @@ func (this *CertCacheSuite) TestOCSP() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -257,7 +257,7 @@ func (this *CertCacheSuite) TestOCSP1() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -268,7 +268,7 @@ func (this *CertCacheSuite) TestOCSP2() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -279,7 +279,7 @@ func (this *CertCacheSuite) TestOCSP3() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -290,7 +290,7 @@ func (this *CertCacheSuite) TestOCSP4() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -301,7 +301,7 @@ func (this *CertCacheSuite) TestOCSP5() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -312,7 +312,7 @@ func (this *CertCacheSuite) TestOCSP6() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -323,7 +323,7 @@ func (this *CertCacheSuite) TestOCSP7() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -334,7 +334,7 @@ func (this *CertCacheSuite) TestOCSP8() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -345,7 +345,7 @@ func (this *CertCacheSuite) TestOCSP9() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -356,7 +356,7 @@ func (this *CertCacheSuite) TestOCSPA() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -367,7 +367,7 @@ func (this *CertCacheSuite) TestOCSPB() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -378,7 +378,7 @@ func (this *CertCacheSuite) TestOCSPC() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -389,7 +389,7 @@ func (this *CertCacheSuite) TestOCSPD() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -400,7 +400,7 @@ func (this *CertCacheSuite) TestOCSPE() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -411,7 +411,7 @@ func (this *CertCacheSuite) TestOCSPF() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -422,7 +422,7 @@ func (this *CertCacheSuite) TestOCSPG() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -433,7 +433,7 @@ func (this *CertCacheSuite) TestOCSPH() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -444,7 +444,7 @@ func (this *CertCacheSuite) TestOCSPI() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -455,7 +455,7 @@ func (this *CertCacheSuite) TestOCSPJ() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -466,7 +466,7 @@ func (this *CertCacheSuite) TestOCSPK() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302388", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
