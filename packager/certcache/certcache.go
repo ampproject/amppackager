@@ -299,18 +299,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 		midpoint := this.ocspMidpoint(ocspResp)
 		// int is large enough to represent 24855 days in seconds.
-		tn := this.timeNow()
-		tn2 := this.timeNow()
-		tn3 := this.timeNow()
-		tn4 := this.timeNow()
-		log.Println(tn)
-		log.Println(tn2)
-		log.Println(tn3)
-		log.Println(tn4)
-		log.Println("RYBAK1")
-		log.Println(ocspResp.ThisUpdate)
-		log.Println(ocspResp.NextUpdate)
-		expiry := int(midpoint.Sub(tn).Seconds())
+		expiry := int(midpoint.Sub(this.timeNow()).Seconds())
 		if expiry < 0 {
 			expiry = 0
 		}
