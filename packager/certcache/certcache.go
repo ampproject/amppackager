@@ -109,6 +109,7 @@ type CertCache struct {
 	extractOCSPServer func(*x509.Certificate) (string, error)
 	// Given an HTTP request/response, returns its cache expiry.
 	httpExpiry func(*http.Request, *http.Response) time.Time
+	timeNow    func() time.Time
 }
 
 // Callers need to call Init() on the returned CertCache before the cache can auto-renew certs.
@@ -121,7 +122,7 @@ type CertCache struct {
 // An alternative pattern would be to create an IsInitialized() bool or similarly named function that verifies all of the required fields have
 // been set. Then callers can just set fields in the struct by name and assert IsInitialized before doing anything with it.
 func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domains []string,
-	certFile string, newCertFile string, ocspCache string, generateOCSPResponse OCSPResponder) *CertCache {
+	certFile string, newCertFile string, ocspCache string, generateOCSPResponse OCSPResponder, timeNow func() time.Time) *CertCache {
 	certName := ""
 	if len(certs) > 0 && certs[0] != nil {
 		certName = util.CertName(certs[0])
@@ -140,11 +141,11 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 		//    certificate, all needing to staple an OCSP response. You don't
 		//    want to have all of them hammering the OCSP server - ideally,
 		//    you'd have one request, in the backend, and updating them all.
-		ocspFile:     &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
-		ocspFilePath: ocspCache,
-		stop:         make(chan struct{}),
+		ocspFile:             &Chained{first: &InMemory{}, second: &LocalFile{path: ocspCache}},
+		ocspFilePath:         ocspCache,
+		stop:                 make(chan struct{}),
 		generateOCSPResponse: generateOCSPResponse,
-		client:       http.Client{Timeout: 60 * time.Second},
+		client:               http.Client{Timeout: 60 * time.Second},
 		extractOCSPServer: func(cert *x509.Certificate) (string, error) {
 			if cert == nil || len(cert.OCSPServer) < 1 {
 				return "", errors.New("Cert missing OCSPServer.")
@@ -164,6 +165,7 @@ func New(certs []*x509.Certificate, certFetcher *certfetcher.CertFetcher, domain
 		CertFile:      certFile,
 		NewCertFile:   newCertFile,
 		isInitialized: false,
+		timeNow:       timeNow,
 	}
 }
 
@@ -223,7 +225,7 @@ func (this *CertCache) GetLatestCert() *x509.Certificate {
 		return nil
 	}
 
-	d, err := util.GetDurationToExpiry(this.getCert(), time.Now())
+	d, err := util.GetDurationToExpiry(this.getCert(), this.timeNow())
 	if err != nil {
 		// Current cert is already invalid. Check if renewal is available.
 		log.Println("Current cert is expired, attempting to renew: ", err)
@@ -259,7 +261,7 @@ func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (this *CertCache) parseOCSP(bytes []byte, issuer *x509.Certificate) (*ocsp.Response, error){
+func (this *CertCache) parseOCSP(bytes []byte, issuer *x509.Certificate) (*ocsp.Response, error) {
 	resp, err := ocsp.ParseResponseForCert(bytes, this.getCert(), issuer)
 	if err != nil {
 		return nil, errors.Wrap(err, "Parsing OCSP")
@@ -267,7 +269,7 @@ func (this *CertCache) parseOCSP(bytes []byte, issuer *x509.Certificate) (*ocsp.
 	return resp, nil
 }
 
-func (this *CertCache) ocspMidpoint(resp *ocsp.Response) (time.Time) {
+func (this *CertCache) ocspMidpoint(resp *ocsp.Response) time.Time {
 	return resp.ThisUpdate.Add(resp.NextUpdate.Sub(resp.ThisUpdate) / 2)
 }
 
@@ -297,7 +299,7 @@ func (this *CertCache) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 		midpoint := this.ocspMidpoint(ocspResp)
 		// int is large enough to represent 24855 days in seconds.
-		expiry := int(midpoint.Sub(time.Now()).Seconds())
+		expiry := int(midpoint.Sub(this.timeNow()).Seconds())
 		if expiry < 0 {
 			expiry = 0
 		}
@@ -346,7 +348,7 @@ func (this *CertCache) isHealthy(ocspResp []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "Error parsing OCSP response")
 	}
-	if resp.NextUpdate.Before(time.Now()) {
+	if resp.NextUpdate.Before(this.timeNow()) {
 		return errors.Errorf("Cached OCSP is stale, NextUpdate: %v", resp.NextUpdate)
 	}
 	return nil
@@ -401,15 +403,15 @@ func (this *CertCache) readOCSP(allowRetries bool) ([]byte, time.Time, error) {
 	}
 
 	for numTries := 0; numTries < maxTries; {
-		ocsp, ocspUpdateAfter, err = this.readOCSPHelper(numTries, numTries >= maxTries - 1)
+		ocsp, ocspUpdateAfter, err = this.readOCSPHelper(numTries, numTries >= maxTries-1)
 		if err != nil {
 			return nil, ocspUpdateAfter, err
 		}
 		if !this.shouldUpdateOCSP(ocsp) {
-			break;
+			break
 		}
 		// Wait only if are not on our last try.
-		if numTries < maxTries - 1 {
+		if numTries < maxTries-1 {
 			waitTimeInMinutes = waitForSpecifiedTime(waitTimeInMinutes, numTries)
 		}
 		numTries++
@@ -491,7 +493,7 @@ func (this *CertCache) shouldUpdateOCSP(ocsp []byte) bool {
 	}
 	// Compute the midpoint per sleevi #3 (see above).
 	midpoint := this.ocspMidpoint(ocspResp)
-	if time.Now().After(midpoint) {
+	if this.timeNow().After(midpoint) {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; after midpoint: ", midpoint)
 		return true
@@ -503,7 +505,7 @@ func (this *CertCache) shouldUpdateOCSP(ocsp []byte) bool {
 	//    possible, and observe HTTP cache semantics."
 	this.ocspUpdateAfterMu.RLock()
 	defer this.ocspUpdateAfterMu.RUnlock()
-	if time.Now().After(this.ocspUpdateAfter) {
+	if this.timeNow().After(this.ocspUpdateAfter) {
 		// TODO(twifkak): Use a logging framework with support for debug-only statements.
 		log.Println("Updating OCSP; expired by HTTP cache headers: ", this.ocspUpdateAfter)
 		return true
@@ -640,11 +642,11 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 		log.Println("Invalid OCSP status:", resp.Status)
 		return orig
 	}
-	if resp.ThisUpdate.After(time.Now()) {
+	if resp.ThisUpdate.After(this.timeNow()) {
 		log.Println("OCSP thisUpdate in the future:", resp.ThisUpdate)
 		return orig
 	}
-	if resp.NextUpdate.Before(time.Now()) {
+	if resp.NextUpdate.Before(this.timeNow()) {
 		log.Println("OCSP nextUpdate in the past:", resp.NextUpdate)
 		return orig
 	}
@@ -760,7 +762,7 @@ func (this *CertCache) updateCertIfNecessary() {
 	d := time.Duration(0)
 	err := errors.New("")
 	if this.hasCert() {
-		d, err = util.GetDurationToExpiry(this.getCert(), time.Now())
+		d, err = util.GetDurationToExpiry(this.getCert(), this.timeNow())
 	}
 	if err != nil {
 		this.renewedCertsMu.Lock()
@@ -827,8 +829,10 @@ func (this *CertCache) updateCertIfNecessary() {
 }
 
 func (this *CertCache) doesCertNeedReloading() bool {
-	if !this.hasCert() { return true }
-	d, err := util.GetDurationToExpiry(this.getCert(), time.Now())
+	if !this.hasCert() {
+		return true
+	}
+	d, err := util.GetDurationToExpiry(this.getCert(), this.timeNow())
 	return err != nil || d < certRenewalInterval
 }
 
@@ -892,7 +896,7 @@ func PopulateCertCache(config *util.Config, key crypto.PrivateKey, generateOCSPR
 	if err != nil {
 		return nil, errors.Wrap(err, "creating cert fetcher from config")
 	}
-	certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache, generateOCSPResponse)
+	certCache := New(certs, certFetcher, []string{domain}, config.CertFile, config.NewCertFile, config.OCSPCache, generateOCSPResponse, time.Now)
 
 	return certCache, nil
 }
