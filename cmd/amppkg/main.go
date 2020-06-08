@@ -43,6 +43,7 @@ import (
 var flagConfig = flag.String("config", "amppkg.toml", "Path to the config toml file.")
 var flagDevelopment = flag.Bool("development", false, "True if this is a development server.")
 var flagInvalidCert = flag.Bool("invalidcert", false, "True if invalid certificate intentionally used in production.")
+var flagStaging = flag.String("staging", "", "URL that overrides the base URL used to host certs, used for testing. Can only be used with -development flag.")
 
 // IMPORTANT: do not turn on this flag for now, it's still under development.
 var flagAutoRenewCert = flag.Bool("autorenewcert", false, "True if amppackager is to attempt cert auto-renewal.")
@@ -120,7 +121,12 @@ func main() {
 	defer rtvCache.StopCron()
 
 	var overrideBaseURL *url.URL
-	if *flagDevelopment {
+	if *flagStaging != "" {
+		overrideBaseURL, err = url.Parse(*flagStaging)
+		if err != nil {
+			die(errors.Wrap(err, "parsing staging URL"))
+		}
+	} else if *flagDevelopment {
 		overrideBaseURL, err = url.Parse(fmt.Sprintf("https://localhost:%d/", config.Port))
 		if err != nil {
 			die(errors.Wrap(err, "parsing development base URL"))
