@@ -52,7 +52,8 @@ func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
 		var pemBlock *pem.Block
 		pemBlock, keyPem = pem.Decode(keyPem)
 		if pemBlock == nil {
-			return nil, errors.New("invalid PEM block in private key file")
+			return nil, errors.New("invalid PEM block in private key file, make sure to use the right key type. See: https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange")
+
 		}
 
 		var err error

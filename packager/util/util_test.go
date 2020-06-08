@@ -3,6 +3,9 @@ package util_test
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"testing"
 	"time"
 
@@ -54,6 +57,15 @@ func TestGetDurationToExpiry(t *testing.T) {
 func TestParsePrivateKey(t *testing.T) {
 	require.IsType(t, &ecdsa.PrivateKey{}, pkgt.B3Key)
 	assert.Equal(t, elliptic.P256(), pkgt.B3Key.(*ecdsa.PrivateKey).PublicKey.Curve)
+}
+
+func TestParsePrivateKeyWithInvalidType(t *testing.T) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err, "Could not generate test key")
+
+	key, err := util.ParsePrivateKey(x509.MarshalPKCS1PrivateKey(privateKey))
+	assert.Nil(t, key)
+	assert.EqualError(t, err, "invalid PEM block in private key file, make sure to use the right key type. See: https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange")
 }
 
 func TestCanSignHttpExchangesExtension(t *testing.T) {
