@@ -63,9 +63,9 @@ Invalid requests that were not routed by `amppackager` to any handler are assign
 
     total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
 
- Some metrics only make sense for a particular handler. E.g. `gateway_request_latencies_in_seconds` and other metrics related to gateway requests are only related to `signer` handler's operation. Such metrics are only broken down into buckets by the response code, not by eth handler. 
+ Some metrics only make sense for a particular handler. E.g. `gateway_request_latencies_in_seconds` and other metrics related to gateway requests are only related to `signer` handler's operation. Such metrics are only broken down into buckets by the response code, not by the handler. 
  
- Each bucket has one or two labels ("code", "handler") that indicate the specific values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
+ __labels__ like "code" and "handler" are key-value properties of buckets that indicate the specific values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
 
 ## Metrics types: counters and summaries
 
