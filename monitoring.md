@@ -92,7 +92,7 @@ A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value bel
 
 For summary metrics like `request_latencies_in_seconds`, the `/metrics` endpoint provides three percentiles: 0.5, 0.9, 0.99. 
 
-To get an idea of how long does it usually take `amppackager` to handle a request, look at the respective 0.5 percentile. To check the rare, worst case scenario, look at 0.9 and 0.99 percentile.
+To get an idea of how long does it usually take `amppackager` to handle a request, look at the respective 0.5 percentile. To check the rare, worst case , look at 0.9 and 0.99 percentile.
 
 Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
 
@@ -105,6 +105,8 @@ Consider the following example. Let's say you're interested in the stats for the
     request_latencies_in_seconds_count{code="200",handler="signer"} 10000
 
 According to the example stats above, `signer` has handled 10000 requests. Consider the respective 10000 latencies ranked from smallest to largest. The latency of the request handled the fastest gets ranked 1, and of the one handled the slowest - 10000. According to the stats above, the latency ranked 5001 is 0.023 seconds, the latency ranked 9001 is 0.237 seconds, and the latency ranked 9901 is 0.238. 
+
+The conclusion for the example above: successful signer requests are usually handled within 0.023s, but occasionally may take up to 0.238s.
 
 All the 10000 requests were handled in 661 seconds, which means the mean (average) latency was 0.0661s. Note how this value is different from the median (0.023s). 
 
