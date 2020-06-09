@@ -197,7 +197,6 @@ for requests that got an OK response (200) from the `signer` handler:
 $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\" | grep quantile=\"0.9\"
 ```
 
-
 ## Performance metrics lifetime
 
 The metrics provided by the `/metrics` endpoint are reset upon the execution of
