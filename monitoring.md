@@ -128,7 +128,7 @@ Check stats for the `total_gateway_requests_by_code` metric:
 
     $ curl https://127.0.0.1:8080/metrics | grep total_gateway_requests_by_code
 
-Check stats for the `gateway_request_latencies_in_seconds` metric, for requests that returned an OK response (200) : 
+Check stats for the `gateway_request_latencies_in_seconds` metric, for requests that got an OK response (200) : 
 
     $ curl https://127.0.0.1:8080/metrics | grep gateway_request_latencies_in_seconds | grep code=\"200\"
 
