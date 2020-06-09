@@ -110,7 +110,7 @@ __The conclusion for the example above__: successful signer requests are usually
 
 Note that the results provided for latencies and other summaries may be off by a few rank positions in the ranking. This is due to metrics engine optimizations that allow to not store all the historical data, therefore saving RAM significantly. The results are still accurate enough for performance monitoring. 
 
-Also note that every value provided is an actual historical value that has been seen by the server, not an approximation.
+Also note that every stat (e.g. 0.9 percentile latency) provided by the metrics is an actual historical value that has been seen by the server, not an approximation.
 
 ### Mean vs percentiles
 
