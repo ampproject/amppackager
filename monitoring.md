@@ -120,7 +120,7 @@ Median (0.5 percentile) is [more stable against outliers](https://en.wikipedia.o
 
 ## More examples
 
-Check all the stats (note - there are numerous metrics, and the key ones are explained in the table above):
+Check all the stats (note - this command produces numerous metrics that are self-documented; the key ones are also explained in the table above):
 
     $ curl https://127.0.0.1:8080/metrics
 
