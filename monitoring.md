@@ -53,10 +53,11 @@ The table below lists `amppackager`'s handlers accounted for by the metrics:
 
 ## Metrics labels: breakdown by handler and response code
 
-For some metrics like `total_requests_by_code_and_url` the stats in the `/metrics` response are grouped into buckets by two dimensions: the handler name, and the HTTP response code. E.g. the stats for the `healthz` and `validityMap` handlers in the example above end up in their owns buckets:
+For some metrics like `total_requests_by_code_and_url` the stats in the `/metrics` response are grouped into buckets by two dimensions: the handler name, and the HTTP response code. E.g. note the buckets in the the example above:
 
     total_requests_by_code_and_url{code="200",handler="healthz"} 3
-    total_requests_by_code_and_url{code="200",handler="validityMap"} 5
+    total_requests_by_code_and_url{code="200",handler="signer"} 6
+    total_requests_by_code_and_url{code="502",handler="signer"} 4
 
 Invalid requests that were not routed by `amppackager` to any handler gets a special label `handler_not_assigned`:
 
