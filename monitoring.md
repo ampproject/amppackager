@@ -40,7 +40,7 @@ The example command below fetches all the available metrics. It then greps the r
  
  The example stats above are broken down by response HTTP code, and by the internal amppackager's module (handler) that has handled the request. The stats report 3 requests to the `healthz` handler that got a 200 response (OK), 4 requests to the `signer` handler that got a 502 response (Bad Gateway) etc.
 
-## Understanding stats breakdown by `amppackager`'s handlers
+## Understanding stats broken down by `amppackager`'s handlers
 
 The table below lists `amppackager`'s handlers accounted for by the metrics:
 
