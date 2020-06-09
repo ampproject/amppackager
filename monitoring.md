@@ -108,7 +108,9 @@ According to the example stats above, `signer` has handled 10000 requests. Consi
 
 __The conclusion for the example above__: successful signer requests are usually handled within 0.023s, but occasionally may take up to 0.238s.
 
-Note: the results provided for latencies and other summaries may be off by a few rank positions in the ranking, yet the accuracy is good enough for performance monitoring. Also every value provided is an actual historical value that has been seen by the server, not an approximation.
+Note: the results provided for latencies and other summaries may be off by a few rank positions in the ranking. This is due to metrics engine optimizations that allow to not store all the historical data, therefore saving RAM significantly. The results are still accurate enough for performance monitoring. 
+
+Also note that every value provided is an actual historical value that has been seen by the server, not an approximation.
 
 ### Mean vs percentiles
 
