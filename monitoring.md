@@ -42,10 +42,10 @@ total_requests_by_code_and_url{code="502",handler="signer"} 4
 total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
 ```
  
- The example stats above are broken down by response HTTP code, and by the
- internal amppackager's module (handler) that has handled the request. The stats
- report 3 requests to the `healthz` handler that got a 200 response (OK), 4
- requests to the `signer` handler that got a 502 response (Bad Gateway) etc.
+The example stats above are broken down by response HTTP code, and by the
+internal amppackager's module (handler) that has handled the request. The stats
+report 3 requests to the `healthz` handler that got a 200 response (OK), 4
+requests to the `signer` handler that got a 502 response (Bad Gateway) etc.
 
 ## `amppackager`'s handlers 
 
@@ -79,13 +79,13 @@ assigned a special label `handler_not_assigned`:
 total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
 ```
 
- Some metrics only make sense for a particular handler. E.g.
- `gateway_request_latencies_in_seconds` and other metrics related to gateway
- requests are only related to `signer` handler's operation. Such metrics are
- only broken down into buckets by the response code, not by the handler. 
- 
- __Labels__ are key-value properties of buckets that indicate the specific
- values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
+Some metrics only make sense for a particular handler. E.g.
+`gateway_request_latencies_in_seconds` and other metrics related to gateway
+requests are only related to `signer` handler's operation. Such metrics are only
+broken down into buckets by the response code, not by the handler. 
+
+__Labels__ are key-value properties of buckets that indicate the specific
+values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
 
 ## Metrics types: counters and summaries
 
@@ -101,8 +101,8 @@ requests latencies is stored, and a few historical percentiles are reported -
 
 ## Available metrics
 
- The table below lists the key available metrics, along with their types and
- labels.
+The table below lists the key available metrics, along with their types and
+labels.
 
 | Metric | Metric type | Explanation | Broken down by HTTP response code? | Broken down by [handler](https://github.com/MichaelRybak/amppackager/blob/doc/monitoring.md#understanding-stats-broken-down-by-amppackagers-handlers)? | 
 |--|--|--|--|--|
