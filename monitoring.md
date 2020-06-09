@@ -23,7 +23,7 @@ You can take a step further and check a few performance metrics, both for reques
 handled by `amppackager`, and for the underlying gateway requests that 
 `amppackager` sends to the AMP document server. Get all the metrics by curling the `/metrics` endpoint. 
 
-### Example: monitoring total requests count
+## Example: monitoring total requests count
 
 The example command below fetches all the available metrics. It then greps the report for `total_requests_by_code_and_url` metric. This metric counts the HTTP requests the `amppackager` server has processed since it's been up. 
 
@@ -40,7 +40,7 @@ The example command below fetches all the available metrics. It then greps the r
  
  The example stats above are broken down by response HTTP code, and by the internal amppackager's module (handler) that has handled the request. The stats report 3 requests to the `healthz` handler that got a 200 response (OK), 4 requests to the `signer` handler that got a 502 response (Bad Gateway) etc.
 
-### Understanding stats breakdown by `amppackager`'s handlers
+## Understanding stats breakdown by `amppackager`'s handlers
 
 The table below lists `amppackager`'s handlers accounted for by the metrics:
 
@@ -61,7 +61,7 @@ Invalid requests that were not routed by `amppackager` to any handler gets a spe
 
     total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
 
-### Available metrics
+## Available metrics
 
  The `/metrics` endpoint provides stats for the `total_requests_by_code_and_url` metric, as well as many others. Some stats are labelled with handler and http code, some - with label only, and for some the stats aren't segregate at all.
 
