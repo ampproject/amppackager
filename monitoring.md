@@ -92,7 +92,7 @@ A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value bel
 
 For summary metrics like `request_latencies_in_seconds`, the `/metrics` endpoint provides three percentiles: 0.5, 0.9, 0.99. 
 
-To get an idea of how long it usually takes `amppackager` to handle a request, look at the respective 0.5 percentile. To check the rare, worst case scenarios, look at 0.9 and 0.99 percentiles.
+To get an idea of how long it __usually__ takes `amppackager` to handle a request, look at the respective 0.5 percentile. To check the rare, __worst case scenarios__, look at 0.9 and 0.99 percentiles.
 
 Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
 
@@ -106,15 +106,15 @@ Consider the following example. Let's say you're interested in the stats for the
 
 According to the example stats above, `signer` has handled 10000 requests. Consider the respective 10000 latencies ranked from smallest to largest. The latency of the request handled the fastest gets ranked 1, and of the one handled the slowest - 10000. According to the stats above, the latency ranked 5001 is 0.023s, the latency ranked 9001 is 0.237s, and the latency ranked 9901 is 0.238s. 
 
-The conclusion for the example above: successful signer requests are usually handled within 0.023s, but occasionally may take up to 0.238s.
+__The conclusion for the example above__: successful signer requests are usually handled within 0.023s, but occasionally may take up to 0.238s.
+
+Note: the results provided for latencies and other summaries may be off by a few rank positions in the ranking, yet the accuracy is good enough for performance monitoring. Also every value provided is an actual historical value that has been seen by the server, not an approximation.
 
 ### Mean vs percentiles
 
 In the example above all the 10000 requests were handled in 661 seconds, which means the mean (average) latency was 0.0661s. This value is ~3 times larger than the median. So which one more accurately represents the "typical" scenario? Why not look at mean instead of looking at percentiles?
 
 Median (0.5 percentile) is [more stable against outliers](https://en.wikipedia.org/wiki/Median) than mean, and therefore gives a better understanding of the typical response time. At the same time the 0.9 and 0.99 percentiles give you a good idea about the large outliers, i.e. abnormally slow response times.
-
-Note: the results provided for latencies and other summaries may be off by a few rank positions in the ranking, yet the accuracy is good enough for performance monitoring. Also every value provided is an actual historical value that has been seen by the server, not an approximation.
 
 ## More examples
 
