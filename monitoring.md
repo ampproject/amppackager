@@ -132,7 +132,7 @@ Check stats for the `gateway_request_latencies_in_seconds` metric, for requests 
 
     $ curl https://127.0.0.1:8080/metrics | grep gateway_request_latencies_in_seconds | grep code=\"200\"
 
-Check stats 0.9 percentile latency for the `request_latencies_in_seconds` metric, for requests that got an OK response (200) from the `signer` handler:
+Check the 0.9 percentile latency for the `request_latencies_in_seconds` metric, for requests that got an OK response (200) from the `signer` handler:
 
     $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\" | grep quantile=\"0.9\"
 
