@@ -67,7 +67,7 @@ Invalid requests that were not routed by `amppackager` to any handler gets a spe
 
  There are two types of metrics: *counters* and *summaries*. For some values, like request count, the metric is just a *counter*. For others, like latencies, a distribution of values is observed, and a few percentiles are reported - 0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
 
- The table below lists the available metrics, along with their types and labels.
+ The table below lists the key available metrics, along with their types and labels.
 
 | Metric | Metric type | Explanation | Broken down by HTTP response code? | Broken down by handler? | 
 |--|--|--|--|--|
@@ -75,7 +75,6 @@ Invalid requests that were not routed by `amppackager` to any handler gets a spe
 | request_latencies_in_seconds | Summary | `amppackager`'s handlers latencies in seconds, measured from the moment the handler starts processing the request, to the moment the response is returned. | Yes | Yes |
 | total_gateway_requests_by_code | Counter | Total number of underlying requests sent by `signer` handler to AMP document server | Yes | No |
 | gateway_request_latencies_in_seconds | Summary | Latencies (in seconds) of gateway requests to AMP document server | Yes | No |
-
 
 ## Understanding percentiles reported by Summaries
 
@@ -87,7 +86,7 @@ For latencies distribution and other summary-type metrics, `amppackager` provide
 
 Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
 
-    $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep 200
+    $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\"
 
     request_latencies_in_seconds{code="200",handler="signer",quantile="0.5"} 0.023
     request_latencies_in_seconds{code="200",handler="signer",quantile="0.9"} 0.237
@@ -102,6 +101,25 @@ All the 10000 requests were handled in 661 seconds, which means the mean (averag
 Median (0.5 percentile) is [more stable against outliers](https://en.wikipedia.org/wiki/Median) than mean, and therefore gives a better understanding of the typical response time. At the same time the 0.9 and 0.99 percentiles give you a good idea about the large outliers, i.e. abnormally slow response times.
 
 Note: the results provided for latencies and other summaries may be off by a few rank positions in the ranking, yet the accuracy is good enough for performance monitoring. Also every value provided is an actual historical value that has been seen by the server, not an approximation.
+
+## More examples
+
+Check all the stats (note - only the key metrics are documented in this manual):
+
+    $ curl https://127.0.0.1:8080/metrics
+
+Check stats for the `total_gateway_requests_by_code` metric: 
+
+    $ curl https://127.0.0.1:8080/metrics | grep total_gateway_requests_by_code
+
+Check stats for the `gateway_request_latencies_in_seconds` for requests that returned an OK response (200) : 
+
+    $ curl https://127.0.0.1:8080/metrics | grep gateway_request_latencies_in_seconds | grep code=\"200\"
+
+Check stats 0.9 percentile latency for the `request_latencies_in_seconds` metric, for requests that got an OK response (200) from the `signer` handler:
+
+    $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\" | grep quantile=\"0.9\"
+
 
 ## Performance metrics lifetime
 
