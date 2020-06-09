@@ -83,8 +83,8 @@ For other metrics like `request_latencies_in_seconds`, a distribution of request
 |--|--|--|--|--|
 | total_requests_by_code_and_url | Counter | Total number of requests handled by `amppackager` since it's been up. | Yes | Yes |
 | request_latencies_in_seconds | Summary | `amppackager`'s handlers latencies in seconds, measured from the moment the handler starts processing the request, to the moment the response is returned. | Yes | Yes |
-| total_gateway_requests_by_code | Counter | Total number of underlying requests sent by `signer` handler to the AMP document server. | Yes | No - all handled by `signer` |
-| gateway_request_latencies_in_seconds | Summary | Latencies (in seconds) of gateway requests to the AMP document server. | Yes | No - all handled by `signer` |
+| total_gateway_requests_by_code | Counter | Total number of underlying requests sent by `signer` handler to the AMP document server. | Yes | No - `signer`-specific |
+| gateway_request_latencies_in_seconds | Summary | Latencies (in seconds) of gateway requests to the AMP document server. | Yes | No - `signer`-specific |
 
 ## Understanding percentiles reported by Summaries
 
