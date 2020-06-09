@@ -92,7 +92,7 @@ A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value bel
 
 The 50% percentile is also known as [median](https://en.wikipedia.org/wiki/Median).
 
-For latencies distribution and other summary-type metrics, `amppackager` provides three percentiles: 0.5, 0.9, 0.99. 
+For summary metrics like `request_latencies_in_seconds`, the `/metrics` endpoint provides three percentiles: 0.5, 0.9, 0.99. 
 
 Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
 
