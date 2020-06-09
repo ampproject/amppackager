@@ -73,7 +73,7 @@ The two types of metrics are *counters* and *summaries*.
 
 For some values, like `total_requests_by_code_and_url`, each request increases the total by 1, so the metric is a *counter* that has no historical data, just the accumulated total. 
 
-For other metrics like latencies, a distribution of requests latencies is stored, and a few historical percentiles are reported - 0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
+For other metrics like `request_latencies_in_seconds`, a distribution of requests latencies is stored, and a few historical percentiles are reported - 0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
 
 ## Available metrics
 
