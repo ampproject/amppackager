@@ -69,7 +69,7 @@ Invalid requests that were not routed by `amppackager` to any handler gets a spe
 
  The table below lists the key available metrics, along with their types and labels.
 
-| Metric | Metric type | Explanation | Broken down by HTTP response code? | Broken down by handler? | 
+| Metric | Metric type | Explanation | Broken down by HTTP response code? | Broken down by [handler](https://github.com/MichaelRybak/amppackager/blob/doc/monitoring.md#understanding-stats-broken-down-by-amppackagers-handlers)? | 
 |--|--|--|--|--|
 | total_requests_by_code_and_url | Counter | Total number of requests handled by `amppackager` since it's been up. | Yes | Yes |
 | request_latencies_in_seconds | Summary | `amppackager`'s handlers latencies in seconds, measured from the moment the handler starts processing the request, to the moment the response is returned. | Yes | Yes |
