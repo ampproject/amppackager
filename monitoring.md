@@ -92,7 +92,7 @@ A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value bel
 
 For summary metrics like `request_latencies_in_seconds`, the `/metrics` endpoint provides three percentiles: 0.5, 0.9, 0.99. 
 
-To get an idea of how long does it usually take `amppackager` to handle a request, look at the respective 0.5 percentile. To check the rare, worst case , look at 0.9 and 0.99 percentile.
+To get an idea of how long it usually takes `amppackager` to handle a request, look at the respective 0.5 percentile. To check the rare, worst case , look at 0.9 and 0.99 percentile.
 
 Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
 
