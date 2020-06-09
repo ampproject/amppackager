@@ -56,17 +56,15 @@ For some metrics like `total_requests_by_code_and_url` the stats in the `/metric
     total_requests_by_code_and_url{code="200",handler="healthz"} 3
     total_requests_by_code_and_url{code="200",handler="validityMap"} 5
 
-Each bucket has two labels "code" and "handler" that correspond to the breakdown dimensions.
-
 Invalid requests that were not routed by `amppackager` to any handler gets a special label `handler_not_assigned`:
 
     total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
 
 ## Available metrics
 
- The `/metrics` endpoint provides stats for the `total_requests_by_code_and_url` metric, as well as many others. Some stats are labelled with handler and http code, some - with label only.
+  The `/metrics` endpoint provides stats for a bunch of metrics. The stats for a particular metric are broken down into buckets by one or two dimensions. For some metrics the stats are broken down by the handler and by the HTTP response code, for others - by the response code only. Each bucket has one or two labels ("code", "handler") that correspond to the breakdown dimensions.
 
- There are two types of metrics: *counters* and *summaries*. For some values, like request count, the metric is just a *counter*. For others, like latencies, a distribution of values is observed, and a few percentiles are reported - 0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
+ The two types of metrics are *counters* and *summaries*. For some values, like `total_requests_by_code_and_url`, each request increases the total by 1, so the metric is a *counter* that has no historical data, just the accumulated total. For others metrics like latencies, a distribution of requests latencies is stored, and a few historical percentiles are reported - 0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
 
  The table below lists the key available metrics, along with their types and labels.
 
