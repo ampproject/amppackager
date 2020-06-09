@@ -1,7 +1,8 @@
 # Monitoring `amppackager` in production
 
 Once you've run `amppackager` server in production, you may want to monitor its
-health and performance, as well as the performance of the underlying requests to the AMP document server. 
+health and performance, as well as the performance of the underlying requests to
+the AMP document server. 
 
 The sections below talk about the things you can monitor, and how to do it.
 
@@ -9,35 +10,42 @@ All the command line examples are for Linux OS.
 
 ## Monitoring health
 
-To check `amppackager`'s health curl its `/healthz` endpoint:
+To check `amppackager`'s health, `curl` its `/healthz` endpoint:
 
-   ```
-   $ curl https://localhost:8080/healthz
-   ```
+```
+$ curl https://localhost:8080/healthz
+```
 
-If the server is up and has a fresh, valid certificate, it will respond with `ok`. If not, it will provide an error message.
+If the server is up and has a fresh, valid certificate, it will respond with
+`ok`. If not, it will provide an error message.
 
 ## Monitoring performance
 
-You can take a step further and check a few performance metrics, both for requests
-handled by `amppackager`, and for the underlying gateway requests that 
-`amppackager` sends to the AMP document server. Get all the metrics by curling the `/metrics` endpoint. 
+You can take a step further and check a few performance metrics, both for
+requests handled by `amppackager`, and for the underlying gateway requests that
+`amppackager` sends to the AMP document server. Get all the metrics by `curl`ing
+the `/metrics` endpoint. 
 
 ## Example: monitoring total requests count
 
 The example command below fetches all the available metrics. It then greps the report for `total_requests_by_code_and_url` metric. This metric counts the HTTP requests the `amppackager` server has processed since it's been up. 
 
-    $ curl  https://127.0.0.1:8080/metrics | grep total_requests_by_code_and_url
+```
+$ curl  https://127.0.0.1:8080/metrics | grep total_requests_by_code_and_url
 
-    # HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
-    # TYPE total_requests_by_code_and_url counter
-    total_requests_by_code_and_url{code="200",handler="healthz"} 3
-    total_requests_by_code_and_url{code="200",handler="validityMap"} 5
-    total_requests_by_code_and_url{code="200",handler="signer"} 6
-    total_requests_by_code_and_url{code="502",handler="signer"} 4
-    total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
+# HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
+# TYPE total_requests_by_code_and_url counter
+total_requests_by_code_and_url{code="200",handler="healthz"} 3
+total_requests_by_code_and_url{code="200",handler="validityMap"} 5
+total_requests_by_code_and_url{code="200",handler="signer"} 6
+total_requests_by_code_and_url{code="502",handler="signer"} 4
+total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
+```
  
- The example stats above are broken down by response HTTP code, and by the internal amppackager's module (handler) that has handled the request. The stats report 3 requests to the `healthz` handler that got a 200 response (OK), 4 requests to the `signer` handler that got a 502 response (Bad Gateway) etc.
+ The example stats above are broken down by response HTTP code, and by the
+ internal amppackager's module (handler) that has handled the request. The stats
+ report 3 requests to the `healthz` handler that got a 200 response (OK), 4
+ requests to the `signer` handler that got a 502 response (Bad Gateway) etc.
 
 ## `amppackager`'s handlers 
 
@@ -53,31 +61,48 @@ The table below lists `amppackager`'s handlers accounted for by the metrics:
 
 ## Metrics labels: breakdown by handler and response code
 
-For some metrics like `total_requests_by_code_and_url` the stats in the `/metrics` response are grouped into buckets by two dimensions: the handler name, and the HTTP response code. E.g. note the buckets in the the example above:
+For some metrics like `total_requests_by_code_and_url` the stats in the
+`/metrics` response are grouped into buckets by two dimensions: the handler
+name, and the HTTP response code. E.g. note the buckets in the the example
+above:
 
-    total_requests_by_code_and_url{code="200",handler="healthz"} 3
-    total_requests_by_code_and_url{code="200",handler="signer"} 6
-    total_requests_by_code_and_url{code="502",handler="signer"} 4
+```
+total_requests_by_code_and_url{code="200",handler="healthz"} 3
+total_requests_by_code_and_url{code="200",handler="signer"} 6
+total_requests_by_code_and_url{code="502",handler="signer"} 4
+```
 
-Invalid requests that were not routed by `amppackager` to any handler are assigned a special label `handler_not_assigned`:
+Invalid requests that were not routed by `amppackager` to any handler are
+assigned a special label `handler_not_assigned`:
 
-    total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
+```
+total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
+```
 
- Some metrics only make sense for a particular handler. E.g. `gateway_request_latencies_in_seconds` and other metrics related to gateway requests are only related to `signer` handler's operation. Such metrics are only broken down into buckets by the response code, not by the handler. 
+ Some metrics only make sense for a particular handler. E.g.
+ `gateway_request_latencies_in_seconds` and other metrics related to gateway
+ requests are only related to `signer` handler's operation. Such metrics are
+ only broken down into buckets by the response code, not by the handler. 
  
- __Labels__ are key-value properties of buckets that indicate the specific values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
+ __Labels__ are key-value properties of buckets that indicate the specific
+ values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
 
 ## Metrics types: counters and summaries
 
 The two types of metrics are *counters* and *summaries*. 
 
-For some metrics like `total_requests_by_code_and_url`, each request increases the total by 1, so the metric is a *counter* that has no historical data, just the accumulated total. 
+For some metrics like `total_requests_by_code_and_url`, each request increases
+the total by 1, so the metric is a *counter* that has no historical data, just
+the accumulated total. 
 
-For other metrics like `request_latencies_in_seconds`, a distribution of requests latencies is stored, and a few historical percentiles are reported - 0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
+For other metrics like `request_latencies_in_seconds`, a distribution of
+requests latencies is stored, and a few historical percentiles are reported -
+0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
 
 ## Available metrics
 
- The table below lists the key available metrics, along with their types and labels.
+ The table below lists the key available metrics, along with their types and
+ labels.
 
 | Metric | Metric type | Explanation | Broken down by HTTP response code? | Broken down by [handler](https://github.com/MichaelRybak/amppackager/blob/doc/monitoring.md#understanding-stats-broken-down-by-amppackagers-handlers)? | 
 |--|--|--|--|--|
@@ -88,55 +113,95 @@ For other metrics like `request_latencies_in_seconds`, a distribution of request
 
 ## Understanding percentiles reported by Summaries
 
-A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value below which a given percentage of observations in a group of observations falls. E.g. if in a room of 100 people, 80% are shorter than you, then you are the 80% percentile. The 50% percentile is also known as [median](https://en.wikipedia.org/wiki/Median).
+A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value
+below which a given percentage of observations in a group of observations falls.
+E.g. if in a room of 100 people, 80% are shorter than you, then you are the 80%
+percentile. The 50% percentile is also known as
+[median](https://en.wikipedia.org/wiki/Median).
 
 For summary metrics like `request_latencies_in_seconds`, the `/metrics` endpoint provides three percentiles: 0.5, 0.9, 0.99. 
 
-To get an idea of how long it __usually__ takes `amppackager` to handle a request, look at the respective 0.5 percentile. To check the rare, __worst case scenarios__, look at 0.9 and 0.99 percentiles.
+To get an idea of how long it __usually__ takes `amppackager` to handle a
+request, look at the respective 0.5 percentile. To check the rare, __worst case
+scenarios__, look at 0.9 and 0.99 percentiles.
 
 Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
 
-    $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\"
+```
+$ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\"
 
-    request_latencies_in_seconds{code="200",handler="signer",quantile="0.5"} 0.023
-    request_latencies_in_seconds{code="200",handler="signer",quantile="0.9"} 0.237
-    request_latencies_in_seconds{code="200",handler="signer",quantile="0.99"} 0.238
-    request_latencies_in_seconds_sum{code="200",handler="signer"} 661.00
-    request_latencies_in_seconds_count{code="200",handler="signer"} 10000
+request_latencies_in_seconds{code="200",handler="signer",quantile="0.5"} 0.023
+request_latencies_in_seconds{code="200",handler="signer",quantile="0.9"} 0.237
+request_latencies_in_seconds{code="200",handler="signer",quantile="0.99"} 0.238
+request_latencies_in_seconds_sum{code="200",handler="signer"} 661.00
+request_latencies_in_seconds_count{code="200",handler="signer"} 10000
+```
 
-According to the example stats above, `signer` has handled 10000 requests. Consider the respective 10000 latencies ranked from smallest to largest. The latency of the request handled the fastest gets ranked 1, and of the one handled the slowest - 10000. According to the stats above, the latency ranked 5001 is 0.023s, the latency ranked 9001 is 0.237s, and the latency ranked 9901 is 0.238s. 
+According to the example stats above, `signer` has handled 10000 requests.
+Consider the respective 10000 latencies ranked from smallest to largest. The
+latency of the request handled the fastest gets ranked 1, and of the one handled
+the slowest - 10000. According to the stats above, the latency ranked 5001 is
+0.023s, the latency ranked 9001 is 0.237s, and the latency ranked 9901 is
+0.238s. 
 
 __The conclusion for the example above__: successful signer requests are usually handled within 0.023s, but occasionally may take up to 0.238s.
 
-Note that the results provided for latencies and other summaries may be off by a few rank positions in the ranking. This is due to metrics engine optimizations that allow to not store all the historical data, therefore saving RAM significantly. The results are still accurate enough for performance monitoring. 
+Note that the results provided for latencies and other summaries may be off by a
+few rank positions in the ranking. This is due to metrics engine optimizations
+that allow to not store all the historical data, therefore saving RAM
+significantly. The results are still accurate enough for performance monitoring.
 
-Also note that every stat (e.g. 0.9 percentile latency) provided by the metrics is an actual historical value that has been seen by the server, not an approximation.
+
+Also note that every stat (e.g. 0.9 percentile latency) provided by the metrics
+is an actual historical value that has been seen by the server, not an
+approximation.
 
 ### Mean vs percentiles
 
-In the example above all the 10000 requests were handled in 661 seconds, which means the mean (average) latency was 0.0661s. This value is ~3 times larger than the median. So which one more accurately represents the "typical" scenario? Why not look at mean instead of looking at percentiles?
+In the example above all the 10000 requests were handled in 661 seconds, which
+means the mean (average) latency was 0.0661s. This value is ~3 times larger than
+the median. So which one more accurately represents the "typical" scenario? Why
+not look at mean instead of looking at percentiles?
 
-Median (0.5 percentile) is [more stable against outliers](https://en.wikipedia.org/wiki/Median) than mean, and therefore gives a better understanding of the typical response time. At the same time the 0.9 and 0.99 percentiles give you a good idea about the large outliers, i.e. abnormally slow response times.
+Median (0.5 percentile) is [more stable against
+outliers](https://en.wikipedia.org/wiki/Median) than mean, and therefore gives a
+better understanding of the typical response time. At the same time the 0.9 and
+0.99 percentiles give you a good idea about the large outliers, i.e. abnormally
+slow response times.
 
 ## More examples
 
 Check all the stats (note - this command produces numerous metrics that are self-documented; the key ones are also explained in the table above):
 
-    $ curl https://127.0.0.1:8080/metrics
+```
+$ curl https://127.0.0.1:8080/metrics
+```
 
 Check stats for the `total_gateway_requests_by_code` metric: 
 
-    $ curl https://127.0.0.1:8080/metrics | grep total_gateway_requests_by_code
+```
+$ curl https://127.0.0.1:8080/metrics | grep total_gateway_requests_by_code
+```
 
-Check stats for the `gateway_request_latencies_in_seconds` metric, for requests that got an OK response (200) : 
+Check stats for the `gateway_request_latencies_in_seconds` metric, for requests
+that got an OK response (200) : 
 
-    $ curl https://127.0.0.1:8080/metrics | grep gateway_request_latencies_in_seconds | grep code=\"200\"
+```
+$ curl https://127.0.0.1:8080/metrics | grep gateway_request_latencies_in_seconds | grep code=\"200\"
+```
 
-Check the 0.9 percentile latency for the `request_latencies_in_seconds` metric, for requests that got an OK response (200) from the `signer` handler:
+Check the 0.9 percentile latency for the `request_latencies_in_seconds` metric,
+for requests that got an OK response (200) from the `signer` handler:
 
-    $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\" | grep quantile=\"0.9\"
+```
+$ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\" | grep quantile=\"0.9\"
+```
 
 
 ## Performance metrics lifetime
 
-The metrics provided by the `/metrics` endpoint are reset upon the execution of the `amppackager` server binary. Every request to `/metrics` is served with the stats accumulated since the server's been up, up to the time of the request, but not including the request itself.
+The metrics provided by the `/metrics` endpoint are reset upon the execution of
+the `amppackager` server binary. Every request to `/metrics` is served with the
+stats accumulated since the server's been up, up to the time of the request, but
+not including the request itself. 
+
