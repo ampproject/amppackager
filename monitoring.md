@@ -59,11 +59,11 @@ For some metrics like `total_requests_by_code_and_url` the stats in the `/metric
     total_requests_by_code_and_url{code="200",handler="signer"} 6
     total_requests_by_code_and_url{code="502",handler="signer"} 4
 
-Invalid requests that were not routed by `amppackager` to any handler gets a special label `handler_not_assigned`:
+Invalid requests that were not routed by `amppackager` to any handler are assigned a special label `handler_not_assigned`:
 
     total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
 
- Some metrics only make sense for a particular handler. E.g. gateway request related metrics like `gateway_request_latencies_in_seconds` are only related to `signer` handler's operation. Such metrics are only broken down into buckets by the response code, not by eth handler. 
+ Some metrics only make sense for a particular handler. E.g. `gateway_request_latencies_in_seconds` and other metrics related to gateway request are only related to `signer` handler's operation. Such metrics are only broken down into buckets by the response code, not by eth handler. 
  
  Each bucket has one or two labels ("code", "handler") that indicate the specific values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
 
