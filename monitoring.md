@@ -62,7 +62,7 @@ Invalid requests that were not routed by `amppackager` to any handler gets a spe
 
 ## Available metrics
 
-  The `/metrics` endpoint provides stats for a bunch of metrics. The stats for a particular metric are broken down into buckets by one or two dimensions. For some metrics the stats are broken down by the handler and by the HTTP response code, for others - by the response code only. Each bucket has one or two labels ("code", "handler") that correspond to the breakdown dimensions.
+  The `/metrics` endpoint provides stats for a bunch of metrics. The stats for a particular metric are broken down into buckets by one or two dimensions. For some metrics the stats are broken down by the handler and by the HTTP response code, for others - by the response code only. Each bucket has one or two labels ("code", "handler") that indicate the specific values of the the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
 
  The two types of metrics are *counters* and *summaries*. For some values, like `total_requests_by_code_and_url`, each request increases the total by 1, so the metric is a *counter* that has no historical data, just the accumulated total. For others metrics like latencies, a distribution of requests latencies is stored, and a few historical percentiles are reported - 0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
 
