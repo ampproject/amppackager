@@ -110,7 +110,7 @@ The conclusion for the example above: successful signer requests are usually han
 
 ### Mean vs percentiles
 
-In the example above all the 10000 requests were handled in 661 seconds, which means the mean (average) latency was 0.0661s. Note how this value is different from the median (0.023s). 
+In the example above all the 10000 requests were handled in 661 seconds, which means the mean (average) latency was 0.0661s. This value is ~3 times larger than the median. So which one more accurately represents the "typical" scenario? Why not look at mean instead of looking at percentiles?
 
 Median (0.5 percentile) is [more stable against outliers](https://en.wikipedia.org/wiki/Median) than mean, and therefore gives a better understanding of the typical response time. At the same time the 0.9 and 0.99 percentiles give you a good idea about the large outliers, i.e. abnormally slow response times.
 
