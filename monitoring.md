@@ -51,7 +51,7 @@ The table below lists `amppackager`'s handlers accounted for by the metrics:
 | healthz | Handles `/healthz` requests. Checks if `amppackager` is running and has a valid, fresh certificate. |
 | metrics | Handles `/metrics` requests. Reports performance metrics for `amppackager` and for the underlying gateway requests to the AMP document server. |
 
-## Metrics breakdown by handler and response code: labelled buckets
+## Metrics labels: breakdown by handler and response code
 
 For some metrics like `total_requests_by_code_and_url` the stats in the `/metrics` response are grouped into buckets by two dimensions: the handler name, and the HTTP response code. E.g. the stats for the `healthz` and `validityMap` handlers in the example above end up in their owns buckets:
 
