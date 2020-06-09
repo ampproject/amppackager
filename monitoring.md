@@ -108,7 +108,9 @@ According to the example stats above, `signer` has handled 10000 requests. Consi
 
 The conclusion for the example above: successful signer requests are usually handled within 0.023s, but occasionally may take up to 0.238s.
 
-All the 10000 requests were handled in 661 seconds, which means the mean (average) latency was 0.0661s. Note how this value is different from the median (0.023s). 
+### Mean vs percentiles
+
+In the example above all the 10000 requests were handled in 661 seconds, which means the mean (average) latency was 0.0661s. Note how this value is different from the median (0.023s). 
 
 Median (0.5 percentile) is [more stable against outliers](https://en.wikipedia.org/wiki/Median) than mean, and therefore gives a better understanding of the typical response time. At the same time the 0.9 and 0.99 percentiles give you a good idea about the large outliers, i.e. abnormally slow response times.
 
