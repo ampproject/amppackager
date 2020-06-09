@@ -25,6 +25,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1042,8 +1043,10 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 
 }
 
-func (this *SignerSuite) TestPrometheusMetricGatewayResponseSize() {
-	promGatewayResponseSize.Reset()
+func (this *SignerSuite) TestPrometheusMetricsGatewayResponseSize() {
+	promGatewayResponseBodySizeInBytesCapped.Reset()
+	promGatewayResponseBodySizeInBytesClaimedByHeader.Reset()
+	promTotalGatewayResponsesCappedByMaxBodyLength.Reset()
 
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
@@ -1051,30 +1054,61 @@ func (this *SignerSuite) TestPrometheusMetricGatewayResponseSize() {
 	suffix := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
 	handler := this.new(urlSets)
 
-	// One request with expected response body equal to "abcde" (5 chars).
+	// Three requests with expected response body equal to "abcde" (5 chars) - not capped.
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html")
+		resp.Header().Set("Content-Length", "5")
 		resp.Write([]byte("abcde"))
 	}
 	this.get(this.T(), handler, suffix)
+	this.get(this.T(), handler, suffix)
+	this.get(this.T(), handler, suffix)
 
-	// Two requests with expected response body equal to "abc" (3 chars).
+	// Two requests with very long response body (beyond maxBodyLength) - capped.
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		// Note: maxBodyLength equals 4194304
+		very_long_array := [4200000]string{}
+		very_long_string := strings.Join(very_long_array[:], "a")
+
 		resp.Header().Set("Content-Type", "text/html")
-		resp.Write([]byte("abc"))
+		resp.Header().Set("Content-Length", strconv.Itoa(len(very_long_string)))
+		resp.Write([]byte(very_long_string))
 	}
 	this.get(this.T(), handler, suffix)
 	this.get(this.T(), handler, suffix)
 
-	expectation := strings.NewReader(`
-		# HELP gateway_response_size_in_bytes Size (in bytes) of gateway response body from AMP document server.
-		# TYPE gateway_response_size_in_bytes summary
-		gateway_response_size_in_bytes{quantile="0.5"} 3
-		gateway_response_size_in_bytes{quantile="0.9"} 5
-		gateway_response_size_in_bytes{quantile="0.99"} 5
-		gateway_response_size_in_bytes_sum 11
-		gateway_response_size_in_bytes_count 3
+	expectationClaimedByHeader := strings.NewReader(`
+		# HELP gateway_response_body_size_in_bytes_claimed_by_header Size (in bytes) of gateway response body from AMP document server, as claimed by the request's 'Content-Length' header. Not capped by maxBodyLength.
+		# TYPE gateway_response_body_size_in_bytes_claimed_by_header summary
+		gateway_response_body_size_in_bytes_claimed_by_header{quantile="0.5"} 5
+		gateway_response_body_size_in_bytes_claimed_by_header{quantile="0.9"} 4.199999e+06
+		gateway_response_body_size_in_bytes_claimed_by_header{quantile="0.99"} 4.199999e+06
+		gateway_response_body_size_in_bytes_claimed_by_header_sum 8.400013e+06
+		gateway_response_body_size_in_bytes_claimed_by_header_count 5
 		`)
+	this.Require().NoError(promtest.CollectAndCompare(promGatewayResponseBodySizeInBytesClaimedByHeader, expectationClaimedByHeader, "gateway_response_body_size_in_bytes_claimed_by_header"))
 
-	this.Require().NoError(promtest.CollectAndCompare(promGatewayResponseSize, expectation, "gateway_response_size_in_bytes"))
+	expectationCapped := strings.NewReader(`
+		# HELP gateway_response_body_size_in_bytes_actual_maybe_capped Actual size (in bytes) of gateway response body from AMP document server. The size is reported after potential capping by maxBodyLength (4194304).
+		# TYPE gateway_response_body_size_in_bytes_actual_maybe_capped summary
+		gateway_response_body_size_in_bytes_actual_maybe_capped{quantile="0.5"} 5
+		gateway_response_body_size_in_bytes_actual_maybe_capped{quantile="0.9"} 4.194304e+06
+		gateway_response_body_size_in_bytes_actual_maybe_capped{quantile="0.99"} 4.194304e+06
+		gateway_response_body_size_in_bytes_actual_maybe_capped_sum 8.388623e+06
+		gateway_response_body_size_in_bytes_actual_maybe_capped_count 5
+		`)
+	this.Require().NoError(promtest.CollectAndCompare(promGatewayResponseBodySizeInBytesCapped, expectationCapped, "gateway_response_body_size_in_bytes_actual_maybe_capped"))
+
+	expectationCappedCount := strings.NewReader(`
+		# HELP total_gateway_responses_capped_by_max_body_length Number of successfull underlying requests to AMP document server that returned a body at least as long as maxBodyLength (4194304) - and were capped by this limit.
+		# TYPE total_gateway_responses_capped_by_max_body_length counter
+		total_gateway_responses_capped_by_max_body_length 2
+		`)
+	this.Require().NoError(promtest.CollectAndCompare(promTotalGatewayResponsesCappedByMaxBodyLength, expectationCappedCount, "total_gateway_responses_capped_by_max_body_length"))
+}
+
+func (this *SignerSuite) TestPrometheusMetricsGatewayResponseSize_IncorrectContentLength() {
+	TODO
+	+remove: It is what's claimed by the header
+	// and may differ from actual size: https://tools.ietf.org/html/rfc7230#section-3.3.2
 }

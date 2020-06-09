@@ -34,6 +34,7 @@ package mux
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -99,6 +100,8 @@ func expectCertQuery(suffix string, req *http.Request, params *map[string]string
 		*errorMsg, *errorCode = "400 bad request - bad URL encoding", http.StatusBadRequest
 	} else {
 		(*params)["certName"] = unescaped
+		log.Println("RYBAK2")
+		log.Println(unescaped)
 	}
 }
 
@@ -156,6 +159,7 @@ func tryTrimPrefix(s, prefix string) (string, bool) {
 var allowedMethods = map[string]bool{http.MethodGet: true, http.MethodHead: true}
 
 func (this *mux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	log.Println("RYBAK3")
 	// Use EscapedPath rather than RequestURI because the latter can take
 	// absolute-form, per https://tools.ietf.org/html/rfc7230#section-5.3.
 	//

@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/x509"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -464,16 +465,37 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 	return strings.Join(values, ","), nil
 }
 
-// promGatewayResponseSize is a Prometheus summary that observes gateway response body size.
+// promGatewayResponseBodySizeInBytesCapped is a Prometheus summary that observes gateway response body size.
+// Length is reported after potential capping by maxBodyLength.
 // Objectives key value pairs set target quantiles and respective allowed rank variance.
 // Upon query, for each Objective quantile (0.5, 0.9, 0.99) the summary returns
 // an actual observed latency value that is ranked close to the Objective value.
 // For more intuition on the Objectives see http://alexandrutopliceanu.ro/post/targeted-quantiles/.
-var promGatewayResponseSize = promauto.NewSummaryVec(
+var promGatewayResponseBodySizeInBytesCapped = promauto.NewSummaryVec(
 	prometheus.SummaryOpts{
-		Name:       "gateway_response_size_in_bytes",
-		Help:       "Size (in bytes) of gateway response body from AMP document server.",
+		Name:       "gateway_response_body_size_in_bytes_actual_maybe_capped",
+		Help:       fmt.Sprintf("Actual size (in bytes) of gateway response body from AMP document server. The size is reported after potential capping by maxBodyLength (%d).", maxBodyLength),
 		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	},
+	[]string{},
+)
+
+// promGatewayResponseSizeInBytesClaimedByHeader is a Prometheus summary that observes gateway response content length claimed by the request's header.
+// This is pre-maxBodyLength-capping length. It is what's claimed by the header
+// and may differ from actual size: https://tools.ietf.org/html/rfc7230#section-3.3.2
+var promGatewayResponseBodySizeInBytesClaimedByHeader = promauto.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Name:       "gateway_response_body_size_in_bytes_claimed_by_header",
+		Help:       "Size (in bytes) of gateway response body from AMP document server, as claimed by the request's 'Content-Length' header. Not capped by maxBodyLength.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	},
+	[]string{},
+)
+
+var promTotalGatewayResponsesCappedByMaxBodyLength = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "total_gateway_responses_capped_by_max_body_length",
+		Help: fmt.Sprintf("Number of successfull underlying requests to AMP document server that returned a body at least as long as maxBodyLength (%d) - and were capped by this limit.", maxBodyLength),
 	},
 	[]string{},
 )
@@ -487,7 +509,13 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		return
 	}
 
-	promGatewayResponseSize.WithLabelValues().Observe(float64(len(fetchBody)))
+	if contentLengthHeader, err := strconv.Atoi(fetchResp.Header.Get("Content-Length")); err == nil {
+		promGatewayResponseBodySizeInBytesClaimedByHeader.WithLabelValues().Observe(float64(contentLengthHeader))
+	}
+	promGatewayResponseBodySizeInBytesCapped.WithLabelValues().Observe(float64(len(fetchBody)))
+	if len(fetchBody) == maxBodyLength {
+		promTotalGatewayResponsesCappedByMaxBodyLength.WithLabelValues().Inc()
+	}
 
 	// Perform local transformations.
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
