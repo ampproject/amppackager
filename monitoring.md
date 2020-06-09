@@ -39,7 +39,7 @@ The example command below fetches all the available metrics. It then greps the r
  
  The example stats above are broken down by response HTTP code, and by the internal amppackager's module (handler) that has handled the request. The stats report 3 requests to the `healthz` handler that got a 200 response (OK), 4 requests to the `signer` handler that got a 502 response (Bad Gateway) etc.
 
-## Understanding stats broken down by `amppackager`'s handlers
+## `amppackager`'s handlers 
 
 The table below lists `amppackager`'s handlers accounted for by the metrics:
 
@@ -51,6 +51,8 @@ The table below lists `amppackager`'s handlers accounted for by the metrics:
 | healthz | Handles `/healthz` requests. Checks if `amppackager` is running and has a valid, fresh certificate. |
 | metrics | Handles `/metrics` requests. Reports performance metrics for `amppackager` and for the underlying gateway requests to the AMP document server. |
 
+## Metrics breakdown into buckets by handler and response code
+
 For some metrics like `total_requests_by_code_and_url` the stats in the `/metrics` response are grouped into buckets by two dimensions: the handler name, and the HTTP response code. E.g. the stats for the `healthz` and `validityMap` handlers in the example above end up in their owns buckets:
 
     total_requests_by_code_and_url{code="200",handler="healthz"} 3
@@ -60,8 +62,9 @@ Invalid requests that were not routed by `amppackager` to any handler gets a spe
 
     total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
 
-## Metrics labels
- The `/metrics` endpoint provides stats for a bunch of metrics. The stats for a particular metric are broken down into buckets by one or two dimensions. For some metrics the stats are broken down by the handler and by the HTTP response code, for others - by the response code only. Each bucket has one or two labels ("code", "handler") that indicate the specific values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
+ Some metrics only make sense for a particular handler. E.g. gateway request related metrics like `gateway_request_latencies_in_seconds` are only related to `signer` handler's operation. Such metrics are only broken down into buckets by the response code, not by eth handler. 
+ 
+ Each bucket has one or two labels ("code", "handler") that indicate the specific values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
 
 ## Metrics types: counters and summaries
 
