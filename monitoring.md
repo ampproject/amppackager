@@ -73,8 +73,8 @@ Invalid requests that were not routed by `amppackager` to any handler gets a spe
 |--|--|--|--|--|
 | total_requests_by_code_and_url | Counter | Total number of requests handled by `amppackager` since it's been up. | Yes | Yes |
 | request_latencies_in_seconds | Summary | `amppackager`'s handlers latencies in seconds, measured from the moment the handler starts processing the request, to the moment the response is returned. | Yes | Yes |
-| total_gateway_requests_by_code | Counter | Total number of underlying requests sent by `signer` handler to AMP document server | Yes | No - all handled by `signer` |
-| gateway_request_latencies_in_seconds | Summary | Latencies (in seconds) of gateway requests to AMP document server | Yes | No - all handled by `signer` |
+| total_gateway_requests_by_code | Counter | Total number of underlying requests sent by `signer` handler to AMP document server. | Yes | No - all handled by `signer` |
+| gateway_request_latencies_in_seconds | Summary | Latencies (in seconds) of gateway requests to AMP document server. | Yes | No - all handled by `signer` |
 
 ## Understanding percentiles reported by Summaries
 
