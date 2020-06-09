@@ -65,7 +65,7 @@ Invalid requests that were not routed by `amppackager` to any handler are assign
 
  Some metrics only make sense for a particular handler. E.g. `gateway_request_latencies_in_seconds` and other metrics related to gateway requests are only related to `signer` handler's operation. Such metrics are only broken down into buckets by the response code, not by the handler. 
  
- __labels__ like "code" and "handler" are key-value properties of buckets that indicate the specific values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
+ __Labels__ like "code" and "handler" are key-value properties of buckets that indicate the specific values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
 
 ## Metrics types: counters and summaries
 
