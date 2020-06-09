@@ -104,7 +104,7 @@ Consider the following example. Let's say you're interested in the stats for the
     request_latencies_in_seconds_sum{code="200",handler="signer"} 661.00
     request_latencies_in_seconds_count{code="200",handler="signer"} 10000
 
-According to the example stats above, `signer` has handled 10000 requests. Consider the respective 10000 latencies ranked from smallest to largest. The latency of the request handled the fastest gets ranked 1, and of the one handled the slowest - 10000. According to the stats above, the latency ranked 5001 is 0.023 seconds, the latency ranked 9001 is 0.237 seconds, and the latency ranked 9901 is 0.238. 
+According to the example stats above, `signer` has handled 10000 requests. Consider the respective 10000 latencies ranked from smallest to largest. The latency of the request handled the fastest gets ranked 1, and of the one handled the slowest - 10000. According to the stats above, the latency ranked 5001 is 0.023s, the latency ranked 9001 is 0.237s, and the latency ranked 9901 is 0.238s. 
 
 The conclusion for the example above: successful signer requests are usually handled within 0.023s, but occasionally may take up to 0.238s.
 
