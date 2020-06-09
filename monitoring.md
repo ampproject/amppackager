@@ -88,9 +88,7 @@ For other metrics like `request_latencies_in_seconds`, a distribution of request
 
 ## Understanding percentiles reported by Summaries
 
-A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value below which a given percentage of observations in a group of observations falls. E.g. if in a room of 100 people, 80% are shorter than you, then you are the 80% percentile. 
-
-The 50% percentile is also known as [median](https://en.wikipedia.org/wiki/Median).
+A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value below which a given percentage of observations in a group of observations falls. E.g. if in a room of 100 people, 80% are shorter than you, then you are the 80% percentile. The 50% percentile is also known as [median](https://en.wikipedia.org/wiki/Median).
 
 For summary metrics like `request_latencies_in_seconds`, the `/metrics` endpoint provides three percentiles: 0.5, 0.9, 0.99. 
 
