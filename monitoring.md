@@ -27,9 +27,8 @@ handled by `amppackager`, and for the underlying gateway requests that
 
 The example command below fetches all the available metrics. It then greps the report for `total_requests_by_code_and_url` metric. This metric counts the HTTP requests the `amppackager` server has processed since it's been up. 
 
-    $ curl  https://127.0.0.1:8080/metrics | grep 
+    $ curl  https://127.0.0.1:8080/metrics | grep total_requests_by_code_and_url
     
-    total_requests_by_code_and_url
     # HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
     # TYPE total_requests_by_code_and_url counter
     total_requests_by_code_and_url{code="200",handler="healthz"} 3
