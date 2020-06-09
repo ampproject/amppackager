@@ -139,4 +139,4 @@ Check the 0.9 percentile latency for the `request_latencies_in_seconds` metric, 
 
 ## Performance metrics lifetime
 
-The metrics provided by `/metrics` endpoint are reset upon execution of the `amppackager` server binary. Every request to `/metrics` is served with the stats accumulated since the server's been up, up to the time of the request, but not including the request itself.
+The metrics provided by the `/metrics` endpoint are reset upon the execution of the `amppackager` server binary. Every request to `/metrics` is served with the stats accumulated since the server's been up, up to the time of the request, but not including the request itself.
