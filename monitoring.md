@@ -94,6 +94,8 @@ The 50% percentile is also known as [median](https://en.wikipedia.org/wiki/Media
 
 For summary metrics like `request_latencies_in_seconds`, the `/metrics` endpoint provides three percentiles: 0.5, 0.9, 0.99. 
 
+To get an idea of how long does it usually take `amppackager` to handle a request, look at 0.5 percentile. To check the rare worst case scenarios, look at 0.9 and 0.99 percentile.
+
 Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
 
     $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\"
