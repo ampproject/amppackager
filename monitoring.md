@@ -28,7 +28,7 @@ handled by `amppackager`, and for the underlying gateway requests that
 The example command below fetches all the available metrics. It then greps the report for `total_requests_by_code_and_url` metric. This metric counts the HTTP requests the `amppackager` server has processed since it's been up. 
 
     $ curl  https://127.0.0.1:8080/metrics | grep total_requests_by_code_and_url
-    
+
     # HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
     # TYPE total_requests_by_code_and_url counter
     total_requests_by_code_and_url{code="200",handler="healthz"} 3
@@ -46,15 +46,17 @@ The table below lists `amppackager`'s handlers accounted for by the metrics:
 | Handler | Responsibility |
 |-|-|
 | signer | Handles `/priv/doc` requests. Fetches the AMP document, signs it and returns it. |
-| certCache | Handles `/amppkg/cert` requests. Returns your Signed Exchange cert. |
+| certCache | Handles `/amppkg/cert` requests. Returns your Signed Exchange certificate. |
 | validityMap | Handles `/amppkg/validity` requests. Returns the [validity data](https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.6) referred by `amppackager`'s signatures. |
 | healthz | Handles `/healthz` requests. Checks if `amppackager` is running and has a valid, fresh certificate. |
-| metrics | Handles `/metrics` requests. Reports performance metrics for `amppackager` and for underlying gateway requests to AMP document server. |
+| metrics | Handles `/metrics` requests. Reports performance metrics for `amppackager` and for the underlying gateway requests to the AMP document server. |
 
-For some metrics like `total_requests_by_code_and_url` the stats in the `/metrics` response are grouped into buckets labelled with the handler name, as well as the HTTP response code. E.g. the stats for the `healthz` and `validityMap` handlers in the example above end up in their owns labelled buckets:
+For some metrics like `total_requests_by_code_and_url` the stats in the `/metrics` response are grouped into buckets by two dimensions: the handler name, and the HTTP response code. E.g. the stats for the `healthz` and `validityMap` handlers in the example above end up in their owns buckets:
 
     total_requests_by_code_and_url{code="200",handler="healthz"} 3
     total_requests_by_code_and_url{code="200",handler="validityMap"} 5
+
+Each bucket has two labels "code" and "handler" that correspond to the breakdown dimensions.
 
 Invalid requests that were not routed by `amppackager` to any handler gets a special label `handler_not_assigned`:
 
@@ -62,7 +64,7 @@ Invalid requests that were not routed by `amppackager` to any handler gets a spe
 
 ## Available metrics
 
- The `/metrics` endpoint provides stats for the `total_requests_by_code_and_url` metric, as well as many others. Some stats are labelled with handler and http code, some - with label only, and for some the stats aren't segregate at all.
+ The `/metrics` endpoint provides stats for the `total_requests_by_code_and_url` metric, as well as many others. Some stats are labelled with handler and http code, some - with label only.
 
  There are two types of metrics: *counters* and *summaries*. For some values, like request count, the metric is just a *counter*. For others, like latencies, a distribution of values is observed, and a few percentiles are reported - 0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
 
