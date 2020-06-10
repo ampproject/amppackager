@@ -162,7 +162,7 @@ func TestServeHTTPSuccess(t *testing.T) {
 
 			// Run.
 			mux := New(mocks["cert"], mocks["signer"], mocks["validityMap"], mocks["healthz"], mocks["metrics"])
-			actualResp = pkgt.Get(t, mux, tt.testURL)
+			actualResp = pkgt.NewRequest(t, mux, tt.testURL).Do()
 		})
 	}
 }
@@ -185,7 +185,7 @@ func expectError(t *testing.T, url string, expectErrorMessage string, expectErro
 	mux := New(mockedHandler, mockedHandler, mockedHandler, mockedHandler, mockedHandler)
 
 	// Run and extract error.
-	actualResp = pkgt.GetBHH(t, mux, url, "", body, http.Header{})
+	actualResp = pkgt.NewRequest(t, mux, url).SetBody(body).Do()
 	actualErrorMessageBuffer, _ := ioutil.ReadAll(actualResp.Body)
 	actualErrorMessage = fmt.Sprintf("%s", actualErrorMessageBuffer)
 
@@ -212,7 +212,7 @@ func TestServeHTTPexpect404s(t *testing.T) {
 }
 
 func TestServeHTTPexpect405(t *testing.T) {
-	body := strings.NewReader("Non empty body so GetBHH sends a POST request")
+	body := strings.NewReader("Non empty body so this sends a POST request")
 	expectError(t, expand("$HOST/healthz"), "405 method not allowed\n", http.StatusMethodNotAllowed, body)
 }
 
@@ -251,11 +251,11 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 			`,
 			/* testFunc= */ func() {
 				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-				pkgt.Get(t, mux, expand(`$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`))
-				pkgt.Get(t, mux, expand(`$HOST/amppkg/cert/$CERT`))
-				pkgt.Get(t, mux, expand(`$HOST/amppkg/validity`))
-				pkgt.Get(t, mux, expand(`$HOST/healthz`))
-				pkgt.Get(t, mux, expand(`$HOST/healthz`))
+				pkgt.NewRequest(t, mux, expand(`$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`)).Do()
+				pkgt.NewRequest(t, mux, expand(`$HOST/amppkg/cert/$CERT`)).Do()
+				pkgt.NewRequest(t, mux, expand(`$HOST/amppkg/validity`)).Do()
+				pkgt.NewRequest(t, mux, expand(`$HOST/healthz`)).Do()
+				pkgt.NewRequest(t, mux, expand(`$HOST/healthz`)).Do()
 			},
 			/* expectedMetrics = */ `
 				total_requests_by_code_and_url{code="200",handler="signer"} 1
@@ -272,7 +272,7 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 			`,
 			/* testFunc= */ func() {
 				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-				pkgt.Get(t, mux, expand(`$HOST/healthzSOME_SUFFIX`))
+				pkgt.NewRequest(t, mux, expand(`$HOST/healthzSOME_SUFFIX`)).Do()
 			},
 			/* expectedMetrics = */ `
 				total_requests_by_code_and_url{code="404",handler="healthz"} 1
@@ -285,9 +285,9 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 			`,
 			/* testFunc= */ func() {
 				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-				pkgt.Get(t, mux, expand(`$HOST/abc`))
-				pkgt.Get(t, mux, expand(`$HOST/def`))
-				pkgt.Get(t, mux, expand(`$HOST/ghi`))
+				pkgt.NewRequest(t, mux, expand(`$HOST/abc`)).Do()
+				pkgt.NewRequest(t, mux, expand(`$HOST/def`)).Do()
+				pkgt.NewRequest(t, mux, expand(`$HOST/ghi`)).Do()
 			},
 			/* expectedMetrics = */ `
 				total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 3
@@ -300,8 +300,8 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 			`,
 			/* testFunc= */ func() {
 				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-				body := strings.NewReader("Non empty body so GetBHH sends a POST request")
-				pkgt.GetBHH(t, mux, expand("$HOST/healthz"), "", body, http.Header{})
+				body := strings.NewReader("Non empty body so this will be a POST request")
+				pkgt.NewRequest(t, mux, expand("$HOST/healthz")).SetBody(body).Do()
 			},
 			/* expectedMetrics = */ `
 				total_requests_by_code_and_url{code="405",handler="healthz"} 1
@@ -318,7 +318,7 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 			/* testFunc= */ func() {
 				signerMockReturning400 := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "Bad Request", 400) }))
 				mux := New(nopHandler, signerMockReturning400, nopHandler, nopHandler, nopHandler)
-				pkgt.Get(t, mux, expand("$HOST/priv/doc/abc"))
+				pkgt.NewRequest(t, mux, expand("$HOST/priv/doc/abc")).Do()
 			},
 			/* expectedMetrics = */ `
 				total_requests_by_code_and_url{code="400",handler="signer"} 1
@@ -338,7 +338,7 @@ func TestPrometheusMetricRequestsTotal(t *testing.T) {
 			`,
 			/* testFunc= */ func() {
 				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, promhttp.Handler())
-				pkgt.Get(t, mux, expand(`$HOST/metrics`))
+				pkgt.NewRequest(t, mux, expand(`$HOST/metrics`)).Do()
 			},
 			/* expectedMetrics = */ `
 				total_requests_by_code_and_url{code="200",handler="metrics"} 1
@@ -465,7 +465,7 @@ func TestPrometheusMetricRequestsLatency(t *testing.T) {
 				}
 			}))
 			mux := New(mockHandler, mockHandler, mockHandler, mockHandler, mockHandler)
-			pkgt.Get(t, mux, expand(req.urlTemplate))
+			pkgt.NewRequest(t, mux, expand(req.urlTemplate)).Do()
 
 		}
 

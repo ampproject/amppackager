@@ -180,7 +180,7 @@ func (this *CertCacheSuite) DecodeCBOR(r io.Reader) map[string][]byte {
 }
 
 func (this *CertCacheSuite) TestServesCertificate() {
-	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName)
+	resp := pkgt.NewRequest(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName).Do()
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	this.Assert().Equal("nosniff", resp.Header.Get("X-Content-Type-Options"))
 	cbor := this.DecodeCBOR(resp.Body)
@@ -218,7 +218,7 @@ func (this *CertCacheSuite) TestCertCacheIsNotHealthy() {
 }
 
 func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
-	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/lalala")
+	resp := pkgt.NewRequest(this.T(), this.mux(), "/amppkg/cert/lalala").Do()
 	this.Assert().Equal(http.StatusNotFound, resp.StatusCode, "incorrect status: %#v", resp)
 	body, _ := ioutil.ReadAll(resp.Body)
 	// Small enough not to fit a cert or key:
@@ -227,7 +227,7 @@ func (this *CertCacheSuite) TestServes404OnMissingCertificate() {
 
 func (this *CertCacheSuite) TestOCSP() {
 	// Verify it gets included in the cert-chain+cbor payload.
-	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName)
+	resp := pkgt.NewRequest(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName).Do()
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
 	this.Assert().Equal("public, max-age=302387", resp.Header.Get("Cache-Control"))
@@ -261,7 +261,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 	}))
 
 	// Verify HTTP response expires immediately:
-	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName)
+	resp := pkgt.NewRequest(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName).Do()
 	this.Assert().Equal("public, max-age=0", resp.Header.Get("Cache-Control"))
 
 	// On update, verify network is called:
