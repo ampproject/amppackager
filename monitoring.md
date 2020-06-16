@@ -12,7 +12,7 @@ All the command line examples are for Linux OS.
 
 To check `amppackager`'s health, `curl` its `/healthz` endpoint:
 
-```console2
+```console3
 $ curl https://localhost:8080/healthz
 ```
 
