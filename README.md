@@ -270,8 +270,8 @@ will treat them as if unsigned (by showing an AMP Viewer).
 Once you've run the `amppackager` server in production, you may want to monitor
 its health and performance. You may also monitor the performance of the
 underlying requests to the AMP document server. You can monitor both servers via
-the Prometheus endpoints provided by `amppackager`. A few examples of questions you
-can answer:
+the [Prometheus](https://prometheus.io/) endpoints provided by `amppackager`. A
+few examples of questions you can answer:
 
 *  Is `amppackager` up and running?
 *  How many requests has it processed since it's been up?
