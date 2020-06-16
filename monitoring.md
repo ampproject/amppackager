@@ -4,7 +4,7 @@ Once you've run `amppackager` server in production, you may want to monitor its
 health and performance, as well as the performance of the underlying requests to
 the AMP document server. 
 
-`amppackager` provides a few [Prometheus](https://prometheus.io/) metrics for such monitoring. They are available via `/metrics` endpoint.
+`amppackager` provides a few [Prometheus](https://prometheus.io/) metrics for such monitoring. They are available via the `/metrics` endpoint.
 
 Prometheus is a powerful monitoring framework. We encourage you to fully utilize
 it to make your monitoring convenient, scalable and automated. A few things we
