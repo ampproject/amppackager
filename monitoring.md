@@ -8,7 +8,6 @@ The sections below talk about the things you can monitor, and how to do it.
 
 All the command line examples are for Linux OS.
 
-## Monitoring health
 
 To check `amppackager`'s health, `curl` its `/healthz` endpoint:
 
