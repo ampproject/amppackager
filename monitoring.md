@@ -17,27 +17,9 @@ tutorial below. Pick the essential metrics you'd like to monitor.
 * Visualize the metrics via [grafana](https://prometheus.io/docs/visualization/grafana/).
 * Setup [alerts](https://prometheus.io/docs/alerting/latest/overview/) that will notify you of abnormal behavior (e.g. latencies growing beyond 60 seconds).
 
- and . You can perform one-off manual health inspections,
-visualize the real-time stats, set up alerts, and more.
-
-
-
-
-*  Is `amppackager` up and running?
-*  How many requests has it processed since it's been up?
-*  What was the 0.9 percentile latency of handling those request?
-*  How many of those requests have triggered a gateway request to the
-   AMP document server? 
-*  For those gateway requests, what was the 0.9 percentile latency of 
-   the AMP document server?
-
- To learn what are all the things you can
-monitor, and how to do it, check the [monitoring manual](monitoring.md).
-
-
-The sections below talk about the things you can monitor, and how to do it.
-
-All the command line examples are for Linux OS.
+The sections below walk you through the available metrics, explain how manually
+check them via command line, and how to interpret the results. All the command
+line examples are for Linux OS.
 
 ## Monitoring health
 
