@@ -4,6 +4,37 @@ Once you've run `amppackager` server in production, you may want to monitor its
 health and performance, as well as the performance of the underlying requests to
 the AMP document server. 
 
+`amppackager` provides a few [Prometheus](https://prometheus.io/) endpoints to
+enable such monitoring.
+
+Prometheus is a framework that we recommend you utilize to make your monitoring
+convenient, scalable and automated. A few things we recommend you do:
+* Explore the metrics `amppackager` provides by following the command line based
+tutorial below. Pick the essential metrics you'd like to monitor.
+* [Set up a Prometheus server](https://prometheus.io/docs/prometheus/latest/getting_started/).
+* Set up all `amppackager` replicas as targets for the Prometheus server - using the [multi-target exporter pattern](https://prometheus.io/docs/guides/multi-target-exporter/#understanding-and-using-the-multi-target-exporter-pattern).
+* Try [querying](https://prometheus.io/docs/prometheus/latest/querying/basics/) the essential metrics you chose.
+* Visualize the metrics via [grafana](https://prometheus.io/docs/visualization/grafana/).
+* Setup [alerts](https://prometheus.io/docs/alerting/latest/overview/) that will notify you of abnormal behavior (e.g. latencies growing beyond 60 seconds).
+
+ and . You can perform one-off manual health inspections,
+visualize the real-time stats, set up alerts, and more.
+
+
+
+
+*  Is `amppackager` up and running?
+*  How many requests has it processed since it's been up?
+*  What was the 0.9 percentile latency of handling those request?
+*  How many of those requests have triggered a gateway request to the
+   AMP document server? 
+*  For those gateway requests, what was the 0.9 percentile latency of 
+   the AMP document server?
+
+ To learn what are all the things you can
+monitor, and how to do it, check the [monitoring manual](monitoring.md).
+
+
 The sections below talk about the things you can monitor, and how to do it.
 
 All the command line examples are for Linux OS.
