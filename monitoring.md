@@ -24,9 +24,9 @@ recommend you do:
     will notify you of abnormal behavior (e.g. latencies growing beyond 60
     seconds).
 
-The sections below walk you through the available metrics, explain how manually
-check them via command line, and how to interpret the results. All the command
-line examples are for Linux OS.
+The sections below walk you through the available metrics, explain how to
+manually check them via command line, and how to interpret the results. All the
+command line examples are for Linux OS.
 
 ## Monitoring health
 
