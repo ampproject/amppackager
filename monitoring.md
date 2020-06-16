@@ -4,18 +4,25 @@ Once you've run `amppackager` server in production, you may want to monitor its
 health and performance, as well as the performance of the underlying requests to
 the AMP document server. 
 
-`amppackager` provides a few [Prometheus](https://prometheus.io/) endpoints to
-enable such monitoring.
+`amppackager` provides a few [Prometheus](https://prometheus.io/) endpoints for such monitoring.
 
-Prometheus is a framework that we recommend you utilize to make your monitoring
-convenient, scalable and automated. A few things we recommend you do:
-* Explore the metrics `amppackager` provides by following the command line based
-tutorial below. Pick the essential metrics you'd like to monitor.
-* [Set up a Prometheus server](https://prometheus.io/docs/prometheus/latest/getting_started/).
-* Set up all `amppackager` replicas as targets for the Prometheus server - using the [multi-target exporter pattern](https://prometheus.io/docs/guides/multi-target-exporter/#understanding-and-using-the-multi-target-exporter-pattern).
-* Try [querying](https://prometheus.io/docs/prometheus/latest/querying/basics/) the essential metrics you chose.
-* Visualize the metrics via [grafana](https://prometheus.io/docs/visualization/grafana/).
-* Setup [alerts](https://prometheus.io/docs/alerting/latest/overview/) that will notify you of abnormal behavior (e.g. latencies growing beyond 60 seconds).
+Prometheus is a powerful monitoring framework. We encourage you to fully utilize
+it to make your monitoring convenient, scalable and automated. A few things we
+recommend you do:
+1.  Explore the metrics `amppackager` provides by following or skimming the
+    tutorial below. Pick the essential metrics you'd like to monitor.
+1.  [Set up a Prometheus server](https://prometheus.io/docs/prometheus/latest/getting_started/).
+1.  Set up all `amppackager` replicas as targets for the Prometheus server. Use
+    the [multi-target exporter
+    pattern](https://prometheus.io/docs/guides/multi-target-exporter/#understanding-and-using-the-multi-target-exporter-pattern).
+1.  Try
+    [querying](https://prometheus.io/docs/prometheus/latest/querying/basics/)
+    the essential metrics you chose.
+1.  Visualize the metrics via
+    [grafana](https://prometheus.io/docs/visualization/grafana/).
+1.  Setup [alerts](https://prometheus.io/docs/alerting/latest/overview/) that
+    will notify you of abnormal behavior (e.g. latencies growing beyond 60
+    seconds).
 
 The sections below walk you through the available metrics, explain how manually
 check them via command line, and how to interpret the results. All the command
