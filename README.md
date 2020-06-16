@@ -265,7 +265,7 @@ against the [AMP Cache requirement](docs/cache_requirements.md) for a minimum
 `max-age` of `345600` (4 days). For SXGs shorter than that, the Google AMP Cache
 will treat them as if unsigned (by showing an AMP Viewer).
 
-#### Monitoring `amppackager` in production via Prometheus endpoints
+#### Monitoring `amppackager` in production via its Prometheus endpoints
 
 Once you've run the `amppackager` server in production, you may want to monitor
 its health and performance. You may also monitor the performance of the
