@@ -30,7 +30,7 @@ the `/metrics` endpoint.
 
 The example command below fetches all the available metrics. It then greps the report for `total_requests_by_code_and_url` metric. This metric counts the HTTP requests the `amppackager` server has processed since it's been up. 
 
-```
+```console
 $ curl  https://127.0.0.1:8080/metrics | grep total_requests_by_code_and_url
 
 # HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
@@ -66,7 +66,7 @@ For some metrics like `total_requests_by_code_and_url` the stats in the
 name, and the HTTP response code. E.g. note the buckets in the the example
 above:
 
-```
+```console
 total_requests_by_code_and_url{code="200",handler="healthz"} 3
 total_requests_by_code_and_url{code="200",handler="signer"} 6
 total_requests_by_code_and_url{code="502",handler="signer"} 4
@@ -75,7 +75,7 @@ total_requests_by_code_and_url{code="502",handler="signer"} 4
 Invalid requests that were not routed by `amppackager` to any handler are
 assigned a special label `handler_not_assigned`:
 
-```
+```console
 total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
 ```
 
@@ -127,7 +127,7 @@ scenarios__, look at 0.9 and 0.99 percentiles.
 
 Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
 
-```
+```console
 $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\"
 
 request_latencies_in_seconds{code="200",handler="signer",quantile="0.5"} 0.023
@@ -173,27 +173,27 @@ slow response times.
 
 Check all the stats (note - this command produces numerous metrics that are self-documented; the key ones are also explained in the table above):
 
-```
+```console
 $ curl https://127.0.0.1:8080/metrics
 ```
 
 Check stats for the `total_gateway_requests_by_code` metric: 
 
-```
+```console
 $ curl https://127.0.0.1:8080/metrics | grep total_gateway_requests_by_code
 ```
 
 Check stats for the `gateway_request_latencies_in_seconds` metric, for requests
 that got an OK response (200) : 
 
-```
+```console
 $ curl https://127.0.0.1:8080/metrics | grep gateway_request_latencies_in_seconds | grep code=\"200\"
 ```
 
 Check the 0.9 percentile latency for the `request_latencies_in_seconds` metric,
 for requests that got an OK response (200) from the `signer` handler:
 
-```
+```console
 $ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\" | grep quantile=\"0.9\"
 ```
 
