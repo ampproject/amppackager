@@ -199,8 +199,9 @@ that:
 
 It is possible to test an otherwise fully production configuration without
 obtaining a certificate with the `CanSignHttpExchanges` extension. `amppkg`
-still needs to perform OCSP verification, so the Issuer CA must be valid (i.e. no
-self-signed certificates). e.g. You can use a certificate from [Let's Encrypt](https://letsencrypt.org/).
+still needs to perform OCSP verification, so the Issuer CA must be valid (i.e.
+no self-signed certificates). e.g. You can use a certificate from [Let's
+Encrypt](https://letsencrypt.org/).
 
 Running `amppkg` with the `-invalidcert` flag will skip the check for
 `CanSignHttpExchanges`. This flag is not necessary when using the
@@ -263,6 +264,26 @@ risks](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-respon
 against the [AMP Cache requirement](docs/cache_requirements.md) for a minimum
 `max-age` of `345600` (4 days). For SXGs shorter than that, the Google AMP Cache
 will treat them as if unsigned (by showing an AMP Viewer).
+
+#### Monitoring `amppackager` in production via its Prometheus endpoints
+
+Once you've run the `amppackager` server in production, you may want to monitor
+its health and performance. You may also monitor the performance of the
+underlying requests to the AMP document server. You can monitor both servers via
+the [Prometheus](https://prometheus.io/) endpoints provided by `amppackager`. A
+few examples of questions you can answer:
+
+*  Is `amppackager` up and running?
+*  How many requests has it processed since it's been up?
+*  What was the 0.9 percentile latency of handling those request?
+*  How many of those requests have triggered a gateway request to the
+   AMP document server? 
+*  For those gateway requests, what was the 0.9 percentile latency of 
+   the AMP document server?
+
+You can perform one-off manual health inspections, visualize the real-time
+stats, set up alerts, and more. To learn what are all the things you can
+monitor, and how to do it, check the [monitoring manual](monitoring.md).
 
 ## Local Transformer
 
