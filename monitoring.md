@@ -9,8 +9,8 @@ the AMP document server.
 Prometheus is a powerful monitoring framework. We encourage you to fully utilize
 it to make your monitoring convenient, scalable and automated. A few things we
 recommend you do:
-1.  Explore the metrics `amppackager` provides by following or skimming the
-    tutorial below. Pick the essential metrics you'd like to monitor.
+1.  Explore the metrics `amppackager` provides by following or skimming through
+    the tutorial below. Pick the essential metrics you'd like to monitor.
 1.  [Set up a Prometheus server](https://prometheus.io/docs/prometheus/latest/getting_started/).
 1.  Set up all `amppackager` replicas as targets for the Prometheus server. Use
     the [multi-target exporter
