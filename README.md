@@ -265,13 +265,13 @@ against the [AMP Cache requirement](docs/cache_requirements.md) for a minimum
 `max-age` of `345600` (4 days). For SXGs shorter than that, the Google AMP Cache
 will treat them as if unsigned (by showing an AMP Viewer).
 
-#### Monitoring `amppackager` in production
+#### Monitoring `amppackager` in production via Prometheus endpoints
 
 Once you've run the `amppackager` server in production, you may want to monitor
 its health and performance. You may also monitor the performance of the
-underlying requests to the AMP document server. You can monitor both servers by
-`curl`ing `/healthz` and `/metrics` endpoints provided by `amppackager`. A few
-examples of questions you can answer:
+underlying requests to the AMP document server. You can monitor both servers via
+the Prometheus endpoints provided by `amppackager`. A few examples of questions you
+can answer:
 
 *  Is `amppackager` up and running?
 *  How many requests has it processed since it's been up?
@@ -281,8 +281,9 @@ examples of questions you can answer:
 *  For those gateway requests, what was the 0.9 percentile latency of 
    the AMP document server?
 
-These are just a few examples. To learn what are all the things you can monitor,
-and how to do it, check the [monitoring manual](monitoring.md).
+You can perform one-off health inspections, visualize the real-time stats, set
+up alerts, and more. To learn what are all the things you can monitor, and how
+to do it, check the [monitoring manual](monitoring.md).
 
 ## Local Transformer
 
