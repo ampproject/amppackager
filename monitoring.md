@@ -13,7 +13,7 @@ All the command line examples are for Linux OS.
 To check `amppackager`'s health, `curl` its `/healthz` endpoint:
 
 ```console
-$ curl https://localhost:8080/healthz
+michaelrybak@michaelrybak:~$ curl https://localhost:8080/healthz
 ```
 
 If the server is up and has a fresh, valid certificate, it will respond with
