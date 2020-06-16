@@ -281,9 +281,9 @@ few examples of questions you can answer:
 *  For those gateway requests, what was the 0.9 percentile latency of 
    the AMP document server?
 
-You can perform one-off health inspections, visualize the real-time stats, set
-up alerts, and more. To learn what are all the things you can monitor, and how
-to do it, check the [monitoring manual](monitoring.md).
+You can perform one-off manual health inspections, visualize the real-time
+stats, set up alerts, and more. To learn what are all the things you can
+monitor, and how to do it, check the [monitoring manual](monitoring.md).
 
 ## Local Transformer
 
