@@ -46,8 +46,10 @@ FROM alpine:latest as certs
 
 RUN apk --update add ca-certificates
 
-# Build a small executable from docker scratch.
-FROM scratch
+# Build a small executable from docker alpine. Docker alpine is needed because
+# bash is required to be present by the deployer as it prints the env variables
+# listed below for verifiying the docker image.
+FROM alpine:latest 
 
 # Copy the certs from certs image.
 ENV PATH=/bin
@@ -61,6 +63,12 @@ COPY --from=builder /go/bin/amppkg .
 EXPOSE 8080
 
 ENV PATH=$PATH:.
+
+# This env var is used by click-to-deploy deployer, right now needs to be
+# manually synced with C2D_RELEASE in the other Docker images for AMP Packager
+# Deployer currently in https://github.com/banaag/click-to-deploy but will move
+# to https://github.com/GoogleCloudPlatform/click-to-deploy.
+ENV C2D_RELEASE=0.0.1
 
 # Start the AMP Packager
 ENTRYPOINT ["amppkg"]
