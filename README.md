@@ -34,10 +34,29 @@ own and can obtain certificates for.
   1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
      is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
-  2. `go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg`
+  1. Get amppackager.
 
-     Optionally, move the built `~/go/bin/amppkg` wherever you like.
-  3. Create a file `amppkg.toml`. A minimal config looks like this:
+     Check your Go version by running `go version`.
+  
+     For Go 1.14 and higher versions run:
+
+       ```
+       go get -u github.com/ampproject/amppackager/cmd/amppkg
+       ```
+     
+     For Go 1.13 and earlier versions run:
+
+       ```
+       go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg
+       ```
+
+  1. Optionally, move the built `~/go/bin/amppkg` wherever you like.
+  1. Prepare a temporary certificate and private key pair to use for signing the
+     exchange when testing your config. Follow WICG
+     [instructions](https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange)
+     to ensure compliance with the [WICG certificate
+     requirements](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-cert-req).
+  1. Create a file `amppkg.toml`. A minimal config looks like this:
      ```
      LocalOnly = true
      CertFile = 'path/to/fullchain.pem'
@@ -49,7 +68,7 @@ own and can obtain certificates for.
          Domain = "amppackageexample.com"
      ```
      More details can be found in [amppkg.example.toml](amppkg.example.toml).
-  4. `amppkg -development`
+  1. `amppkg -development`
 
      If `amppkg.toml` is not in the current working directory, pass
      `-config=/path/to/amppkg.toml`.
@@ -63,10 +82,15 @@ container.
 
   1. Run Chrome with the following commandline flags:
      ```
-     --user-data-dir=/tmp/udd
-     --ignore-certificate-errors-spki-list=$(openssl x509 -pubkey -noout -in path/to/fullchain.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
-     --enable-features=SignedHTTPExchange
-     'data:text/html,<a href="https://localhost:8080/priv/doc/https://amppackageexample.com/">click me'
+     alias chrome = [FULL PATH TO CHROME BINARY]
+     PATH_TO_FULLCHAIN_PEM = [FULL PATH TO fullchain.pem]
+     chrome --user-data-dir=/tmp/udd\
+         --ignore-certificate-errors-spki-list=$(\
+            openssl x509 -pubkey -noout -in $PATH_TO_FULLCHAIN_PEM |\
+            openssl pkey -pubin -outform der |\
+            openssl dgst -sha256 -binary | base64)\
+         --enable-features=SignedHTTPExchange\
+            'data:text/html,<a href="https://localhost:8080/priv/doc/https://amppackageexample.com/">click me'
      ```
   2. Open DevTools. Check 'Preserve log'.
   3. Click the `click me` link.

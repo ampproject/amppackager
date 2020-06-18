@@ -28,7 +28,7 @@ var /* const */ anyTagAttrs = []string{"background", "poster", "src"}
 var /* const */ ampInstallServiceWorkerTagAttrs = []string{"data-iframe-src", "data-no-service-worker-fallback-shell-url"}
 var /* const */ ampStoryTagAttrs = []string{"background-audio", "bookend-config-src", "poster-landscape-src", "poster-square-src", "publisher-logo-src"}
 var /* const */ ampStoryPageTagAttrs = []string{"background-audio"}
-var /* const */ formTagAttrs = []string{"action", "action-xhr"}
+var /* const */ formTagAttrs = []string{"action", "action-xhr", "verify-xhr"}
 var /* const */ imgTagAttrs = []string{"longdesc"}
 
 // AbsoluteURL operates on URL attributes. It rewrites URLs as Absolute URLs.

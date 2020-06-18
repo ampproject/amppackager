@@ -52,13 +52,13 @@ func (this fakeNotHealthyCertHandler) IsHealthy() error {
 func TestHealthzOk(t *testing.T) {
 	handler, err := New(fakeHealthyCertHandler{})
 	require.NoError(t, err)
-	resp := pkgt.Get(t, mux.New(nil, nil, nil, handler), "/healthz")
+	resp := pkgt.Get(t, mux.New(nil, nil, nil, handler, nil), "/healthz")
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "ok", resp)
 }
 
 func TestHealthzFail(t *testing.T) {
 	handler, err := New(fakeNotHealthyCertHandler{})
 	require.NoError(t, err)
-	resp := pkgt.Get(t, mux.New(nil, nil, nil, handler), "/healthz")
+	resp := pkgt.Get(t, mux.New(nil, nil, nil, handler, nil), "/healthz")
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "error", resp)
 }

@@ -39,6 +39,8 @@ import (
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // The user agent to send when issuing fetches. Should look like a mobile device.
@@ -132,6 +134,7 @@ type Signer struct {
 	overrideBaseURL         *url.URL
 	requireHeaders          bool
 	forwardedRequestHeaders []string
+	timeNow                 func() time.Time
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
@@ -140,7 +143,7 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 
 func New(certHandler certcache.CertHandler, key crypto.PrivateKey, publicDir string, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() error, overrideBaseURL *url.URL,
-	requireHeaders bool, forwardedRequestHeaders []string) (*Signer, error) {
+	requireHeaders bool, forwardedRequestHeaders []string, timeNow func() time.Time) (*Signer, error) {
 	var roundTripper http.RoundTripper
 	if publicDir != "" {
 		transport := &http.Transport{}
@@ -160,7 +163,7 @@ func New(certHandler certcache.CertHandler, key crypto.PrivateKey, publicDir str
 		Transport: roundTripper,
 	}
 
-	return &Signer{certHandler, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders}, nil
+	return &Signer{certHandler, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders, timeNow}, nil
 }
 
 func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
@@ -194,7 +197,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		// TODO(twifkak): Extract host from upstream Forwarded header
 		// and concatenate. (Do not include any other parameters, as
 		// they may lead to over-signing.)
-		req.Header.Set("Forwarded", `host=` + quotedHost)
+		req.Header.Set("Forwarded", `host=`+quotedHost)
 		xfh := serveHTTPReq.Host
 		if oldXFH := serveHTTPReq.Header.Get("X-Forwarded-Host"); oldXFH != "" {
 			xfh = oldXFH + "," + xfh
@@ -290,6 +293,52 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 	return ret, nil
 }
 
+// promGatewayRequestsTotal is a Prometheus counter that observes total gateway requests count.
+var promGatewayRequestsTotal = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "total_gateway_requests_by_code",
+		Help: "Total number of underlying requests to AMP document server - by HTTP response status code.",
+	},
+	[]string{"code"},
+)
+
+// promGatewayRequestsLatency is a Prometheus summary that observes requests latencies.
+// Objectives key value pairs set target quantiles and respective allowed rank variance.
+// Upon query, for each Objective quantile (0.5, 0.9, 0.99) the summary returns
+// an actual observed latency value that is ranked close to the Objective value.
+// For more intuition on the Objectives see http://alexandrutopliceanu.ro/post/targeted-quantiles/.
+var promGatewayRequestsLatency = promauto.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Name:       "gateway_request_latencies_in_seconds",
+		Help:       "Latencies (in seconds) of gateway requests to AMP document server - by HTTP response status code.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	},
+	[]string{"code"},
+)
+
+func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
+	startTime := this.timeNow()
+
+	fetchReq, fetchResp, httpErr := this.fetchURL(fetch, serveHTTPReq)
+	if httpErr == nil {
+		// httpErr is nil, i.e. the gateway request did succeed. Let Prometheus
+		// observe the gateway request and its latency - along with the response code.
+		label := prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}
+		promGatewayRequestsTotal.With(label).Inc()
+
+		latency := this.timeNow().Sub(startTime)
+		promGatewayRequestsLatency.With(label).Observe(latency.Seconds())
+	} else {
+		// httpErr can have a non-nil value. E.g. http.StatusBadGateway (502)
+		// is the most probable error fetchURL returns if failed. In case of
+		// non-nil httpErr don't observe the request. Instead do nothing and let
+		// mux's promRequestsTotal observe the top level non-gateway request (along
+		// with the response code e.g. 502) once signer has completed handling it.
+	}
+
+	return fetchReq, fetchResp, httpErr
+}
+
 func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Add("Vary", "Accept, AMP-Cache-Transform")
 
@@ -319,7 +368,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req)
+	fetchReq, fetchResp, httpErr := this.fetchURLAndMeasure(fetchURL, req)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return

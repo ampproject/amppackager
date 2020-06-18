@@ -69,6 +69,7 @@ type CertCacheSuite struct {
 	ocspHandler         func(w http.ResponseWriter, req *http.Request)
 	tempDir             string
 	handler             *CertCache
+	fakeClock           *pkgt.FakeClock
 }
 
 func stringPtr(s string) *string {
@@ -79,8 +80,10 @@ func (this *CertCacheSuite) New() (*CertCache, error) {
 	// TODO(twifkak): Stop the old CertCache's goroutine.
 	// TODO(banaag): Consider adding a test with certfetcher set.
 	//  For now, this tests certcache without worrying about certfetcher.
+	// certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
+	// 	filepath.Join(this.tempDir, "ocsp"), nil, time.Now)
 	certCache := New(pkgt.B3Certs, nil, []string{"example.com"}, "cert.crt", "newcert.crt",
-		filepath.Join(this.tempDir, "ocsp"), nil)
+		filepath.Join(this.tempDir, "ocsp"), nil, this.fakeClock.Now)
 	certCache.extractOCSPServer = func(*x509.Certificate) (string, error) {
 		return this.ocspServer.URL, nil
 	}
@@ -107,8 +110,9 @@ func (this *CertCacheSuite) TearDownSuite() {
 }
 
 func (this *CertCacheSuite) SetupTest() {
+	this.fakeClock = pkgt.NewFakeClock()
 	var err error
-	this.fakeOCSP, err = FakeOCSPResponse(time.Now())
+	this.fakeOCSP, err = FakeOCSPResponse(this.fakeClock.Now())
 	this.Require().NoError(err, "creating fake OCSP response")
 
 	this.ocspHandler = func(resp http.ResponseWriter, req *http.Request) {
@@ -138,7 +142,7 @@ func (this *CertCacheSuite) TearDownTest() {
 }
 
 func (this *CertCacheSuite) mux() http.Handler {
-	return mux.New(this.handler, nil, nil, nil)
+	return mux.New(this.handler, nil, nil, nil, nil)
 }
 
 func (this *CertCacheSuite) ocspServerCalled(f func()) bool {
@@ -193,7 +197,7 @@ func (this *CertCacheSuite) TestCertCacheIsNotHealthy() {
 	// Prime memory cache with a past-midpoint OCSP:
 	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
 	this.Require().NoError(err, "deleting OCSP tempfile")
-	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
+	this.fakeOCSP, err = FakeOCSPResponse(this.fakeClock.Now().Add(-4 * 24 * time.Hour))
 	this.Require().NoError(err, "creating stale OCSP response")
 	this.Require().True(this.ocspServerCalled(func() {
 		this.handler, err = this.New()
@@ -226,8 +230,7 @@ func (this *CertCacheSuite) TestOCSP() {
 	resp := pkgt.Get(this.T(), this.mux(), "/amppkg/cert/"+pkgt.CertName)
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	// 302400 is 3.5 days. max-age is slightly less because of the time between fake OCSP generation and cert-chain response.
-	// TODO(twifkak): Make this less flaky, by injecting a fake clock.
-	this.Assert().Equal("public, max-age=302399", resp.Header.Get("Cache-Control"))
+	this.Assert().Equal("public, max-age=302387", resp.Header.Get("Cache-Control"))
 	cbor := this.DecodeCBOR(resp.Body)
 	this.Assert().Equal(this.fakeOCSP, cbor["ocsp"])
 }
@@ -250,7 +253,7 @@ func (this *CertCacheSuite) TestOCSPExpiry() {
 	// Prime memory and disk cache with a past-midpoint OCSP:
 	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
 	this.Require().NoError(err, "deleting OCSP tempfile")
-	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
+	this.fakeOCSP, err = FakeOCSPResponse(this.fakeClock.Now().Add(-4 * 24 * time.Hour))
 	this.Require().NoError(err, "creating expired OCSP response")
 	this.Require().True(this.ocspServerCalled(func() {
 		this.handler, err = this.New()
@@ -272,7 +275,7 @@ func (this *CertCacheSuite) TestOCSPUpdateFromDisk() {
 	// Prime memory cache with a past-midpoint OCSP:
 	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
 	this.Require().NoError(err, "deleting OCSP tempfile")
-	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
+	this.fakeOCSP, err = FakeOCSPResponse(this.fakeClock.Now().Add(-4 * 24 * time.Hour))
 	this.Require().NoError(err, "creating stale OCSP response")
 	this.Require().True(this.ocspServerCalled(func() {
 		this.handler, err = this.New()
@@ -280,7 +283,7 @@ func (this *CertCacheSuite) TestOCSPUpdateFromDisk() {
 	}))
 
 	// Prime disk cache with a fresh OCSP.
-	freshOCSP, err := FakeOCSPResponse(time.Now())
+	freshOCSP, err := FakeOCSPResponse(this.fakeClock.Now())
 	this.Require().NoError(err, "creating fresh OCSP response")
 	err = ioutil.WriteFile(filepath.Join(this.tempDir, "ocsp"), freshOCSP, 0644)
 	this.Require().NoError(err, "writing fresh OCSP response to disk")
@@ -315,7 +318,7 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 	// Prime memory and disk cache with a past-midpoint OCSP:
 	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
 	this.Require().NoError(err, "deleting OCSP tempfile")
-	staleOCSP, err := FakeOCSPResponse(time.Now().Add(-4 * 24 * time.Hour))
+	staleOCSP, err := FakeOCSPResponse(this.fakeClock.Now().Add(-4 * 24 * time.Hour))
 	this.Require().NoError(err, "creating stale OCSP response")
 	this.fakeOCSP = staleOCSP
 	this.Require().True(this.ocspServerCalled(func() {
@@ -324,7 +327,7 @@ func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
 	}))
 
 	// Try to update with an invalid OCSP:
-	this.fakeOCSP, err = FakeOCSPResponse(time.Now().Add(-8 * 24 * time.Hour))
+	this.fakeOCSP, err = FakeOCSPResponse(this.fakeClock.Now().Add(-8 * 24 * time.Hour))
 	this.Require().NoError(err, "creating expired OCSP response")
 	this.Assert().True(this.ocspServerCalled(func() {
 		_, _, err := this.handler.readOCSP(true)
