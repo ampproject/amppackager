@@ -466,12 +466,26 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 
 // serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
 func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, act string, transformVersion int64) {
-	// After this, fetchResp.Body is consumed, and attempts to read or proxy it will result in an empty body.
+	// Cap with maxBodyLength to limit the memory that serveSignedExchange
+	// consumes per request. The serveSignedExchange implementation requires all
+	// the response body in memory, and doesn't work on streamed data.
 	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
 	if err != nil {
 		util.NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
 		return
 	}
+
+	// If the cap has been applied, it means the document is too large. Signer
+	// won't load all the body in memory and sign it. But signer can still proxy
+	// the body unchanged by first sending the capped part of the body that's
+	// already been read, and then streaming the rest of the body.
+	if len(fetchBody) == maxBodyLength {
+		resp.Write(fetchBody)
+		proxy(resp, fetchResp, nil)
+		return
+	}
+
+	// Now that fetchResp.Body is consumed, attempts to read or proxy it will result in an empty body.
 
 	// Perform local transformations.
 	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
@@ -596,8 +610,6 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 }
 
 // Proxy the content unsigned. If body is non-nil, it is used in place of fetchResp.Body.
-// TODO(twifkak): Take a look at the source code to httputil.ReverseProxy and
-// see what else needs to be implemented.
 func proxy(resp http.ResponseWriter, fetchResp *http.Response, body []byte) {
 	for k, v := range fetchResp.Header {
 		resp.Header()[k] = v

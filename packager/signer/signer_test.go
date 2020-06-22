@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -1025,4 +1026,28 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 		this.Require().NoError(promtest.CollectAndCompare(promGatewayRequestsLatency, expectation, "gateway_request_latencies_in_seconds"))
 	}
 
+}
+
+func (this *SignerSuite) TestDontSignIfCapped() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
+
+	const uncappedTailLength = 100
+	veryLongArray := [maxBodyLength + uncappedTailLength]string{}
+	veryLongString := strings.Join(veryLongArray[:], "a")
+	var customFakeBody = []byte("<html amp><body>" + veryLongString)
+
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Write(customFakeBody)
+	}
+	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	log.Println("RYBAK1")
+	log.Println(len(customFakeBody))
+	log.Println(len(body))
+	this.Assert().Equal(customFakeBody, body, "incorrect body: %#v", resp)
 }
