@@ -510,16 +510,10 @@ func (this *SignerSuite) TestEscapesLinkHeaders() {
 		// verify the Link header so that it wouldn't be ingested.
 		// However, it would be nice to limit the impact that could be
 		// caused by transformation of an invalid AMP, e.g. on a
-		// same-origin impression.
-		resp.Write([]byte(`<html amp><head><script src="https://foo.com/a,b>c?d>e|f">`))
-	}
-	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
-	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+		// same-origin impression.	
+			resp.Write([]byte(`<html amp><head><script src="https://foo.com/a,b>c?d>e|f">`))
 
-	exchange, err := signedexchange.ReadExchange(resp.Body)
-	this.Require().NoError(err)
-	this.Assert().Equal("<https://foo.com/a,b%3Ec?d%3Ee%7Cf>;rel=preload;as=script", exchange.ResponseHeaders.Get("Link"))
-}
+	}
 
 func (this *SignerSuite) TestRemovesHopByHopHeaders() {
 	urlSets := []util.URLSet{{

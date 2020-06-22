@@ -535,7 +535,9 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	now := time.Now()
 	validityHRef, err := url.Parse(util.ValidityMapPath)
 	if err != nil {
+		// Won't ever happen because util.ValidityMapPath is a constant.
 		util.NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
+		return
 	}
 	// Expires - Date must be <= 604800 seconds, per
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
@@ -561,14 +563,18 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		// default is to use getrandom(2) if available, else
 		// /dev/urandom.
 	}
+	log.Println("RYBAKAAA1")
 	if err := exchange.AddSignatureHeader(&signer); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
 		return
 	}
+	log.Println("RYBAKAAA2")
 	var body bytes.Buffer
 	if err := exchange.Write(&body); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
+		log.Println("RYBAKAAAERROR")
 	}
+	log.Println("RYBAKAAA3")
 
 	// If requireHeaders was true when constructing signer, the
 	// AMP-Cache-Transform outer response header is required (and has already

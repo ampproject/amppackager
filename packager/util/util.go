@@ -23,6 +23,7 @@ import (
 	"encoding/asn1"
 	"encoding/base64"
 	"encoding/pem"
+	"net/url"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -42,6 +43,19 @@ func CertName(cert *x509.Certificate) string {
 }
 
 const ValidityMapPath = "/amppkg/validity"
+
+// ValidityHRef converts the ValidityMapPath constant into a URL. ValidityHRef
+// is essentially static, so the undelying call to url.Parse should never
+// generate an error. In case it does, ValidityHRef returns nil - for testing
+// purposes only.
+func ValidityHRef() *url.URL {
+	url, err := url.Parse(ValidityMapPath)
+	if err != nil {
+		return nil
+	}
+	return url
+}
+
 const HealthzPath = "/healthz"
 const MetricsPath = "/metrics"
 
