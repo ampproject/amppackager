@@ -563,18 +563,15 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		// default is to use getrandom(2) if available, else
 		// /dev/urandom.
 	}
-	log.Println("RYBAKAAA1")
 	if err := exchange.AddSignatureHeader(&signer); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
 		return
 	}
-	log.Println("RYBAKAAA2")
 	var body bytes.Buffer
 	if err := exchange.Write(&body); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
-		log.Println("RYBAKAAAERROR")
+		return
 	}
-	log.Println("RYBAKAAA3")
 
 	// If requireHeaders was true when constructing signer, the
 	// AMP-Cache-Transform outer response header is required (and has already
