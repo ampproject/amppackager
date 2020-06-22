@@ -477,8 +477,8 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 
 	// If the cap has been applied, it means the document is too large. Signer
 	// won't load all the body in memory and therefore won't sign it. But signer
-	// can still proxy the body unchanged by first sending the capped part of
-	// the body that's already been read, and then streaming the rest of the
+	// can still proxy the body unchanged. Signer can first send the capped part
+	// of the body that it has already read, and then streaming the rest of the
 	// body.
 	if len(fetchBody) == maxBodyLength {
 		resp.Write(fetchBody)
