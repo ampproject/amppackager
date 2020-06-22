@@ -1027,7 +1027,7 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 
 }
 
-func (this *SignerSuite) TestDontSignIfCapped() {
+func (this *SignerSuite) TestIfCappedDontSignAndProxyFullDocument() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
 
