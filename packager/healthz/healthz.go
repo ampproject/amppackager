@@ -15,9 +15,9 @@
 package healthz
 
 import (
-	"fmt"
-	"github.com/ampproject/amppackager/packager/certcache"
 	"net/http"
+
+	"github.com/ampproject/amppackager/packager/certcache"
 )
 
 type Healthz struct {
@@ -29,13 +29,17 @@ func New(certHandler certcache.CertHandler) (*Healthz, error) {
 }
 
 func (this *Healthz) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	// Follow https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-	err := this.certHandler.IsHealthy()
-	if err != nil {
-		resp.WriteHeader(500)
-		resp.Write([]byte(fmt.Sprintf("not healthy: %v", err)))
-	} else {
-		resp.WriteHeader(200)
-		resp.Write([]byte("ok"))
-	}
+	//curl -k --raw -i -v  --http1.1  https://127.0.0.1:8080/healthz
+
+	// flusher, ok := resp.(http.Flusher)
+	// if !ok {
+	// 	panic("expected http.ResponseWriter to be an http.Flusher")
+	// }
+	// // resp.Header().Set("Transfer-Encoding", "chunked") // Also removed, per RFC 2616.
+	// resp.Header().Set("X-Content-Type-Options", "nosniff")
+	// for i := 1; i <= 10; i++ {
+	// 	fmt.Fprintf(resp, "Chunk #%d\n", i)
+	// 	flusher.Flush() // Trigger "chunked" encoding and send a chunk...
+	// 	// time.Sleep(500 * time.Millisecond)
+	// }
 }

@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -46,6 +47,7 @@ import (
 
 var fakePath = "/amp/secret-life-of-pine-trees.html"
 var fakeBody = []byte("<html amp><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
+var fakeBody2 = []byte("ahtml amp><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
 var transformedBody = []byte("<html amp><head></head><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)</body></html>")
 
 func headerNames(headers http.Header) []string {
@@ -411,18 +413,26 @@ func (this *SignerSuite) TestSignAsPathParamWithUnusualPctEncoding() {
 }
 
 func (this *SignerSuite) TestPreservesContentType() {
-	urlSets := []util.URLSet{{
-		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
-	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Set("Content-Type", "text/html;charset=utf-8;v=5")
-		resp.Write(fakeBody)
-	}
-	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
-	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+	// log.Println("RYBAKX1")
+	// urlSets := []util.URLSet{{
+	// 	Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
+	// this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+	// 	resp.Header().Set("Content-Type", "text/html;charset=utf-8;v=5")
+	// 	// resp.Header().Set("Transfer-Encoding", "chunked") // Also removed, per RFC 2616.
+	// 	resp.Write([]byte("<html amp><head><link rel=stylesheet href=foo><script src=bar>"))
+	// }
+	// resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
+	// this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
-	exchange, err := signedexchange.ReadExchange(resp.Body)
-	this.Require().NoError(err)
-	this.Assert().Equal("text/html;charset=utf-8;v=5", exchange.ResponseHeaders.Get("Content-Type"))
+	// log.Println("RYBAKX2")
+	// body, _ := ioutil.ReadAll(resp.Body)
+	// log.Println(string(body))
+
+	// this.Assert().Equal(http.StatusOK, resp.StatusCode+1, "incorrect status: %#v", resp)
+
+	// exchange, err := signedexchange.ReadExchange(resp.Body)
+	// this.Require().NoError(err)
+	// this.Assert().Equal("text/html;charset=utf-8;v=5RYBAK", exchange.ResponseHeaders.Get("Content-Type"))
 }
 
 func (this *SignerSuite) TestRemovesLinkHeaders() {
@@ -513,6 +523,9 @@ func (this *SignerSuite) TestAddsLinkHeaders() {
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
+
+	// resp.Header().Set("Content-Type", "")
+
 	this.Require().NoError(err)
 	this.Assert().Equal("<foo>;rel=preload;as=style,<bar>;rel=preload;as=script", exchange.ResponseHeaders.Get("Link"))
 }
@@ -682,12 +695,22 @@ func (this *SignerSuite) TestProxyUnsignedIfMissingAMPCacheTransformHeader() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
 	}}
+	this.fakeHandler = func(w http.ResponseWriter, req *http.Request) {
+		hj, _ := w.(http.Hijacker)
+		_, buf, _ := hj.Hijack()
+		buf.WriteString("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\n\r\n7\r\nMozilla\r\n9\r\nDeveloper\r\n7\r\nNetwork\r\n0\r\n\r\n")
+		buf.Flush()
+	}
 	resp := pkgt.GetH(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath), http.Header{
 		"Accept": {"application/signed-exchange;v=" + accept.AcceptedSxgVersion}})
 	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
 	body, err := ioutil.ReadAll(resp.Body)
+	log.Println("RYBAKZ1")
+	log.Println(resp.Header)
+	log.Println("RYBAKZ2")
+	log.Println(string(body))
 	this.Require().NoError(err)
-	this.Assert().Equal(fakeBody, body, "incorrect body: %#v", resp)
+	this.Assert().Equal(fakeBody2, body, "incorrect body: %#v", resp)
 }
 
 func (this *SignerSuite) TestProxyUnsignedIfInvalidAMPCacheTransformHeader() {
@@ -1067,7 +1090,8 @@ func (this *SignerSuite) TestPrometheusMetricsGatewayResponseSize() {
 	// Two requests with very long response body (beyond maxBodyLength) - capped.
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		// Note: maxBodyLength equals 4194304
-		very_long_array := [4200000]string{}
+		// very_long_array := [4200000]string{}
+		very_long_array := [42]string{}
 		very_long_string := strings.Join(very_long_array[:], "a")
 
 		resp.Header().Set("Content-Type", "text/html")
@@ -1108,7 +1132,7 @@ func (this *SignerSuite) TestPrometheusMetricsGatewayResponseSize() {
 }
 
 func (this *SignerSuite) TestPrometheusMetricsGatewayResponseSize_IncorrectContentLength() {
-	TODO
-	+remove: It is what's claimed by the header
+	// TODO
+	// +remove: It is what's claimed by the header
 	// and may differ from actual size: https://tools.ietf.org/html/rfc7230#section-3.3.2
 }

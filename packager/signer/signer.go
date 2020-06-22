@@ -156,7 +156,7 @@ func New(certHandler certcache.CertHandler, key crypto.PrivateKey, urlSets []uti
 
 func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
 	ampURL := fetch.String()
-
+	// ampURL = "http://localhost:9009"
 	log.Printf("Fetching URL: %q\n", ampURL)
 	req, err := http.NewRequest(http.MethodGet, ampURL, nil)
 	if err != nil {
@@ -198,10 +198,16 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 			req.Header.Set(header, value)
 		}
 	}
+	log.Println("RYBAK3M1")
+
 	resp, err := this.client.Do(req)
 	if err != nil {
 		return nil, nil, util.NewHTTPError(http.StatusBadGateway, "Error fetching: ", err)
 	}
+	log.Println("RYBAK3")
+	log.Println(resp)
+	myFetchBody, err := ioutil.ReadAll(resp.Body)
+	log.Println(string(myFetchBody))
 	util.RemoveHopByHopHeaders(resp.Header)
 	return req, resp, nil
 }
@@ -397,14 +403,19 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	log.Println("RYBAK2")
+	log.Println(fetchResp.StatusCode)
+
 	switch fetchResp.StatusCode {
 	case 200:
+		log.Println("RYBAK21")
 		// If fetchURL returns an OK status, then validate, munge, and package.
 		if err := validateFetch(fetchReq, fetchResp); err != nil {
 			log.Println("Not packaging because of invalid fetch: ", err)
 			proxy(resp, fetchResp, nil)
 			return
 		}
+		log.Println("RYBAK22")
 		for header := range statefulResponseHeaders {
 			if errorOnStatefulHeaders && GetJoined(fetchResp.Header, header) != "" {
 				log.Println("Not packaging because ErrorOnStatefulHeaders = True and fetch response contains stateful header: ", header)
@@ -413,6 +424,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			}
 		}
 
+		log.Println("RYBAK23")
 		if fetchResp.Header.Get("Variants") != "" || fetchResp.Header.Get("Variant-Key") != "" ||
 			// Include versioned headers per https://github.com/WICG/webpackage/pull/406.
 			fetchResp.Header.Get("Variants-04") != "" || fetchResp.Header.Get("Variant-Key-04") != "" {
@@ -423,6 +435,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		log.Println("RYBAK24")
 		this.serveSignedExchange(resp, fetchResp, signURL, act, transformVersion)
 
 	case 304:
@@ -580,6 +593,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	validityHRef, err := url.Parse(util.ValidityMapPath)
 	if err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
+		// TODO(michaelrybak) return
 	}
 	// Expires - Date must be <= 604800 seconds, per
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
@@ -612,6 +626,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	var body bytes.Buffer
 	if err := exchange.Write(&body); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
+		// TODO(michaelrybak) return
 	}
 
 	// If requireHeaders was true when constructing signer, the
