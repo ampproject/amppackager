@@ -479,7 +479,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	// won't load all the body into memory, and therefore won't sign the
 	// document. But signer can still proxy the document unsigned: first write
 	// the capped part of the body that signer has already read, and then stream
-	// the rest of the body. RepsponseWriter will make sure the headers are sent
+	// the rest of the body. ResponseWriter will make sure the headers are sent
 	// first eventually.
 	if len(fetchBody) == maxBodyLength {
 		resp.Write(fetchBody)
