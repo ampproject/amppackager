@@ -612,6 +612,8 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 }
 
 // Proxy the content unsigned. If body is non-nil, it is used in place of fetchResp.Body.
+// TODO(twifkak): Take a look at the source code to httputil.ReverseProxy and
+// see what else needs to be implemented.
 func proxy(resp http.ResponseWriter, fetchResp *http.Response, body []byte) {
 	for k, v := range fetchResp.Header {
 		resp.Header()[k] = v
