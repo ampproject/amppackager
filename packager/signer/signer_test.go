@@ -415,7 +415,6 @@ func (this *SignerSuite) TestRemovesLinkHeaders() {
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
 		resp.Header().Set("Link", "rel=preload;<http://1.2.3.4/>")
-
 		resp.Write(fakeBody)
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
@@ -512,7 +511,6 @@ func (this *SignerSuite) TestEscapesLinkHeaders() {
 		// However, it would be nice to limit the impact that could be
 		// caused by transformation of an invalid AMP, e.g. on a
 		// same-origin impression.
-
 		resp.Write([]byte(`<html amp><head><script src="https://foo.com/a,b>c?d>e|f">`))
 	}
 	resp := this.get(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath))
@@ -788,7 +786,7 @@ func (this *SignerSuite) TestProxyUnsignedOnVariants04() {
 func (this *SignerSuite) TestProxyUnsignedIfNotAMP() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
-	nonAMPBody := []byte("<html><body>They like to OPINE1. Get it? (Is he fir real? Yew gotta be kidding me.)")
+	nonAMPBody := []byte("<html><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html")
 		resp.Write(nonAMPBody)
@@ -804,7 +802,7 @@ func (this *SignerSuite) TestProxyUnsignedIfNotAMP() {
 func (this *SignerSuite) TestProxyUnsignedIfWrongAMP() {
 	urlSets := []util.URLSet{{
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
-	wrongAMPBody := []byte("<html amp4email><body>They like to OPINE1. Get it? (Is he fir real? Yew gotta be kidding me.)")
+	wrongAMPBody := []byte("<html amp4email><body>They like to OPINE. Get it? (Is he fir real? Yew gotta be kidding me.)")
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html")
 		resp.Write(wrongAMPBody)
