@@ -21,7 +21,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -1046,8 +1045,5 @@ func (this *SignerSuite) TestDontSignIfCapped() {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	this.Require().NoError(err)
-	log.Println("RYBAK1")
-	log.Println(len(customFakeBody))
-	log.Println(len(body))
 	this.Assert().Equal(customFakeBody, body, "incorrect body: %#v", resp)
 }
