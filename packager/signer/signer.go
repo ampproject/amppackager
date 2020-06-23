@@ -351,7 +351,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 	fetchURL, signURL, errorOnStatefulHeaders, httpErr := parseURLs(fetch, sign, this.urlSets)
 	if httpErr != nil {
-		httpErr.LogAndRespond((resp)
+		httpErr.LogAndRespond(resp)
 		return
 	}
 
