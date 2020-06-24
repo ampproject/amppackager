@@ -1035,3 +1035,23 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 	}
 
 }
+
+func (this *SignerSuite) TestIfCappedDontSignAndProxyFullDocument() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
+
+	const uncappedTailLength = 100
+	veryLongString := strings.Repeat("a", maxBodyLength+uncappedTailLength)
+	var customFakeBody = []byte("<html amp><body>" + veryLongString)
+
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Write(customFakeBody)
+	}
+	resp := pkgt.NewRequest(this.T(), this.new(urlSets), "/priv/doc?sign="+url.QueryEscape(this.httpsURL()+fakePath)).SetHeaders("", header).Do()
+	this.Assert().Equal(http.StatusOK, resp.StatusCode, "incorrect status: %#v", resp)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	this.Require().NoError(err)
+	this.Assert().Equal(customFakeBody, body, "incorrect body: %#v", resp)
+}
