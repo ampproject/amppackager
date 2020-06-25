@@ -80,14 +80,6 @@ var statusNotModifiedHeaders = map[string]bool{
 	"Vary":             true,
 }
 
-// MICE requires the sender process its payload in reverse order
-// (https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.1).
-// In an HTTP reverse proxy, this could be done using range requests, but would
-// be inefficient. Therefore, the signer requires the whole payload in memory.
-// To prevent DoS, a memory limit is set. This limit is mostly arbitrary,
-// though there's no benefit to having a limit greater than that of AMP Caches.
-const maxBodyLength = 4 * 1 << 20
-
 // The current maximum is defined at:
 // https://cs.chromium.org/chromium/src/content/browser/loader/merkle_integrity_source_stream.cc?l=18&rcl=591949795043a818e50aba8a539094c321a4220c
 // The maximum is cheapest in terms of network usage, and probably CPU on both
@@ -369,7 +361,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	if err := this.shouldPackage(); err != nil {
 		log.Println("Not packaging because server is unhealthy; see above log statements.", err)
-		proxy(resp, fetchResp, nil)
+		proxyUnconsumed(resp, fetchResp)
 		return
 	}
 	var act string
@@ -379,7 +371,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		act, transformVersion = amp_cache_transform.ShouldSendSXG(header_value)
 		if act == "" {
 			log.Println("Not packaging because AMP-Cache-Transform request header is invalid:", header_value)
-			proxy(resp, fetchResp, nil)
+			proxyUnconsumed(resp, fetchResp)
 			return
 		}
 	} else {
@@ -387,12 +379,12 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		transformVersion, err = transformer.SelectVersion(nil)
 		if err != nil {
 			log.Println("Not packaging because of internal SelectVersion error:", err)
-			proxy(resp, fetchResp, nil)
+			proxyUnconsumed(resp, fetchResp)
 		}
 	}
 	if this.requireHeaders && !accept.CanSatisfy(GetJoined(req.Header, "Accept")) {
 		log.Printf("Not packaging because Accept request header lacks application/signed-exchange;v=%s.\n", accept.AcceptedSxgVersion)
-		proxy(resp, fetchResp, nil)
+		proxyUnconsumed(resp, fetchResp)
 		return
 	}
 
@@ -401,13 +393,13 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		// If fetchURL returns an OK status, then validate, munge, and package.
 		if err := validateFetch(fetchReq, fetchResp); err != nil {
 			log.Println("Not packaging because of invalid fetch: ", err)
-			proxy(resp, fetchResp, nil)
+			proxyUnconsumed(resp, fetchResp)
 			return
 		}
 		for header := range statefulResponseHeaders {
 			if errorOnStatefulHeaders && GetJoined(fetchResp.Header, header) != "" {
 				log.Println("Not packaging because ErrorOnStatefulHeaders = True and fetch response contains stateful header: ", header)
-				proxy(resp, fetchResp, nil)
+				proxyUnconsumed(resp, fetchResp)
 				return
 			}
 		}
@@ -418,11 +410,11 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			// Variants headers (https://tools.ietf.org/html/draft-ietf-httpbis-variants-04) are disallowed by AMP Cache.
 			// We could delete the headers, but it's safest to assume they reflect the downstream server's intent.
 			log.Println("Not packaging because response contains a Variants header.")
-			proxy(resp, fetchResp, nil)
+			proxyUnconsumed(resp, fetchResp)
 			return
 		}
 
-		this.serveSignedExchange(resp, fetchResp, signURL, act, transformVersion)
+		this.consumeAndSign(resp, fetchResp, &SXGParams{signURL, act, transformVersion})
 
 	case 304:
 		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
@@ -435,7 +427,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	default:
 		log.Printf("Not packaging because status code %d is unrecognized.\n", fetchResp.StatusCode)
-		proxy(resp, fetchResp, nil)
+		proxyUnconsumed(resp, fetchResp)
 	}
 }
 
@@ -464,38 +456,64 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 	return strings.Join(values, ","), nil
 }
 
-// serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
-func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, act string, transformVersion int64) {
-	// Cap with maxBodyLength to limit the memory that serveSignedExchange
-	// consumes per request. The serveSignedExchange implementation requires all
-	// the response body in memory, and doesn't work on streamed data.
-	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
+type SXGParams struct {
+	signURL                 *url.URL
+	ampCacheTransformHeader string
+	transformVersion        int64
+}
+
+// consumedFetchResp stores the fetch response in memory - including the
+// consumed body, not a stream reader. Signer loads the whole payload in memory
+// in order to be able to sign it, because it's required by signer's
+// serveSignedExchange method, specifically by its underlying calls to
+// transformer.Process and to signedexchange.NewExchange. The former validates
+// the AMP document, the latter signs it. Note: the latter requires the whole
+// payload in memory, because MICE requires the sender to process its payload in
+// reverse order
+// (https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.1). In an
+// HTTP reverse proxy, this could be done using range requests, but would be
+// inefficient.
+type consumedFetchResp struct {
+	body       []byte
+	StatusCode int
+	Header     http.Header
+}
+
+// maxSignableBodyLength is the signable payload length limit. If not hit, the
+// signer will load the payload into consumedFetchResp and sign it. If hit, the
+// signer won't sign the payload, but will proxy it in full by streaming it.
+// This way the signer limits per-request memory usage, making amppackager more
+// predictable provisioning-wise. The limit is mostly arbitrary, though there's
+// no benefit to having a limit greater than that of AMP Caches.
+const maxSignableBodyLength = 4 * 1 << 20
+
+func (this *Signer) consumeAndSign(resp http.ResponseWriter, fetchResp *http.Response, params *SXGParams) {
+	// Cap in order to limit per-request memory usage.
+	fetchBodyMaybeCapped, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxSignableBodyLength))
 	if err != nil {
 		util.NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
 		return
 	}
 
-	// If the cap has been applied, it means the document is too large. Signer
-	// won't load all the body into memory, and therefore won't sign the
-	// document. But signer can still proxy the document unsigned: first write
-	// the capped part of the body that signer has already read, and then call
-	// proxy to write headers and stream the rest of the body. ResponseWriter
-	// will make sure the headers are eventually sent before the body.
-	if len(fetchBody) == maxBodyLength {
-		resp.Write(fetchBody)
-		proxy(resp, fetchResp, nil)
-		return
+	if len(fetchBodyMaybeCapped) == maxSignableBodyLength {
+		// Body was too long and has been capped. Fallback to proxying.
+		proxyPartiallyConsumed(resp, fetchResp, fetchBodyMaybeCapped)
+	} else {
+		// Body has been consumed fully. OK to proceed.
+		this.serveSignedExchange(resp, consumedFetchResp{fetchBodyMaybeCapped, fetchResp.StatusCode, fetchResp.Header}, params)
 	}
 
-	// Now that fetchResp.Body is consumed, attempts to read or proxy it will result in an empty body.
+}
 
+// serveSignedExchange does the actual work of transforming, packaging, signing and writing to the response.
+func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp consumedFetchResp, params *SXGParams) {
 	// Perform local transformations.
-	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
-	r.Version = transformVersion
+	r := getTransformerRequest(this.rtvCache, string(fetchResp.body), params.signURL.String())
+	r.Version = params.transformVersion
 	transformed, metadata, err := transformer.Process(r)
 	if err != nil {
 		log.Println("Not packaging due to transformer error:", err)
-		proxy(resp, fetchResp, fetchBody)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 
@@ -503,7 +521,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	linkHeader, err := formatLinkHeader(metadata.Preloads)
 	if err != nil {
 		log.Println("Not packaging due to Link header error:", err)
-		proxy(resp, fetchResp, fetchBody)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 
@@ -536,14 +554,16 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 			fetchResp.Header.Get("Content-Security-Policy")))
 
 	exchange := signedexchange.NewExchange(
-		accept.SxgVersion /*uri=*/, signURL.String() /*method=*/, "GET",
+		accept.SxgVersion,
+		/*uri=*/ params.signURL.String(),
+		/*method=*/ "GET",
 		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
 		return
 	}
 	cert := this.certHandler.GetLatestCert()
-	certURL, err := this.genCertURL(cert, signURL)
+	certURL, err := this.genCertURL(cert, params.signURL)
 	if err != nil {
 		util.NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
 		return
@@ -565,7 +585,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	expires := date.Add(duration)
 	if !expires.After(now) {
 		log.Printf("Not packaging because computed max-age %d places expiry in the past\n", metadata.MaxAgeSecs)
-		proxy(resp, fetchResp, fetchBody)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 	signer := signedexchange.Signer{
@@ -573,7 +593,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		Expires:     expires,
 		Certs:       []*x509.Certificate{cert},
 		CertUrl:     certURL,
-		ValidityUrl: signURL.ResolveReference(validityHRef),
+		ValidityUrl: params.signURL.ResolveReference(validityHRef),
 		PrivKey:     this.key,
 		// TODO(twifkak): Should we make Rand user-configurable? The
 		// default is to use getrandom(2) if available, else
@@ -592,8 +612,8 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	// If requireHeaders was true when constructing signer, the
 	// AMP-Cache-Transform outer response header is required (and has already
 	// been validated)
-	if act != "" {
-		resp.Header().Set("AMP-Cache-Transform", act)
+	if params.ampCacheTransformHeader != "" {
+		resp.Header().Set("AMP-Cache-Transform", params.ampCacheTransformHeader)
 	}
 
 	resp.Header().Set("Content-Type", accept.SxgContentType)
@@ -614,18 +634,39 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	}
 }
 
-// Proxy the content unsigned. If body is non-nil, it is used in place of fetchResp.Body.
-// TODO(twifkak): Take a look at the source code to httputil.ReverseProxy and
-// see what else needs to be implemented.
-func proxy(resp http.ResponseWriter, fetchResp *http.Response, body []byte) {
-	for k, v := range fetchResp.Header {
+func proxyUnconsumed(resp http.ResponseWriter, fetchResp *http.Response) {
+	proxyImpl(resp, fetchResp.Header, fetchResp.StatusCode,
+		/* consumedPrefix= */ nil,
+		/* unconsumedSuffix = */ fetchResp.Body)
+}
+
+func proxyPartiallyConsumed(resp http.ResponseWriter, fetchResp *http.Response, consumedBodyPrefix []byte) {
+	proxyImpl(resp, fetchResp.Header, fetchResp.StatusCode,
+		/* consumedPrefix= */ consumedBodyPrefix,
+		/* unconsumedSuffix = */ fetchResp.Body)
+}
+
+func proxyConsumed(resp http.ResponseWriter, consumedFetchResp consumedFetchResp) {
+	proxyImpl(resp, consumedFetchResp.Header, consumedFetchResp.StatusCode,
+		/* consumedPrefix= */ consumedFetchResp.body,
+		/* unconsumedSuffix = */ nil)
+}
+
+// Proxy the content unsigned. The body may be already partially or fully
+// consumed. TODO(twifkak): Take a look at the source code to
+// httputil.ReverseProxy and see what else needs to be implemented.
+func proxyImpl(resp http.ResponseWriter, header http.Header, statusCode int, consumedPrefix []byte, unconsumedSuffix io.ReadCloser) {
+	for k, v := range header {
 		resp.Header()[k] = v
 	}
-	resp.WriteHeader(fetchResp.StatusCode)
-	if body != nil {
-		resp.Write(body)
-	} else {
-		bytesCopied, err := io.Copy(resp, fetchResp.Body)
+	resp.WriteHeader(statusCode)
+
+	if consumedPrefix != nil {
+		resp.Write(consumedPrefix)
+	}
+
+	if unconsumedSuffix != nil {
+		bytesCopied, err := io.Copy(resp, unconsumedSuffix)
 		if err != nil {
 			if bytesCopied == 0 {
 				util.NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
