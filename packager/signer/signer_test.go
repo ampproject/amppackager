@@ -1041,7 +1041,7 @@ func (this *SignerSuite) TestIfCappedDontSignAndProxyFullDocument() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
 
 	const uncappedTailLength = 100
-	veryLongString := strings.Repeat("a", maxBodyLength+uncappedTailLength)
+	veryLongString := strings.Repeat("a", maxSignableBodyLength+uncappedTailLength)
 	var customFakeBody = []byte("<html amp><body>" + veryLongString)
 
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
