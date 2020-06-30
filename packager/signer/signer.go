@@ -466,10 +466,10 @@ type SXGParams struct {
 // consumed body, not a stream reader. Signer loads the whole payload in memory
 // in order to be able to sign it, because it's required by signer's
 // serveSignedExchange method, specifically by its underlying calls to
-// transformer.Process and to signedexchange.NewExchange. The former validates
-// the AMP document, the latter signs it. Note: the latter requires the whole
-// payload in memory, because MICE requires the sender to process its payload in
-// reverse order
+// transformer.Process and to signedexchange.NewExchange. The former performs
+// AMP HTML transforms, which depend on a non-streaming HTML parser. The latter
+// signs it, which requires the whole payload in memory, because MICE requires
+// the sender to process its payload in reverse order
 // (https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.1). In an
 // HTTP reverse proxy, this could be done using range requests, but would be
 // inefficient.
@@ -507,7 +507,8 @@ func (this *Signer) consumeAndSign(resp http.ResponseWriter, fetchResp *http.Res
 
 // serveSignedExchange does the actual work of transforming, packaging, signing and writing to the response.
 func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp consumedFetchResp, params *SXGParams) {
-	// Perform local transformations.
+	// Perform local transformations, as required by AMP SXG caches, per
+	// docs/cache_requirements.md.
 	r := getTransformerRequest(this.rtvCache, string(fetchResp.body), params.signURL.String())
 	r.Version = params.transformVersion
 	transformed, metadata, err := transformer.Process(r)
