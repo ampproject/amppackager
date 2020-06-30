@@ -60,9 +60,8 @@ type nodeMap map[string]*html.Node
 
 // URLRewrite rewrites links to point to the AMP Cache and adds DNS preconnects to the <head>
 // Affected links:
-//  * <amp-img/amp-anim src>
-//  * <amp-img/amp-anim srcset>
-//  * <img src> / <img srcset> within <noscript>
+//  * <amp-img/amp-anim/img src>
+//  * <amp-img/amp-anim/img srcset>
 //  * <image href> / <image xlink:href> which are SVG-specific images.
 //  * <link rel=icon href>
 //  * <amp-video poster>
