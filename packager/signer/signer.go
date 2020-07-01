@@ -380,6 +380,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Println("Not packaging because of internal SelectVersion error:", err)
 			proxyUnconsumed(resp, fetchResp)
+			return
 		}
 	}
 	if this.requireHeaders && !accept.CanSatisfy(GetJoined(req.Header, "Accept")) {
@@ -560,20 +561,23 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp cons
 		/*method=*/ "GET",
 		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
+		log.Printf("Error MI-encoding: %s\n", err)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 	cert := this.certHandler.GetLatestCert()
 	certURL, err := this.genCertURL(cert, params.signURL)
 	if err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
+		log.Printf("Error building cert URL: %s\n", err)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 	now := time.Now()
 	validityHRef, err := url.Parse(util.ValidityMapPath)
 	if err != nil {
 		// Won't ever happen because util.ValidityMapPath is a constant.
-		util.NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
+		log.Printf("Error building validity href: %s\n", err)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 	// Expires - Date must be <= 604800 seconds, per
@@ -601,12 +605,14 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp cons
 		// /dev/urandom.
 	}
 	if err := exchange.AddSignatureHeader(&signer); err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
+		log.Printf("Error signing exchange: %s\n", err)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 	var body bytes.Buffer
 	if err := exchange.Write(&body); err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
+		log.Printf("Error serializing exchange: %s\n", err)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 
