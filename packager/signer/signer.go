@@ -498,6 +498,7 @@ func (this *Signer) consumeAndSign(resp http.ResponseWriter, fetchResp *http.Res
 
 	if len(fetchBodyMaybeCapped) == maxSignableBodyLength {
 		// Body was too long and has been capped. Fallback to proxying.
+		log.Println("Not packaging because the document size hit the limit of ", strconv.Itoa(maxSignableBodyLength), " bytes.")
 		proxyPartiallyConsumed(resp, fetchResp, fetchBodyMaybeCapped)
 	} else {
 		// Body has been consumed fully. OK to proceed.
@@ -505,6 +506,23 @@ func (this *Signer) consumeAndSign(resp http.ResponseWriter, fetchResp *http.Res
 	}
 
 }
+
+var promSignedAmpDocumentsSize = promauto.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Name:       "signed_amp_documents_size_in_bytes",
+		Help:       "Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	},
+	[]string{},
+)
+
+var promDocumentsSignedVsUnsigned = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "documents_signed_vs_unsigned",
+		Help: "Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned.",
+	},
+	[]string{"status"},
+)
 
 // serveSignedExchange does the actual work of transforming, packaging, signing and writing to the response.
 func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp consumedFetchResp, params *SXGParams) {
@@ -639,6 +657,9 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp cons
 		log.Println("Error writing response:", err)
 		return
 	}
+
+	promSignedAmpDocumentsSize.WithLabelValues().Observe(float64(len(fetchResp.body)))
+	promDocumentsSignedVsUnsigned.WithLabelValues("signed").Inc()
 }
 
 func proxyUnconsumed(resp http.ResponseWriter, fetchResp *http.Response) {
@@ -682,4 +703,6 @@ func proxyImpl(resp http.ResponseWriter, header http.Header, statusCode int, con
 			}
 		}
 	}
+
+	promDocumentsSignedVsUnsigned.WithLabelValues("proxied unsigned").Inc()
 }

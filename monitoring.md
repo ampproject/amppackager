@@ -127,9 +127,11 @@ labels.
 | Metric | Metric type | Explanation | Broken down by HTTP response code? | Broken down by [handler](https://github.com/MichaelRybak/amppackager/blob/doc/monitoring.md#understanding-stats-broken-down-by-amppackagers-handlers)? | 
 |--|--|--|--|--|
 | total_requests_by_code_and_url | Counter | Total number of requests handled by `amppackager` since it's been up. | Yes | Yes |
-| request_latencies_in_seconds | Summary | `amppackager`'s handlers latencies in seconds, measured from the moment the handler starts processing the request, to the moment the response is returned. | Yes | Yes |
-| total_gateway_requests_by_code | Counter | Total number of underlying requests sent by `signer` handler to the AMP document server. | Yes | No, specific to `signer` handler. |
-| gateway_request_latencies_in_seconds | Summary | Latencies (in seconds) of gateway requests to the AMP document server. | Yes | No, specific to `signer` handler. |
+| request_latencies_in_seconds | [Summary](#metrics-types-counters-and-summaries) | `amppackager`'s handlers latencies in seconds, measured from the moment the handler starts processing the request, to the moment the response is returned. | Yes | Yes |
+| total_gateway_requests_by_code | Counter | Total number of underlying requests sent by `signer` handler to the AMP document server. | Yes | No, specific to [`signer` handler](#amppackagers-handlers). |
+| gateway_request_latencies_in_seconds | [Summary](#metrics-types-counters-and-summaries) | Latencies (in seconds) of gateway requests to the AMP document server. | Yes | No, specific to [`signer` handler](#amppackagers-handlers). |
+| signed_amp_documents_size_in_bytes | [Summary](#metrics-types-counters-and-summaries) | Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned. | No, specific to 200 (OK) responses. | No, specific to [`signer` handler](#amppackagers-handlers). |
+| documents_signed_vs_unsigned | Counter | Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned. Does not account for requests to `amppackager` that resulted in an HTTP error. | No, specific to 200 (OK) responses. | No, specific to [`signer` handler](#amppackagers-handlers). |
 
 ## Understanding percentiles reported by Summaries
 
