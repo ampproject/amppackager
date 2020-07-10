@@ -80,7 +80,7 @@ container.
 
 #### Test your config
 
-  1. Run Chrome with the following commandline flags:
+  1. Run Chrome with the following command line flags:
      ```
      alias chrome = [FULL PATH TO CHROME BINARY]
      PATH_TO_FULLCHAIN_PEM = [FULL PATH TO fullchain.pem]
@@ -172,13 +172,15 @@ You may also want to:
      before publication, or with a regular audit of a sample of documents. The
      [transforms](transformer/) are designed to work on valid AMP pages, and
      may break invalid AMP in small ways.
+  4. Setup
+     [monitoring](#monitoring-amppackager-in-production-via-its-prometheus-endpoints)
+     of `amppackager` and related requests to AMP document server.
 
 Once you've done the above, you should be able to test by launching Chrome
-without any comamndline flags; just make sure
-chrome://flags/#enable-signed-http-exchange is enabled. To test by visiting the
-packager URL directly, first add a Chrome extension to send an
-`AMP-Cache-Transform: any` request header. Otherwise, follow the above
-"Demonstrate privacy-preserving prefetch" instructions.
+without any command line flags. To test by visiting the packager URL directly,
+first add a Chrome extension to send an `AMP-Cache-Transform: any` request
+header. Otherwise, follow the above "Demonstrate privacy-preserving prefetch"
+instructions.
 
 ##### Security Considerations
 
@@ -229,8 +231,9 @@ eligible for use in the AMP viewer in other browsers.
 
 ### Limitations
 
-Currently, the packager will refuse to sign any AMP documents larger than 4 MB.
-Patches that allow for streamed signing are welcome.
+Currently, the packager will refuse to sign any AMP documents that hit the size
+limit of 4MB. You can [monitor](monitoring.md#available-metrics) the size of
+your documents that have been signed, to see how close you are to the limit.
 
 The packager refuses to sign any URL that results in a redirect. This is by
 design, as neither the original URL nor the final URL makes sense as the signed
@@ -265,13 +268,37 @@ against the [AMP Cache requirement](docs/cache_requirements.md) for a minimum
 `max-age` of `345600` (4 days). For SXGs shorter than that, the Google AMP Cache
 will treat them as if unsigned (by showing an AMP Viewer).
 
+#### How does `amppackager` process a document it cannot sign?
+
+Packager will respond to every request with either a signed document, an
+unsigned document, or an error.
+
+It will sign every document it can. It may, however, decide not to,
+for a number of reasons: the certificate may be invalid, the page may not be a
+valid AMP page, the page may not be an AMP page at all, the page may be 4MB or
+larger, etc. 
+
+If packager cannot sign the document but can fetch it, it will proxy the
+document unsigned.
+
+If there was a problem with the gateway fetch request, or with the original
+request, packager will respond with an HTTP error, and log the problem to
+stdout.
+
+You can monitor the packager's error rates, as well as the rates of signed
+vs unsigned documents, via the tools discussed in the next section.
+
+Specifically, you can monitor the requests that resulted in a signed or an
+unsigned document via `documents_signed_vs_unsigned` metric, and the ones that
+resulted in an error - via `total_requests_by_code_and_url` metric.
+
 #### Monitoring `amppackager` in production via its Prometheus endpoints
 
-Once you've run the `amppackager` server in production, you may want to monitor
-its health and performance. You may also monitor the performance of the
-underlying requests to the AMP document server. You can monitor both servers via
-the [Prometheus](https://prometheus.io/) endpoints provided by `amppackager`. A
-few examples of questions you can answer:
+Once you've run the `amppackager` server in production, you may want to
+[monitor](monitoring.md) its health and performance. You may also monitor the
+performance of the underlying requests to the AMP document server. You can
+monitor both servers via the [Prometheus](https://prometheus.io/) endpoints
+provided by `amppackager`. A few examples of questions you can answer:
 
 *  Is `amppackager` up and running?
 *  How many requests has it processed since it's been up?

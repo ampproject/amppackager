@@ -1055,3 +1055,131 @@ func (this *SignerSuite) TestIfCappedDontSignAndProxyFullDocument() {
 	this.Require().NoError(err)
 	this.Assert().Equal(customFakeBody, body, "incorrect body: %#v", resp)
 }
+
+func (this *SignerSuite) TestWrongContentLength() {
+	fiveCharacterBody := []byte("abcde")
+	wrongLength := "4"
+
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
+	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "text/html")
+		resp.Header().Set("Content-Length", wrongLength)
+		resp.Write(fiveCharacterBody)
+	}
+	target := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
+	resp := pkgt.NewRequest(this.T(), this.new(urlSets), target).SetHeaders("", header).Do()
+	this.Assert().Equal(http.StatusBadGateway, resp.StatusCode, "incorrect status: %#v", resp)
+}
+
+func (this *SignerSuite) TestPrometheusMetricSignedAmpDocumentsSize() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	target := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
+
+	scenarios := []struct {
+		name        string
+		fakeHandler func(http.ResponseWriter, *http.Request)
+		expectation string
+	}{
+		{
+			name: "Scenario SimpleDocumentSuccess",
+			fakeHandler: func(resp http.ResponseWriter, req *http.Request) {
+				resp.Header().Set("Content-Type", "text/html; charset=utf-8")
+				resp.Write([]byte("<html amp>This document has 42 characters."))
+			},
+			expectation: `
+				signed_amp_documents_size_in_bytes{quantile="0.5"} 42
+				signed_amp_documents_size_in_bytes{quantile="0.9"} 42
+				signed_amp_documents_size_in_bytes{quantile="0.99"} 42
+				signed_amp_documents_size_in_bytes_sum 42
+				signed_amp_documents_size_in_bytes_count 1
+				`,
+		},
+		{
+			name: "Scenario ChunkedEncodingSuccess",
+			fakeHandler: func(resp http.ResponseWriter, req *http.Request) {
+				hj, _ := resp.(http.Hijacker)
+				conn, buf, _ := hj.Hijack()
+				defer conn.Close()
+				buf.WriteString("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nTransfer-Encoding: chunked\r\n\r\n9\r\n<html amp\r\n9\r\n>This doc\r\n9\r\nument has\r\n9\r\n 42 chara\r\n6\r\ncters.\r\n0\r\n\r\n")
+				buf.Flush()
+			},
+			expectation: `
+				signed_amp_documents_size_in_bytes{quantile="0.5"} 42
+				signed_amp_documents_size_in_bytes{quantile="0.9"} 42
+				signed_amp_documents_size_in_bytes{quantile="0.99"} 42
+				signed_amp_documents_size_in_bytes_sum 42
+				signed_amp_documents_size_in_bytes_count 1
+				`,
+		},
+		{
+			name: "Scenario VeryLongStringProxiedSoNoStats",
+			fakeHandler: func(resp http.ResponseWriter, req *http.Request) {
+				const tailToBeCappedLength = 100
+				veryLongString := strings.Repeat("a", maxSignableBodyLength+tailToBeCappedLength)
+				var veryLongBody = []byte("<html amp><body>" + veryLongString)
+				resp.Header().Set("Content-Type", "text/html")
+				resp.Write(veryLongBody)
+			},
+			expectation: ``,
+		},
+	}
+
+	const expectedHeader = `
+		# HELP signed_amp_documents_size_in_bytes Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned.
+		# TYPE signed_amp_documents_size_in_bytes summary
+		`
+
+	for _, scenario := range scenarios {
+		promSignedAmpDocumentsSize.Reset()
+
+		this.fakeHandler = scenario.fakeHandler
+		pkgt.NewRequest(this.T(), this.new(urlSets), target).SetHeaders("", header).Do()
+
+		expectation := strings.NewReader(expectedHeader + scenario.expectation)
+		this.Require().NoError(promtest.CollectAndCompare(promSignedAmpDocumentsSize, expectation, "signed_amp_documents_size_in_bytes"), scenario.name+" failed.")
+	}
+}
+
+func (this *SignerSuite) TestPrometheusMetricDocumentsSignedVsUnsigned() {
+	urlSets := []util.URLSet{{
+		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
+	}}
+	target := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
+
+	scenarios := []struct {
+		name           string
+		customFakeBody []byte
+		expectation    string
+	}{
+		{
+			name:           "Scenario DocumentSigned",
+			customFakeBody: fakeBody,
+			expectation:    `documents_signed_vs_unsigned{status="signed"} 1`,
+		},
+		{
+			name:           "Scenario DocumentUnsigned",
+			customFakeBody: []byte("Not an amp document, won't sign."),
+			expectation:    `documents_signed_vs_unsigned{status="proxied unsigned"} 1`,
+		},
+	}
+
+	const expectedHeader = `
+		# HELP documents_signed_vs_unsigned Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned.
+		# TYPE documents_signed_vs_unsigned counter
+		`
+
+	for _, scenario := range scenarios {
+		promDocumentsSignedVsUnsigned.Reset()
+
+		this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
+			resp.Write(scenario.customFakeBody)
+		}
+		pkgt.NewRequest(this.T(), this.new(urlSets), target).SetHeaders("", header).Do()
+
+		expectation := strings.NewReader(expectedHeader + "\n" + scenario.expectation + "\n")
+		this.Require().NoError(promtest.CollectAndCompare(promDocumentsSignedVsUnsigned, expectation, "documents_signed_vs_unsigned"), scenario.name+" failed.")
+	}
+}
