@@ -20,9 +20,6 @@ These include:
    * Parameter values of type string, binary, or identifier.
  * The payload must be:
    * non-empty.
-   * well-formed UTF-8 that doesn't contain:
-     * any characters that cause a parse-error during [HTML preprocessing](https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream)
-     * U+0000 NULL
    * valid transformed AMP. The canonical definition of transformed AMP is the
      return value of [`transform.Process()`](https://github.com/ampproject/amppackager/blob/e4bf0430ba152cfe82ccf063df92021dfc0f26a5/transformer/transformer.go#L219).
      If given a [valid AMP](https://github.com/ampproject/amphtml/tree/master/validator)
