@@ -20,16 +20,12 @@ These include:
    * Parameter values of type string, binary, or identifier.
  * The payload must be:
    * non-empty.
-   * well-formed UTF-8 that doesn't contain:
-     * any characters that cause a parse-error during [HTML preprocessing](https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream)
-     * U+0000 NULL
    * valid transformed AMP. The canonical definition of transformed AMP is the
      return value of [`transform.Process()`](https://github.com/ampproject/amppackager/blob/e4bf0430ba152cfe82ccf063df92021dfc0f26a5/transformer/transformer.go#L219).
      If given a [valid AMP](https://github.com/ampproject/amphtml/tree/master/validator)
      doc as input, it should produce a valid transformed AMP doc. There may be
      other ways of achieving this, but they are unsupported (i.e. may
      arbitrarily break in the future).
-   * unchanged after calling [`transform -config NONE`](https://github.com/ampproject/amppackager/tree/releases/transformer#how-to-use).
    * matching one of the versions requested by the `AMP-Cache-Transform` header.
      Note that this version range will increase over time, at a cadence TBD
      (likely 6-8 weeks with 2 or 3 supported latest versions).
