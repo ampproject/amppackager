@@ -67,7 +67,6 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 // transformer.
 //
 func AbsoluteURL(e *Context) error {
-	target := extractBaseTarget(e.DOM.HeadNode)
 	documentURL := e.DocumentURL.String()
 
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
@@ -140,15 +139,6 @@ func AbsoluteURL(e *Context) error {
 				}
 			case atom.A:
 				newValue := amphtml.ToAbsoluteURL(documentURL, e.BaseURL, href.Val)
-				// Set a default target
-				// 1. If the href is not a fragment AND
-				// 2. If there is no target OR
-				// 3. If there is a target and it is not an allowed target
-				if !strings.HasPrefix(newValue, "#") {
-					if v, ok := htmlnode.GetAttributeVal(n, "", "target"); !ok || (ok && !isAllowedTarget(v)) {
-						htmlnode.SetAttribute(n, "", "target", target)
-					}
-				}
 				htmlnode.SetAttribute(n, "", "href", newValue)
 			default:
 				// Absoluteify any remaining tags with an href attribute.
@@ -161,22 +151,6 @@ func AbsoluteURL(e *Context) error {
 		}
 	}
 	return nil
-}
-
-// extractBaseTarget returns the target value derived from the <base> tag, if it exists,
-// and is allowed. Otherwise, returns "_top".
-func extractBaseTarget(head *html.Node) string {
-	if n, ok := htmlnode.FindNode(head, atom.Base); ok {
-		if v, ok := htmlnode.GetAttributeVal(n, "", "target"); ok && isAllowedTarget(v) {
-			return v
-		}
-	}
-	return "_top"
-}
-
-// isAllowedTarget returns true if the given string is either "_blank" or "_top"
-func isAllowedTarget(t string) bool {
-	return strings.EqualFold(t, "_blank") || strings.EqualFold(t, "_top")
 }
 
 // rewriteAbsoluteURLs rewrites URLs in the given slice of attributes
