@@ -1,11 +1,15 @@
 # https://docs.travis-ci.com/user/languages/go/
 language: go
 
-# Ask gimme to choose latest stable minor release of Go 1.10.
-# https://github.com/travis-ci/gimme
-go: 
-  - 1.10.x
+# Use ".x" to ask gimme to choose latest stable minor version of each Go
+# release: https://github.com/travis-ci/gimme
+go:
   - 1.11.x
   - 1.12.x
   - 1.13.x
   - 1.14.x
+
+env:
+  # Necessary for Go 1.11 and 1.12, so they'll respect the version constraints
+  # in go.mod.
+  - GO111MODULE=on
