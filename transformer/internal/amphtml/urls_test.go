@@ -135,15 +135,6 @@ func TestToAbsoluteURL(t *testing.T) {
 			expected:    rootURL + "#dogs",
 		},
 		{
-			// TODO(b/123017837): Go escapes only certain chars in fragments.
-			desc:        "fragment not entirely reescaped", // This is intrinsic Go URL behavior.
-			input:       "https://example.com/amp.html#htmlURL=http%3A%2F%2Fbar.com%2Fbaz",
-			baseURL:     rootURL,
-			documentURL: rootURL,
-			//expected:    "https://example.com/amp.html#htmlURL=http%3A%2F%2Fbar.com%2Fbaz",
-			expected: "https://example.com/amp.html#htmlURL=http://bar.com/baz",
-		},
-		{
 			desc:        "fragment with space and quote reescaped",
 			input:       "https://example.com/amp.html#fragment-\" ",
 			baseURL:     rootURL,
@@ -366,12 +357,12 @@ func TestToCacheURLDomain(t *testing.T) {
 		{
 			desc:     "R-LDH #2",
 			input:    "in-trouble.com",
-			expected: "j7pweznglei73fva3bo6oidjt74j3hx4tfyncjsdwud7r7cci4va",
+			expected: "0-in--trouble-com-0",
 		},
 		{
 			desc:     "R-LDH #3",
 			input:    "a--problem.com",
-			expected: "a47psvede4jpgjom2kzmuhop74zzmdpjzasoctyoqqaxbkdbsyiq",
+			expected: "0-a----problem-com-0",
 		},
 		{
 			desc:     "Transition mapping per UTS #46",

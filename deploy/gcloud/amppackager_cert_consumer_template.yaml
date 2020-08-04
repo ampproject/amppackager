@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amppackager-cert-consumer-deployment
+  labels:
+    app: amppackager-consumer
+spec:
+  replicas: $(AMP_PACKAGER_NUM_REPLICAS)
+  selector:
+    matchLabels:
+      app: amppackager-consumer
+  template:
+    metadata:
+      labels:
+        app: amppackager-consumer
+    spec:
+      containers:
+      - image: gcr.io/$(PROJECT_ID)/amppackager:$(AMP_PACKAGER_VERSION_TAG)
+        imagePullPolicy: IfNotPresent
+        name: amppackager-cert-consumer-pd
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        imagePullPolicy: Always
+        volumeMounts:
+          # name should match from volumes section
+          - name: nfs-volume-renewer
+            mountPath: "/renewer"
+          - name: nfs-volume-consumer
+            mountPath: "/consumer"
+      volumes:
+      - name: nfs-volume-renewer
+        persistentVolumeClaim:
+          claimName: nfs-renewer-pvc
+      - name: nfs-volume-consumer
+        persistentVolumeClaim:
+           claimName: nfs-consumer-pvc

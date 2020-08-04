@@ -34,10 +34,29 @@ own and can obtain certificates for.
   1. Install Go version 1.10 or higher. Optionally, set
      [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
      is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
-  2. `go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg`
+  1. Get amppackager.
 
-     Optionally, move the built `~/go/bin/amppkg` wherever you like.
-  3. Create a file `amppkg.toml`. A minimal config looks like this:
+     Check your Go version by running `go version`.
+  
+     For Go 1.14 and higher versions run:
+
+       ```
+       go get -u github.com/ampproject/amppackager/cmd/amppkg
+       ```
+     
+     For Go 1.13 and earlier versions run:
+
+       ```
+       go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg
+       ```
+
+  1. Optionally, move the built `~/go/bin/amppkg` wherever you like.
+  1. Prepare a temporary certificate and private key pair to use for signing the
+     exchange when testing your config. Follow WICG
+     [instructions](https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange)
+     to ensure compliance with the [WICG certificate
+     requirements](https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-cert-req).
+  1. Create a file `amppkg.toml`. A minimal config looks like this:
      ```
      LocalOnly = true
      CertFile = 'path/to/fullchain.pem'
@@ -49,7 +68,7 @@ own and can obtain certificates for.
          Domain = "amppackageexample.com"
      ```
      More details can be found in [amppkg.example.toml](amppkg.example.toml).
-  4. `amppkg -development`
+  1. `amppkg -development`
 
      If `amppkg.toml` is not in the current working directory, pass
      `-config=/path/to/amppkg.toml`.
@@ -61,12 +80,17 @@ container.
 
 #### Test your config
 
-  1. Run Chrome with the following commandline flags:
+  1. Run Chrome with the following command line flags:
      ```
-     --user-data-dir=/tmp/udd
-     --ignore-certificate-errors-spki-list=$(openssl x509 -pubkey -noout -in path/to/fullchain.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
-     --enable-features=SignedHTTPExchange
-     'data:text/html,<a href="https://localhost:8080/priv/doc/https://amppackageexample.com/">click me'
+     alias chrome = [FULL PATH TO CHROME BINARY]
+     PATH_TO_FULLCHAIN_PEM = [FULL PATH TO fullchain.pem]
+     chrome --user-data-dir=/tmp/udd\
+         --ignore-certificate-errors-spki-list=$(\
+            openssl x509 -pubkey -noout -in $PATH_TO_FULLCHAIN_PEM |\
+            openssl pkey -pubin -outform der |\
+            openssl dgst -sha256 -binary | base64)\
+         --enable-features=SignedHTTPExchange\
+            'data:text/html,<a href="https://localhost:8080/priv/doc/https://amppackageexample.com/">click me'
      ```
   2. Open DevTools. Check 'Preserve log'.
   3. Click the `click me` link.
@@ -148,13 +172,15 @@ You may also want to:
      before publication, or with a regular audit of a sample of documents. The
      [transforms](transformer/) are designed to work on valid AMP pages, and
      may break invalid AMP in small ways.
+  4. Setup
+     [monitoring](#monitoring-amppackager-in-production-via-its-prometheus-endpoints)
+     of `amppackager` and related requests to AMP document server.
 
 Once you've done the above, you should be able to test by launching Chrome
-without any comamndline flags; just make sure
-chrome://flags/#enable-signed-http-exchange is enabled. To test by visiting the
-packager URL directly, first add a Chrome extension to send an
-`AMP-Cache-Transform: any` request header. Otherwise, follow the above
-"Demonstrate privacy-preserving prefetch" instructions.
+without any command line flags. To test by visiting the packager URL directly,
+first add a Chrome extension to send an `AMP-Cache-Transform: any` request
+header. Otherwise, follow the above "Demonstrate privacy-preserving prefetch"
+instructions.
 
 ##### Security Considerations
 
@@ -175,8 +201,9 @@ that:
 
 It is possible to test an otherwise fully production configuration without
 obtaining a certificate with the `CanSignHttpExchanges` extension. `amppkg`
-still needs to perform OCSP verification, so the Issuer CA must be valid (i.e. no
-self-signed certificates). e.g. You can use a certificate from [Let's Encrypt](https://letsencrypt.org/).
+still needs to perform OCSP verification, so the Issuer CA must be valid (i.e.
+no self-signed certificates). e.g. You can use a certificate from [Let's
+Encrypt](https://letsencrypt.org/).
 
 Running `amppkg` with the `-invalidcert` flag will skip the check for
 `CanSignHttpExchanges`. This flag is not necessary when using the
@@ -204,8 +231,9 @@ eligible for use in the AMP viewer in other browsers.
 
 ### Limitations
 
-Currently, the packager will refuse to sign any AMP documents larger than 4 MB.
-Patches that allow for streamed signing are welcome.
+Currently, the packager will refuse to sign any AMP documents that hit the size
+limit of 4MB. You can [monitor](monitoring.md#available-metrics) the size of
+your documents that have been signed, to see how close you are to the limit.
 
 The packager refuses to sign any URL that results in a redirect. This is by
 design, as neither the original URL nor the final URL makes sense as the signed
@@ -224,6 +252,65 @@ recommendation is to ignore the console error, for now. This is because
 amp-install-serviceworker will still succeed in the unsigned AMP viewer case,
 and crawlers may reuse the contents of the signed exchange when displaying an
 AMP viewer to browser versions that don't support SXG.
+
+#### `<amp-script>`
+
+If you have any inline `<amp-script>`s (those with a `script` attribute), then
+the expiration of the SXG will be set based on the minimum `max-age` of those
+`<amp-script>`s, minus one day (due to
+[backdating](https://github.com/ampproject/amppackager/issues/397)). If
+possible, prefer external `<amp-script>`s (those with a `src` attribute), which
+do not have this limitation.
+
+If inline is necessary, you will need to weigh the [security
+risks](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#seccons-downgrades)
+against the [AMP Cache requirement](docs/cache_requirements.md) for a minimum
+`max-age` of `345600` (4 days). For SXGs shorter than that, the Google AMP Cache
+will treat them as if unsigned (by showing an AMP Viewer).
+
+#### How does `amppackager` process a document it cannot sign?
+
+Packager will respond to every request with either a signed document, an
+unsigned document, or an error.
+
+It will sign every document it can. It may, however, decide not to,
+for a number of reasons: the certificate may be invalid, the page may not be a
+valid AMP page, the page may not be an AMP page at all, the page may be 4MB or
+larger, etc. 
+
+If packager cannot sign the document but can fetch it, it will proxy the
+document unsigned.
+
+If there was a problem with the gateway fetch request, or with the original
+request, packager will respond with an HTTP error, and log the problem to
+stdout.
+
+You can monitor the packager's error rates, as well as the rates of signed
+vs unsigned documents, via the tools discussed in the next section.
+
+Specifically, you can monitor the requests that resulted in a signed or an
+unsigned document via `documents_signed_vs_unsigned` metric, and the ones that
+resulted in an error - via `total_requests_by_code_and_url` metric.
+
+#### Monitoring `amppackager` in production via its Prometheus endpoints
+
+Once you've run the `amppackager` server in production, you may want to
+[monitor](monitoring.md) its health and performance. You may also monitor the
+performance of the underlying requests to the AMP document server. You can
+monitor both servers via the [Prometheus](https://prometheus.io/) endpoints
+provided by `amppackager`. A few examples of questions you can answer:
+
+*  Is `amppackager` up and running?
+*  How many requests has it processed since it's been up?
+*  What was the 0.9 percentile latency of handling those request?
+*  How many of those requests have triggered a gateway request to the
+   AMP document server? 
+*  For those gateway requests, what was the 0.9 percentile latency of 
+   the AMP document server?
+
+You can perform one-off manual health inspections, visualize the real-time
+stats, set up alerts, and more. To learn what are all the things you can
+monitor, and how to do it, check the [monitoring manual](monitoring.md).
 
 ## Local Transformer
 

@@ -30,6 +30,7 @@ import (
 )
 
 const CertURLPrefix = "/amppkg/cert"
+const SignerURLPrefix = "/priv/doc"
 
 // CertName returns the basename for the given cert, as served by this
 // packager's cert cache. Should be stable and unique (e.g.
@@ -42,6 +43,7 @@ func CertName(cert *x509.Certificate) string {
 
 const ValidityMapPath = "/amppkg/validity"
 const HealthzPath = "/healthz"
+const MetricsPath = "/metrics"
 
 // ParsePrivateKey returns the first PEM block that looks like a private key.
 func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
@@ -50,7 +52,8 @@ func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
 		var pemBlock *pem.Block
 		pemBlock, keyPem = pem.Decode(keyPem)
 		if pemBlock == nil {
-			return nil, errors.New("invalid PEM block in private key file")
+			return nil, errors.New("invalid PEM block in private key file, make sure to use the right key type. See: https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange")
+
 		}
 
 		var err error

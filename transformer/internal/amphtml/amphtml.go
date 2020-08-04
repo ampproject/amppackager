@@ -124,6 +124,9 @@ func IsScriptRenderDelaying(n *html.Node) bool {
 	if n.DataAtom != atom.Script {
 		return false
 	}
+	if IsScriptAMPViewer(n) {
+		return true
+	}
 	if v, ok := htmlnode.GetAttributeVal(n, "", AMPCustomElement); ok {
 		// TODO(b/77581738): Remove amp-story from this list.
 		return (v == AMPDynamicCSSClasses ||

@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/ampproject/amppackager/packager/util"
@@ -87,36 +88,74 @@ var B3KeyP521 = func() crypto.PrivateKey {
 // The URL path component corresponding to the cert's sha-256.
 var CertName = util.CertName(Certs[0])
 
-// TODO(twifkak): Make a fluent builder interface for requests, instead of this mess.
-
-func Get(t *testing.T, handler http.Handler, target string) *http.Response {
-	return GetH(t, handler, target, http.Header{})
+// Request encapsulates all the information needed to construct a test request
+// for use by the unit tests.
+type Request struct {
+	T       *testing.T
+	Handler http.Handler
+	Target  string
+	Host    string
+	Header  http.Header
+	Body    io.Reader
 }
 
-func GetH(t *testing.T, handler http.Handler, target string, headers http.Header) *http.Response {
-	return GetBHH(t, handler, target, "", nil, headers)
+// NewRequest returns a new test request.
+func NewRequest(t *testing.T, h http.Handler, target string) *Request {
+	return &Request{
+		T:       t,
+		Handler: h,
+		Target:  target,
+	}
 }
 
-func GetHH(t *testing.T, handler http.Handler, target string, host string, headers http.Header) *http.Response {
-	return GetBHH(t, handler, target, host, nil, headers)
+// SetHeaders sets the headers for the request. Host may be empty for the default.
+func (r *Request) SetHeaders(host string, header http.Header) *Request {
+	r.Host = host
+	r.Header = header
+	return r
 }
 
-func GetBHH(t *testing.T, handler http.Handler, target string, host string, body io.Reader, headers http.Header) *http.Response {
+// SetBody sets the body for the request. May be nil for an empty body.
+func (r *Request) SetBody(body io.Reader) *Request {
+	r.Body = body
+	return r
+}
+
+// Get returns the completed test request object.
+func (r *Request) Do() *http.Response {
 	rec := httptest.NewRecorder()
 	method := ""
-	if body != nil {
-		method = "POST"
-		headers.Set("Content-Type", "application/x-www-form-urlencoded")
+	if r.Header == nil {
+		r.Header = http.Header{}
 	}
-	req := httptest.NewRequest(method, target, body)
-	for name, values := range headers {
+	if r.Body != nil {
+		method = "POST"
+		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	}
+	req := httptest.NewRequest(method, r.Target, r.Body)
+	for name, values := range r.Header {
 		for _, value := range values {
 			req.Header.Add(name, value)
 		}
 	}
-	if host != "" {
-		req.Host = host
+	if r.Host != "" {
+		req.Host = r.Host
 	}
-	handler.ServeHTTP(rec, req)
+	r.Handler.ServeHTTP(rec, req)
 	return rec.Result()
+}
+
+type FakeClock struct {
+	secondsSince0 time.Duration
+	Delta         time.Duration
+}
+
+func NewFakeClock() *FakeClock {
+	return &FakeClock{time.Now().Sub(time.Unix(0, 0)), time.Second}
+}
+
+func (this *FakeClock) Now() time.Time {
+	secondsSince0 := this.secondsSince0
+	this.secondsSince0 = secondsSince0 + this.Delta
+	return time.Unix(0, 0).Add(secondsSince0)
 }

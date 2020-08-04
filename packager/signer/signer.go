@@ -39,6 +39,8 @@ import (
 	"github.com/ampproject/amppackager/transformer"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // The user agent to send when issuing fetches. Should look like a mobile device.
@@ -77,14 +79,6 @@ var statusNotModifiedHeaders = map[string]bool{
 	"Expires":          true,
 	"Vary":             true,
 }
-
-// MICE requires the sender process its payload in reverse order
-// (https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.1).
-// In an HTTP reverse proxy, this could be done using range requests, but would
-// be inefficient. Therefore, the signer requires the whole payload in memory.
-// To prevent DoS, a memory limit is set. This limit is mostly arbitrary,
-// though there's no benefit to having a limit greater than that of AMP Caches.
-const maxBodyLength = 4 * 1 << 20
 
 // The current maximum is defined at:
 // https://cs.chromium.org/chromium/src/content/browser/loader/merkle_integrity_source_stream.cc?l=18&rcl=591949795043a818e50aba8a539094c321a4220c
@@ -132,6 +126,7 @@ type Signer struct {
 	overrideBaseURL         *url.URL
 	requireHeaders          bool
 	forwardedRequestHeaders []string
+	timeNow                 func() time.Time
 }
 
 func noRedirects(req *http.Request, via []*http.Request) error {
@@ -140,14 +135,14 @@ func noRedirects(req *http.Request, via []*http.Request) error {
 
 func New(certHandler certcache.CertHandler, key crypto.PrivateKey, urlSets []util.URLSet,
 	rtvCache *rtv.RTVCache, shouldPackage func() error, overrideBaseURL *url.URL,
-	requireHeaders bool, forwardedRequestHeaders []string) (*Signer, error) {
+	requireHeaders bool, forwardedRequestHeaders []string, timeNow func() time.Time) (*Signer, error) {
 	client := http.Client{
 		CheckRedirect: noRedirects,
 		// TODO(twifkak): Load-test and see if default transport settings are okay.
 		Timeout: 60 * time.Second,
 	}
 
-	return &Signer{certHandler, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders}, nil
+	return &Signer{certHandler, key, &client, urlSets, rtvCache, shouldPackage, overrideBaseURL, requireHeaders, forwardedRequestHeaders, timeNow}, nil
 }
 
 func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
@@ -181,7 +176,7 @@ func (this *Signer) fetchURL(fetch *url.URL, serveHTTPReq *http.Request) (*http.
 		// TODO(twifkak): Extract host from upstream Forwarded header
 		// and concatenate. (Do not include any other parameters, as
 		// they may lead to over-signing.)
-		req.Header.Set("Forwarded", `host=` + quotedHost)
+		req.Header.Set("Forwarded", `host=`+quotedHost)
 		xfh := serveHTTPReq.Host
 		if oldXFH := serveHTTPReq.Header.Get("X-Forwarded-Host"); oldXFH != "" {
 			xfh = oldXFH + "," + xfh
@@ -247,7 +242,7 @@ func MutateFetchedContentSecurityPolicy(fetched string) string {
 	// Add missing directives or replace the ones that were removed in some cases
 	newCsp.WriteString(
 		"default-src * blob: data:;" +
-			"report-uri https://csp-collector.appspot.com/csp/amp;" +
+			"report-uri https://csp.withgoogle.com/csp/amp;" +
 			"script-src blob: https://cdn.ampproject.org/rtv/ " +
 			"https://cdn.ampproject.org/v0.js " +
 			"https://cdn.ampproject.org/v0/ " +
@@ -275,6 +270,52 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 	}
 	ret := baseURL.ResolveReference(certHRef)
 	return ret, nil
+}
+
+// promGatewayRequestsTotal is a Prometheus counter that observes total gateway requests count.
+var promGatewayRequestsTotal = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "total_gateway_requests_by_code",
+		Help: "Total number of underlying requests to AMP document server - by HTTP response status code.",
+	},
+	[]string{"code"},
+)
+
+// promGatewayRequestsLatency is a Prometheus summary that observes requests latencies.
+// Objectives key value pairs set target quantiles and respective allowed rank variance.
+// Upon query, for each Objective quantile (0.5, 0.9, 0.99) the summary returns
+// an actual observed latency value that is ranked close to the Objective value.
+// For more intuition on the Objectives see http://alexandrutopliceanu.ro/post/targeted-quantiles/.
+var promGatewayRequestsLatency = promauto.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Name:       "gateway_request_latencies_in_seconds",
+		Help:       "Latencies (in seconds) of gateway requests to AMP document server - by HTTP response status code.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	},
+	[]string{"code"},
+)
+
+func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Request) (*http.Request, *http.Response, *util.HTTPError) {
+	startTime := this.timeNow()
+
+	fetchReq, fetchResp, httpErr := this.fetchURL(fetch, serveHTTPReq)
+	if httpErr == nil {
+		// httpErr is nil, i.e. the gateway request did succeed. Let Prometheus
+		// observe the gateway request and its latency - along with the response code.
+		label := prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}
+		promGatewayRequestsTotal.With(label).Inc()
+
+		latency := this.timeNow().Sub(startTime)
+		promGatewayRequestsLatency.With(label).Observe(latency.Seconds())
+	} else {
+		// httpErr can have a non-nil value. E.g. http.StatusBadGateway (502)
+		// is the most probable error fetchURL returns if failed. In case of
+		// non-nil httpErr don't observe the request. Instead do nothing and let
+		// mux's promRequestsTotal observe the top level non-gateway request (along
+		// with the response code e.g. 502) once signer has completed handling it.
+	}
+
+	return fetchReq, fetchResp, httpErr
 }
 
 func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -306,7 +347,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fetchReq, fetchResp, httpErr := this.fetchURL(fetchURL, req)
+	fetchReq, fetchResp, httpErr := this.fetchURLAndMeasure(fetchURL, req)
 	if httpErr != nil {
 		httpErr.LogAndRespond(resp)
 		return
@@ -320,7 +361,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	if err := this.shouldPackage(); err != nil {
 		log.Println("Not packaging because server is unhealthy; see above log statements.", err)
-		proxy(resp, fetchResp, nil)
+		proxyUnconsumed(resp, fetchResp)
 		return
 	}
 	var act string
@@ -330,7 +371,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		act, transformVersion = amp_cache_transform.ShouldSendSXG(header_value)
 		if act == "" {
 			log.Println("Not packaging because AMP-Cache-Transform request header is invalid:", header_value)
-			proxy(resp, fetchResp, nil)
+			proxyUnconsumed(resp, fetchResp)
 			return
 		}
 	} else {
@@ -338,12 +379,13 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		transformVersion, err = transformer.SelectVersion(nil)
 		if err != nil {
 			log.Println("Not packaging because of internal SelectVersion error:", err)
-			proxy(resp, fetchResp, nil)
+			proxyUnconsumed(resp, fetchResp)
+			return
 		}
 	}
 	if this.requireHeaders && !accept.CanSatisfy(GetJoined(req.Header, "Accept")) {
 		log.Printf("Not packaging because Accept request header lacks application/signed-exchange;v=%s.\n", accept.AcceptedSxgVersion)
-		proxy(resp, fetchResp, nil)
+		proxyUnconsumed(resp, fetchResp)
 		return
 	}
 
@@ -352,13 +394,13 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		// If fetchURL returns an OK status, then validate, munge, and package.
 		if err := validateFetch(fetchReq, fetchResp); err != nil {
 			log.Println("Not packaging because of invalid fetch: ", err)
-			proxy(resp, fetchResp, nil)
+			proxyUnconsumed(resp, fetchResp)
 			return
 		}
 		for header := range statefulResponseHeaders {
 			if errorOnStatefulHeaders && GetJoined(fetchResp.Header, header) != "" {
 				log.Println("Not packaging because ErrorOnStatefulHeaders = True and fetch response contains stateful header: ", header)
-				proxy(resp, fetchResp, nil)
+				proxyUnconsumed(resp, fetchResp)
 				return
 			}
 		}
@@ -369,11 +411,11 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			// Variants headers (https://tools.ietf.org/html/draft-ietf-httpbis-variants-04) are disallowed by AMP Cache.
 			// We could delete the headers, but it's safest to assume they reflect the downstream server's intent.
 			log.Println("Not packaging because response contains a Variants header.")
-			proxy(resp, fetchResp, nil)
+			proxyUnconsumed(resp, fetchResp)
 			return
 		}
 
-		this.serveSignedExchange(resp, fetchResp, signURL, act, transformVersion)
+		this.consumeAndSign(resp, fetchResp, &SXGParams{signURL, act, transformVersion})
 
 	case 304:
 		// If fetchURL returns a 304, then also return a 304 with appropriate headers.
@@ -386,7 +428,7 @@ func (this *Signer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	default:
 		log.Printf("Not packaging because status code %d is unrecognized.\n", fetchResp.StatusCode)
-		proxy(resp, fetchResp, nil)
+		proxyUnconsumed(resp, fetchResp)
 	}
 }
 
@@ -415,22 +457,83 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 	return strings.Join(values, ","), nil
 }
 
-// serveSignedExchange does the actual work of transforming, packaging and signed and writing to the response.
-func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *http.Response, signURL *url.URL, act string, transformVersion int64) {
-	// After this, fetchResp.Body is consumed, and attempts to read or proxy it will result in an empty body.
-	fetchBody, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxBodyLength))
+type SXGParams struct {
+	signURL                 *url.URL
+	ampCacheTransformHeader string
+	transformVersion        int64
+}
+
+// consumedFetchResp stores the fetch response in memory - including the
+// consumed body, not a stream reader. Signer loads the whole payload in memory
+// in order to be able to sign it, because it's required by signer's
+// serveSignedExchange method, specifically by its underlying calls to
+// transformer.Process and to signedexchange.NewExchange. The former performs
+// AMP HTML transforms, which depend on a non-streaming HTML parser. The latter
+// signs it, which requires the whole payload in memory, because MICE requires
+// the sender to process its payload in reverse order
+// (https://tools.ietf.org/html/draft-thomson-http-mice-03#section-2.1). In an
+// HTTP reverse proxy, this could be done using range requests, but would be
+// inefficient.
+type consumedFetchResp struct {
+	body       []byte
+	StatusCode int
+	Header     http.Header
+}
+
+// maxSignableBodyLength is the signable payload length limit. If not hit, the
+// signer will load the payload into consumedFetchResp and sign it. If hit, the
+// signer won't sign the payload, but will proxy it in full by streaming it.
+// This way the signer limits per-request memory usage, making amppackager more
+// predictable provisioning-wise. The limit is mostly arbitrary, though there's
+// no benefit to having a limit greater than that of AMP Caches.
+const maxSignableBodyLength = 4 * 1 << 20
+
+func (this *Signer) consumeAndSign(resp http.ResponseWriter, fetchResp *http.Response, params *SXGParams) {
+	// Cap in order to limit per-request memory usage.
+	fetchBodyMaybeCapped, err := ioutil.ReadAll(io.LimitReader(fetchResp.Body, maxSignableBodyLength))
 	if err != nil {
 		util.NewHTTPError(http.StatusBadGateway, "Error reading body: ", err).LogAndRespond(resp)
 		return
 	}
 
-	// Perform local transformations.
-	r := getTransformerRequest(this.rtvCache, string(fetchBody), signURL.String())
-	r.Version = transformVersion
+	if len(fetchBodyMaybeCapped) == maxSignableBodyLength {
+		// Body was too long and has been capped. Fallback to proxying.
+		log.Println("Not packaging because the document size hit the limit of ", strconv.Itoa(maxSignableBodyLength), " bytes.")
+		proxyPartiallyConsumed(resp, fetchResp, fetchBodyMaybeCapped)
+	} else {
+		// Body has been consumed fully. OK to proceed.
+		this.serveSignedExchange(resp, consumedFetchResp{fetchBodyMaybeCapped, fetchResp.StatusCode, fetchResp.Header}, params)
+	}
+
+}
+
+var promSignedAmpDocumentsSize = promauto.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Name:       "signed_amp_documents_size_in_bytes",
+		Help:       "Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	},
+	[]string{},
+)
+
+var promDocumentsSignedVsUnsigned = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "documents_signed_vs_unsigned",
+		Help: "Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned.",
+	},
+	[]string{"status"},
+)
+
+// serveSignedExchange does the actual work of transforming, packaging, signing and writing to the response.
+func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp consumedFetchResp, params *SXGParams) {
+	// Perform local transformations, as required by AMP SXG caches, per
+	// docs/cache_requirements.md.
+	r := getTransformerRequest(this.rtvCache, string(fetchResp.body), params.signURL.String())
+	r.Version = params.transformVersion
 	transformed, metadata, err := transformer.Process(r)
 	if err != nil {
 		log.Println("Not packaging due to transformer error:", err)
-		proxy(resp, fetchResp, fetchBody)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 
@@ -438,7 +541,7 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 	linkHeader, err := formatLinkHeader(metadata.Preloads)
 	if err != nil {
 		log.Println("Not packaging due to Link header error:", err)
-		proxy(resp, fetchResp, fetchBody)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 
@@ -471,22 +574,29 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 			fetchResp.Header.Get("Content-Security-Policy")))
 
 	exchange := signedexchange.NewExchange(
-		accept.SxgVersion /*uri=*/, signURL.String() /*method=*/, "GET",
+		accept.SxgVersion,
+		/*uri=*/ params.signURL.String(),
+		/*method=*/ "GET",
 		http.Header{}, fetchResp.StatusCode, fetchResp.Header, []byte(transformed))
 	if err := exchange.MiEncodePayload(miRecordSize); err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error MI-encoding: ", err).LogAndRespond(resp)
+		log.Printf("Error MI-encoding: %s\n", err)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 	cert := this.certHandler.GetLatestCert()
-	certURL, err := this.genCertURL(cert, signURL)
+	certURL, err := this.genCertURL(cert, params.signURL)
 	if err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error building cert URL: ", err).LogAndRespond(resp)
+		log.Printf("Error building cert URL: %s\n", err)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 	now := time.Now()
 	validityHRef, err := url.Parse(util.ValidityMapPath)
 	if err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error building validity href: ", err).LogAndRespond(resp)
+		// Won't ever happen because util.ValidityMapPath is a constant.
+		log.Printf("Error building validity href: %s\n", err)
+		proxyConsumed(resp, fetchResp)
+		return
 	}
 	// Expires - Date must be <= 604800 seconds, per
 	// https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-3.5.
@@ -495,31 +605,40 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		duration = maxAge
 	}
 	date := now.Add(-24 * time.Hour)
+	expires := date.Add(duration)
+	if !expires.After(now) {
+		log.Printf("Not packaging because computed max-age %d places expiry in the past\n", metadata.MaxAgeSecs)
+		proxyConsumed(resp, fetchResp)
+		return
+	}
 	signer := signedexchange.Signer{
 		Date:        date,
-		Expires:     date.Add(duration),
+		Expires:     expires,
 		Certs:       []*x509.Certificate{cert},
 		CertUrl:     certURL,
-		ValidityUrl: signURL.ResolveReference(validityHRef),
+		ValidityUrl: params.signURL.ResolveReference(validityHRef),
 		PrivKey:     this.key,
 		// TODO(twifkak): Should we make Rand user-configurable? The
 		// default is to use getrandom(2) if available, else
 		// /dev/urandom.
 	}
 	if err := exchange.AddSignatureHeader(&signer); err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error signing exchange: ", err).LogAndRespond(resp)
+		log.Printf("Error signing exchange: %s\n", err)
+		proxyConsumed(resp, fetchResp)
 		return
 	}
 	var body bytes.Buffer
 	if err := exchange.Write(&body); err != nil {
-		util.NewHTTPError(http.StatusInternalServerError, "Error serializing exchange: ", err).LogAndRespond(resp)
+		log.Printf("Error serializing exchange: %s\n", err)
+		proxyConsumed(resp, fetchResp)
+		return
 	}
 
 	// If requireHeaders was true when constructing signer, the
 	// AMP-Cache-Transform outer response header is required (and has already
 	// been validated)
-	if act != "" {
-		resp.Header().Set("AMP-Cache-Transform", act)
+	if params.ampCacheTransformHeader != "" {
+		resp.Header().Set("AMP-Cache-Transform", params.ampCacheTransformHeader)
 	}
 
 	resp.Header().Set("Content-Type", accept.SxgContentType)
@@ -538,20 +657,44 @@ func (this *Signer) serveSignedExchange(resp http.ResponseWriter, fetchResp *htt
 		log.Println("Error writing response:", err)
 		return
 	}
+
+	promSignedAmpDocumentsSize.WithLabelValues().Observe(float64(len(fetchResp.body)))
+	promDocumentsSignedVsUnsigned.WithLabelValues("signed").Inc()
 }
 
-// Proxy the content unsigned. If body is non-nil, it is used in place of fetchResp.Body.
-// TODO(twifkak): Take a look at the source code to httputil.ReverseProxy and
-// see what else needs to be implemented.
-func proxy(resp http.ResponseWriter, fetchResp *http.Response, body []byte) {
-	for k, v := range fetchResp.Header {
+func proxyUnconsumed(resp http.ResponseWriter, fetchResp *http.Response) {
+	proxyImpl(resp, fetchResp.Header, fetchResp.StatusCode,
+		/* consumedPrefix= */ nil,
+		/* unconsumedSuffix = */ fetchResp.Body)
+}
+
+func proxyPartiallyConsumed(resp http.ResponseWriter, fetchResp *http.Response, consumedBodyPrefix []byte) {
+	proxyImpl(resp, fetchResp.Header, fetchResp.StatusCode,
+		/* consumedPrefix= */ consumedBodyPrefix,
+		/* unconsumedSuffix = */ fetchResp.Body)
+}
+
+func proxyConsumed(resp http.ResponseWriter, consumedFetchResp consumedFetchResp) {
+	proxyImpl(resp, consumedFetchResp.Header, consumedFetchResp.StatusCode,
+		/* consumedPrefix= */ consumedFetchResp.body,
+		/* unconsumedSuffix = */ nil)
+}
+
+// Proxy the content unsigned. The body may be already partially or fully
+// consumed. TODO(twifkak): Take a look at the source code to
+// httputil.ReverseProxy and see what else needs to be implemented.
+func proxyImpl(resp http.ResponseWriter, header http.Header, statusCode int, consumedPrefix []byte, unconsumedSuffix io.ReadCloser) {
+	for k, v := range header {
 		resp.Header()[k] = v
 	}
-	resp.WriteHeader(fetchResp.StatusCode)
-	if body != nil {
-		resp.Write(body)
-	} else {
-		bytesCopied, err := io.Copy(resp, fetchResp.Body)
+	resp.WriteHeader(statusCode)
+
+	if consumedPrefix != nil {
+		resp.Write(consumedPrefix)
+	}
+
+	if unconsumedSuffix != nil {
+		bytesCopied, err := io.Copy(resp, unconsumedSuffix)
 		if err != nil {
 			if bytesCopied == 0 {
 				util.NewHTTPError(http.StatusInternalServerError, "Error copying response body").LogAndRespond(resp)
@@ -560,4 +703,6 @@ func proxy(resp http.ResponseWriter, fetchResp *http.Response, body []byte) {
 			}
 		}
 	}
+
+	promDocumentsSignedVsUnsigned.WithLabelValues("proxied unsigned").Inc()
 }
