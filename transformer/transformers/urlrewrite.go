@@ -64,6 +64,8 @@ type nodeMap map[string]*html.Node
 //  * <amp-img/amp-anim/img srcset>
 //  * <image href> / <image xlink:href> which are SVG-specific images.
 //  * <link rel=icon href>
+//  * <link rel=preload as=image href>
+//  * <link rel=preload imagesrcset>
 //  * <amp-video poster>
 //  * <use xlink:href>
 //  * a background image given in the <style amp-custom> tag / style attribute
@@ -104,12 +106,20 @@ func URLRewrite(e *Context) error {
 
 		switch n.Data {
 		case "link":
-			// Rewrite 'href' attribute within <link rel="icon" href=...> and variants
-			// to point into the AMP Cache.
-			if htmlnode.HasAttribute(n, "", "href") {
-				if v, ok := htmlnode.GetAttributeVal(n, "", "rel"); ok && fieldsContain(v, "icon") {
+			if rel, hasRel := htmlnode.GetAttributeVal(n, "", "rel"); hasRel {
+				// Rewrite 'href' attribute within <link rel="icon" href=...> and variants
+				// to point into the AMP Cache.
+				if fieldsContain(rel, "icon") {
 					ctx.parseSimpleImageAttr(n, "", "href")
 				}
+				// Rewrite the 'href' and 'imagesrcset' attributes within <link rel="preload" as="image">
+				// to point into the AMP Cache.
+				if fieldsContain(rel, "preload") {
+					if as, ok := htmlnode.GetAttributeVal(n, "", "as"); ok && as == "image" {
+						ctx.parseSimpleImageAttr(n, "", "href")
+					}
+				}
+				ctx.parseExistingSrcset(n, "", "imagesrcset")
 			}
 
 		case "amp-img", "amp-anim", "img":
@@ -120,7 +130,7 @@ func URLRewrite(e *Context) error {
 			}
 
 			if v, srcsetOk := htmlnode.GetAttributeVal(n, "", "srcset"); srcsetOk && len(v) > 0 {
-				ctx.parseExistingSrcset(n, v)
+				ctx.parseExistingSrcset(n, "", "srcset")
 			} else if srcOk {
 				ctx.parseNewSrcset(n, src)
 			}
@@ -346,11 +356,20 @@ func writeAndMark(sb *strings.Builder, pos *int, s string) {
 }
 
 // parseExistingSrcset normalizes and parses the srcset attribute.
-func (ctx *urlRewriteContext) parseExistingSrcset(n *html.Node, srcset string) {
-	normalized, offsets := amphtml.ParseSrcset(srcset)
-	nc := elementNodeContext{n, "", "srcset", offsets}
-	*ctx = append(*ctx, &nc)
-	htmlnode.SetAttribute(n, "", "srcset", normalized)
+func (ctx *urlRewriteContext) parseExistingSrcset(n *html.Node, namespace, attrName string) bool {
+	srcset, ok := htmlnode.FindAttribute(n, namespace, attrName)
+	if ok {
+		normalized, offsets := amphtml.ParseSrcset(srcset.Val)
+		if len(offsets) == 0 {
+			htmlnode.RemoveAttribute(n, srcset)
+			return false
+		}
+		htmlnode.SetAttribute(n, namespace, attrName, normalized)
+		nc := elementNodeContext{n, namespace, attrName, offsets}
+		*ctx = append(*ctx, &nc)
+		return true
+	}
+	return false
 }
 
 // Do not add srcset for responsive layout if the width attribute is smaller

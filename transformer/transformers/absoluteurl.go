@@ -62,6 +62,8 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 //     * action-xhr
 //   * Any <img> tag with attribute:
 //     * longdesc
+//   * Any <link> tag with attribute:
+//     * imagesrcset
 //
 // URLs in stylesheets and srcsets are handled by the ExternalUrlRewrite
 // transformer.
@@ -146,8 +148,13 @@ func AbsoluteURL(e *Context) error {
 					amphtml.ToAbsoluteURL(documentURL, e.BaseURL, href.Val))
 			}
 		}
-		if _, ok := htmlnode.FindAttribute(n, "", "srcset"); ok {
-			rewriteSrcsetURLs(n, documentURL, e.BaseURL)
+		if srcset, ok := htmlnode.FindAttribute(n, "", "srcset"); ok {
+			htmlnode.SetAttribute(n, "", "srcset", rewriteSrcsetURLs(documentURL, e.BaseURL, srcset.Val))
+		}
+		if n.DataAtom == atom.Link {
+			if srcset, ok := htmlnode.FindAttribute(n, "", "imagesrcset"); ok {
+				htmlnode.SetAttribute(n, "", "imagesrcset", rewriteSrcsetURLs(documentURL, e.BaseURL, srcset.Val))
+			}
 		}
 	}
 	return nil
@@ -165,18 +172,16 @@ func rewriteAbsoluteURLs(n *html.Node, documentURL string, baseURL *url.URL,
 	}
 }
 
-func rewriteSrcsetURLs(n *html.Node, documentURL string, baseURL *url.URL) {
-	if v, ok := htmlnode.GetAttributeVal(n, "", "srcset"); ok {
-		normalized, offsets := amphtml.ParseSrcset(v)
-		var sb strings.Builder
-		var pos int
-		for _, element := range offsets {
-			sb.WriteString(normalized[pos:element.Start])
-			sb.WriteString(amphtml.ToAbsoluteURL(
-				documentURL, baseURL, normalized[element.Start:element.End]))
-			pos = element.End
-		}
-		sb.WriteString(normalized[pos:])
-		htmlnode.SetAttribute(n, "", "srcset", sb.String())
+func rewriteSrcsetURLs(documentURL string, baseURL *url.URL, srcset string) string {
+	normalized, offsets := amphtml.ParseSrcset(srcset)
+	var sb strings.Builder
+	var pos int
+	for _, element := range offsets {
+		sb.WriteString(normalized[pos:element.Start])
+		sb.WriteString(amphtml.ToAbsoluteURL(
+			documentURL, baseURL, normalized[element.Start:element.End]))
+		pos = element.End
 	}
+	sb.WriteString(normalized[pos:])
+	return sb.String()
 }
