@@ -136,6 +136,42 @@ func TestURLRewrite_link(t *testing.T) {
 			expected: `<link rel="icon shortcut" href="https://www-example-com.cdn.ampproject.org/i/www.example.com/foo"/>`,
 			base:     "http://www.example.com",
 		},
+		{
+			desc:     `link rel="preload" as="image" href`,
+			input:    `<link rel="preload" as="image" href=foo>`,
+			expected: `<link rel="preload" as="image" href="https://www-example-com.cdn.ampproject.org/i/www.example.com/foo"/>`,
+			base:     "http://www.example.com",
+		},
+		{
+			desc:     `link rel="preload" as="image" imagesrcset`,
+			input:    `<link rel="preload" as="image" imagesrcset="/foo.jpg, bar.jpg 50w">`,
+			expected: `<link rel="preload" as="image" imagesrcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/foo.jpg 1x, https://www-example-com.cdn.ampproject.org/i/www.example.com/bar.jpg 50w"/>`,
+			base:     "http://www.example.com",
+		},
+		{
+			desc:     `link rel="preload" as="image" href and imagesrcset`,
+			input:    `<link rel="preload" as="image" href=foo.jpg imagesrcset="/bar.jpg, baz.jpg 50w">`,
+			expected: `<link rel="preload" as="image" href="https://www-example-com.cdn.ampproject.org/i/www.example.com/foo.jpg" imagesrcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/bar.jpg 1x, https://www-example-com.cdn.ampproject.org/i/www.example.com/baz.jpg 50w"/>`,
+			base:     "http://www.example.com",
+		},
+		{
+			desc:     `link rel="preload" as="image" badly formed imagesrcset removed`,
+			input:    `<link rel="preload" as="image" imagesrcset="/bar.jpg baz.jpg 50w">`,
+			expected: `<link rel="preload" as="image"/>`,
+			base:     "http://www.example.com",
+		},
+		{
+			desc:     `link rel="preload" href requires as="image" `,
+			input:    `<link rel="preload" href="/bar.jpg">`,
+			expected: `<link rel="preload" href="/bar.jpg"/>`,
+			base:     "http://www.example.com",
+		},
+		{
+			desc:     `link rel="preload" href does not require as="image" `,
+			input:    `<link rel="preload" imagesrcset="/foo.jpg, bar.jpg 50w">`,
+			expected: `<link rel="preload" imagesrcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/foo.jpg 1x, https://www-example-com.cdn.ampproject.org/i/www.example.com/bar.jpg 50w"/>`,
+			base:     "http://www.example.com",
+		},
 	}
 	runURLRewriteTestcases(t, tcs)
 }
