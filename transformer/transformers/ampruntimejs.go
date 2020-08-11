@@ -19,7 +19,7 @@ func AMPRuntimeJS(e *Context) error {
 		}
 		if n.DataAtom == atom.Script {
 			if src, ok = htmlnode.FindAttribute(n, "", "src"); ok && strings.hasPrefix(src.Val, amphtml.AMPCacheRootURL) && strings.HasSuffix(src.Val, ".js"){
-				src.Val = strings.TrimSuffix(src.Val, ".js") + ".sxg.js"
+				src.Val = strings.TrimSuffix(src.Val, ".js") + ".js&f=sxg"
 			}
 		} else {
 			continue

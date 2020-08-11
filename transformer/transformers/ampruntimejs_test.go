@@ -30,7 +30,7 @@ func TestStripJS(t *testing.T) {
 		{
 			Desc:     "transformation",
 			Input:    "<script async src=\"https://cdn.ampproject.org/v0.js\"></script>",
-			Expected: "<script async src=\"https://cdn.ampproject.org/v0.sxg.js\"></script>",
+			Expected: "<script async src=\"https://cdn.ampproject.org/v0.js&f=sxg\"></script>",
 		},
 	}
 
