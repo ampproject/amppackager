@@ -8,6 +8,7 @@ import (
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/url"
 )
 
 // AMPRuntimeJS rewrites the value of src in script nodes, where applicable.
@@ -18,8 +19,15 @@ func AMPRuntimeJS(e *Context) error {
 			continue
 		}
 		if n.DataAtom == atom.Script {
-			if src, ok = htmlnode.FindAttribute(n, "", "src"); ok && strings.hasPrefix(src.Val, amphtml.AMPCacheRootURL) && strings.HasSuffix(src.Val, ".js"){
-				src.Val = strings.TrimSuffix(src.Val, ".js") + ".js&f=sxg"
+			if src, ok = htmlnode.FindAttribute(n, "", "src"); ok && strings.hasPrefix(src.Val, amphtml.AMPCacheRootURL){
+				u, _ = url.Parse(src.Val)
+				query, _ = url.ParseQuery(u.RawQuery)
+				path = u.Path
+				if strings.HasSuffix(path, ".js"){
+					query.Add("f", "sxg")
+					u.RawQuery = query.Encode()
+					src.Val = u.String()
+				}
 			}
 		} else {
 			continue
