@@ -3,12 +3,12 @@ package transformers
 import (
 	"regexp"
 	"strings"
+	"net/url"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
 	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
-	"golang.org/x/net/html/url"
 )
 
 // AMPRuntimeJS rewrites the value of src in script nodes, where applicable.
