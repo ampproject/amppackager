@@ -1,7 +1,10 @@
 package transformers
 
 import (
+<<<<<<< HEAD
 	"net/url"
+=======
+>>>>>>> derek-sxg-url
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
@@ -19,6 +22,7 @@ func AMPRuntimeJS(e *Context) error {
 		}
 		if n.DataAtom == atom.Script {
 			src, ok := htmlnode.FindAttribute(n, "", "src")
+<<<<<<< HEAD
 			if ok && strings.HasPrefix(src.Val, amphtml.AMPCacheRootURL) {
 				u, _ := url.Parse(src.Val)
 				query, _ := url.ParseQuery(u.RawQuery)
@@ -28,6 +32,10 @@ func AMPRuntimeJS(e *Context) error {
 					u.RawQuery = query.Encode()
 					src.Val = u.String()
 				}
+=======
+			if ok && strings.HasPrefix(src.Val, amphtml.AMPCacheRootURL) && strings.HasSuffix(src.Val, ".js") {
+				src.Val = strings.TrimSuffix(src.Val, ".js") + ".sxg.js"
+>>>>>>> derek-sxg-url
 			}
 		} else {
 			continue
