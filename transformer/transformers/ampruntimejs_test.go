@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func TestStripJS(t *testing.T) {
+func TestAmpRuntimeJS(t *testing.T) {
 	tcs := []tt.TestCase{
 		{
 			Desc:     "no script node",
