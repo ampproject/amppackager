@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
+	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -27,7 +27,7 @@ func TestProcess(t *testing.T) {
 		config      rpb.Request_TransformersConfig
 		expectedLen int
 	}{
-		{rpb.Request_DEFAULT, 13},
+		{rpb.Request_DEFAULT, 14},
 		{rpb.Request_NONE, 0},
 		{rpb.Request_VALIDATION, 1},
 		{rpb.Request_CUSTOM, 0},
