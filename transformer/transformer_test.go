@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
-	"github.com/golang/protobuf/proto"
 	"github.com/google/go-cmp/cmp"
 )
 
