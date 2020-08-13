@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
@@ -18,8 +19,15 @@ func AMPRuntimeJS(e *Context) error {
 		}
 		if n.DataAtom == atom.Script {
 			src, ok := htmlnode.FindAttribute(n, "", "src")
-			if ok && strings.HasPrefix(src.Val, amphtml.AMPCacheRootURL) && strings.HasSuffix(src.Val, ".js") {
-				src.Val = strings.TrimSuffix(src.Val, ".js") + ".sxg.js"
+			if ok && strings.HasPrefix(src.Val, amphtml.AMPCacheRootURL) {
+				u, _ := url.Parse(src.Val)
+				query, _ := url.ParseQuery(u.RawQuery)
+				path := u.Path
+				if strings.HasSuffix(path, ".js") {
+					query.Add("f", "sxg")
+					u.RawQuery = query.Encode()
+					src.Val = u.String()
+				}
 			}
 		} else {
 			continue
