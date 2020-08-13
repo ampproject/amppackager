@@ -19,18 +19,18 @@ func TestAmpRuntimeJS(t *testing.T) {
 		},
 		{
 			Desc:     "no prefix",
-			Input:    "<script src=main.js/>",
-			Expected: "<script src=main.js/>",
+			Input:    "<head><script src=main.js/></head>",
+			Expected: "<head><script src=main.js/></head>",
 		},
 		{
 			Desc:     "no suffix",
-			Input:    `<script src="https://cdn.ampproject.org"/>`,
-			Expected: `<script src="https://cdn.ampproject.org"/>`,
+			Input:    `<head><script src="https://cdn.ampproject.org"/></head>`,
+			Expected: `<head><script src="https://cdn.ampproject.org"/></head>`,
 		},
 		{
 			Desc:     "transformation",
-			Input:    `<script async src="https://cdn.ampproject.org/v0.js"></script>`,
-			Expected: `<script async src="https://cdn.ampproject.org/v0.js?f=sxg"></script>`,
+			Input:    `<head><script async src="https://cdn.ampproject.org/v0.js"></script></head>`,
+			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js?f=sxg"></script></head>`,
 		},
 		{
 			Desc:     "transform on two scripts",
