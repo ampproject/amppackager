@@ -24,13 +24,13 @@ func TestAmpRuntimeJS(t *testing.T) {
 		},
 		{
 			Desc:     "no suffix",
-			Input:    "<script src=\"https://cdn.ampproject.org\"/>",
-			Expected: "<script src=\"https://cdn.ampproject.org\"/>",
+			Input:    `<script src="https://cdn.ampproject.org"/>`,
+			Expected: `<script src="https://cdn.ampproject.org"/>`,
 		},
 		{
 			Desc:     "transformation",
-			Input:    "<script async src=\"https://cdn.ampproject.org/v0.js\"></script>",
-			Expected: "<script async src=\"https://cdn.ampproject.org/v0.js?f=sxg\"></script>",
+			Input:    `<script async src="https://cdn.ampproject.org/v0.js"></script>`,
+			Expected: `<script async src="https://cdn.ampproject.org/v0.js?f=sxg"></script>`,
 		},
 	}
 

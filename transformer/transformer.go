@@ -30,8 +30,8 @@ import (
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"github.com/pkg/errors"
-	"golang.org/x/net/html/atom"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // Transformer functions must be added here in order to be passed in from
@@ -44,7 +44,7 @@ var transformerFunctionMap = map[string]func(*transformers.Context) error{
 	"absoluteurl":           transformers.AbsoluteURL,
 	"ampboilerplate":        transformers.AMPBoilerplate,
 	"ampruntimecss":         transformers.AMPRuntimeCSS,
-	"ampruntimejs":			 transformers.AMPRuntimeJS,
+	"ampruntimejs":          transformers.AMPRuntimeJS,
 	"linktag":               transformers.LinkTag,
 	"nodecleanup":           transformers.NodeCleanup,
 	"preloadimage":          transformers.PreloadImage,
@@ -91,7 +91,6 @@ var configMap = map[rpb.Request_TransformersConfig][]func(*transformers.Context)
 // should be enforced by AMP Caches, to protect any pages that prefetch the SXG
 // from an unnecessary number of fetches.
 const maxPreloads = 20
-
 
 // Override for tests.
 var runTransformers = func(c *transformers.Context, fns []func(*transformers.Context) error) error {
@@ -226,11 +225,11 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 // amp-script without an explicit max-age. This is 1 day, to parallel the
 // security precautions put in place around service workers:
 // https://dev.chromium.org/Home/chromium-security/security-faq/service-worker-security-faq#TOC-Do-Service-Workers-live-forever-
-const defaultMaxAgeSeconds int32 = 86400  // number of seconds in a day
+const defaultMaxAgeSeconds int32 = 86400 // number of seconds in a day
 
 // maxMaxAgeSeconds is the max duration of an SXG, per
 // https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#signature-validity.
-const maxMaxAgeSeconds int32 = 7*86400
+const maxMaxAgeSeconds int32 = 7 * 86400
 
 // computeMaxAgeSeconds returns the suggested max-age based on the presence of
 // any inline <amp-script> tags on the page; callers should min() the return
@@ -319,7 +318,7 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 		return "", nil, err
 	}
 	metadata := rpb.Metadata{
-		Preloads: extractPreloads(context.DOM),
+		Preloads:   extractPreloads(context.DOM),
 		MaxAgeSecs: computeMaxAgeSeconds(context.DOM),
 	}
 	return o.String(), &metadata, nil

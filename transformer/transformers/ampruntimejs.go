@@ -11,7 +11,7 @@ import (
 )
 
 // AMPRuntimeJS rewrites the value of src in script nodes, where applicable.
-// If the value is of the form "*.js", replace it with "*.sxg.js".
+// If the value is of the form "*.js", replace it with "*.js?f=sxg".
 func AMPRuntimeJS(e *Context) error {
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
 		if n.Type != html.ElementNode {
@@ -24,13 +24,11 @@ func AMPRuntimeJS(e *Context) error {
 				query, _ := url.ParseQuery(u.RawQuery)
 				path := u.Path
 				if strings.HasSuffix(path, ".js") {
-					query.Add("f", "sxg")
+					query.Set("f", "sxg")
 					u.RawQuery = query.Encode()
 					src.Val = u.String()
 				}
 			}
-		} else {
-			continue
 		}
 	}
 	return nil
