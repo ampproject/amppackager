@@ -32,6 +32,11 @@ func TestAmpRuntimeJS(t *testing.T) {
 			Input:    `<script async src="https://cdn.ampproject.org/v0.js"></script>`,
 			Expected: `<script async src="https://cdn.ampproject.org/v0.js?f=sxg"></script>`,
 		},
+		{
+			Desc:     "transform on two scripts",
+			Input:    `<head><script async src="https://cdn.ampproject.org/foo.js"></script><script async src="https://cdn.ampproject.org/bar.js"></script></head>`,
+			Expected: `<head><script async src="https://cdn.ampproject.org/foo.js?f=sxg"></script><script async src="https://cdn.ampproject.org/bar.js?f=sxg"></script></head>`,
+		},
 	}
 
 	for _, tc := range tcs {
