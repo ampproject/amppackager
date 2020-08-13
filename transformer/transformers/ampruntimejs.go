@@ -13,7 +13,7 @@ import (
 // AMPRuntimeJS rewrites the value of src in script nodes, where applicable.
 // If the value is of the form "*.js", replace it with "*.js?f=sxg".
 func AMPRuntimeJS(e *Context) error {
-	for n := e.DOM.HeadNode; n != nil; n = n.NextSibling {
+	for n := e.DOM.HeadNode; n != nil; n = htmlnode.Next(n) {
 		if n.Type != html.ElementNode {
 			continue
 		}
