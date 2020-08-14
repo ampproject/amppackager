@@ -36,6 +36,8 @@ message Request {
 
   // This should be kept in sync with HtmlFormat.Code in
   // github.com/ampproject/amphtml/validator/validator.proto.
+  // Deprecated fields, do not reuse:
+  // reserved 5;
   enum HtmlFormat {
     UNKNOWN_CODE = 0;  // Never used
     AMP = 1;
