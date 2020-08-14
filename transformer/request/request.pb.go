@@ -22,6 +22,8 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 // This should be kept in sync with HtmlFormat.Code in
 // github.com/ampproject/amphtml/validator/validator.proto.
+// Deprecated fields, do not reuse:
+// reserved 5;
 type Request_HtmlFormat int32
 
 const (
@@ -402,7 +404,9 @@ func init() {
 	proto.RegisterType((*Metadata_Preload)(nil), "amp.transform.Metadata.Preload")
 }
 
-func init() { proto.RegisterFile("transformer/request/request.proto", fileDescriptor_762cce2ac5f73405) }
+func init() {
+	proto.RegisterFile("transformer/request/request.proto", fileDescriptor_762cce2ac5f73405)
+}
 
 var fileDescriptor_762cce2ac5f73405 = []byte{
 	// 519 bytes of a gzipped FileDescriptorProto
