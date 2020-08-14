@@ -79,6 +79,11 @@ func TestURLRewrite_images(t *testing.T) {
 			input:    `<%s src="">`,
 			expected: `<%s src=""></%s>`,
 		},
+		{
+			desc:     "%s bare hash src",
+			input:    `<%s layout="fixed" height="64" width="64" src="#">`,
+			expected: `<%s layout="fixed" height="64" width="64" src="#"></%s>`,
+		},
 	}
 	tcs := []urlRewriteTestCase{}
 	for _, tag := range []string{"amp-img", "amp-anim"} {
@@ -357,6 +362,11 @@ func TestURLRewrite_style(t *testing.T) {
 			desc: "URLs reused as variables",
 			input: "<style amp-custom=\"\">s {\n  --leak: url('https://leak.com');\n" +
 				"}\ns{\n  background: var(--leak);\n}\n</style>",
+			replacement: "https://leak-com.cdn.ampproject.org/i/s/leak.com",
+		},
+		{
+			desc:        "img with inline style rewrites src",
+			input:       "<img src=\"https://leak.com/blah.jpg\" style=\"width:300px;height:100px\"/>",
 			replacement: "https://leak-com.cdn.ampproject.org/i/s/leak.com",
 		},
 	}

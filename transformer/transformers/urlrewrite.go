@@ -89,7 +89,6 @@ func URLRewrite(e *Context) error {
 
 		if v, ok := htmlnode.GetAttributeVal(n, "", "style"); ok {
 			ctx.parseInlineStyle(n, v)
-			continue
 		}
 
 		// Do not rewrite links within mustache templates.
@@ -383,7 +382,7 @@ const minWidthToAddSrcsetInResponsiveLayout = 300
 
 // parseNewSrcset parses a new srcset derived from the src.
 func (ctx *urlRewriteContext) parseNewSrcset(n *html.Node, src string) {
-	if len(src) == 0 || strings.HasPrefix(src, "data:image/") || amphtml.IsCacheURL(src) {
+	if len(src) == 0 || strings.HasPrefix(src, "data:image/") || strings.HasPrefix(src, "#") || amphtml.IsCacheURL(src) {
 		return
 	}
 	if strings.HasSuffix(src, ",") {
