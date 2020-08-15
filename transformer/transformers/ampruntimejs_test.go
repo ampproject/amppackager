@@ -42,6 +42,26 @@ func TestAmpRuntimeJS(t *testing.T) {
 			Input:    `<head><script async src="https://cdn.ampproject.org/"></script><script async src="https://cdn.ampproject.org/bar.js"></script></head>`,
 			Expected: `<head><script async src="https://cdn.ampproject.org/"></script><script async src="https://cdn.ampproject.org/bar.js?f=sxg"></script></head>`,
 		},
+		{
+			Desc:     "additional params exist",
+			Input:    `<head><script async src="https://cdn.ampproject.org/v0.js?optin=beta"></script></head>`,
+			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js?optin=beta&f=sxg"></script></head>`,
+		},
+		{
+			Desc:     "existing f param",
+			Input:    `<head><script async src="https://cdn.ampproject.org/v0.js?f=foo"></script></head>`,
+			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js?f=sxg"></script></head>`,
+		},
+		{
+			Desc:     "parsing bug",
+			Input:    `<head><script async src="https://cdn.ampproject.org/v0.js?x=%"></script></head>`,
+			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js?x=%"></script></head>`,
+		},
+		{
+			Desc:     "parsing bug",
+			Input:    `<head><script async src="https://cdn.ampproject.org/v0.js%%"></script></head>`,
+			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js%%"></script></head>`,
+		}
 	}
 
 	for _, tc := range tcs {

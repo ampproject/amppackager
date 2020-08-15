@@ -14,13 +14,13 @@ import (
 // If the value is of the form "*.js", replace it with "*.js?f=sxg".
 func AMPRuntimeJS(e *Context) error {
 	for n := e.DOM.HeadNode.FirstChild; n != nil; n = n.NextSibling {
-		if n.Type != html.ElementNode {
-			continue
-		}
-		if n.DataAtom == atom.Script {
+		if n.Type == html.ElementNode && n.DataAtom == atom.Script {
 			src, ok := htmlnode.FindAttribute(n, "", "src")
 			if ok && strings.HasPrefix(src.Val, amphtml.AMPCacheRootURL) {
-				u, _ := url.Parse(src.Val)
+				u, err := url.Parse(src.Val)
+				if err != nil {
+					continue
+				}
 				query, _ := url.ParseQuery(u.RawQuery)
 				path := u.Path
 				if strings.HasSuffix(path, ".js") {
