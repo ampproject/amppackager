@@ -45,7 +45,7 @@ func TestAmpRuntimeJS(t *testing.T) {
 		{
 			Desc:     "additional params exist",
 			Input:    `<head><script async src="https://cdn.ampproject.org/v0.js?optin=beta"></script></head>`,
-			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js?optin=beta&f=sxg"></script></head>`,
+			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js?f=sxg&optin=beta"></script></head>`,
 		},
 		{
 			Desc:     "existing f param",
