@@ -17,11 +17,14 @@ func AMPRuntimeJS(e *Context) error {
 		if n.Type == html.ElementNode && n.DataAtom == atom.Script {
 			src, ok := htmlnode.FindAttribute(n, "", "src")
 			if ok && strings.HasPrefix(src.Val, amphtml.AMPCacheRootURL) {
-				u, err := url.Parse(src.Val)
-				if err != nil {
+				u, uerr := url.Parse(src.Val)
+				if uerr != nil {
 					continue
 				}
-				query, _ := url.ParseQuery(u.RawQuery)
+				query, queryerr := url.ParseQuery(u.RawQuery)
+				if queryerr != nil {
+					continue
+				}
 				path := u.Path
 				if strings.HasSuffix(path, ".js") {
 					query.Set("f", "sxg")
