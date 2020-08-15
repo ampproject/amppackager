@@ -53,15 +53,15 @@ func TestAmpRuntimeJS(t *testing.T) {
 			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js?f=sxg"></script></head>`,
 		},
 		{
-			Desc:     "parsing bug",
+			Desc:     "url escape parsing bug in query param",
 			Input:    `<head><script async src="https://cdn.ampproject.org/v0.js?x=%"></script></head>`,
 			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js?x=%"></script></head>`,
 		},
 		{
-			Desc:     "parsing bug",
+			Desc:     "url escape parsing bug",
 			Input:    `<head><script async src="https://cdn.ampproject.org/v0.js%%"></script></head>`,
 			Expected: `<head><script async src="https://cdn.ampproject.org/v0.js%%"></script></head>`,
-		}
+		},
 	}
 
 	for _, tc := range tcs {
