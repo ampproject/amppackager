@@ -52,6 +52,16 @@ func Next(n *html.Node) *html.Node {
 		return n.FirstChild
 	}
 
+	return NextSkippingChildren(n)
+}
+
+// NextSkippingChildren returns the next node in document order, but ignores the children of the passed in node.
+// Will iterate upwards until it finds a next node, or hits the root node (which would return nil).
+func NextSkippingChildren(n *html.Node) *html.Node {
+	if n == nil {
+		return nil
+	}
+
 	c := n.NextSibling
 	p := n.Parent
 	for c == nil && p != nil {

@@ -16,253 +16,213 @@ package transformers
 
 import (
 	"fmt"
-	"math/big"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
-	"github.com/ampproject/amppackager/transformer/layout"
 	"golang.org/x/net/html"
-	amppb "github.com/ampproject/amphtml/validator"
 )
 
-// Images smaller than 150 pixels are ignored for preloading.
-// This number is chosen after manually reviewing 10k samples.
-const minImageSize int = 150
+const maxHeroImages int = 2
 
-// For images with aspect ratio, ignores images with aspect ratio larger than this.
-const maxAspectRatioSize int = 16
+// HeroImage represents the necessary data to inject a <link ref=preload> and optional <img> tag.
+type HeroImage struct {
+	src    string
+	srcset string
+	ampImg *html.Node
+}
 
-// PreloadImage adds link rel="prefetch" head element to preload the most revalent image in the AMP document.
+// mediaQuerySource represents an individual source from a srcset with a unique media query that will only load the href when appropriate.
+type mediaQuerySource struct {
+	href  string
+	media string
+}
+
+// PreloadImage adds link rel="preload" to head element to preload the most revalent image in the AMP document,
+// and inserts an img tag if the image is an amp-img.
 func PreloadImage(e *Context) error {
-	for n := e.DOM.BodyNode; n != nil; n = htmlnode.Next(n) {
-		if isNodeHiddenInLayout(n) {
-			continue
+	body := e.DOM.BodyNode
+	current := body
+	count := 0
+	for i := 0; i < maxHeroImages; i++ {
+		heroImage, found, next := preloadImageDataHero(current)
+		if !found {
+			break
 		}
+		count++
+		current = next
+		prioritizeHeroImage(e, heroImage)
+	}
 
-		if n.Data == "amp-img" {
-			if imgsrcset, ok := candidateImageForPreloading(n); ok {
-				srcsetToPreloadData(imgsrcset, e)
-			}
-		} else if n.Data == "amp-video" || n.Data == "amp-video-iframe" {
-			if poster, ok := candidateVideoPosterImage(n); ok {
-				posterURL, err := url.Parse(poster)
-				if err != nil {
-					continue
-				}
-				e.Preloads = append(e.Preloads, PreloadData{URL: posterURL, As: "image"})
-			}
+	// If any elements were opted-in, then we do not need to infer a hero image.
+	if count == 0 {
+		heroImage, found := preloadImageInferSize(body)
+		if found {
+			prioritizeHeroImage(e, heroImage)
 		}
 	}
+
 	return nil
 }
 
-func candidateVideoPosterImage(i *html.Node) (string, bool) {
-	poster, hasPoster := htmlnode.GetAttributeVal(i, "", "poster")
-	if !hasPoster || poster == "" {
+func prioritizeHeroImage(e *Context, heroImage HeroImage) {
+	for _, link := range buildLinkPreloads(heroImage) {
+		e.DOM.HeadNode.AppendChild(link)
+	}
+
+	if ampImg := heroImage.ampImg; ampImg != nil {
+		img := buildImg(ampImg)
+		htmlnode.SetAttribute(ampImg, "", "i-amphtml-ssr", "")
+		ampImg.AppendChild(img)
+	}
+}
+
+func buildLinkPreloads(heroImage HeroImage) []*html.Node {
+	// One of these is guaranteed.
+	if heroImage.srcset != "" {
+		if medias, ok := srcsetToMediaQueries(heroImage.srcset); ok {
+			links := make([]*html.Node, len(medias))
+			for i, mediaSrc := range medias {
+				links[i] = htmlnode.Element("link",
+					html.Attribute{Key: "rel", Val: "preload"},
+					html.Attribute{Key: "as", Val: "image"},
+					html.Attribute{Key: "href", Val: mediaSrc.href},
+					html.Attribute{Key: "media", Val: mediaSrc.media},
+				)
+			}
+
+			return links
+		}
+	}
+
+	if heroImage.src == "" {
+		return []*html.Node{}
+	}
+
+	return []*html.Node{
+		htmlnode.Element("link",
+			html.Attribute{Key: "rel", Val: "preload"},
+			html.Attribute{Key: "as", Val: "image"},
+			html.Attribute{Key: "href", Val: heroImage.src},
+		),
+	}
+}
+
+func buildImg(ampImg *html.Node) *html.Node {
+	img := htmlnode.Element("img",
+		html.Attribute{Key: "class", Val: "i-amphtml-fill-content i-amphtml-replaced-content"},
+		html.Attribute{Key: "decoding", Val: "async"})
+	attrsToCopy := [...]string{
+		"alt",
+		"attribution",
+		"object-fit",
+		"object-position",
+		"referrerpolicy",
+		"src",
+		"srcset",
+		"sizes",
+		"title",
+	}
+
+	for _, attr := range attrsToCopy {
+		val, has := htmlnode.GetAttributeVal(ampImg, "", attr)
+		if has {
+			htmlnode.SetAttribute(img, "", attr, val)
+		}
+	}
+
+	return img
+}
+
+// ParseAndValidateSrcset parses each source in the srcset, ensuring it points to a HTTPS URL, and normalizes the srcset.
+func ParseAndValidateSrcset(in string, has bool) (string, bool) {
+	if !has {
 		return "", false
 	}
 
-	videoWidth, videoHeight := nodeDimensions(i)
-	if isTinyNode(videoWidth, videoHeight) {
+	parsed, offsets := amphtml.ParseSrcset(in)
+	if len(offsets) == 0 {
 		return "", false
 	}
 
-	return poster, true
-}
-
-func isNodeHiddenInLayout(n *html.Node) bool {
-	return layout.ParseAMPLayout(n) == amppb.AmpLayout_NODISPLAY
-}
-
-// Converts the raw srcset attribute value and populates Context.Preloads field.
-func srcsetToPreloadData(srcset string, e *Context) {
-	type imageWithTargetSize struct {
-		imgURL *url.URL
-		size   int
+	for _, offset := range offsets {
+		if !isValidURL(parsed[offset.Start:offset.End]) {
+			return "", false
+		}
 	}
 
-	srcSets := strings.FieldsFunc(strings.TrimSpace(srcset), func(c rune) bool { return c == ',' })
-	srcSetsSize := len(srcSets)
-	imgSet := []imageWithTargetSize{}
+	return parsed, true
+}
 
-	for _, src := range srcSets {
+func isValidURL(url string) bool {
+	return strings.HasPrefix(url, "https:")
+}
+
+// ValidateSrc ensures the src points to a HTTPS URL.
+func ValidateSrc(in string, has bool) (string, bool) {
+	if !has || !isValidURL(in) {
+		return "", false
+	}
+	return in, true
+}
+
+// Converts the raw srcset value into multiple sources with an appropriate media query to select that source.
+// TODO(jridgewell, amaltas): Support pixel density with -webkit-max-device-pixel-ratio and -webkit-min-device-pixel-ratio
+func srcsetToMediaQueries(srcset string) ([]mediaQuerySource, bool) {
+	type Source struct {
+		href string
+		size int
+	}
+
+	srcSets := strings.Split(strings.TrimSpace(srcset), ",")
+	length := len(srcSets)
+	sources := make([]Source, length)
+	medias := make([]mediaQuerySource, length)
+
+	if length == 0 {
+		return medias, false
+	}
+
+	for i, src := range srcSets {
 		imgComponents := strings.Fields(src)
 		if len(imgComponents) != 2 {
-			e.Preloads = nil
-			return
-		}
-		imgTargetSize, err := strconv.Atoi(strings.TrimSuffix(imgComponents[1], "w"))
-
-		if err != nil {
-			e.Preloads = nil
-			return
+			return medias, false
 		}
 
-		urlObj, err := url.Parse(imgComponents[0])
+		source := Source{imgComponents[0], 0}
 
-		if err != nil {
-			e.Preloads = nil
-			return
+		if strings.HasSuffix(imgComponents[1], "w") {
+			size, err := strconv.Atoi(strings.TrimSuffix(imgComponents[1], "w"))
+			if err != nil {
+				return medias, false
+			}
+
+			source.size = size
+		} else {
+			return medias, false
 		}
 
-		imgSet = append(imgSet, imageWithTargetSize{urlObj, imgTargetSize})
+		sources[i] = source
 	}
 
 	// Sort the images based on their target sizes in asc order.
-	sort.Slice(imgSet, func(i, j int) bool { return imgSet[i].size < imgSet[j].size })
+	sort.Slice(sources, func(i, j int) bool {
+		return sources[i].size < sources[j].size
+	})
 
-	for i, ci := range imgSet {
+	for i, ci := range sources {
 		var mediaQuery string
-		// srcset images should be sorted by width.
 		if i == 0 {
-			mediaQuery = fmt.Sprintf("(max-width: %d)", ci.size)
-			// Largest image has only min width limit of second largest image.
-		} else if i == srcSetsSize-1 {
-			mediaQuery = fmt.Sprintf("(min-width: %d)", imgSet[i-1].size+1)
+			mediaQuery = fmt.Sprintf("(max-width: %dpx)", ci.size)
+		} else if i == length-1 {
+			mediaQuery = fmt.Sprintf("(min-width: %dpx)", sources[i-1].size+1)
 		} else {
-			mediaQuery = fmt.Sprintf("(min-width: %d) and (max-width: %d)", imgSet[i-1].size+1, ci.size)
+			mediaQuery = fmt.Sprintf("(min-width: %dpx) and (max-width: %dpx)", sources[i-1].size+1, ci.size)
 		}
 
-		e.Preloads = append(e.Preloads, PreloadData{URL: ci.imgURL, As: "image", Media: mediaQuery})
+		medias[i] = mediaQuerySource{ci.href, "screen and " + mediaQuery}
 	}
-}
-
-// Decides if the given image node qualifies for preloading and returns tuple of
-// (imagesrc, true) if the node qualifies for preloading, otherwise returns
-// empty string and false.
-func candidateImageForPreloading(n *html.Node) (string, bool) {
-	// amp-image under following containers do not qualify for preloading.
-	imgsrcset, hasSrcset := htmlnode.GetAttributeVal(n, "", "srcset")
-
-	// Ignores images with no src attribute.
-	// These can be css images inside class definition.
-	if !hasSrcset || len(imgsrcset) == 0 {
-		return "", false
-	}
-
-	// Ignores if image src is not a https url.
-	// URL rewrite transformer guarantees img srcs are https protocol.
-	if !strings.HasPrefix(imgsrcset, "https://") {
-		return "", false
-	}
-
-	widthInt, heightInt := nodeDimensions(n)
-
-	// Ignores smaller images, unless they are aspect ratio dimensions.
-	if isTinyNode(widthInt, heightInt) {
-		// Checks for aspect ratio images.
-		// Aspect ratio images larger than maxAspectRatioSize are ignored.
-		// Small images of icon types inside input type container types
-		// are ignored.
-		if widthInt > 0 && widthInt <= maxAspectRatioSize && heightInt > 0 && heightInt <= maxAspectRatioSize && isAspectRatioDimensions(n, widthInt, heightInt) && !containerTypeInput(n) {
-			return imgsrcset, true
-		}
-		return "", false
-	}
-
-	// Checks if it is placeholder image for iframe.
-	// https://www.ampproject.org/docs/reference/components/amp-iframe#iframe-with-placeholder
-	_, hasPlaceholder := htmlnode.GetAttributeVal(n, "", "placeholder")
-	parentWidthInt, parentHeightInt := nodeDimensions(n.Parent)
-	if hasPlaceholder {
-		if n.Parent.Data == "amp-iframe" {
-			if isTinyNode(parentWidthInt, parentHeightInt) {
-				return "", false
-			}
-			return imgsrcset, true
-		}
-		return "", false
-	}
-
-	layoutType := layout.ParseAMPLayout(n)
-	// Responsive and fill layout types generally accept parent containers dimensions.
-	if layoutType == amppb.AmpLayout_RESPONSIVE || layoutType == amppb.AmpLayout_FILL {
-		if widthInt == 0 && heightInt == 0 {
-			if isTinyNode(parentWidthInt, parentHeightInt) {
-				return "", false
-			}
-			return imgsrcset, true
-		}
-
-		// Actual image dimension check is performed later.
-	}
-
-	// For other layouts with no image dimensions, take parent containers
-	// dimensions into account.
-	if widthInt == 0 && heightInt == 0 {
-		widthInt = parentWidthInt
-		heightInt = parentHeightInt
-	}
-
-	// Checks image meets minimum dimension requirements.
-	// Ignores the width size if it is not specified. In most layouts it
-	// defaults to auto or 100% size of container.
-	if (widthInt >= minImageSize || widthInt == 0) && heightInt >= minImageSize {
-		return imgsrcset, true
-	}
-
-	return "", false
-}
-
-// Consider a small dimension size as aspect ratio if they are relatively prime.
-// TODO(amaltas): Fix it for float dimension types: 1x1.33.
-func isAspectRatioDimensions(n *html.Node, width int, height int) bool {
-	// Aspect ratio doesn't work in fixed layout types.
-	layoutType := layout.ParseAMPLayout(n)
-	if !(layoutType == amppb.AmpLayout_FIXED || layoutType == amppb.AmpLayout_FIXED_HEIGHT) {
-		return false
-	}
-
-	return new(big.Int).GCD(nil, nil, big.NewInt(int64(width)), big.NewInt(int64(height))).Int64() == 1
-}
-
-func containerTypeInput(i *html.Node) bool {
-	switch i.Parent.Data {
-	case
-		"button",
-		"input":
-		return true
-	}
-	return false
-}
-
-// A tiny node is any container of amp-img that is smaller than 150x150.
-// Node with no dimensions defaults to 0x0. A 0x0 node is not considered tiny as its dimensions
-// defaults to its parent's dimensions.
-// A node is small size only when width and height attribute are set and are positive value.
-// Caller must check if the container's dimension are aspect ratio dimensions.
-func isTinyNode(width, height int) bool {
-	return (width > 0 && width < minImageSize) || (height > 0 && height < minImageSize)
-}
-
-func dimensionAsInt(d string) (int, error) {
-	// Remove px suffix. Some publishers treat width/height attribute similar to CSS.
-	replacer := strings.NewReplacer("px", "", "auto", "0")
-	return strconv.Atoi(replacer.Replace(d))
-}
-
-func nodeDimensions(i *html.Node) (int, int) {
-	var err error
-
-	// Width and Height as int type.
-	width, hasWidth := htmlnode.GetAttributeVal(i, "", "width")
-	widthInt := 0
-	if hasWidth {
-		if widthInt, err = dimensionAsInt(width); err != nil {
-			return 0, 0
-		}
-	}
-
-	height, hasHeight := htmlnode.GetAttributeVal(i, "", "height")
-	heightInt := 0
-	if hasHeight {
-		if heightInt, err = dimensionAsInt(height); err != nil {
-			return 0, 0
-		}
-	}
-
-	return widthInt, heightInt
+	return medias, true
 }
