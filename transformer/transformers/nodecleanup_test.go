@@ -334,6 +334,37 @@ func TestNodeCleanup_EscapeJspCharactersInScriptAndStyle(t *testing.T) {
 	runNodeCleanupTestCases(t, tcs)
 }
 
+func TestNodeCleanup_StripHeroImage(t *testing.T) {
+	tcs := []tt.TestCase{
+		{
+			Desc:     "basic",
+			Input:    "<amp-img i-amphtml-ssr><img></amp-img>",
+			Expected: "<amp-img></amp-img>",
+		},
+		{
+			Desc:     "next sibling preserved",
+			Input:    "<amp-img i-amphtml-ssr><img><div placeholder></div></amp-img>",
+			Expected: "<amp-img><div placeholder></div></amp-img>",
+		},
+		{
+			Desc:     "multilpe images and siblings",
+			Input:    "<amp-img i-amphtml-ssr><img><div></div><img><img><div></div></amp-img>",
+			Expected: "<amp-img><div></div><div></div></amp-img>",
+		},
+		{
+			Desc:     "placeholder img preserved",
+			Input:    "<amp-img i-amphtml-ssr><img placeholder></amp-img>",
+			Expected: "<amp-img><img placeholder></amp-img>",
+		},
+		{
+			Desc:     "missing i-amphtml-ssr attr",
+			Input:    "<amp-img><img></amp-img>",
+			Expected: "<amp-img><img></amp-img>",
+		},
+	}
+	runNodeCleanupTestCases(t, tcs)
+}
+
 func runNodeCleanupTestCases(t *testing.T, tcs []tt.TestCase) {
 	for _, tc := range tcs {
 		inputDoc, err := html.Parse(strings.NewReader(tc.Input))

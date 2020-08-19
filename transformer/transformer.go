@@ -211,6 +211,7 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 						preloads = append(preloads, &rpb.Metadata_Preload{Url: href, As: "style"})
 					}
 				}
+				// TODO: This should extract <link rel=preload>s with arbitrary attributes, if the href is is on-cache.
 			}
 		}
 		if len(preloads) == maxPreloads {
@@ -224,11 +225,11 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 // amp-script without an explicit max-age. This is 1 day, to parallel the
 // security precautions put in place around service workers:
 // https://dev.chromium.org/Home/chromium-security/security-faq/service-worker-security-faq#TOC-Do-Service-Workers-live-forever-
-const defaultMaxAgeSeconds int32 = 86400  // number of seconds in a day
+const defaultMaxAgeSeconds int32 = 86400 // number of seconds in a day
 
 // maxMaxAgeSeconds is the max duration of an SXG, per
 // https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#signature-validity.
-const maxMaxAgeSeconds int32 = 7*86400
+const maxMaxAgeSeconds int32 = 7 * 86400
 
 // computeMaxAgeSeconds returns the suggested max-age based on the presence of
 // any inline <amp-script> tags on the page; callers should min() the return
@@ -317,7 +318,7 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 		return "", nil, err
 	}
 	metadata := rpb.Metadata{
-		Preloads: extractPreloads(context.DOM),
+		Preloads:   extractPreloads(context.DOM),
 		MaxAgeSecs: computeMaxAgeSeconds(context.DOM),
 	}
 	return o.String(), &metadata, nil

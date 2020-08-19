@@ -209,3 +209,41 @@ func TestNextAndPrev(t *testing.T) {
 	}
 
 }
+
+func TestNextSkippingChildren(t *testing.T) {
+	// This creates a tree of
+	// root
+	// |- div
+	//    |- span
+	//      |- i
+	// |- next
+	root := html.Node{Data: "root"}
+	div := html.Node{Data: "div"}
+	expected := html.Node{Data: "expected"}
+	span := html.Node{Data: "span"}
+	i := html.Node{Data: "i"}
+	root.AppendChild(&div)
+	root.AppendChild(&expected)
+	div.AppendChild(&span)
+	span.AppendChild(&i)
+
+	result := NextSkippingChildren(&div)
+	if result != &expected {
+		t.Errorf("NextSkippingChildren(div) = %v, want %v", result, expected)
+	}
+
+	result = NextSkippingChildren(&span)
+	if result != &expected {
+		t.Errorf("NextSkippingChildren(span) = %v, want %v", result, expected)
+	}
+
+	result = NextSkippingChildren(&i)
+	if result != &expected {
+		t.Errorf("NextSkippingChildren(span) = %v, want %v", result, expected)
+	}
+
+	result = NextSkippingChildren(&expected)
+	if result != nil {
+		t.Errorf("NextSkippingChildren(span) = %v, want nil", result)
+	}
+}
