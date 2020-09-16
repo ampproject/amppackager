@@ -22,7 +22,7 @@ recommend you do:
     [grafana](https://prometheus.io/docs/visualization/grafana/).
 1.  Setup [alerts](https://prometheus.io/docs/alerting/latest/overview/) that
     will notify you of abnormal behavior (e.g. latencies growing beyond 60
-    seconds).
+    seconds - see more [examples](#example-alerts) below).
 
 The sections below walk you through the available metrics, explain how to
 manually check them via command line, and how to interpret the results. All the
@@ -226,3 +226,17 @@ the `amppackager` server binary. Every request to `/metrics` is served with the
 stats accumulated since the server's been up, up to the time of the request, but
 not including the request itself. 
 
+## Example alerts
+
+Below are a few examples of indicators of possibly abnormal behavior of
+`amppackager` and/or the underlying AMP document server. Feel free to adjust the
+numbers and check these manually, or setup automatic alerts in Prometheus:
+
+* Non-200 responses count going beyond 1% of all requests.
+* Latencies 90 percentile going beyond 60 seconds (of either server).
+* Document size 90 percentile going beyond 3.5MB.
+* Unsigned documents count going beyond 1% of all documents.
+
+When designing the alerts for your setup, pay special attention to
+[requirements](README.md#limitations) that `amppackager` imposes on the AMP
+documents you serve.
