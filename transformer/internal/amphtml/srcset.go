@@ -91,7 +91,7 @@ func roundUp(w int) int {
 //   [1-9]\d*\.\d+x          a decimal with its whole-number part greater
 //                           than zero and followed by an x ...
 //   |                       or ...
-//   0.\d*[1-9]\d*x          a decimal with its fractional part greater
+//   0\.\d*[1-9]\d*x         a decimal with its fractional part greater
 //                           than zero and followed by an x ...
 // )?                        and make it optional.
 // \s*                       Match, but don't capture space
@@ -107,7 +107,7 @@ var imageCandidateRE = regexp.MustCompile(
 		`|` +
 		`[1-9]\d*\.\d+x` +
 		`|` +
-		`0.\d*[1-9]\d*` +
+		`0\.\d*[1-9]\d*x` +
 		`)?` +
 		`\s*` +
 		`(?:(,)\s*)?`)
