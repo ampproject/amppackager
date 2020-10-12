@@ -64,6 +64,11 @@ func PreloadImage(e *Context) error {
 		}
 	}
 
+	// Finally, inject a loading=lazy img for all remaining amp-img elements.
+	if e.Version >= 5 {
+		lazyLoadRemainingAmpImgs(body)
+	}
+
 	return nil
 }
 
@@ -73,9 +78,8 @@ func prioritizeHeroImage(e *Context, heroImage HeroImage) {
 	}
 
 	if ampImg := heroImage.ampImg; ampImg != nil {
-		img := buildImg(ampImg)
+		ampImg.AppendChild(buildImg(ampImg))
 		htmlnode.SetAttribute(ampImg, "", "i-amphtml-ssr", "")
-		ampImg.AppendChild(img)
 	}
 }
 
@@ -225,4 +229,24 @@ func srcsetToMediaQueries(srcset string) ([]mediaQuerySource, bool) {
 		medias[i] = mediaQuerySource{ci.href, "screen and " + mediaQuery}
 	}
 	return medias, true
+}
+
+func lazyLoadRemainingAmpImgs(n *html.Node) {
+	for n != nil {
+		if n.Data == "amp-img" {
+			// If the amp-img already has the ssr attribute, then it's a hero image with an already injected img.
+			if !htmlnode.HasAttribute(n, "", "i-amphtml-ssr") {
+				img := buildImg(n)
+				htmlnode.SetAttribute(img, "", "loading", "lazy")
+				n.AppendChild(img)
+				htmlnode.SetAttribute(n, "", "i-amphtml-ssr", "")
+			}
+
+			n = htmlnode.NextSkippingChildren(n)
+		} else if n.Data == "template" {
+			n = htmlnode.NextSkippingChildren(n)
+		} else {
+			n = htmlnode.Next(n)
+		}
+	}
 }

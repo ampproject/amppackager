@@ -26,7 +26,7 @@ import (
 	"github.com/kylelemons/godebug/diff"
 )
 
-func transformAndOutput(input string) (string, error) {
+func transformAndOutput(input string, version int64) (string, error) {
 	inputDoc, err := html.Parse(strings.NewReader(input))
 	if err != nil {
 		return "", err
@@ -42,6 +42,7 @@ func transformAndOutput(input string) (string, error) {
 		DOM:         inputDOM,
 		BaseURL:     baseURL,
 		DocumentURL: documentURL,
+		Version:     version,
 	}
 	transformers.PreloadImage(context)
 	var output strings.Builder
@@ -320,10 +321,32 @@ var testcaseDataHero = []struct {
 	},
 }
 
+var testLazyLoadImg = []struct {
+	testcaseName string
+	input        string
+	expected     string
+}{
+	{
+		"data-hero leftover",
+		`<html><head></head><body><amp-img data-hero width="500" height="400" src="https://example.com/foo.png"></amp-img><amp-img width="500" height="400" src="https://example.com/bar.png"></amp-img></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-img data-hero="" width="500" height="400" src="https://example.com/foo.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png"/></amp-img><amp-img width="500" height="400" src="https://example.com/bar.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/bar.png" loading="lazy"/></amp-img></body></html>`,
+	},
+	{
+		"inferred-size leftover",
+		`<html><head></head><body><amp-img width="500" height="400" src="https://example.com/foo.png"></amp-img><amp-img width="100" height="100" src="https://example.com/bar.png"></amp-img></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-img width="500" height="400" src="https://example.com/foo.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png"/></amp-img><amp-img width="100" height="100" src="https://example.com/bar.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/bar.png" loading="lazy"/></amp-img></body></html>`,
+	},
+	{
+		"no transformed images",
+		`<html><head></head><body><amp-img width="100" height="100" src="https://example.com/foo.png"></amp-img></body></html>`,
+		`<html><head></head><body><amp-img width="100" height="100" src="https://example.com/foo.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png" loading="lazy"/></amp-img></body></html>`,
+	},
+}
+
 func TestInferSizeCases(t *testing.T) {
 	for _, tt := range testcaseInferSize {
 		t.Run(tt.testcaseName, func(t *testing.T) {
-			output, err := transformAndOutput(strings.TrimSpace(tt.input))
+			output, err := transformAndOutput(strings.TrimSpace(tt.input), 0)
 			if err != nil {
 				t.Fatalf("Unexpected error %q", err)
 			}
@@ -337,7 +360,21 @@ func TestInferSizeCases(t *testing.T) {
 func TestDataHeroCases(t *testing.T) {
 	for _, tt := range testcaseDataHero {
 		t.Run(tt.testcaseName, func(t *testing.T) {
-			output, err := transformAndOutput(strings.TrimSpace(tt.input))
+			output, err := transformAndOutput(strings.TrimSpace(tt.input), 0)
+			if err != nil {
+				t.Fatalf("Unexpected error %q", err)
+			}
+			if diff := diff.Diff(strings.TrimSpace(tt.expected), output); diff != "" {
+				t.Errorf("PreloadImage transformer produced unexpected output:\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestLazyLoadCases(t *testing.T) {
+	for _, tt := range testLazyLoadImg {
+		t.Run(tt.testcaseName, func(t *testing.T) {
+			output, err := transformAndOutput(strings.TrimSpace(tt.input), 5)
 			if err != nil {
 				t.Fatalf("Unexpected error %q", err)
 			}
