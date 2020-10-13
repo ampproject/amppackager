@@ -452,6 +452,13 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 		value.WriteString(u.String())
 		value.WriteString(">;rel=preload;as=")
 		value.WriteString(preload.As)
+		for _, attr := range preload.GetAttributes() {
+			value.WriteByte(';')
+			value.WriteString(attr.Key)
+			value.WriteString(`="`)
+			value.WriteString(strings.ReplaceAll(attr.Val, `"`, `\"`))
+			value.WriteByte('"')
+		}
 		values = append(values, value.String())
 	}
 	return strings.Join(values, ","), nil
