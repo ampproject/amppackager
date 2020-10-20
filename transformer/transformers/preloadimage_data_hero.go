@@ -79,6 +79,7 @@ func dataHeroVideoPosterImage(i *html.Node) (HeroImage, bool) {
 	return HeroImage{
 		src:    poster,
 		srcset: "",
+		sizes:  "",
 		ampImg: nil,
 	}, true
 }
@@ -103,9 +104,11 @@ func dataHeroWithPlaceholderImage(n *html.Node) (HeroImage, bool) {
 		src, hasSrc := ValidateSrc(htmlnode.GetAttributeVal(c, "", "src"))
 		srcset, hasSrcset := ParseAndValidateSrcset(htmlnode.GetAttributeVal(c, "", "srcset"))
 		if hasSrc || hasSrcset {
+			sizes, _ := htmlnode.GetAttributeVal(c, "", "sizes")
 			return HeroImage{
 				src:    src,
 				srcset: srcset,
+				sizes:  sizes,
 				ampImg: c,
 			}, true
 		}
@@ -121,17 +124,19 @@ func dataHeroImageForPreloading(n *html.Node) (HeroImage, bool) {
 		return HeroImage{}, false
 	}
 
-	imgsrc, hasSrc := ValidateSrc(htmlnode.GetAttributeVal(n, "", "src"))
-	imgsrcset, hasSrcset := ParseAndValidateSrcset(htmlnode.GetAttributeVal(n, "", "srcset"))
+	src, hasSrc := ValidateSrc(htmlnode.GetAttributeVal(n, "", "src"))
+	srcset, hasSrcset := ParseAndValidateSrcset(htmlnode.GetAttributeVal(n, "", "srcset"))
 
 	// Ignores images with no src attribute.
 	if !hasSrc && !hasSrcset {
 		return HeroImage{}, false
 	}
 
+	sizes, _ := htmlnode.GetAttributeVal(n, "", "sizes")
 	return HeroImage{
-		src:    imgsrc,
-		srcset: imgsrcset,
+		src:    src,
+		srcset: srcset,
+		sizes:  sizes,
 		ampImg: n,
 	}, true
 }

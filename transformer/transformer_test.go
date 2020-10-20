@@ -9,6 +9,7 @@ import (
 	rpb "github.com/ampproject/amppackager/transformer/request"
 	"github.com/ampproject/amppackager/transformer/transformers"
 	"github.com/google/go-cmp/cmp"
+	"github.com/kylelemons/godebug/diff"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -61,9 +62,9 @@ func TestPreloads(t *testing.T) {
 	// Programmatically prepare the `> maxPreloads` test case.
 	var manyScriptsHTML strings.Builder
 	manyScriptsPreloads := []*rpb.Metadata_Preload{}
-	manyScriptsHTML.WriteString("<html ⚡>")
+	manyScriptsHTML.WriteString("<html ⚡><head>")
 	for i := 0; i <= maxPreloads; i++ {
-		fmt.Fprintf(&manyScriptsHTML, `<script src="foo%d"></script>`, i)
+		fmt.Fprintf(&manyScriptsHTML, `<script src=foo%d></script>`, i)
 		if i < maxPreloads {
 			manyScriptsPreloads = append(manyScriptsPreloads, &rpb.Metadata_Preload{Url: fmt.Sprintf("foo%d", i), As: "script"})
 		}
@@ -71,45 +72,81 @@ func TestPreloads(t *testing.T) {
 
 	tcs := []struct {
 		html             string
+		expectedHTML     string
 		expectedPreloads []*rpb.Metadata_Preload
 	}{
 		{
 			"<html ⚡><script>",
+			"<html ⚡><head><script></script></head><body></body></html>",
 			[]*rpb.Metadata_Preload{},
 		},
 		{
 			"<html ⚡><script src=foo>",
+			"<html ⚡><head><script src=foo></script></head><body></body></html>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "script"}},
 		},
 		{
 			"<html ⚡><link rel=foaf href=foo>",
+			"<html ⚡><head><link href=foo rel=foaf></head><body></body></html>",
 			[]*rpb.Metadata_Preload{},
 		},
 		{
 			"<html ⚡><link rel=stylesheet href=foo>",
+			"<html ⚡><head><link href=foo rel=stylesheet></head><body></body></html>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}},
 		},
 		{ // case-insensitive
 			"<html ⚡><link rel=STYLEsheet href=foo>",
+			"<html ⚡><head><link href=foo rel=STYLEsheet></head><body></body></html>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}},
 		},
 		{
 			"<html ⚡><link rel=stylesheet href=foo><script src=bar>",
+			"<html ⚡><head><link href=foo rel=stylesheet><script src=bar></script></head><body></body></html>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "style"}, {Url: "bar", As: "script"}},
 		},
 		{
 			manyScriptsHTML.String(),
+			manyScriptsHTML.String() + "</head><body></body></html>",
 			manyScriptsPreloads,
+		},
+		{
+			"<html ⚡><link rel=preload href=foo>",
+			"<html ⚡><head><link href=foo rel=preload></head><body></body></html>",
+			[]*rpb.Metadata_Preload{},
+		},
+		{
+			"<html ⚡><link rel=preload as=image href=foo>",
+			"<html ⚡><head></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "image"}},
+		},
+		{
+			"<html ⚡><link rel=preload as=image href=foo imagesrcset=bar>",
+			"<html ⚡><head></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "imagesrcset", Val: "bar"}}}},
+		},
+		{
+			"<html ⚡><link rel=preload as=image href=foo imagesrcset=bar imagesizes=100vw>",
+			"<html ⚡><head></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "imagesrcset", Val: "bar"}, {Key: "imagesizes", Val: "100vw"}}}},
+		},
+		{
+			"<html ⚡><link rel=preload as=image href=foo media=print>",
+			"<html ⚡><head></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "media", Val: "print"}}}},
 		},
 	}
 
 	for _, tc := range tcs {
 		t.Run(tc.html, func(t *testing.T) {
-			_, metadata, err := Process(&rpb.Request{Html: tc.html, Config: rpb.Request_NONE})
+			output, metadata, err := Process(&rpb.Request{Html: tc.html, Config: rpb.Request_NONE})
 			if err != nil {
 				t.Fatalf("unexpected failure: %v", err)
 			}
 
+			if diff := diff.Diff(output, tc.expectedHTML); diff != "" {
+				t.Errorf("html output differs (-want +got):\n%s", diff)
+			}
 			if diff := cmp.Diff(tc.expectedPreloads, metadata.Preloads, cmp.Comparer(proto.Equal)); diff != "" {
 				t.Errorf("preloads differ (-want +got):\n%s", diff)
 			}
