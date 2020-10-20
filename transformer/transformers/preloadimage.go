@@ -15,9 +15,6 @@
 package transformers
 
 import (
-	"fmt"
-	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
@@ -31,13 +28,8 @@ const maxHeroImages int = 2
 type HeroImage struct {
 	src    string
 	srcset string
+	sizes  string
 	ampImg *html.Node
-}
-
-// mediaQuerySource represents an individual source from a srcset with a unique media query that will only load the href when appropriate.
-type mediaQuerySource struct {
-	href  string
-	media string
 }
 
 // PreloadImage adds link rel="preload" to head element to preload the most revalent image in the AMP document,
@@ -73,44 +65,26 @@ func PreloadImage(e *Context) error {
 }
 
 func prioritizeHeroImage(e *Context, heroImage HeroImage) {
-	for _, link := range buildLinkPreloads(heroImage) {
+	if heroImage.src != "" || heroImage.srcset != "" {
+		link := htmlnode.Element("link",
+			html.Attribute{Key: "rel", Val: "preload"},
+			html.Attribute{Key: "as", Val: "image"},
+		)
+		if heroImage.src != "" {
+			htmlnode.SetAttribute(link, "", "href", heroImage.src)
+		}
+		if heroImage.srcset != "" {
+			htmlnode.SetAttribute(link, "", "imagesrcset", heroImage.srcset)
+		}
+		if heroImage.sizes != "" {
+			htmlnode.SetAttribute(link, "", "imagesizes", heroImage.sizes)
+		}
 		e.DOM.HeadNode.AppendChild(link)
 	}
 
 	if ampImg := heroImage.ampImg; ampImg != nil {
 		ampImg.AppendChild(buildImg(ampImg))
 		htmlnode.SetAttribute(ampImg, "", "i-amphtml-ssr", "")
-	}
-}
-
-func buildLinkPreloads(heroImage HeroImage) []*html.Node {
-	// One of these is guaranteed.
-	if heroImage.srcset != "" {
-		if medias, ok := srcsetToMediaQueries(heroImage.srcset); ok {
-			links := make([]*html.Node, len(medias))
-			for i, mediaSrc := range medias {
-				links[i] = htmlnode.Element("link",
-					html.Attribute{Key: "rel", Val: "preload"},
-					html.Attribute{Key: "as", Val: "image"},
-					html.Attribute{Key: "href", Val: mediaSrc.href},
-					html.Attribute{Key: "media", Val: mediaSrc.media},
-				)
-			}
-
-			return links
-		}
-	}
-
-	if heroImage.src == "" {
-		return []*html.Node{}
-	}
-
-	return []*html.Node{
-		htmlnode.Element("link",
-			html.Attribute{Key: "rel", Val: "preload"},
-			html.Attribute{Key: "as", Val: "image"},
-			html.Attribute{Key: "href", Val: heroImage.src},
-		),
 	}
 }
 
@@ -170,65 +144,6 @@ func ValidateSrc(in string, has bool) (string, bool) {
 		return "", false
 	}
 	return in, true
-}
-
-// Converts the raw srcset value into multiple sources with an appropriate media query to select that source.
-// TODO(jridgewell, amaltas): Support pixel density with -webkit-max-device-pixel-ratio and -webkit-min-device-pixel-ratio
-func srcsetToMediaQueries(srcset string) ([]mediaQuerySource, bool) {
-	type Source struct {
-		href string
-		size int
-	}
-
-	srcSets := strings.Split(strings.TrimSpace(srcset), ",")
-	length := len(srcSets)
-	sources := make([]Source, length)
-	medias := make([]mediaQuerySource, length)
-
-	if length == 0 {
-		return medias, false
-	}
-
-	for i, src := range srcSets {
-		imgComponents := strings.Fields(src)
-		if len(imgComponents) != 2 {
-			return medias, false
-		}
-
-		source := Source{imgComponents[0], 0}
-
-		if strings.HasSuffix(imgComponents[1], "w") {
-			size, err := strconv.Atoi(strings.TrimSuffix(imgComponents[1], "w"))
-			if err != nil {
-				return medias, false
-			}
-
-			source.size = size
-		} else {
-			return medias, false
-		}
-
-		sources[i] = source
-	}
-
-	// Sort the images based on their target sizes in asc order.
-	sort.Slice(sources, func(i, j int) bool {
-		return sources[i].size < sources[j].size
-	})
-
-	for i, ci := range sources {
-		var mediaQuery string
-		if i == 0 {
-			mediaQuery = fmt.Sprintf("(max-width: %dpx)", ci.size)
-		} else if i == length-1 {
-			mediaQuery = fmt.Sprintf("(min-width: %dpx)", sources[i-1].size+1)
-		} else {
-			mediaQuery = fmt.Sprintf("(min-width: %dpx) and (max-width: %dpx)", sources[i-1].size+1, ci.size)
-		}
-
-		medias[i] = mediaQuerySource{ci.href, "screen and " + mediaQuery}
-	}
-	return medias, true
 }
 
 func lazyLoadRemainingAmpImgs(n *html.Node) {

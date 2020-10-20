@@ -70,12 +70,17 @@ var testcaseInferSize = []struct {
 	{
 		"inferred-size: Srcset attribute.",
 		`<html><head></head><body><amp-img width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></body></html>`,
-		`<html><head><link rel="preload" as="image" href="https://example.com/foomedium.png" media="screen and (max-width: 800px)"/><link rel="preload" as="image" href="https://example.com/foolarge.png" media="screen and (min-width: 801px)"/></head><body><amp-img width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-img width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
 	},
 	{
 		"inferred-size: Srcset without src.",
 		`<html><head></head><body><amp-img width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></body></html>`,
-		`<html><head><link rel="preload" as="image" href="https://example.com/foomedium.png" media="screen and (max-width: 800px)"/><link rel="preload" as="image" href="https://example.com/foolarge.png" media="screen and (min-width: 801px)"/></head><body><amp-img width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-img width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
+	},
+	{
+		"inferred-size: Sizes",
+		`<html><head></head><body><amp-img width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" sizes="100vw"></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w" imagesizes="100vw"/></head><body><amp-img width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" sizes="100vw" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" sizes="100vw"/></amp-img></body></html>`,
 	},
 	{
 		"inferred-size: Several images",
@@ -95,7 +100,7 @@ var testcaseInferSize = []struct {
 	{
 		"inferred-size: Iframe placeholder srcset",
 		`<html><head></head><body><amp-iframe height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></amp-img></amp-iframe></body></html>`,
-		`<html><head><link rel="preload" as="image" href="https://example.com/foomedium.png" media="screen and (max-width: 800px)"/><link rel="preload" as="image" href="https://example.com/foolarge.png" media="screen and (min-width: 801px)"/></head><body><amp-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-iframe></body></html>`,
 	},
 	{
 		"inferred-size: No placeholder image",
@@ -110,7 +115,7 @@ var testcaseInferSize = []struct {
 	{
 		"inferred-size: iframe video placeholder srcset",
 		`<html><head></head><body><amp-video-iframe height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></amp-img></amp-video-iframe></body></html>`,
-		`<html><head><link rel="preload" as="image" href="https://example.com/foomedium.png" media="screen and (max-width: 800px)"/><link rel="preload" as="image" href="https://example.com/foolarge.png" media="screen and (min-width: 801px)"/></head><body><amp-video-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-video-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-video-iframe></body></html>`,
 	},
 	{
 		"inferred-size: iframe video poster",
@@ -217,12 +222,17 @@ var testcaseDataHero = []struct {
 	{
 		"data-hero: Srcset attribute.",
 		`<html><head></head><body><amp-img data-hero width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></body></html>`,
-		`<html><head><link rel="preload" as="image" href="https://example.com/foomedium.png" media="screen and (max-width: 800px)"/><link rel="preload" as="image" href="https://example.com/foolarge.png" media="screen and (min-width: 801px)"/></head><body><amp-img data-hero="" width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-img data-hero="" width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
 	},
 	{
 		"inferred-size: Srcset without src.",
 		`<html><head></head><body><amp-img data-hero width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></body></html>`,
-		`<html><head><link rel="preload" as="image" href="https://example.com/foomedium.png" media="screen and (max-width: 800px)"/><link rel="preload" as="image" href="https://example.com/foolarge.png" media="screen and (min-width: 801px)"/></head><body><amp-img data-hero="" width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-img data-hero="" width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
+	},
+	{
+		"inferred-size: Sizes.",
+		`<html><head></head><body><amp-img data-hero width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" sizes="100vw"></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w" imagesizes="100vw"/></head><body><amp-img data-hero="" width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" sizes="100vw" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" sizes="100vw"/></amp-img></body></html>`,
 	},
 	{
 		"data-hero: Iframe placeholder",
@@ -232,7 +242,7 @@ var testcaseDataHero = []struct {
 	{
 		"inferred-size: Iframe placeholder srcset",
 		`<html><head></head><body><amp-iframe data-hero height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></amp-img></amp-iframe></body></html>`,
-		`<html><head><link rel="preload" as="image" href="https://example.com/foomedium.png" media="screen and (max-width: 800px)"/><link rel="preload" as="image" href="https://example.com/foolarge.png" media="screen and (min-width: 801px)"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-iframe></body></html>`,
 	},
 	{
 		"data-hero: No placeholder image",
@@ -247,7 +257,7 @@ var testcaseDataHero = []struct {
 	{
 		"inferred-size: iframe video placeholder srcset",
 		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></amp-img></amp-video-iframe></body></html>`,
-		`<html><head><link rel="preload" as="image" href="https://example.com/foomedium.png" media="screen and (max-width: 800px)"/><link rel="preload" as="image" href="https://example.com/foolarge.png" media="screen and (min-width: 801px)"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-video-iframe></body></html>`,
 	},
 	{
 		"data-hero: iframe video poster",
