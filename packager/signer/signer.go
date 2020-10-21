@@ -447,12 +447,26 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 			return "", errors.Errorf("Missing `as` attribute for preload URL: %q\n", preload.Url)
 		}
 
+		valid := true
 		var value strings.Builder
 		value.WriteByte('<')
 		value.WriteString(u.String())
 		value.WriteString(">;rel=preload;as=")
 		value.WriteString(preload.As)
-		values = append(values, value.String())
+		for _, attr := range preload.GetAttributes() {
+			value.WriteByte(';')
+			value.WriteString(attr.Key)
+			value.WriteByte('=')
+			quotedVal, err := util.QuotedString(attr.Val)
+			if err != nil {
+				valid = false
+				break
+			}
+			value.WriteString(quotedVal)
+		}
+		if valid {
+			values = append(values, value.String())
+		}
 	}
 	return strings.Join(values, ","), nil
 }

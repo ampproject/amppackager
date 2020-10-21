@@ -479,7 +479,7 @@ func (this *SignerSuite) TestAddsLinkHeaders() {
 		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil}}}
 	this.fakeHandler = func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "text/html; charset=utf-8")
-		resp.Write([]byte("<html amp><head><link rel=stylesheet href=foo><script src=bar>"))
+		resp.Write([]byte(`<html amp><head><link rel=stylesheet href=foo><script src=bar></script><link rel=preload as=image href=baz imagesizes="100vw" imagesrcset="qux">`))
 	}
 	target := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
 	resp := pkgt.NewRequest(this.T(), this.new(urlSets), target).SetHeaders("", header).Do()
@@ -487,7 +487,7 @@ func (this *SignerSuite) TestAddsLinkHeaders() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal("<foo>;rel=preload;as=style,<bar>;rel=preload;as=script", exchange.ResponseHeaders.Get("Link"))
+	this.Assert().Equal("<foo>;rel=preload;as=style,<bar>;rel=preload;as=script,<baz>;rel=preload;as=image;imagesizes=\"100vw\";imagesrcset=\"qux\"", exchange.ResponseHeaders.Get("Link"))
 }
 
 func (this *SignerSuite) TestEscapesLinkHeaders() {
@@ -500,7 +500,7 @@ func (this *SignerSuite) TestEscapesLinkHeaders() {
 		// However, it would be nice to limit the impact that could be
 		// caused by transformation of an invalid AMP, e.g. on a
 		// same-origin impression.
-		resp.Write([]byte(`<html amp><head><script src="https://foo.com/a,b>c?d>e|f">`))
+		resp.Write([]byte(`<html amp><head><script src="https://foo.com/a,b>c?d>e|f"></script><link rel=preload as=image href=bar imagesrcset='test"ing'>`))
 	}
 	target := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
 	resp := pkgt.NewRequest(this.T(), this.new(urlSets), target).SetHeaders("", header).Do()
@@ -508,7 +508,7 @@ func (this *SignerSuite) TestEscapesLinkHeaders() {
 
 	exchange, err := signedexchange.ReadExchange(resp.Body)
 	this.Require().NoError(err)
-	this.Assert().Equal("<https://foo.com/a,b%3Ec?d%3Ee%7Cf>;rel=preload;as=script", exchange.ResponseHeaders.Get("Link"))
+	this.Assert().Equal("<https://foo.com/a,b%3Ec?d%3Ee%7Cf>;rel=preload;as=script,<bar>;rel=preload;as=image;imagesrcset=\"test\\\"ing\"", exchange.ResponseHeaders.Get("Link"))
 }
 
 func (this *SignerSuite) TestRemovesHopByHopHeaders() {
