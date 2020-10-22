@@ -126,6 +126,26 @@ func TestPreloads(t *testing.T) {
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "imagesrcset", Val: "bar"}}}},
 		},
 		{
+			`<html ⚡><link rel=preload as=image imagesrcset="bar,">`,
+			"<html ⚡><head></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "bar", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "imagesrcset", Val: "bar,"}}}},
+		},
+		{
+			`<html ⚡><link rel=preload as=image imagesrcset="bar, baz">`,
+			"<html ⚡><head></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "bar", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "imagesrcset", Val: "bar, baz"}}}},
+		},
+		{
+			`<html ⚡><link rel=preload as=image imagesrcset=",, ,,bar">`,
+			"<html ⚡><head></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "bar", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "imagesrcset", Val: ",, ,,bar"}}}},
+		},
+		{
+			`<html ⚡><link rel=preload as=image imagesrcset="bar,baz quux">`,
+			"<html ⚡><head></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "bar,baz", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "imagesrcset", Val: "bar,baz quux"}}}},
+		},
+		{
 			"<html ⚡><link rel=preload as=image href=foo imagesrcset=bar imagesizes=100vw>",
 			"<html ⚡><head></head><body></body></html>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "image", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "imagesrcset", Val: "bar"}, {Key: "imagesizes", Val: "100vw"}}}},

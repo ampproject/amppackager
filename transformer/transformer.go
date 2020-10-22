@@ -112,8 +112,9 @@ var ampAttrRE = func() *regexp.Regexp {
 	return r
 }()
 
-// firstSrcsetSourceRE captures the first source URL from a srcset.
-var firstSrcsetSourceRE = regexp.MustCompile(`[^\s,]+`)
+// firstSrcsetSourceRE captures the first source URL from a srcset. Caller must
+// remove trailing comma, if present.
+var firstSrcsetSourceRE = regexp.MustCompile(`^[\s,]*([^\s]+)`)
 
 // The allowed AMP formats, and their serialization as an html "amp4" attribute.
 var ampFormatSuffixes = map[rpb.Request_HtmlFormat]string{
@@ -229,11 +230,11 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 							}
 							// The href doesn't really matter here. Browsers will ignore it and instead prioritize whichever source is selected from imagesrcset. However, the Link header *must* have it.
 							// Stub this by just finding the first source URL possible.
-							firstSource := firstSrcsetSourceRE.FindString(imagesrcset)
+							firstSource := firstSrcsetSourceRE.FindStringSubmatch(imagesrcset)[1]
 							if firstSource == "" {
 								continue
 							}
-							href = firstSource
+							href = strings.TrimSuffix(firstSource, ",")
 						}
 						preload := &rpb.Metadata_Preload{Url: href, As: "image"}
 						for _, attr := range current.Attr {
