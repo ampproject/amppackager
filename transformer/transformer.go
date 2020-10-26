@@ -112,6 +112,10 @@ var ampAttrRE = func() *regexp.Regexp {
 	return r
 }()
 
+// firstSrcsetSourceRE captures the first source URL from a srcset. Caller must
+// remove trailing comma, if present.
+var firstSrcsetSourceRE = regexp.MustCompile(`^[\s,]*([^\s]+)`)
+
 // The allowed AMP formats, and their serialization as an html "amp4" attribute.
 var ampFormatSuffixes = map[rpb.Request_HtmlFormat]string{
 	rpb.Request_AMP:       "",
@@ -198,17 +202,52 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 	// If you add additional preloads here, verify that they can not be
 	// unintentionally author supplied.
 	preloads := []*rpb.Metadata_Preload{}
-	for child := dom.HeadNode.FirstChild; child != nil; child = child.NextSibling {
-		switch child.DataAtom {
+	next := dom.HeadNode.FirstChild
+	for next != nil {
+		// Set the next node to visit
+		current := next
+		next = current.NextSibling
+
+		switch current.DataAtom {
 		case atom.Script:
-			if src, ok := htmlnode.GetAttributeVal(child, "", "src"); ok {
+			if src, ok := htmlnode.GetAttributeVal(current, "", "src"); ok {
 				preloads = append(preloads, &rpb.Metadata_Preload{Url: src, As: "script"})
 			}
 		case atom.Link:
-			if rel, ok := htmlnode.GetAttributeVal(child, "", "rel"); ok {
+			if rel, ok := htmlnode.GetAttributeVal(current, "", "rel"); ok {
 				if strings.EqualFold(rel, "stylesheet") {
-					if href, ok := htmlnode.GetAttributeVal(child, "", "href"); ok {
+					if href, ok := htmlnode.GetAttributeVal(current, "", "href"); ok {
 						preloads = append(preloads, &rpb.Metadata_Preload{Url: href, As: "style"})
+					}
+				} else if strings.EqualFold(rel, "preload") {
+					if as, ok := htmlnode.GetAttributeVal(current, "", "as"); ok && strings.EqualFold(as, "image") {
+						href, _ := htmlnode.GetAttributeVal(current, "", "href")
+						// It's valid for a <link> to not have a href, but when we generate a Link header it must have one.
+						if href == "" {
+							imagesrcset, ok := htmlnode.GetAttributeVal(current, "", "imagesrcset")
+							if !ok {
+								continue
+							}
+							// The href doesn't really matter here. Browsers will ignore it and instead prioritize whichever source is selected from imagesrcset. However, the Link header *must* have it.
+							// Stub this by just finding the first source URL possible.
+							firstSource := firstSrcsetSourceRE.FindStringSubmatch(imagesrcset)[1]
+							if firstSource == "" {
+								continue
+							}
+							href = strings.TrimSuffix(firstSource, ",")
+						}
+						preload := &rpb.Metadata_Preload{Url: href, As: "image"}
+						for _, attr := range current.Attr {
+							if strings.EqualFold(attr.Key, "rel") || strings.EqualFold(attr.Key, "as") || strings.EqualFold(attr.Key, "href") {
+								continue
+							}
+							preload.Attributes = append(preload.Attributes, &rpb.Metadata_Preload_Attribute{
+								Key: attr.Key,
+								Val: attr.Val,
+							})
+						}
+						preloads = append(preloads, preload)
+						htmlnode.RemoveNode(&current)
 					}
 				}
 			}
@@ -224,11 +263,11 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 // amp-script without an explicit max-age. This is 1 day, to parallel the
 // security precautions put in place around service workers:
 // https://dev.chromium.org/Home/chromium-security/security-faq/service-worker-security-faq#TOC-Do-Service-Workers-live-forever-
-const defaultMaxAgeSeconds int32 = 86400  // number of seconds in a day
+const defaultMaxAgeSeconds int32 = 86400 // number of seconds in a day
 
 // maxMaxAgeSeconds is the max duration of an SXG, per
 // https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#signature-validity.
-const maxMaxAgeSeconds int32 = 7*86400
+const maxMaxAgeSeconds int32 = 7 * 86400
 
 // computeMaxAgeSeconds returns the suggested max-age based on the presence of
 // any inline <amp-script> tags on the page; callers should min() the return
@@ -312,12 +351,14 @@ func Process(r *rpb.Request) (string, *rpb.Metadata, error) {
 	if err := runTransformers(context, fns); err != nil {
 		return "", nil, err
 	}
+	// extractPreloads is an implicit transformer, and must run before printer.
+	preloads := extractPreloads(context.DOM)
 	var o strings.Builder
 	if err := printer.Print(&o, context.DOM.RootNode); err != nil {
 		return "", nil, err
 	}
 	metadata := rpb.Metadata{
-		Preloads: extractPreloads(context.DOM),
+		Preloads:   preloads,
 		MaxAgeSecs: computeMaxAgeSeconds(context.DOM),
 	}
 	return o.String(), &metadata, nil

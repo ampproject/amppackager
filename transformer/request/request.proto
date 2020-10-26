@@ -36,6 +36,8 @@ message Request {
 
   // This should be kept in sync with HtmlFormat.Code in
   // github.com/ampproject/amphtml/validator/validator.proto.
+  // Deprecated fields, do not reuse:
+  // reserved 5;
   enum HtmlFormat {
     UNKNOWN_CODE = 0;  // Never used
     AMP = 1;
@@ -117,8 +119,18 @@ message Metadata {
     string as = 2;
 
     // The media attribute for image preload link. This attribute is useful
-    // only for image links.
-    string media = 3;
+    // only for image links. Deprecated, instead use the `attributes` field.
+    string media = 3 [deprecated = true];
+
+    message Attribute {
+      string key = 1;
+
+      string val = 2;
+    }
+
+    // Optional remaining attributes. This does not include the `href` or `as`
+    // attributes.
+    repeated Attribute attributes = 4;
   }
   // Absolute URLs of resources that should be preloaded when the AMP is
   // prefetched. In a signed exchange (SXG) context, these would be included as

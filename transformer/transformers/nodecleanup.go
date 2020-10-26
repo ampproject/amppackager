@@ -76,6 +76,10 @@ func NodeCleanup(e *Context) error {
 				maybeStripTitle(&n)
 			}
 
+			if n.Data == "amp-img" {
+				stripHeroImage(n)
+			}
+
 		case html.DoctypeNode:
 			// Force doctype to be HTML 5.
 			n.Data = "html"
@@ -178,5 +182,24 @@ func maybeStripTitle(n **html.Node) {
 	case htmlnode.IsDescendantOf(*n, atom.Body):
 		// Strip any titles found in body.
 		htmlnode.RemoveNode(n)
+	}
+}
+
+func stripHeroImage(n *html.Node) {
+	attr, ok := htmlnode.FindAttribute(n, "", "i-amphtml-ssr")
+	if !ok {
+		return
+	}
+
+	htmlnode.RemoveAttribute(n, attr)
+	c := n.LastChild
+	for c != nil {
+		// Advance before we maybe remove, so we don't mutate the iterator.
+		current := c
+		c = c.PrevSibling
+
+		if current.DataAtom == atom.Img && !htmlnode.HasAttribute(current, "", "placeholder") {
+			n.RemoveChild(current)
+		}
 	}
 }

@@ -78,17 +78,39 @@ func roundUp(w int) int {
 // more spaces + a non empty string containing no space or commas).
 // Doesn't capture the initial space.
 //
-// \s*                       Match, but don't capture leading spaces
+// \s*                       Match, but don't capture leading spaces.
 // (?:,\s*)?                 Optionally match comma and trailing space,
 //                           but don't capture comma.
 // ([^,\s]\S*[^,\s])         Match something like "google.com/favicon.ico"
-//                           but not ",google.com/favicon.ico,"
+//                           but not ",google.com/favicon.ico,".
 // \s*                       Match, but don't capture spaces.
-// ([\d]+.?[\d]*[w|x])?      e.g. "5w" or "5x" or "10.2x"
+// (                         Match the width or density descriptor...
+//   [1-9]\d*[wx]            which is a non-zero integer followed by a w
+//                           or an x ...
+//   |                       or ...
+//   [1-9]\d*\.\d+x          a decimal with its whole-number part greater
+//                           than zero and followed by an x ...
+//   |                       or ...
+//   0\.\d*[1-9]\d*x         a decimal with its fractional part greater
+//                           than zero and followed by an x ...
+// )?                        and make it optional.
 // \s*                       Match, but don't capture space
 // (?:(,)\s*)?               Optionally match comma and trailing space,
 //                           capturing comma.
-var imageCandidateRE = regexp.MustCompile(`\s*(?:,\s*)?([^,\s]\S*[^,\s])\s*([\d]+.?[\d]*[w|x])?\s*(?:(,)\s*)?`)
+var imageCandidateRE = regexp.MustCompile(
+	`\s*` +
+		`(?:,\s*)?` +
+		`([^,\s]\S*[^,\s])` +
+		`\s*` +
+		`(` +
+		`[1-9]\d*[wx]` +
+		`|` +
+		`[1-9]\d*\.\d+x` +
+		`|` +
+		`0\.\d*[1-9]\d*x` +
+		`)?` +
+		`\s*` +
+		`(?:(,)\s*)?`)
 
 // ParseSrcset parses the given srcset attribute value of its
 // image candidates (as defined by

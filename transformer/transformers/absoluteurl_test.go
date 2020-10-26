@@ -173,6 +173,14 @@ func TestAbsoluteURLTansformer(t *testing.T) {
 			baseURL:     "http://www.example.com",
 			documentURL: fooURL,
 		},
+		{
+			desc:  "imagesrcset rewritten",
+			input: "<link imagesrcset=\"200.png 200w, 400.png 400w\">",
+			expected: "<link imagesrcset=\"https://example.com/200.png 200w, " +
+				"https://example.com/400.png 400w\">",
+			baseURL:     "https://example.com/",
+			documentURL: barURL,
+		},
 	}
 	for _, tc := range tcs {
 		rawInput := tt.Concat(
