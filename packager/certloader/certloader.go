@@ -64,11 +64,22 @@ func CreateCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 		return nil, errors.New("missing acme disco url")
 	}
 	acmeDiscoveryURL := acmeConfig.DiscoURL
+	// Fields for External Account Binding. Some CAs require them, others like
+	// DigiCert, do not. Either both eabKid and eabHmac has to be specified or
+	// none of them are specified.
+	if acmeConfig.EABKid == "" && acmeConfig.EABHmac != "" {
+		return nil, errors.New("EABKid is empty, but EABHmac is not empty, both values need to be set or empty")
+	}
+	if acmeConfig.EABKid != "" && acmeConfig.EABHmac == "" {
+		return nil, errors.New("EABKid is not empty, but EABHmac is empty, both values need to be set or empty")
+	}
+	eabKid := acmeConfig.EABKid
+	eabHmac := acmeConfig.EABHmac
 	if acmeConfig.HttpChallengePort == 0 &&
 		acmeConfig.HttpWebRootDir == "" &&
 		acmeConfig.TlsChallengePort == 0 &&
 		acmeConfig.DnsProvider == "" {
-		return nil, errors.New("One of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present.")
+		return nil, errors.New("one of HttpChallengePort, HttpWebRootDir, TlsChallengePort and DnsProvider must be present")
 	}
 	httpChallengePort := acmeConfig.HttpChallengePort
 	httpWebRootDir := acmeConfig.HttpWebRootDir
@@ -83,8 +94,9 @@ func CreateCertFetcher(config *util.Config, key crypto.PrivateKey, domain string
 	}
 
 	// Create the cert fetcher that will auto-renew the cert.
-	certFetcher, err := certfetcher.New(emailAddress, csr, key, acmeDiscoveryURL,
-		httpChallengePort, httpWebRootDir, tlsChallengePort, dnsProvider, true)
+	certFetcher, err := certfetcher.New(emailAddress, eabKid, eabHmac, csr, key,
+		acmeDiscoveryURL, httpChallengePort, httpWebRootDir, tlsChallengePort,
+		dnsProvider, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating certfetcher")
 	}
