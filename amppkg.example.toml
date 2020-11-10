@@ -191,10 +191,6 @@ ForwardedRequestHeaders = []
   # PathRE = "/world/.*"
   # QueryRE = ""
 
-# IMPORTANT NOTE: the support of the ACME protocol and automatic renewal of certificates is currently in the
-# EXPERIMENTAL stage.  Once we have more experience with people using it out in the wild, we will gradually
-# move it to PRODUCTION mode.
-#
 # ACME is a protocol that allows for automatic renewal of certificates. AMP Packager uses an ACME library
 # https://github.com/go-acme/lego to handle certificate renewal. Automatic certificate renewal is enabled
 # in AMP Packager via the 'autorenewcert' flag. Turning the flag on will enable AMP Packager to automatically
@@ -226,6 +222,15 @@ ForwardedRequestHeaders = []
     # This is the email address you used to create an account with the Certificate Authority that is registered to
     # request signed exchange certificates.
     # EmailAddress = "user@company.com"
+
+    # The EABKid and EABHmac need to have synchronized values.  They can both be empty (in which case EAB is not used)
+    # or both have valid values. If one is empty and the other is not, the AMP Packager will generate an error.
+    # This is the Key Identifier from ACME CA. Used for External Account Binding.
+    # EABKid = "eab.kid"
+
+    # This is the MAC Key from ACME CA. Used for External Account Binding. Should be in
+    # Base64 URL Encoding without padding format.
+    # EABHmac = "eab.hmac"
 
     # For the remaining configuration items, it's important to understand the different challenges employed as
     # part of the ACME protocol.  See:
@@ -265,6 +270,8 @@ ForwardedRequestHeaders = []
   # [ACMEConfig.Development]
     # DiscoURL = "https://development-acme.discovery.url/"
     # EmailAddress = "user@company.com"
+    # EABKid = "eab.kid"
+    # EABHmac = "eab.hmac"
     # HttpChallengePort = 5002
     # HttpWebRootDir = '/path/to/www_root_dir'
     # TlsChallengePort = 5003
