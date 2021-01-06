@@ -251,7 +251,7 @@ func TestSpecificTagsAreAbsoluted(t *testing.T) {
     <amp-story-page background-audio=/foo></amp-story-page>
     <form action=/foo></form>
     <form action-xhr=/foo></form>
-    <image xlink:href=/foo><image>
+    <svg><image xlink:href=/foo><image></svg>
 		</body></html>`)
 	// TODO(gregable): Another good test would be:
 	//   <noscript><img longdesc=/foo></form></noscript>

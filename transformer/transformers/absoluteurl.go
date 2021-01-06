@@ -149,8 +149,8 @@ func AbsoluteURL(e *Context) error {
 			}
 		}
 		// Tags with xlink:href attribute.
-		if href, ok := htmlnode.FindAttribute(n, "", "xlink:href"); ok {
-			htmlnode.SetAttribute(n, "", "xlink:href",
+		if href, ok := htmlnode.FindAttribute(n, "xlink", "href"); ok {
+			htmlnode.SetAttribute(n, "xlink", "href",
 			  amphtml.ToAbsoluteURL(documentURL, e.BaseURL, href.Val))
 		}
 		if srcset, ok := htmlnode.FindAttribute(n, "", "srcset"); ok {
