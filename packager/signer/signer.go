@@ -246,6 +246,7 @@ func MutateFetchedContentSecurityPolicy(fetched string) string {
 			"script-src blob: https://cdn.ampproject.org/rtv/ " +
 			"https://cdn.ampproject.org/v0.js " +
 			"https://cdn.ampproject.org/v0/ " +
+			"https://cdn.ampproject.org/lts/ " +
 			"https://cdn.ampproject.org/viewer/;" +
 			"style-src 'unsafe-inline' https://cdn.materialdesignicons.com " +
 			"https://cloud.typography.com https://fast.fonts.net " +
