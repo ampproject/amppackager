@@ -45,9 +45,6 @@ const (
 	// LinkGoogleFontPreconnect is a preconnect for Google Fonts.
 	LinkGoogleFontPreconnect = "<link crossorigin=\"\" href=https://fonts.gstatic.com/ rel=\"dns-prefetch preconnect\">"
 
-	// LinkStylesheetGoogleFont is a link tag for a Google Font.
-	LinkStylesheetGoogleFont = "<link href=https://fonts.googleapis.com/css?family=Roboto rel=stylesheet>"
-
 	// MetaCharset is a required tag for an AMP document.
 	MetaCharset = "<meta charset=utf-8>"
 
