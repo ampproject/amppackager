@@ -32,7 +32,7 @@ func TestReorderHead(t *testing.T) {
 				tt.Title, tt.StyleAMPBoilerplate,
 				tt.ScriptAMPExperiment, tt.ScriptAMPAudio,
 				tt.NoscriptAMPBoilerplate, tt.StyleAMPRuntime,
-				tt.ScriptAMPRuntime, tt.LinkStylesheetGoogleFont,
+				tt.ScriptAMPRuntime, tt.LinkGoogleFont,
 				tt.LinkGoogleFontPreconnect, tt.MetaCharset,
 				tt.MetaViewport, tt.StyleAMPCustom, tt.LinkCanonical,
 				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
@@ -60,7 +60,7 @@ func TestReorderHead(t *testing.T) {
 				// (8) <link> tag for resource hints
 				tt.LinkGoogleFontPreconnect,
 				// (9) <link rel=stylesheet> tags before <style amp-custom>
-				tt.LinkStylesheetGoogleFont,
+				tt.LinkGoogleFont,
 				// (10) <style amp-custom>
 				tt.StyleAMPCustom,
 				// (11) any other tags allowed in <head>
@@ -74,7 +74,7 @@ func TestReorderHead(t *testing.T) {
 			Desc: "Reorders head children for AMP4ADS document",
 			Input: tt.Concat(tt.Doctype, "<html ⚡4ads><head>",
 				tt.Title, tt.StyleAMP4AdsBoilerplate, tt.ScriptAMPAudio,
-				tt.ScriptAMP4AdsRuntime, tt.LinkStylesheetGoogleFont,
+				tt.ScriptAMP4AdsRuntime, tt.LinkGoogleFont,
 				tt.LinkGoogleFontPreconnect, tt.MetaCharset, tt.MetaViewport, tt.StyleAMPCustom,
 				"</head><body></body></html>"),
 			Expected: tt.Concat(tt.Doctype, "<html ⚡4ads><head>",
@@ -97,7 +97,7 @@ func TestReorderHead(t *testing.T) {
 				// (8) <link> tag for resource hints
 				tt.LinkGoogleFontPreconnect,
 				// (9) <link rel=stylesheet> tags before <style amp-custom>
-				tt.LinkStylesheetGoogleFont,
+				tt.LinkGoogleFont,
 				// (10) <style amp-custom>
 				tt.StyleAMPCustom,
 				// (11) any other tags allowed in <head>
@@ -110,13 +110,13 @@ func TestReorderHead(t *testing.T) {
 			Desc: "Preserves style sheet ordering",
 			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.LinkStylesheetGoogleFont, tt.StyleAMPCustom,
+				tt.LinkFavicon, tt.LinkGoogleFont, tt.StyleAMPCustom,
 				"<link href=another-font rel=stylesheet>",
 				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-				tt.LinkFavicon, tt.LinkStylesheetGoogleFont, tt.StyleAMPCustom,
+				tt.LinkFavicon, tt.LinkGoogleFont, tt.StyleAMPCustom,
 				"<link href=another-font rel=stylesheet>",
 				tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
