@@ -37,13 +37,21 @@ own and can obtain certificates for.
   1. Get amppackager.
 
      Check your Go version by running `go version`.
-  
-     For Go 1.14 and higher versions run:
+
+     For Go 1.16 and higher run:
+
+       ```
+       git clone https://github.com/ampproject/amppackager.git my-amp-directory
+       cd my-amp-directory
+       go install github.com/ampproject/amppackager/cmd/amppkg
+       ```
+
+     For Go 1.14 and Go 1.15 run:
 
        ```
        go get -u github.com/ampproject/amppackager/cmd/amppkg
        ```
-     
+
      For Go 1.13 and earlier versions run:
 
        ```
