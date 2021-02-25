@@ -391,7 +391,11 @@ func (ctx *urlRewriteContext) parseNewSrcset(n *html.Node, src string) {
 	var width int
 	if widthVal, ok := htmlnode.GetAttributeVal(n, "", "width"); ok {
 		var err error
-		// TODO(b/113271759): Handle width values that include 'px' (probably others).
+		// Trim surrounding whitespace
+		widthVal = strings.TrimSpace(widthVal)
+		if strings.HasSuffix(widthVal, "px") {
+			widthVal = strings.TrimSuffix(widthVal, "px")
+		}
 		if width, err = strconv.Atoi(widthVal); err != nil {
 			// invalid width
 			return

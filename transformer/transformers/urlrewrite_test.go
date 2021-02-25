@@ -29,6 +29,11 @@ func TestURLRewrite_images(t *testing.T) {
 			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"`,
 		},
 		{
+			desc:     "%s src and srcset rewritten with width px spec",
+			input:    `<%s src=http://www.example.com/blah.jpg width="92px  " height=10 srcset="http://www.example.com/blah.jpg 50w">`,
+			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92px  " height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"`,
+		},
+		{
 			desc:     "%s does not add srcset with no width",
 			input:    `<%s src=http://www.example.com/blah.jpg height=10>`,
 			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" height="10"`,
