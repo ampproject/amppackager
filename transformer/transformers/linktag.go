@@ -26,13 +26,17 @@ import (
 // LinkTag operates on the <link> tag.
 // * It will add a preconnect link tag for Google Font resources.
 // * It will add a preconnect link tag to the publisher's own origin.
+// * It will add "display=optional" to Google Fonts without "display" component.
 func LinkTag(e *Context) error {
 	preconnectAdded := false
 
 	for n := e.DOM.RootNode; n != nil; n = htmlnode.Next(n) {
-		if !preconnectAdded && isLinkGoogleFont(n) {
+		if !preconnectAdded && isLinkAnyGoogleFont(n) {
 			addLinkGoogleFontPreconnect(n)
 			preconnectAdded = true
+		}
+		if isLinkGoogleFont(n) {
+			addDisplayOptional(n)
 		}
 	}
 
@@ -40,21 +44,39 @@ func LinkTag(e *Context) error {
 	return nil
 }
 
-// isGoogleFontHostname returns true if the given string, after being parsed as
-// a URL has the hostname of "fonts.googleapis.com".
-func isGoogleFontHostname(s string) bool {
-	u, err := url.Parse(s)
-	return err == nil && strings.EqualFold(u.Hostname(), "fonts.googleapis.com")
+// isLinkAnyGoogleFont returns true if the given node is a link tag, has attribute href with the Google Font root URL.
+func isLinkAnyGoogleFont(n *html.Node) bool {
+	if n.DataAtom != atom.Link {
+		return false
+	}
+	v, ok := htmlnode.GetAttributeVal(n, "", "href")
+	return ok && strings.HasPrefix(v, "https://fonts.googleapis.com/")
 }
 
 // isLinkGoogleFont returns true if the given node is a link tag, has attribute
-// href with the Google Font hostname.
+// href with the Google Font root URL and path starting "css?" or "css2?".
 func isLinkGoogleFont(n *html.Node) bool {
 	if n.DataAtom != atom.Link {
 		return false
 	}
 	v, ok := htmlnode.GetAttributeVal(n, "", "href")
-	return ok && isGoogleFontHostname(v)
+	return ok && (strings.HasPrefix(v, "https://fonts.googleapis.com/css?") || strings.HasPrefix(v, "https://fonts.googleapis.com/css2?"))
+}
+
+// addDisplayOptional adds "display=optional" to Google Font link tag's href attribute.
+func addDisplayOptional(n *html.Node) {
+	// Confirm this is a Google Font
+	if !isLinkGoogleFont(n) {
+		return
+	}
+	if hrefVal, hrefOk := htmlnode.GetAttributeVal(n, "", "href"); hrefOk {
+		if u, _ := url.Parse(strings.ToLower(hrefVal)); u != nil {
+			v := u.Query()
+			if g := v.Get("display"); g == "" {
+				htmlnode.AppendAttribute(n, "", "href", "&display=optional")
+			}
+		}
+	}
 }
 
 // addLinkGoogleFontPreconnect adds a preconnect link tag for Google Font resources.
