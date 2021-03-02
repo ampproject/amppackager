@@ -37,6 +37,16 @@ func TestStripJS(t *testing.T) {
 			Expected: "<head><script async src=https://cdn.ampproject.org/v0.js></script></head>",
 		},
 		{
+			Desc:     "keeps module script correct src",
+			Input:    "<script async crossorigin=anonymous src=\"https://cdn.ampproject.org/v0.mjs\" type=module></script>",
+			Expected: "<head><script async crossorigin=anonymous src=https://cdn.ampproject.org/v0.mjs type=module></script></head>",
+		},
+		{
+			Desc:     "keeps nomodule script correct src",
+			Input:    "<script async nomodule src=\"https://cdn.ampproject.org/v0.js\"></script>",
+			Expected: "<head><script async nomodule src=https://cdn.ampproject.org/v0.js></script></head>",
+		},
+		{
 			Desc:     "keeps script correct src case-insensitive",
 			Input:    "<script async custom-element='amp-analytics' src='https://cDn.AMPproject.org/v0/amp-analytics-0.1.js'></script>",
 			Expected: "<head><script async custom-element=amp-analytics src=https://cDn.AMPproject.org/v0/amp-analytics-0.1.js></script></head>",
