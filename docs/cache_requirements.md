@@ -15,6 +15,7 @@ The Google AMP cache sets some requirements in addition to the ones set by the
 These include:
 
  * The signed `fallback URL` must equal the URL at which the SXG was delivered.
+ * The signed `cert-url` must be `https`.
  * The signature header must contain only:
    * One parameterised identifier.
    * Parameter values of type string, binary, or identifier.
