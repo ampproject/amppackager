@@ -1,0 +1,54 @@
+name: Check prerequisites
+on: [push, pull_request]
+jobs:
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Go 1.16
+      uses: actions/setup-go@v1
+      with:
+        go-version: '1.16'
+
+    - name: Install goimports
+      run: go get golang.org/x/tools/cmd/goimports
+
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+
+# Comment this out for now until amppackager passes goimports.
+# https://github.com/ampproject/amppackager/issues/506
+#    - name: Check formatting with goimports
+#      run: |
+#      if $(go env GOPATH)/bin/goimports -d . | grep . ; then
+#          exit 1
+#      fi
+
+  go-vet:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Go 1.16
+      uses: actions/setup-go@v1
+      with:
+        go-version: '1.16'
+
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+
+    - name: Diagnose the code with go vet
+      # TODO(banaag): Turn on composite checking when
+      # https://github.com/ampproject/amppackager/issues/507 is fixed.
+      run: go vet -composites=false ./...
+
+  go-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Go 1.16
+      uses: actions/setup-go@v1
+      with:
+        go-version: '1.16'
+
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+
+    - name: Run the tests
+      run: go test ./...
