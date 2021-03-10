@@ -309,8 +309,8 @@ func TestCustom(t *testing.T) {
 }
 
 func TestCustomFail(t *testing.T) {
-	r := rpb.Request{Html: "<html ⚡><lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{"does_not_exist"}}
-	if html, _, err := Process(&r); err == nil {
+	r := &rpb.Request{Html: "<html ⚡><lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{"does_not_exist"}}
+	if html, _, err := Process(r); err == nil {
 		t.Fatalf("Process(%v) = %s, nil; want error", r, html)
 	}
 }
