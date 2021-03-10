@@ -60,8 +60,8 @@ func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 // fetcher := CertFetcher()
 // fetcher.setUser(email, privateKey)
 // fetcher.bindToPort(port)
-func New(email string, certSignRequest *x509.CertificateRequest, privateKey crypto.PrivateKey,
-	acmeDiscoURL string, httpChallengePort int, httpChallengeWebRoot string,
+func New(email string, eabKid string, eabHmac string, certSignRequest *x509.CertificateRequest,
+	privateKey crypto.PrivateKey, acmeDiscoURL string, httpChallengePort int, httpChallengeWebRoot string,
 	tlsChallengePort int, dnsProvider string, shouldRegister bool) (*CertFetcher, error) {
 
 	acmeUser := AcmeUser{
@@ -119,17 +119,32 @@ func New(email string, certSignRequest *x509.CertificateRequest, privateKey cryp
 		}
 	}
 
-	// Theoretically, this should always be set to false as users should have pre-registered for access
-	// to the ACME CA and agreed to the TOS.
-	// TODO(banaag): revisit this when trying the class out with Digicert CA.
+	var reg *registration.Resource
 	if !shouldRegister {
 		acmeUser.Registration = new(registration.Resource)
+	} else if reg, err = client.Registration.ResolveAccountByKey(); err == nil {
+		// Check if we already have an account.
+		acmeUser.Registration = reg
 	} else {
+		// We need to reset the LEGO client after calling Registration.ResolveAccountByKey().
+		client, err = lego.NewClient(config)
+		if err != nil {
+			return nil, errors.Wrap(err, "Obtaining LEGO client.")
+		}
 		// TODO(banaag) make sure we present the TOS URL to the user and prompt for confirmation.
 		// The plan is to move this to some separate setup command outside the server which would be
 		// executed one time. Alternatively, we can have a field in the toml file that is documented
 		// to indicate agreement with TOS.
-		reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+		if eabKid == "" && eabHmac == "" {
+			reg, err = client.Registration.Register(registration.RegisterOptions{
+				TermsOfServiceAgreed: true})
+		} else {
+			reg, err = client.Registration.RegisterWithExternalAccountBinding(registration.RegisterEABOptions{
+				TermsOfServiceAgreed: true,
+				Kid:                  eabKid,
+				HmacEncoded:          eabHmac})
+		}
+
 		if err != nil {
 			return nil, errors.Wrap(err, "ACME CA client registration")
 		}

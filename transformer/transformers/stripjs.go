@@ -62,7 +62,7 @@ func StripJS(e *Context) error {
 				switch strings.ToLower(typeVal) {
 				case "application/json", "application/ld+json", "text/plain":
 					// ok to keep
-				case "text/javascript":
+				case "text/javascript", "module":
 					// ok to keep only for AMP Cache scripts
 					if !isCacheSrc {
 						htmlnode.RemoveNode(&n)

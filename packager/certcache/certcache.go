@@ -717,6 +717,7 @@ func (this *CertCache) setCerts(certs []*x509.Certificate) {
 	this.certs = certs
 	this.certName = util.CertName(certs[0])
 
+	log.Printf("Writing cert %s to file %v", this.certName, this.CertFile)
 	err := certloader.WriteCertsToFile(this.certs, this.CertFile)
 	if err != nil {
 		log.Printf("Unable to write certs to file: %s", this.CertFile)

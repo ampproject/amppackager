@@ -42,11 +42,20 @@ const (
 	// LinkGoogleFont is a Google Font stylesheet.
 	LinkGoogleFont = "<link href=https://fonts.googleapis.com/css?family=Roboto rel=stylesheet>"
 
+	// LinkGoogleFontEarlyAccess is a Google Font Early Access stylesheet.
+	LinkGoogleFontEarlyAccess = "<link href=https://fonts.googleapis.com/earlyaccess/hannari.css>"
+
+	// LinkGoogleFontIcon is a Google Font Icon stylesheet.
+	LinkGoogleFontIcon = "<link href=https://fonts.googleapis.com/icon?bolt rel=stylesheet>"
+
+	// LinkGoogleFontDisplayBlock is a Google Font stylesheet with href including display=block component.
+	LinkGoogleFontDisplayBlock = "<link href=https://fonts.googleapis.com/css?family=Roboto&amp;display=block rel=stylesheet>"
+
+	// LinkGoogleFontDisplayOptional is a Google Font stylesheet with href including display=optional component.
+	LinkGoogleFontDisplayOptional = "<link href=https://fonts.googleapis.com/css?family=Roboto&amp;display=optional rel=stylesheet>"
+
 	// LinkGoogleFontPreconnect is a preconnect for Google Fonts.
 	LinkGoogleFontPreconnect = "<link crossorigin=\"\" href=https://fonts.gstatic.com/ rel=\"dns-prefetch preconnect\">"
-
-	// LinkStylesheetGoogleFont is a link tag for a Google Font.
-	LinkStylesheetGoogleFont = "<link href=https://fonts.googleapis.com/css?family=Roboto rel=stylesheet>"
 
 	// MetaCharset is a required tag for an AMP document.
 	MetaCharset = "<meta charset=utf-8>"

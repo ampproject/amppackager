@@ -21,77 +21,82 @@ func TestURLRewrite_images(t *testing.T) {
 		{
 			desc:     "%s in template noop",
 			input:    `<template><%s src="foo" width="92" height="10" srcset="bar 50w"></template>`,
-			expected: `<template><%s src="foo" width="92" height="10" srcset="bar 50w"></%s></template>`,
+			expected: `<template><%s src="foo" width="92" height="10" srcset="bar 50w"`,
 		},
 		{
 			desc:     "%s src and srcset rewritten",
 			input:    `<%s src=http://www.example.com/blah.jpg width=92 height=10 srcset="http://www.example.com/blah.jpg 50w">`,
-			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"></%s>`,
+			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"`,
+		},
+		{
+			desc:     "%s src and srcset rewritten with width px spec",
+			input:    `<%s src=http://www.example.com/blah.jpg width="92px  " height=10 srcset="http://www.example.com/blah.jpg 50w">`,
+			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92px  " height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"`,
 		},
 		{
 			desc:     "%s does not add srcset with no width",
 			input:    `<%s src=http://www.example.com/blah.jpg height=10>`,
-			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" height="10"></%s>`,
+			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" height="10"`,
 		},
 		{
 			desc:     "%s does not add srcset with 0 width",
 			input:    `<%s src=http://www.example.com/blah.jpg height=10 width=0>`,
-			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" height="10" width="0"></%s>`,
+			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" height="10" width="0"`,
 		},
 		{
 			desc:     "%s adds srcset",
 			input:    `<%s src=http://www.example.com/blah.jpg width=92 height=10>`,
-			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/ii/w100/www.example.com/blah.jpg 100w, https://www-example-com.cdn.ampproject.org/ii/w220/www.example.com/blah.jpg 220w, https://www-example-com.cdn.ampproject.org/ii/w330/www.example.com/blah.jpg 330w"></%s>`,
+			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/ii/w100/www.example.com/blah.jpg 100w, https://www-example-com.cdn.ampproject.org/ii/w220/www.example.com/blah.jpg 220w, https://www-example-com.cdn.ampproject.org/ii/w330/www.example.com/blah.jpg 330w"`,
 		},
 		{
 			desc:     "%s adds srcset if empty",
 			input:    `<%s src=http://www.example.com/blah.jpg width=92 height=10 srcset="">`,
-			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/ii/w100/www.example.com/blah.jpg 100w, https://www-example-com.cdn.ampproject.org/ii/w220/www.example.com/blah.jpg 220w, https://www-example-com.cdn.ampproject.org/ii/w330/www.example.com/blah.jpg 330w"></%s>`,
+			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/ii/w100/www.example.com/blah.jpg 100w, https://www-example-com.cdn.ampproject.org/ii/w220/www.example.com/blah.jpg 220w, https://www-example-com.cdn.ampproject.org/ii/w330/www.example.com/blah.jpg 330w"`,
 		},
 		{
 			desc:     "%s adds srcset no base",
 			input:    `<%s src=blah.jpg width=42 height=42>`,
-			expected: `<%s src="blah.jpg" width="42" height="42" srcset="blah.jpg 47w, blah.jpg 100w, blah.jpg 150w"></%s>`,
+			expected: `<%s src="blah.jpg" width="42" height="42" srcset="blah.jpg 47w, blah.jpg 100w, blah.jpg 150w"`,
 		},
 		{
 			desc:     "%s preserve srcset",
 			input:    `<%s srcset="image-1x.png 1x, image-2x.png 2x" layout="fill">`,
-			expected: `<%s srcset="image-1x.png 1x, image-2x.png 2x" layout="fill"></%s>`,
+			expected: `<%s srcset="image-1x.png 1x, image-2x.png 2x" layout="fill"`,
 		},
 		{
 			desc:     "%s src and srcset rewritten with baseURL",
 			input:    `<%s src=blah.jpg width=92 height=10 srcset="blah.jpg 50w">`,
-			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"></%s>`,
+			expected: `<%s src="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg" width="92" height="10" srcset="https://www-example-com.cdn.ampproject.org/i/www.example.com/blah.jpg 50w"`,
 			base:     "http://www.example.com",
 		},
 		{
 			desc:     "%s data:image noop",
 			input:    `<%s src="data:image/png,foo">`,
-			expected: `<%s src="data:image/png,foo"></%s>`,
+			expected: `<%s src="data:image/png,foo"`,
 		},
 		{
 			desc:     "%s ends in comma noop",
 			input:    `<%s src="http://example.com/image.jpg," width=92 height=10>`,
-			expected: `<%s src="https://example-com.cdn.ampproject.org/i/example.com/image.jpg," width="92" height="10"></%s>`,
+			expected: `<%s src="https://example-com.cdn.ampproject.org/i/example.com/image.jpg," width="92" height="10"`,
 		},
 		{
 			desc:     "%s empty src noop",
 			input:    `<%s src="">`,
-			expected: `<%s src=""></%s>`,
+			expected: `<%s src=""`,
 		},
 		{
 			desc:     "%s bare hash src",
 			input:    `<%s layout="fixed" height="64" width="64" src="#">`,
-			expected: `<%s layout="fixed" height="64" width="64" src="#"></%s>`,
+			expected: `<%s layout="fixed" height="64" width="64" src="#"`,
 		},
 	}
 	tcs := []urlRewriteTestCase{}
-	for _, tag := range []string{"amp-img", "amp-anim"} {
+	for _, tag := range []string{"amp-img", "amp-anim", "img"} {
 		for _, baseTc := range baseTcs {
 			tc := urlRewriteTestCase{
 				desc:     fmt.Sprintf(baseTc.desc, tag),
 				input:    fmt.Sprintf(baseTc.input, tag),
-				expected: fmt.Sprintf(baseTc.expected, tag, tag),
+				expected: fmt.Sprintf(baseTc.expected, tag),
 				base:     baseTc.base,
 			}
 			tcs = append(tcs, tc)

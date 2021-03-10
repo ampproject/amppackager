@@ -216,7 +216,9 @@ func TestOptionalACMEConfig(t *testing.T) {
 		  [ACMEConfig.Production]
 		    DiscoURL = "prod.disco.url"
 		    AccountURL = "prod.account.url"
-		    EmailAddress = "prodtest@test.com"
+			EmailAddress = "prodtest@test.com"
+			EABKid = "eab.kid"
+			EABHmac = "eab.hmac"
 		    HttpChallengePort = 777
 		    HttpWebRootDir = "web.root.dir"
 		    TlsChallengePort = 333
@@ -224,7 +226,9 @@ func TestOptionalACMEConfig(t *testing.T) {
 		  [ACMEConfig.Development]
 		    DiscoURL = "dev.disco.url"
 		    AccountURL = "dev.account.url"
-		    EmailAddress = "devtest@test.com"
+			EmailAddress = "devtest@test.com"
+			EABKid = "eab.kid"
+			EABHmac = "eab.hmac"
 		    HttpChallengePort = 888
 		    HttpWebRootDir = "web.root.dir"
 		    TlsChallengePort = 444
@@ -241,6 +245,8 @@ func TestOptionalACMEConfig(t *testing.T) {
 				DiscoURL:          "prod.disco.url",
 				AccountURL:        "prod.account.url",
 				EmailAddress:      "prodtest@test.com",
+				EABKid:            "eab.kid",
+				EABHmac:           "eab.hmac",
 				HttpChallengePort: 777,
 				HttpWebRootDir:    "web.root.dir",
 				TlsChallengePort:  333,
@@ -250,6 +256,8 @@ func TestOptionalACMEConfig(t *testing.T) {
 				DiscoURL:          "dev.disco.url",
 				AccountURL:        "dev.account.url",
 				EmailAddress:      "devtest@test.com",
+				EABKid:            "eab.kid",
+				EABHmac:           "eab.hmac",
 				HttpChallengePort: 888,
 				HttpWebRootDir:    "web.root.dir",
 				TlsChallengePort:  444,

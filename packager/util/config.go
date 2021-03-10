@@ -66,10 +66,17 @@ type ACMEConfig struct {
 }
 
 type ACMEServerConfig struct {
-	DiscoURL   string // ACME Directory Resource URL
-	AccountURL string // ACME Account URL. If non-empty, we
-	// will auto-renew cert via ACME.
-	EmailAddress string // Email address registered with ACME CA.
+	// ACME Directory Resource URL
+	AccountURL string
+	// ACME Account URL. If non-empty, we will auto-renew cert via ACME.
+	DiscoURL string
+	// Email address registered with ACME CA.
+	EmailAddress string
+	// Key Identifier from ACME CA. Used for External Account Binding.
+	EABKid string
+	// MAC Key from ACME CA. Used for External Account Binding. Should be in
+	// Base64 URL Encoding without padding format.
+	EABHmac string
 
 	// See: https://letsencrypt.org/docs/challenge-types/
 	// For non-wildcard domains, only one of HttpChallengePort, HttpWebRootDir or
