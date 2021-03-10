@@ -240,6 +240,8 @@ func MutateFetchedContentSecurityPolicy(fetched string) string {
 		}
 	}
 	// Add missing directives or replace the ones that were removed in some cases
+	// NOTE: After changing this string, please update the permalink in
+	// docs/cache_requirements.md.
 	newCsp.WriteString(
 		"default-src * blob: data:;" +
 			"report-uri https://csp.withgoogle.com/csp/amp;" +
