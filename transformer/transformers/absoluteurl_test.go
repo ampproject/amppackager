@@ -249,6 +249,10 @@ func TestSpecificTagsAreAbsoluted(t *testing.T) {
        publisher-logo-src=/foo>
     </amp-story>
     <amp-story-page background-audio=/foo></amp-story-page>
+    <amp-story-page-attachment layout=nodisplay
+       cta-image=/foo
+       cta-image-2=/foo>
+    </amp-story-page-attachment>
     <form action=/foo></form>
     <form action-xhr=/foo></form>
     <svg><image xlink:href=/foo><image></svg>
