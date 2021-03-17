@@ -90,7 +90,7 @@ func IsScriptAMPExtension(n *html.Node) bool {
 	return ok
 }
 
-// IsScriptAMPRuntime returns true if the node is of the form <script async src=https://cdn.ampproject.org...v0.js></script>
+// IsScriptAMPRuntime returns true if the node is of the form <script async src=https://cdn.ampproject.org...(v0.js|v0.mjs|amp4ads-v0.js|amp4ads-v0.mjs)></script>
 func IsScriptAMPRuntime(n *html.Node) bool {
 	if n.DataAtom != atom.Script {
 		return false
@@ -100,7 +100,9 @@ func IsScriptAMPRuntime(n *html.Node) bool {
 			!IsScriptAMPExtension(n) &&
 			strings.HasPrefix(v, AMPCacheRootURL) &&
 			(strings.HasSuffix(v, "/v0.js") ||
-				strings.HasSuffix(v, "/amp4ads-v0.js"))
+				strings.HasSuffix(v, "v0.mjs") ||
+				strings.HasSuffix(v, "/amp4ads-v0.js") ||
+				strings.HasSuffix(v, "/amp4ads-v0.mjs"))
 	}
 	return false
 }
