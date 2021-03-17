@@ -81,6 +81,11 @@ func TestPreloads(t *testing.T) {
 			[]*rpb.Metadata_Preload{},
 		},
 		{
+			"<html ⚡><script src=foo crossorigin=anonymous>",
+			"<html ⚡><head><script crossorigin=anonymous src=foo></script></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "script", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "crossorigin", Val: "anonymous"}}}},
+		},
+		{
 			"<html ⚡><script src=foo>",
 			"<html ⚡><head><script src=foo></script></head><body></body></html>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "script"}},

@@ -211,7 +211,11 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 		switch current.DataAtom {
 		case atom.Script:
 			if src, ok := htmlnode.GetAttributeVal(current, "", "src"); ok {
-				preloads = append(preloads, &rpb.Metadata_Preload{Url: src, As: "script"})
+				preload := &rpb.Metadata_Preload{Url: src, As: "script"}
+				if crossorigin, ok := htmlnode.GetAttributeVal(current, "", "crossorigin"); ok && crossorigin != "" {
+					preload.Attributes = append(preload.Attributes, &rpb.Metadata_Preload_Attribute{Key: "crossorigin", Val: crossorigin})
+				}
+				preloads = append(preloads, preload)
 			}
 		case atom.Link:
 			if rel, ok := htmlnode.GetAttributeVal(current, "", "rel"); ok {
