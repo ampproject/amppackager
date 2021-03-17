@@ -150,8 +150,7 @@ func TestIsScriptAMPRuntime(t *testing.T) {
 				Attr: []html.Attribute{
 					{Key: "async"},
 					{Key: "custom-element"},
-					{Key: "src",
-						Val: "https://cdn.ampproject.org/v0.js"}}},
+					{Key: "src", Val: "https://cdn.ampproject.org/v0.js"}}},
 			false,
 		},
 		{
@@ -160,8 +159,28 @@ func TestIsScriptAMPRuntime(t *testing.T) {
 				Data:     "script",
 				DataAtom: atom.Script, Attr: []html.Attribute{
 					{Key: "async"},
-					{Key: "src",
-						Val: "https://cdn.ampproject.org/v0.js"}}},
+					{Key: "src", Val: "https://cdn.ampproject.org/v0.js"}}},
+			true,
+		},
+		{
+			"amp runtime module true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script, Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "crossorigin", Val: "anonymous"},
+					{Key: "src", Val: "https://cdn.ampproject.org/v0.js"},
+					{Key: "type", Val: "module"}}},
+			true,
+		},
+		{
+			"amp runtime nomodule true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script, Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "nomodule"},
+					{Key: "src", Val: "https://cdn.ampproject.org/v0.mjs"}}},
 			true,
 		},
 		{
@@ -172,8 +191,7 @@ func TestIsScriptAMPRuntime(t *testing.T) {
 				Attr: []html.Attribute{
 					{Key: "async"},
 					{Key: "custom-element"},
-					{Key: "src",
-						Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
+					{Key: "src", Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
 			false,
 		},
 		{
@@ -183,8 +201,30 @@ func TestIsScriptAMPRuntime(t *testing.T) {
 				DataAtom: atom.Script,
 				Attr: []html.Attribute{
 					{Key: "async"},
-					{Key: "src",
-						Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
+					{Key: "src", Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
+			true,
+		},
+		{
+			"amp4ads runtime module true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "crossorigin", Val: "anonymous"},
+					{Key: "src", Val: "https://cdn.ampproject.org/amp4ads-v0.mjs"},
+					{Key: "type", Val: "module"}}},
+			true,
+		},
+		{
+			"amp4ads runtime nomodule true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "nomodule"},
+					{Key: "src", Val: "https://cdn.ampproject.org/amp4ads-v0.js"}}},
 			true,
 		},
 		{
