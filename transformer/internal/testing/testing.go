@@ -78,11 +78,23 @@ const (
 	// ScriptAMPAudio is the script for amp-audio.
 	ScriptAMPAudio = "<script async custom-element=amp-audio src=https://cdn.ampproject.org/v0/amp-audio-0.1.js></script>"
 
+	// ScriptAMPAudioModule is the module script for amp-audio.
+	ScriptAMPAudioModule = "<script async custom-element=amp-audio src=https://cdn.ampproject.org/v0/amp-audio-0.1.mjs type=module></script>"
+
+	// ScriptAMPAudioNomodule is the nomodule script for amp-audio.
+	ScriptAMPAudioNomodule = "<script async custom-element=amp-audio nomodule src=https://cdn.ampproject.org/v0/amp-audio-0.1.js></script>"
+
 	// ScriptAMPDynamicCSSClasses is the script for amp-dynamic-css-class.
 	ScriptAMPDynamicCSSClasses = "<script async custom-element=amp-dynamic-css-classes src=https://cdn.ampproject.org/v0/amp-dynamic-css-classes-0.1.js></script>"
 
 	// ScriptAMPExperiment is the script for amp-experiment.
 	ScriptAMPExperiment = "<script async custom-element=amp-experiment src=https://cdn.ampproject.org/v0/amp-experiment-0.1.js></script>"
+
+	// ScriptAMPExperimentModule is the module script for amp-experiment.
+	ScriptAMPExperimentModule = "<script async custom-element=amp-experiment src=https://cdn.ampproject.org/v0/amp-experiment-0.1.mjs type=module></script>"
+
+	// ScriptAMPExperimentNomodule is the nomodule script for amp-experiment.
+	ScriptAMPExperimentNomodule = "<script async custom-element=amp-experiment nomodule src=https://cdn.ampproject.org/v0/amp-experiment-0.1.js></script>"
 
 	// ScriptAMPForm is the script for amp-form.
 	ScriptAMPForm = "<script async custom-element=amp-form src=https://cdn.ampproject.org/v0/amp-form-0.1.js></script>"
@@ -90,11 +102,29 @@ const (
 	// ScriptAMPMraid is the script for amp-mraid.
 	ScriptAMPMraid = "<script async host-service=amp-mraid src=https://cdn.ampproject.org/v0/amp-mraid-0.1.js></script>"
 
+	// ScriptAMPMraidModule is the module script for amp-mraid.
+	ScriptAMPMraidModule = "<script async host-service=amp-mraid src=https://cdn.ampproject.org/v0/amp-mraid-0.1.mjs type=module></script>"
+
+	// ScriptAMPMraidNomodule is the nomodule script for amp-mraid.
+	ScriptAMPMraidNomodule = "<script async host-service=amp-mraid nomodule src=https://cdn.ampproject.org/v0/amp-mraid-0.1.js></script>"
+
 	// ScriptAMPMustache is the script for amp-mustache.
 	ScriptAMPMustache = "<script async custom-template=amp-mustache src=https://cdn.ampproject.org/v0/amp-mustache-0.1.js></script>"
 
+	// ScriptAMPMustacheModule is the module script for amp-mustache.
+	ScriptAMPMustacheModule = "<script async custom-template=amp-mustache src=https://cdn.ampproject.org/v0/amp-mustache-0.1.mjs type=module></script>"
+
+	// ScriptAMPMustacheNomodule is the nomodule script for amp-mustache.
+	ScriptAMPMustacheNomodule = "<script async custom-template=amp-mustache nomodule src=https://cdn.ampproject.org/v0/amp-mustache-0.1.js></script>"
+
 	// ScriptAMPRuntime is the AMP script tag.
 	ScriptAMPRuntime = "<script async src=https://cdn.ampproject.org/v0.js></script>"
+
+	// ScriptAMPRuntimeModule is the AMP module script tag.
+	ScriptAMPRuntimeModule = "<script async src=https://cdn.ampproject.org/v0.mjs type=module></script>"
+
+	// ScriptAMPRuntimeNomodule is the AMP nomodule script tag.
+	ScriptAMPRuntimeNomodule = "<script async nomodule src=https://cdn.ampproject.org/v0.js></script>"
 
 	// ScriptAMPViewerRuntime is the AMP viewer runtime script tag.
 	ScriptAMPViewerRuntime = "<script async src=https://cdn.ampproject.org/v0/amp-viewer-integration-0.1.js></script>"
