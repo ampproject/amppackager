@@ -320,6 +320,40 @@ func TestIsScriptRenderDelaying(t *testing.T) {
 	}
 }
 
+func TestAMPExtensionScriptDefinition(t *testing.T) {
+	tcs := []struct {
+		desc     string
+		n        *html.Node
+		expected string
+	}{
+		{
+			"amp-ad script",
+			&html.Node{Type: html.ElementNode, Data: "script", DataAtom: atom.Script, Attr: []html.Attribute{{Key: "async"}, {Key: "custom-element", Val: "amp-ad"}, {Key: "src", Val: "https://cdn.ampproject.org/v0/amp-ad-0.1.js"}}},
+			"amp-ad-0.1.js",
+		},
+		{
+			"amp-ad module script",
+			&html.Node{Type: html.ElementNode, Data: "script", DataAtom: atom.Script, Attr: []html.Attribute{{Key: "async"}, {Key: "custom-element", Val: "amp-ad"}, {Key: "src", Val: "https://cdn.ampproject.org/v0/amp-ad-0.1.mjs"}, {Key: "type", Val: "module"}}},
+			"amp-ad-0.1.mjs",
+		},
+		{
+			"amp-ad nomodule script",
+			&html.Node{Type: html.ElementNode, Data: "script", DataAtom: atom.Script, Attr: []html.Attribute{{Key: "async"}, {Key: "custom-element", Val: "amp-ad"}, {Key: "nomodule"}, {Key: "src", Val: "https://cdn.ampproject.org/v0/amp-ad-0.1.js"}}},
+			"amp-ad-0.1.js",
+		},
+		{
+			"runtime script",
+			&html.Node{Type: html.ElementNode, Data: "script", DataAtom: atom.Script, Attr: []html.Attribute{{Key: "async"}, {Key: "src", Val: "https://cdn.ampproject.org/v0.js"}}},
+			"https://cdn.ampproject.org/v0.js",
+		},
+	}
+	for _, tc := range tcs {
+		if r, _ := AMPExtensionScriptDefinition(tc.n); r != tc.expected {
+			t.Errorf("%s: AMPExtensionScriptDefinition()=%s want=%s", tc.desc, r, tc.expected)
+		}
+	}
+}
+
 func TestNewDOM(t *testing.T) {
 	tcs := []struct {
 		desc     string
