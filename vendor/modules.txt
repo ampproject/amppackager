@@ -356,6 +356,8 @@ github.com/timewasted/linode/dns
 github.com/transip/gotransip
 github.com/transip/gotransip/domain
 github.com/transip/gotransip/util
+# github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
+github.com/twifkak/crypto/ocsp
 # github.com/vultr/govultr v0.1.4
 github.com/vultr/govultr
 # go.opencensus.io v0.21.0
@@ -387,7 +389,7 @@ golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
-# golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3 => golang.org/x/net v0.0.0-20180808004115-f9ce57c11b24
+# golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 => golang.org/x/net v0.0.0-20180808004115-f9ce57c11b24
 golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -413,7 +415,8 @@ golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
 # golang.org/x/sync v0.0.0-20190423024810-112230192c58
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3
+# golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.2 => golang.org/x/text v0.3.0
