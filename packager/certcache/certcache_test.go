@@ -115,8 +115,11 @@ func (this *CertCacheSuite) TearDownSuite() {
 }
 
 func (this *CertCacheSuite) SetupTest() {
+	// Set fake clock to a time 8 days past the NotBefore of the cert, so
+	// our tests can backdate OCSPs to test expiry logic, without
+	// accidentally hitting the requirement that OCSPs must postdate certs.
 	this.fakeClock = pkgt.NewFakeClock()
-	this.fakeClock.SecondsSince0 = pkgt.B3Certs[0].NotBefore.Sub(time.Unix(0, 0))
+	this.fakeClock.SecondsSince0 = pkgt.B3Certs[0].NotBefore.Add(8 * 24 * time.Hour).Sub(time.Unix(0, 0))
 	now := this.fakeClock.Now()
 	var err error
 	this.fakeOCSP, err = FakeOCSPResponse(now, now)
@@ -198,6 +201,25 @@ func (this *CertCacheSuite) TestServesCertificate() {
 
 func (this *CertCacheSuite) TestCertCacheIsHealthy() {
 	this.Assert().NoError(this.handler.IsHealthy())
+}
+
+func (this *CertCacheSuite) TestOCSPInvalidThisUpdate() {
+	// Set fake clock equal to cert NotBefore, so we can produce an OCSP
+	// where "now" is within its ThisUpdate/NextUpdate window, but the OCSP
+	// is itself outside of the cert's NotBefore/NotAfter window.
+	this.fakeClock.SecondsSince0 = pkgt.B3Certs[0].NotBefore.Sub(time.Unix(0, 0))
+
+	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
+	this.Require().NoError(err, "deleting OCSP tempfile")
+
+	// Build an OCSP response that's not expired, but invalid because it predates the cert:
+	invalidOCSP, err := FakeOCSPResponse(this.fakeClock.Now().Add(-1*24*time.Hour), this.fakeClock.Now())
+	this.Require().NoError(err, "creating invalid OCSP response")
+	this.fakeOCSP = invalidOCSP
+	this.Require().True(this.ocspServerCalled(func() {
+		this.handler, err = this.New()
+		this.Require().EqualError(err, "initializing CertCache: Missing OCSP response.")
+	}))
 }
 
 func (this *CertCacheSuite) TestCertCacheIsNotHealthy() {
@@ -322,7 +344,7 @@ func (this *CertCacheSuite) TestOCSPExpiredViaHTTPHeaders() {
 	}))
 }
 
-func (this *CertCacheSuite) TestOCSPIgnoreInvalidUpdate() {
+func (this *CertCacheSuite) TestOCSPIgnoreExpiredNextUpdate() {
 	// Prime memory and disk cache with a past-midpoint OCSP:
 	err := os.Remove(filepath.Join(this.tempDir, "ocsp"))
 	this.Require().NoError(err, "deleting OCSP tempfile")
