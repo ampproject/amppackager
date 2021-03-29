@@ -26,10 +26,11 @@ const maxHeroImages int = 2
 
 // HeroImage represents the necessary data to inject a <link ref=preload> and optional <img> tag.
 type HeroImage struct {
-	src    string
-	srcset string
-	sizes  string
-	ampImg *html.Node
+	src         string
+	srcset      string
+	sizes       string
+	crossorigin string
+	ampImg      *html.Node
 }
 
 // PreloadImage adds link rel="preload" to head element to preload the most revalent image in the AMP document,
@@ -79,6 +80,9 @@ func prioritizeHeroImage(e *Context, heroImage HeroImage) {
 		if heroImage.sizes != "" {
 			htmlnode.SetAttribute(link, "", "imagesizes", heroImage.sizes)
 		}
+		if heroImage.crossorigin != "" {
+			htmlnode.SetAttribute(link, "", "crossorigin", heroImage.crossorigin)
+		}
 		e.DOM.HeadNode.AppendChild(link)
 	}
 
@@ -95,6 +99,7 @@ func buildImg(ampImg *html.Node) *html.Node {
 	attrsToCopy := [...]string{
 		"alt",
 		"attribution",
+		"crossorigin",
 		"object-fit",
 		"object-position",
 		"referrerpolicy",

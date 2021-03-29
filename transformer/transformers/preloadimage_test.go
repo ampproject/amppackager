@@ -21,10 +21,15 @@ import (
 
 	"github.com/ampproject/amppackager/transformer/internal/amphtml"
 	"github.com/ampproject/amppackager/transformer/transformers"
-	"github.com/google/go-cmp/cmp"
 	"golang.org/x/net/html"
 	"github.com/kylelemons/godebug/diff"
 )
+
+type TestCase = struct {
+	testcaseName string
+	input        string
+	expected     string
+}
 
 func transformAndOutput(input string, version int64) (string, error) {
 	inputDoc, err := html.Parse(strings.NewReader(input))
@@ -52,11 +57,21 @@ func transformAndOutput(input string, version int64) (string, error) {
 	return output.String(), nil
 }
 
-var testcaseInferSize = []struct {
-	testcaseName string
-	input        string
-	expected     string
-}{
+func testCases(t *testing.T, cases []TestCase, version int64) {
+	for _, tc := range cases {
+		t.Run(tc.testcaseName, func(t *testing.T) {
+			output, err := transformAndOutput(strings.TrimSpace(tc.input), version)
+			if err != nil {
+				t.Fatalf("Unexpected error %q", err)
+			}
+			if diff := diff.Diff(strings.TrimSpace(tc.expected), output); diff != "" {
+				t.Errorf("PreloadImage transformer produced unexpected output:\n%s", diff)
+			}
+		})
+	}
+}
+
+var testcaseInferSize = []TestCase{
 	{
 		"inferred-size: Has hero image.",
 		`<html><head></head><body><amp-img width="500" height="400" src="https://example.com/foo.png"></body></html>`,
@@ -66,6 +81,11 @@ var testcaseInferSize = []struct {
 		"inferred-size: Dimensions too small",
 		`<html><head></head><body><amp-img height="100" src="https://example.com/foo.png" width="100"></amp-img></body></html>`,
 		`<html><head></head><body><amp-img height="100" src="https://example.com/foo.png" width="100"></amp-img></body></html>`,
+	},
+	{
+		"inferred-size: Crossorigin attribute.",
+		`<html><head></head><body><amp-img width="500" height="400" src="https://example.com/foo.png" crossorigin="anonymous"></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" crossorigin="anonymous"/></head><body><amp-img width="500" height="400" src="https://example.com/foo.png" crossorigin="anonymous" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" crossorigin="anonymous" src="https://example.com/foo.png"/></amp-img></body></html>`,
 	},
 	{
 		"inferred-size: Srcset attribute.",
@@ -98,6 +118,11 @@ var testcaseInferSize = []struct {
 		`<html><head><link rel="preload" as="image" href="https://example.com/bar.png"/></head><body><amp-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" src="https://example.com/bar.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/bar.png"/></amp-img></amp-iframe></body></html>`,
 	},
 	{
+		"inferred-size: Iframe placeholder crossorigin",
+		`<html><head></head><body><amp-iframe height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" src="https://example.com/bar.png" crossorigin="anonymous"></amp-img></amp-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/bar.png" crossorigin="anonymous"/></head><body><amp-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" src="https://example.com/bar.png" crossorigin="anonymous" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" crossorigin="anonymous" src="https://example.com/bar.png"/></amp-img></amp-iframe></body></html>`,
+	},
+	{
 		"inferred-size: Iframe placeholder srcset",
 		`<html><head></head><body><amp-iframe height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></amp-img></amp-iframe></body></html>`,
 		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-iframe></body></html>`,
@@ -113,6 +138,11 @@ var testcaseInferSize = []struct {
 		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" src="https://example.com/foo.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png"/></amp-img></amp-video-iframe></body></html>`,
 	},
 	{
+		"inferred-size: iframe video placeholder crossorigin",
+		`<html><head></head><body><amp-video-iframe height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" src="https://example.com/foo.png" crossorigin="anonymous"></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" crossorigin="anonymous"/></head><body><amp-video-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" src="https://example.com/foo.png" crossorigin="anonymous" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" crossorigin="anonymous" src="https://example.com/foo.png"/></amp-img></amp-video-iframe></body></html>`,
+	},
+	{
 		"inferred-size: iframe video placeholder srcset",
 		`<html><head></head><body><amp-video-iframe height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></amp-img></amp-video-iframe></body></html>`,
 		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-video-iframe height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-video-iframe></body></html>`,
@@ -123,14 +153,24 @@ var testcaseInferSize = []struct {
 		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe height="500" width="500" src="/foo.html" poster="https://example.com/foo.png"></amp-video-iframe></body></html>`,
 	},
 	{
+		"inferred-size: iframe video poster crossorigin",
+		`<html><head></head><body><amp-video-iframe height="500" width="500" src="/foo.html" poster="https://example.com/foo.png" crossorigin="anonymous"></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe height="500" width="500" src="/foo.html" poster="https://example.com/foo.png" crossorigin="anonymous"></amp-video-iframe></body></html>`,
+	},
+	{
 		"inferred-size: No placeholder image",
 		`<html><head></head><body><amp-video-iframe src="/foo.html"></amp-video-iframe></body></html>`,
 		`<html><head></head><body><amp-video-iframe src="/foo.html"></amp-video-iframe></body></html>`,
 	},
 	{
-		"inferred-size: Video posters",
+		"inferred-size: Video poster",
 		`<html><head></head><body><amp-video poster="https://example.com/foo.png" width="400" height="400"><source src="foo.mp4" /></amp-video></body></html>`,
 		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video poster="https://example.com/foo.png" width="400" height="400"><source src="foo.mp4"/></amp-video></body></html>`,
+	},
+	{
+		"inferred-size: Video poster crossorigin",
+		`<html><head></head><body><amp-video poster="https://example.com/foo.png" width="400" height="400" crossorigin="anonymous"><source src="foo.mp4" /></amp-video></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video poster="https://example.com/foo.png" width="400" height="400" crossorigin="anonymous"><source src="foo.mp4"/></amp-video></body></html>`,
 	},
 	{
 		"inferred-size: amp-video with missing poster.",
@@ -189,11 +229,7 @@ var testcaseInferSize = []struct {
 	},
 }
 
-var testcaseDataHero = []struct {
-	testcaseName string
-	input        string
-	expected     string
-}{
+var testcaseDataHero = []TestCase{
 	{
 		"data-hero",
 		`<html><head></head><body><amp-img data-hero width="500" height="400" src="https://example.com/foo.png"></body></html>`,
@@ -220,6 +256,11 @@ var testcaseDataHero = []struct {
 		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-img data-hero="" height="100" src="https://example.com/foo.png" width="100" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png"/></amp-img></body></html>`,
 	},
 	{
+		"data-hero: Crossorigin attribute.",
+		`<html><head></head><body><amp-img data-hero width="500" height="400" src="https://example.com/foo.png" crossorigin="anonymous"></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" crossorigin="anonymous"/></head><body><amp-img data-hero="" width="500" height="400" src="https://example.com/foo.png" crossorigin="anonymous" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" crossorigin="anonymous" src="https://example.com/foo.png"/></amp-img></body></html>`,
+	},
+	{
 		"data-hero: Srcset attribute.",
 		`<html><head></head><body><amp-img data-hero width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></body></html>`,
 		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-img data-hero="" width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></body></html>`,
@@ -240,6 +281,11 @@ var testcaseDataHero = []struct {
 		`<html><head><link rel="preload" as="image" href="https://example.com/bar.png"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" src="https://example.com/bar.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/bar.png"/></amp-img></amp-iframe></body></html>`,
 	},
 	{
+		"data-hero: Iframe placeholder crossorigin",
+		`<html><head></head><body><amp-iframe data-hero height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" src="https://example.com/bar.png" crossorigin="anonymous"></amp-img></amp-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/bar.png" crossorigin="anonymous"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" src="https://example.com/bar.png" crossorigin="anonymous" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" crossorigin="anonymous" src="https://example.com/bar.png"/></amp-img></amp-iframe></body></html>`,
+	},
+	{
 		"inferred-size: Iframe placeholder srcset",
 		`<html><head></head><body><amp-iframe data-hero height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></amp-img></amp-iframe></body></html>`,
 		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-iframe></body></html>`,
@@ -255,6 +301,11 @@ var testcaseDataHero = []struct {
 		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" src="https://example.com/foo.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png"/></amp-img></amp-video-iframe></body></html>`,
 	},
 	{
+		"data-hero: iframe video placeholder crossorigin",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" src="https://example.com/foo.png" crossorigin="anonymous"></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" crossorigin="anonymous"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" src="https://example.com/foo.png" crossorigin="anonymous" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" crossorigin="anonymous" src="https://example.com/foo.png"/></amp-img></amp-video-iframe></body></html>`,
+	},
+	{
 		"inferred-size: iframe video placeholder srcset",
 		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html"><amp-img placeholder layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"></amp-img></amp-video-iframe></body></html>`,
 		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><amp-img placeholder="" layout="fill" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-img></amp-video-iframe></body></html>`,
@@ -265,14 +316,24 @@ var testcaseDataHero = []struct {
 		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html" poster="https://example.com/foo.png"></amp-video-iframe></body></html>`,
 	},
 	{
+		"data-hero: iframe video poster crossorigin",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html" poster="https://example.com/foo.png" crossorigin="anonymous"></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html" poster="https://example.com/foo.png" crossorigin="anonymous"></amp-video-iframe></body></html>`,
+	},
+	{
 		"data-hero: No placeholder image",
 		`<html><head></head><body><amp-video-iframe data-hero src="/foo.html"></amp-video-iframe></body></html>`,
 		`<html><head></head><body><amp-video-iframe data-hero="" src="/foo.html"></amp-video-iframe></body></html>`,
 	},
 	{
-		"data-hero: Video posters",
+		"data-hero: Video poster",
 		`<html><head></head><body><amp-video data-hero poster="https://example.com/foo.png" width="400" height="400"><source src="foo.mp4" /></amp-video></body></html>`,
 		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video data-hero="" poster="https://example.com/foo.png" width="400" height="400"><source src="foo.mp4"/></amp-video></body></html>`,
+	},
+	{
+		"data-hero: Video poster crossorigin",
+		`<html><head></head><body><amp-video data-hero poster="https://example.com/foo.png" width="400" height="400" crossorigin="anonymous"><source src="foo.mp4" /></amp-video></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video data-hero="" poster="https://example.com/foo.png" width="400" height="400" crossorigin="anonymous"><source src="foo.mp4"/></amp-video></body></html>`,
 	},
 	{
 		"data-hero: amp-video with missing poster.",
@@ -331,11 +392,7 @@ var testcaseDataHero = []struct {
 	},
 }
 
-var testLazyLoadImg = []struct {
-	testcaseName string
-	input        string
-	expected     string
-}{
+var testLazyLoadImg = []TestCase{
 	{
 		"data-hero leftover",
 		`<html><head></head><body><amp-img data-hero width="500" height="400" src="https://example.com/foo.png"></amp-img><amp-img width="500" height="400" src="https://example.com/bar.png"></amp-img></body></html>`,
@@ -351,46 +408,21 @@ var testLazyLoadImg = []struct {
 		`<html><head></head><body><amp-img width="100" height="100" src="https://example.com/foo.png"></amp-img></body></html>`,
 		`<html><head></head><body><amp-img width="100" height="100" src="https://example.com/foo.png" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" src="https://example.com/foo.png" loading="lazy"/></amp-img></body></html>`,
 	},
+	{
+		"crossorigin propagates",
+		`<html><head></head><body><amp-img width="100" height="100" src="https://example.com/foo.png" crossorigin="anonymous"></amp-img></body></html>`,
+		`<html><head></head><body><amp-img width="100" height="100" src="https://example.com/foo.png" crossorigin="anonymous" i-amphtml-ssr=""><img class="i-amphtml-fill-content i-amphtml-replaced-content" decoding="async" crossorigin="anonymous" src="https://example.com/foo.png" loading="lazy"/></amp-img></body></html>`,
+	},
 }
 
 func TestInferSizeCases(t *testing.T) {
-	for _, tt := range testcaseInferSize {
-		t.Run(tt.testcaseName, func(t *testing.T) {
-			output, err := transformAndOutput(strings.TrimSpace(tt.input), 0)
-			if err != nil {
-				t.Fatalf("Unexpected error %q", err)
-			}
-			if diff := cmp.Diff(strings.TrimSpace(tt.expected), output); diff != "" {
-				t.Errorf("PreloadImage transformer produced unexpected output:\n%s", diff)
-			}
-		})
-	}
+	testCases(t, testcaseInferSize, 0)
 }
 
 func TestDataHeroCases(t *testing.T) {
-	for _, tt := range testcaseDataHero {
-		t.Run(tt.testcaseName, func(t *testing.T) {
-			output, err := transformAndOutput(strings.TrimSpace(tt.input), 0)
-			if err != nil {
-				t.Fatalf("Unexpected error %q", err)
-			}
-			if diff := diff.Diff(strings.TrimSpace(tt.expected), output); diff != "" {
-				t.Errorf("PreloadImage transformer produced unexpected output:\n%s", diff)
-			}
-		})
-	}
+	testCases(t, testcaseDataHero, 0)
 }
 
 func TestLazyLoadCases(t *testing.T) {
-	for _, tt := range testLazyLoadImg {
-		t.Run(tt.testcaseName, func(t *testing.T) {
-			output, err := transformAndOutput(strings.TrimSpace(tt.input), 5)
-			if err != nil {
-				t.Fatalf("Unexpected error %q", err)
-			}
-			if diff := diff.Diff(strings.TrimSpace(tt.expected), output); diff != "" {
-				t.Errorf("PreloadImage transformer produced unexpected output:\n%s", diff)
-			}
-		})
-	}
+	testCases(t, testLazyLoadImg, 5)
 }
