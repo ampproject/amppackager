@@ -93,10 +93,11 @@ func inferredSizeVideoPosterImage(i *html.Node) (HeroImage, bool) {
 	}
 
 	return HeroImage{
-		src:    poster,
-		srcset: "",
-		sizes:  "",
-		ampImg: nil,
+		src:         poster,
+		srcset:      "",
+		sizes:       "",
+		crossorigin: "", // Surprisingly, the crossorigin attribute on a <video> does not apply
+		ampImg:      nil,
 	}, true
 }
 
@@ -126,11 +127,13 @@ func inferredSizeWithPlaceholderImage(n *html.Node) (HeroImage, bool) {
 		srcset, hasSrcset := ParseAndValidateSrcset(htmlnode.GetAttributeVal(c, "", "srcset"))
 		if hasSrc || hasSrcset {
 			sizes, _ := htmlnode.GetAttributeVal(c, "", "sizes")
+			crossorigin, _ := htmlnode.GetAttributeVal(c, "", "crossorigin")
 			return HeroImage{
-				src:    src,
-				srcset: srcset,
-				sizes:  sizes,
-				ampImg: c,
+				src:         src,
+				srcset:      srcset,
+				sizes:       sizes,
+				crossorigin: crossorigin,
+				ampImg:      c,
 			}, true
 		}
 	}
@@ -166,11 +169,13 @@ func inferredSizeImageForPreloading(n *html.Node) (HeroImage, bool) {
 	}
 
 	sizes, _ := htmlnode.GetAttributeVal(n, "", "sizes")
+	crossorigin, _ := htmlnode.GetAttributeVal(n, "", "crossorigin")
 	return HeroImage{
-		src:    src,
-		srcset: srcset,
-		sizes:  sizes,
-		ampImg: n,
+		src:         src,
+		srcset:      srcset,
+		sizes:       sizes,
+		crossorigin: crossorigin,
+		ampImg:      n,
 	}, true
 }
 
