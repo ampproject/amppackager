@@ -650,13 +650,22 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 		log.Println("OCSP nextUpdate in the past:", resp.NextUpdate)
 		return orig
 	}
-	if resp.ProducedAt.Before(certs[0].NotBefore) {
-		log.Printf("OCSP producedAt %+v before certificate notBefore %+v", resp.ProducedAt, certs[0].NotBefore)
-		return orig
-	}
-	if resp.ProducedAt.After(certs[0].NotAfter) {
-		log.Printf("OCSP producedAt %+v after certificate notAfter %+v", resp.ProducedAt, certs[0].NotAfter)
-		return orig
+	for _, test := range []struct {
+		name  string
+		value time.Time
+	}{
+		{"thisUpdate", resp.ThisUpdate},
+		{"nextUpdate", resp.NextUpdate},
+		{"producedAt", resp.ProducedAt},
+	} {
+		if test.value.Before(certs[0].NotBefore) {
+			log.Printf("OCSP %s %+v before certificate notBefore %+v", test.name, test.value, certs[0].NotBefore)
+			return orig
+		}
+		if test.value.After(certs[0].NotAfter) {
+			log.Printf("OCSP %s %+v after certificate notAfter %+v", test.name, test.value, certs[0].NotAfter)
+			return orig
+		}
 	}
 	// OCSP duration must be <=7 days, per
 	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-trust.
