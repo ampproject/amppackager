@@ -43,9 +43,8 @@ These include:
  * The signed `content-type` header must be present. Its media type must be
    `text/html`. Its `charset` parameter, if present, must case-insensitively
    equal `utf-8`.
- * The signed `link` header, if present, must look like [this](https://github.com/ampproject/amppackager/blob/e4bf0430ba152cfe82ccf063df92021dfc0f26a5/packager/signer/signer.go#L426)
-   (the validation logic is currently very picky about its serialization); and
-   have limits like [this](https://github.com/ampproject/amppackager/blob/e4bf0430ba152cfe82ccf063df92021dfc0f26a5/transformer/transformer.go#L177)
+ * The signed `link` header, if present, must
+   have limits like [this](https://github.com/ampproject/amppackager/blob/a5bb0248b0fd0bf2ad6e4d47ca444261c6409e3f/transformer/transformer.go#L201)
    (e.g. max 20 urls, rel=preload only, as=script|style only). URLs must be
    limited to `cdn.ampproject.org` and the allowlisted [font provider URLs](https://github.com/ampproject/amphtml/blob/b0ff92429923c86f3973009a84ff02f4f1868b4d/validator/validator-main.protoascii#L310).
  * There must not be a signed `variant-key-04` or `variants-04` header.
