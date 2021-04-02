@@ -24,13 +24,19 @@ import (
 
 const maxHeroImages int = 2
 
+// A map which translates <amp-img> attributes (keys) to <link rel=preload> attributes (values).
+// Any HeroImage which has a <amp-img> node will also inherit these attribute values.
+var preloadAttributes = map[string]string{
+	"sizes":          "imagesizes",
+	"crossorigin":    "crossorigin",
+	"referrerpolicy": "referrerpolicy",
+}
+
 // HeroImage represents the necessary data to inject a <link ref=preload> and optional <img> tag.
 type HeroImage struct {
-	src         string
-	srcset      string
-	sizes       string
-	crossorigin string
-	ampImg      *html.Node
+	src    string
+	srcset string
+	ampImg *html.Node
 }
 
 // PreloadImage adds link rel="preload" to head element to preload the most revalent image in the AMP document,
@@ -77,11 +83,12 @@ func prioritizeHeroImage(e *Context, heroImage HeroImage) {
 		if heroImage.srcset != "" {
 			htmlnode.SetAttribute(link, "", "imagesrcset", heroImage.srcset)
 		}
-		if heroImage.sizes != "" {
-			htmlnode.SetAttribute(link, "", "imagesizes", heroImage.sizes)
-		}
-		if heroImage.crossorigin != "" {
-			htmlnode.SetAttribute(link, "", "crossorigin", heroImage.crossorigin)
+		if ampImg := heroImage.ampImg; ampImg != nil {
+			for name, linkName := range preloadAttributes {
+				if value, ok := htmlnode.GetAttributeVal(ampImg, "", name); ok {
+					htmlnode.SetAttribute(link, "", linkName, value)
+				}
+			}
 		}
 		e.DOM.HeadNode.AppendChild(link)
 	}
