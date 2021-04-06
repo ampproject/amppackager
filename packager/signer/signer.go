@@ -247,6 +247,7 @@ func MutateFetchedContentSecurityPolicy(fetched string) string {
 			"report-uri https://csp.withgoogle.com/csp/amp;" +
 			"script-src blob: https://cdn.ampproject.org/rtv/ " +
 			"https://cdn.ampproject.org/v0.js " +
+			"https://cdn.ampproject.org/v0.mjs " +
 			"https://cdn.ampproject.org/v0/ " +
 			"https://cdn.ampproject.org/lts/ " +
 			"https://cdn.ampproject.org/viewer/;" +
