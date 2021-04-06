@@ -35,11 +35,11 @@ These include:
  * The signed `content-security-policy` header must be present and comply with
    these rules:
    * `default-src`, `script-src`, `object-src`, `style-src`, and `report-uri`
-     must equal those from the [AMP cache CSP](https://github.com/ampproject/amppackager/blob/c54d36556d56d5a604eea079ef7dc8067f67e1ea/packager/signer/signer.go#L244-L255)
+     must equal those from the [AMP cache CSP](https://github.com/ampproject/amppackager/blob/e581627de0f60e41cd073de8f097bd3e7259ffdf/packager/signer/signer.go#L246-L259).
    * `base-uri`, `block-all-mixed-content`, `font-src`, `form-action`,
      `manifest-src`, `referrer`, and `upgrade-insecure-requests` may be omitted
-     or have any value
-   * all other directives are disallowed
+     or have any value.
+   * All other directives are disallowed.
  * The signed `content-type` header must be present. Its media type must be
    `text/html`. Its `charset` parameter, if present, must case-insensitively
    equal `utf-8`.
