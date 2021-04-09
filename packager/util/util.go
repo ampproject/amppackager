@@ -36,6 +36,10 @@ const SignerURLPrefix = "/priv/doc"
 // packager's cert cache. Should be stable and unique (e.g.
 // content-addressing). Clients should url.PathEscape this, just in case its
 // format changes to need escaping in the future.
+//
+// Given a PEM-encoded certificate, this is equivalent to:
+// $ openssl x509 -in cert.pem -outform DER |
+//     openssl dgst -sha256 -binary | base64 | tr /+ _- | tr -d =
 func CertName(cert *x509.Certificate) string {
 	sum := sha256.Sum256(cert.Raw)
 	return base64.RawURLEncoding.EncodeToString(sum[:])
