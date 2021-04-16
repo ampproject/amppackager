@@ -26,40 +26,91 @@ import (
 )
 
 func TestAMPRuntimeCSS(t *testing.T) {
-	tcs := []struct{ desc, input, expected, css string }{
+	tcs := []struct{ desc, input, expected, rtv, css string }{
+		{
+			desc:  "no css or rtv",
+			input: "<html><head></head></html>",
+			expected: tt.Concat("<html><head>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"latest\"></style>",
+				"</head><body></body></html>"),
+			rtv: "",
+			css: "",
+		},
 		{
 			desc:  "no css",
 			input: "<html><head></head></html>",
 			expected: tt.Concat("<html><head>",
-				"<style amp-runtime=\"\" i-amphtml-version=\"42\"></style>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0142\"></style>",
 				"</head><body></body></html>"),
+			rtv: "0142",
 			css: "",
 		},
 		{
 			desc:  "inline css",
 			input: "<html><head></head></html>",
 			expected: tt.Concat("<html><head>",
-				"<style amp-runtime=\"\" i-amphtml-version=\"42\">CSS contents to inline</style>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0142\">CSS contents to inline</style>",
 				"</head><body></body></html>"),
+			rtv: "0142",
 			css: "CSS contents to inline",
 		},
 		{
 			desc:  "inline trimmed css",
 			input: "<html><head></head></html>",
 			expected: tt.Concat("<html><head>",
-				"<style amp-runtime=\"\" i-amphtml-version=\"42\">CSS contents to inline</style>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0142\">CSS contents to inline</style>",
 				"</head><body></body></html>"),
+			rtv: "0142",
 			css: " \t\n CSS contents to inline \n\t\r\n",
 		},
 		{
-			desc: "removes existing <style amp-runtime>s>",
+			desc: "keeps existing <style amp-runtime>s if no local CSS",
 			input: tt.Concat("<html><head>",
-				"<style amp-runtime>CSS contents to inline</style>",
-				"<style amp-runtime></style>",
+				"<style amp-runtime i-amphtml-version=0141>CSS contents to inline</style>",
+				"<style amp-runtime i-amphtml-version=0141></style>",
 				"</head></html>"),
 			expected: tt.Concat("<html><head>",
-				"<style amp-runtime=\"\" i-amphtml-version=\"42\">CSS contents to inline</style>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0141\">CSS contents to inline</style>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0141\"></style>",
 				"</head><body></body></html>"),
+			rtv: "0142",
+			css: "",
+		},
+		{
+			desc: "keeps existing <style amp-runtime>s if any newer",
+			input: tt.Concat("<html><head>",
+				"<style amp-runtime i-amphtml-version=0141>CSS contents to inline</style>",
+				"<style amp-runtime i-amphtml-version=0152></style>",
+				"</head></html>"),
+			expected: tt.Concat("<html><head>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0141\">CSS contents to inline</style>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0152\"></style>",
+				"</head><body></body></html>"),
+			rtv: "0142",
+			css: "CSS contents to inline",
+		},
+		{
+			desc: "removes existing <style amp-runtime>s if older",
+			input: tt.Concat("<html><head>",
+				"<style amp-runtime i-amphtml-version=0141>CSS contents to inline</style>",
+				"<style amp-runtime i-amphtml-version=0141></style>",
+				"</head></html>"),
+			expected: tt.Concat("<html><head>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0142\">CSS contents to inline</style>",
+				"</head><body></body></html>"),
+			rtv: "0142",
+			css: "CSS contents to inline",
+		},
+		{
+			desc: "removes existing <style amp-runtime>s if atypical",
+			input: tt.Concat("<html><head>",
+				"<style amp-runtime=0252>CSS contents to inline</style>",
+				"<style amp-runtime=0252></style>",
+				"</head></html>"),
+			expected: tt.Concat("<html><head>",
+				"<style amp-runtime=\"\" i-amphtml-version=\"0142\">CSS contents to inline</style>",
+				"</head><body></body></html>"),
+			rtv: "0142",
 			css: "CSS contents to inline",
 		},
 	}
@@ -75,7 +126,7 @@ func TestAMPRuntimeCSS(t *testing.T) {
 			t.Errorf("%s\namphtml.NewDOM for %s failed %q", tc.desc, tc.input, err)
 			continue
 		}
-		transformers.AMPRuntimeCSS(&transformers.Context{DOM: inputDOM, Request: &rpb.Request{Rtv: "42", Css: tc.css}})
+		transformers.AMPRuntimeCSS(&transformers.Context{DOM: inputDOM, Request: &rpb.Request{Rtv: tc.rtv, Css: tc.css}})
 		var input strings.Builder
 		if err := html.Render(&input, inputDoc); err != nil {
 			t.Errorf("%s: html.Render on %s failed %q", tc.desc, tc.input, err)
