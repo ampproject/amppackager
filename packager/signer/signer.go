@@ -455,7 +455,13 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 		var value strings.Builder
 		value.WriteByte('<')
 		value.WriteString(u.String())
-		value.WriteString(">;rel=preload;as=")
+		value.WriteString(">;rel=")
+		if preload.Module {
+			value.WriteString("modulepreload")
+		} else {
+			value.WriteString("preload")
+		}
+		value.WriteString(";as=")
 		value.WriteString(preload.As)
 		for _, attr := range preload.GetAttributes() {
 			value.WriteByte(';')
