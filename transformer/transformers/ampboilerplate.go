@@ -24,11 +24,13 @@ import (
 // AMPBoilerplate removes <style> and <noscript> tags in <head>,
 // keeping only the amp-custom style tag. It then inserts the amp-boilerplate.
 func AMPBoilerplate(e *Context) error {
-	// Remove <style> and <noscript> tags keeping only the amp-custom style tag.
+        // Remove <style> and <noscript> tags keeping only the amp-runtime and
+        // amp-custom style tag. amp-runtime may be removed later by the
+        // AMPRuntimeCSS transformer.
 	for n := e.DOM.HeadNode; n != nil && n.DataAtom != atom.Body; n = htmlnode.Next(n) {
 		switch n.DataAtom {
 		case atom.Style:
-			if !htmlnode.HasAttribute(n, "", amphtml.AMPCustom) {
+			if !htmlnode.HasAttribute(n, "", amphtml.AMPCustom) && !htmlnode.HasAttribute(n, "", amphtml.AMPRuntime) {
 				htmlnode.RemoveNode(&n)
 			}
 		case atom.Noscript:

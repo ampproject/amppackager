@@ -32,19 +32,17 @@ import (
 const ampBoilerplateNoscriptWithAttr = "<noscript><style amp-boilerplate=\"\">body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>"
 
 func TestAMPBoilerplate(t *testing.T) {
-	canonicalExpected := tt.Concat(tt.Doctype, "<html ⚡><head>",
-		tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
-		tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
-		ampBoilerplateNoscriptWithAttr, "</head><body></body></html>")
-
 	tcs := []tt.TestCase{
 		{
 			Desc:     "Keeps boilerplate",
 			Input:    tt.Concat(tt.Doctype, "<html ⚡><head>",
-				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime, tt.LinkFavicon,
+				  tt.MetaCharset, tt.MetaViewport, tt.StyleAMPRuntime, tt.ScriptAMPRuntime, tt.LinkFavicon,
 				  tt.LinkCanonical, tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				  "</head><body></body></html>"),
-			Expected: canonicalExpected,
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
+				  tt.MetaCharset, tt.MetaViewport, tt.StyleAMPRuntime, tt.ScriptAMPRuntime,
+				  tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				  ampBoilerplateNoscriptWithAttr, "</head><body></body></html>"),
 		},
 		{
 			Desc:     "Adds boilerplate if missing",
@@ -52,7 +50,10 @@ func TestAMPBoilerplate(t *testing.T) {
 				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
 				  tt.LinkFavicon, tt.LinkCanonical,
 				  "</head><body></body></html>"),
-			Expected: canonicalExpected,
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
+				  tt.MetaCharset, tt.MetaViewport, tt.ScriptAMPRuntime,
+				  tt.LinkFavicon, tt.LinkCanonical, tt.StyleAMPBoilerplate,
+				  ampBoilerplateNoscriptWithAttr, "</head><body></body></html>"),
 		},
 	}
 

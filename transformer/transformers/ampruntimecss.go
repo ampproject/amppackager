@@ -61,7 +61,7 @@ func AMPRuntimeCSS(e *Context) error {
 	}
 
 	// Create <style amp-runtime> tag.
-	n := htmlnode.Element("style", html.Attribute{Key: "amp-runtime"})
+	n := htmlnode.Element("style", html.Attribute{Key: amphtml.AMPRuntime})
 	// Annotate it with the AMP Runtime version that is being inlined.
 	if rtv == "" {
 		rtv = "latest"
