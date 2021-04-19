@@ -131,6 +131,9 @@ message Metadata {
     // Optional remaining attributes. This does not include the `href` or `as`
     // attributes.
     repeated Attribute attributes = 4;
+
+    // If true, this is a modulepreload instead of a preload.
+    bool module = 5;
   }
   // Absolute URLs of resources that should be preloaded when the AMP is
   // prefetched. In a signed exchange (SXG) context, these would be included as
