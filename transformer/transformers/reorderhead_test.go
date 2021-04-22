@@ -71,6 +71,52 @@ func TestReorderHead(t *testing.T) {
 				"</head><body></body></html>"),
 		},
 		{
+			Desc: "Reorders head children for module/nomodule AMP document",
+			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
+				tt.Title, tt.StyleAMPBoilerplate,
+				tt.ScriptAMPExperimentNomodule, tt.ScriptAMPAudioNomodule,
+				tt.ScriptAMPExperimentModule, tt.ScriptAMPAudioModule,
+				tt.NoscriptAMPBoilerplate, tt.StyleAMPRuntime,
+				tt.ScriptAMPRuntimeModule, tt.ScriptAMPRuntimeNomodule,
+				tt.LinkGoogleFont, tt.LinkGoogleFontPreconnect, tt.MetaCharset,
+				tt.MetaViewport, tt.StyleAMPCustom, tt.LinkCanonical,
+				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
+				tt.ScriptAMPMustacheNomodule, tt.ScriptAMPMustacheModule,
+				tt.ScriptAMPMraidNomodule, tt.ScriptAMPMraidModule,
+				"</head><body></body></html>"),
+			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
+				// (0) <meta charset> tag
+				tt.MetaCharset,
+				// (1) <style amp-runtime> (inserted by ampruntimecss.go)
+				tt.StyleAMPRuntime,
+				// (2) remaining <meta> tags (those other than <meta charset>)
+				tt.MetaViewport,
+				// (3) AMP runtime module/nomodule <script> tags
+				tt.ScriptAMPRuntimeModule, tt.ScriptAMPRuntimeNomodule,
+				// (4) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
+				tt.ScriptAMPViewerRuntime,
+				// (5) <script> tags that are render delaying
+				tt.ScriptAMPExperimentNomodule, tt.ScriptAMPExperimentModule,
+				// (6) <script> tags for remaining extensions
+				tt.ScriptAMPAudioNomodule, tt.ScriptAMPAudioModule,
+				tt.ScriptAMPMraidNomodule, tt.ScriptAMPMraidModule,
+				tt.ScriptAMPMustacheNomodule, tt.ScriptAMPMustacheModule,
+				// (7) <link> tag for favicons
+				tt.LinkFavicon,
+				// (8) <link> tag for resource hints
+				tt.LinkGoogleFontPreconnect,
+				// (9) <link rel=stylesheet> tags before <style amp-custom>
+				tt.LinkGoogleFont,
+				// (10) <style amp-custom>
+				tt.StyleAMPCustom,
+				// (11) any other tags allowed in <head>
+				tt.Title,
+				tt.LinkCanonical,
+				// (12) amp boilerplate (first style amp-boilerplate, then noscript)
+				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
+				"</head><body></body></html>"),
+		},
+		{
 			Desc: "Reorders head children for AMP4ADS document",
 			Input: tt.Concat(tt.Doctype, "<html ⚡4ads><head>",
 				tt.Title, tt.StyleAMP4AdsBoilerplate, tt.ScriptAMPAudio,

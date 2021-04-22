@@ -12,7 +12,8 @@ import (
 // snapshotted to a finalized version.
 // The ranges should be non-overlapping and in descending order.
 // Visible for test.
-var SupportedVersions = []*rpb.VersionRange{{Min: 1, Max: 6}}
+var SupportedVersions = []*rpb.VersionRange{{Min: 1, Max: 7}}
+
 
 func min(a, b int64) int64 {
 	if a < b {

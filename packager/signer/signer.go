@@ -247,6 +247,7 @@ func MutateFetchedContentSecurityPolicy(fetched string) string {
 			"report-uri https://csp.withgoogle.com/csp/amp;" +
 			"script-src blob: https://cdn.ampproject.org/rtv/ " +
 			"https://cdn.ampproject.org/v0.js " +
+			"https://cdn.ampproject.org/v0.mjs " +
 			"https://cdn.ampproject.org/v0/ " +
 			"https://cdn.ampproject.org/lts/ " +
 			"https://cdn.ampproject.org/viewer/;" +
@@ -454,7 +455,13 @@ func formatLinkHeader(preloads []*rpb.Metadata_Preload) (string, error) {
 		var value strings.Builder
 		value.WriteByte('<')
 		value.WriteString(u.String())
-		value.WriteString(">;rel=preload;as=")
+		value.WriteString(">;rel=")
+		if preload.Module {
+			value.WriteString("modulepreload")
+		} else {
+			value.WriteString("preload")
+		}
+		value.WriteString(";as=")
 		value.WriteString(preload.As)
 		for _, attr := range preload.GetAttributes() {
 			value.WriteByte(';')

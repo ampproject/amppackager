@@ -37,14 +37,24 @@ func TestStripJS(t *testing.T) {
 			Expected: "<head><script async src=https://cdn.ampproject.org/v0.js></script></head>",
 		},
 		{
-			Desc:     "keeps module script correct src",
+			Desc:     "keeps module runtime script correct src",
 			Input:    "<script async crossorigin=anonymous src=\"https://cdn.ampproject.org/v0.mjs\" type=module></script>",
 			Expected: "<head><script async crossorigin=anonymous src=https://cdn.ampproject.org/v0.mjs type=module></script></head>",
 		},
 		{
-			Desc:     "keeps nomodule script correct src",
+			Desc:     "keeps nomodule runtime script correct src",
 			Input:    "<script async nomodule src=\"https://cdn.ampproject.org/v0.js\"></script>",
 			Expected: "<head><script async nomodule src=https://cdn.ampproject.org/v0.js></script></head>",
+		},
+		{
+			Desc:     "keeps module extension script correct src",
+			Input:    "<script async crossorigin=anonymous custom-element=amp-anim src=\"https://cdn.ampproject.org/v0/amp-anim-0.1.mjs\" type=module></script>",
+			Expected: "<head><script async crossorigin=anonymous custom-element=amp-anim src=https://cdn.ampproject.org/v0/amp-anim-0.1.mjs type=module></script></head>",
+		},
+		{
+			Desc:     "keeps nomodule extension script correct src",
+			Input:    "<script async custom-element=amp-anim nomodule src=\"https://cdn.ampproject.org/v0/amp-anim-0.1.js\"></script>",
+			Expected: "<head><script async custom-element=amp-anim nomodule src=https://cdn.ampproject.org/v0/amp-anim-0.1.js></script></head>",
 		},
 		{
 			Desc:     "keeps script correct src case-insensitive",

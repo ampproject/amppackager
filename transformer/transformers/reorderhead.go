@@ -33,7 +33,7 @@ type headNodes struct {
 	metaOther                     []*html.Node
 	noscript                      *html.Node
 	other                         []*html.Node
-	scriptAMPRuntime              *html.Node
+	scriptAMPRuntime              []*html.Node
 	scriptAMPViewer               *html.Node
 	scriptNonRenderDelaying       []*html.Node
 	scriptRenderDelaying          []*html.Node
@@ -47,7 +47,7 @@ type headNodes struct {
 // (0) <meta charset> tag
 // (1) <style amp-runtime> (inserted by ampruntimecss.go)
 // (2) remaining <meta> tags (those other than <meta charset>)
-// (3) AMP runtime .js <script> tag
+// (3) AMP runtime <script> tag(s)
 // (4) AMP viewer runtime .js <script> tag
 // (5) <script> tags that are render delaying
 // (6) <script> tags for remaining extensions
@@ -81,8 +81,8 @@ func ReorderHead(e *Context) error {
 	// Uniquifies custom-element and custom-template scripts such that only one
 	// of each is included, preferring the first one encountered and sorting by
 	// custom-element or custom-template attribute's value.
-	hn.scriptRenderDelaying = uniquifyAndSortCustomScripts(hn.scriptRenderDelaying)
-	hn.scriptNonRenderDelaying = uniquifyAndSortCustomScripts(hn.scriptNonRenderDelaying)
+	hn.scriptRenderDelaying = uniquifyAndSortByExtensionScript(hn.scriptRenderDelaying)
+	hn.scriptNonRenderDelaying = uniquifyAndSortByExtensionScript(hn.scriptNonRenderDelaying)
 
 	// Remove children of <head>.
 	htmlnode.RemoveAllChildren(e.DOM.HeadNode)
@@ -98,9 +98,7 @@ func ReorderHead(e *Context) error {
 		e.DOM.HeadNode.AppendChild(hn.styleAMPRuntime)
 	}
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.metaOther...)
-	if hn.scriptAMPRuntime != nil {
-		e.DOM.HeadNode.AppendChild(hn.scriptAMPRuntime)
-	}
+	htmlnode.AppendChildren(e.DOM.HeadNode, hn.scriptAMPRuntime...)
 	if hn.scriptAMPViewer != nil {
 		e.DOM.HeadNode.AppendChild(hn.scriptAMPViewer)
 	}
@@ -161,7 +159,7 @@ func registerMeta(n *html.Node, hn *headNodes) {
 // registerScript registers <script> tags to different variables depending on the attributes on the <script> tag. These are the (1) AMP Runtime script, (2) the render delaying AMP Custom Element scripts, (3) the non-render delaying AMP Custom Element scripts and (4) all other <script> tags.
 func registerScript(n *html.Node, hn *headNodes) {
 	if amphtml.IsScriptAMPRuntime(n) {
-		hn.scriptAMPRuntime = n
+		hn.scriptAMPRuntime = append(hn.scriptAMPRuntime, n)
 		return
 	}
 	if amphtml.IsScriptAMPViewer(n) {
@@ -196,13 +194,13 @@ func registerStyle(n *html.Node, hn *headNodes) {
 	hn.other = append(hn.other, n)
 }
 
-// uniquifyAndSortCustomScripts returns the unique nodes (based on custom-element or custom-template attribute), keeping the first one encountered and sorted by custom-element or custom-template attribute's value.
-func uniquifyAndSortCustomScripts(n []*html.Node) []*html.Node {
+// uniquifyAndSortByExtensionScript returns the unique script definition nodes, keeping the first one encountered and sorted by unique script definition.  The unique script defiintion is defined by "name-version(.js|.mjs)".  Example (amp-ad): amp-ad-0.1.js (regular/nomodule), amp-ad-0.1.mjs (module).  If the pattern is not found then uses value of "src" attribute.  The AMP Validator prevents a mix of regular and nomodule extension.
+func uniquifyAndSortByExtensionScript(n []*html.Node) []*html.Node {
 	var k []string
 	var u []*html.Node
 	m := make(map[string]*html.Node)
 	for _, s := range n {
-		if ext, ok := amphtml.AMPExtensionName(s); ok {
+		if ext, ok := amphtml.AMPExtensionScriptDefinition(s); ok {
 			if _, ok := m[ext]; !ok {
 				m[ext] = s
 				k = append(k, ext)

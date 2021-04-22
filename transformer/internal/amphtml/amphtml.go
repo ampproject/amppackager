@@ -15,6 +15,7 @@
 package amphtml
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/ampproject/amppackager/transformer/internal/htmlnode"
@@ -69,6 +70,29 @@ func IsAMPCustomElement(n *html.Node) bool {
 	return n.Type == html.ElementNode && strings.HasPrefix(n.Data, "amp-")
 }
 
+var srcURLRE = regexp.MustCompile(
+	`^https://cdn\.ampproject\.org` +
+		`(?:/lts)?` +
+		`/v0/` +
+		`(?P<name>amp-[a-z0-9-]*-[a-z0-9.]*\.m?js)` +
+		`(?:\?f=sxg)?$`)
+
+// AMPExtensionScriptDefinition returns a unique script definition that takes into account the extension name, version and if it is module/nomodule.  Example (amp-ad): amp-ad-0.1.js (regular/nomodule), amp-ad-0.1.mjs (module).  The AMP Validator prevents a mix of regular and nomodule extensions.  If the pattern is not found then uses value of "src" attribute.  Returns ok=false if this isn't an extension.
+func AMPExtensionScriptDefinition(n *html.Node) (string, bool) {
+	if n.DataAtom != atom.Script {
+		return "", false
+	}
+	src, hasSrc := htmlnode.GetAttributeVal(n, "", "src")
+	if hasSrc {
+		m := srcURLRE.FindStringSubmatch(src)
+		if len(m) < 2 {
+			return src, true
+		}
+		return m[1], true
+	}
+	return "", false
+}
+
 // AMPExtensionName returns the name of the extension this node represents.  For most extensions this is the value of the "custom-element" attribute.  Returns ok=false if this isn't an extension.
 func AMPExtensionName(n *html.Node) (string, bool) {
 	if n.DataAtom != atom.Script {
@@ -90,7 +114,7 @@ func IsScriptAMPExtension(n *html.Node) bool {
 	return ok
 }
 
-// IsScriptAMPRuntime returns true if the node is of the form <script async src=https://cdn.ampproject.org...v0.js></script>
+// IsScriptAMPRuntime returns true if the node is of the form <script async src=https://cdn.ampproject.org...(v0.js|v0.mjs|amp4ads-v0.js|amp4ads-v0.mjs)></script>
 func IsScriptAMPRuntime(n *html.Node) bool {
 	if n.DataAtom != atom.Script {
 		return false
@@ -100,7 +124,9 @@ func IsScriptAMPRuntime(n *html.Node) bool {
 			!IsScriptAMPExtension(n) &&
 			strings.HasPrefix(v, AMPCacheRootURL) &&
 			(strings.HasSuffix(v, "/v0.js") ||
-				strings.HasSuffix(v, "/amp4ads-v0.js"))
+				strings.HasSuffix(v, "/v0.mjs") ||
+				strings.HasSuffix(v, "/amp4ads-v0.js") ||
+				strings.HasSuffix(v, "/amp4ads-v0.mjs"))
 	}
 	return false
 }

@@ -146,7 +146,7 @@ func (r *Request) Do() *http.Response {
 }
 
 type FakeClock struct {
-	secondsSince0 time.Duration
+	SecondsSince0 time.Duration
 	Delta         time.Duration
 }
 
@@ -155,7 +155,7 @@ func NewFakeClock() *FakeClock {
 }
 
 func (this *FakeClock) Now() time.Time {
-	secondsSince0 := this.secondsSince0
-	this.secondsSince0 = secondsSince0 + this.Delta
+	secondsSince0 := this.SecondsSince0
+	this.SecondsSince0 = secondsSince0 + this.Delta
 	return time.Unix(0, 0).Add(secondsSince0)
 }

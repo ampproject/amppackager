@@ -202,16 +202,32 @@ func extractPreloads(dom *amphtml.DOM) []*rpb.Metadata_Preload {
 	// If you add additional preloads here, verify that they can not be
 	// unintentionally author supplied.
 	preloads := []*rpb.Metadata_Preload{}
-	next := dom.HeadNode.FirstChild
-	for next != nil {
-		// Set the next node to visit
-		current := next
-		next = current.NextSibling
-
+	// If there are any modules present, then we will skip preloads for non-module scripts.
+	hasModule := false
+	for current := dom.HeadNode.FirstChild; current != nil; current = current.NextSibling {
+		if current.DataAtom == atom.Script {
+			if scriptType, _ := htmlnode.GetAttributeVal(current, "", "type"); scriptType == "module" {
+				hasModule = true
+				break
+			}
+		}
+	}
+	for current := dom.HeadNode.FirstChild; current != nil; current = current.NextSibling {
 		switch current.DataAtom {
 		case atom.Script:
 			if src, ok := htmlnode.GetAttributeVal(current, "", "src"); ok {
-				preloads = append(preloads, &rpb.Metadata_Preload{Url: src, As: "script"})
+				scriptType, _ := htmlnode.GetAttributeVal(current, "", "type")
+				if hasModule && scriptType != "module" {
+					continue
+				}
+				preload := &rpb.Metadata_Preload{Url: src, As: "script"}
+				if crossorigin, ok := htmlnode.GetAttributeVal(current, "", "crossorigin"); ok && crossorigin != "" {
+					preload.Attributes = append(preload.Attributes, &rpb.Metadata_Preload_Attribute{Key: "crossorigin", Val: crossorigin})
+				}
+				if scriptType == "module" {
+					preload.Module = true
+				}
+				preloads = append(preloads, preload)
 			}
 		case atom.Link:
 			if rel, ok := htmlnode.GetAttributeVal(current, "", "rel"); ok {

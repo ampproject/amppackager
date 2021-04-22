@@ -429,9 +429,9 @@ func (this *CertCache) readOCSP(allowRetries bool) ([]byte, time.Time, error) {
 
 // Print # of retries, wait for specified time and returned updated wait time.
 func waitForSpecifiedTime(waitTimeInMinutes int, numRetries int) int {
-	log.Printf("Retrying OCSP server: retry #%d\n", numRetries)
+	log.Printf("Retrying OCSP server: retry #%d", numRetries)
 	// Wait using exponential backoff.
-	log.Printf("Waiting for %d minute(s)\n", waitTimeInMinutes)
+	log.Printf("Waiting for %d minute(s)", waitTimeInMinutes)
 	waitTimeDuration := time.Duration(waitTimeInMinutes) * time.Minute
 	// For exponential backoff.
 	newWaitTimeInMinutes := 2 * waitTimeInMinutes
@@ -650,11 +650,28 @@ func (this *CertCache) fetchOCSP(orig []byte, certs []*x509.Certificate, ocspUpd
 		log.Println("OCSP nextUpdate in the past:", resp.NextUpdate)
 		return orig
 	}
+	for _, test := range []struct {
+		name  string
+		value time.Time
+	}{
+		{"thisUpdate", resp.ThisUpdate},
+		{"nextUpdate", resp.NextUpdate},
+		{"producedAt", resp.ProducedAt},
+	} {
+		if test.value.Before(certs[0].NotBefore) {
+			log.Printf("OCSP %s %+v before certificate notBefore %+v", test.name, test.value, certs[0].NotBefore)
+			return orig
+		}
+		if test.value.After(certs[0].NotAfter) {
+			log.Printf("OCSP %s %+v after certificate notAfter %+v", test.name, test.value, certs[0].NotAfter)
+			return orig
+		}
+	}
 	// OCSP duration must be <=7 days, per
 	// https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#cross-origin-trust.
 	// Serving these responses may cause UAs to reject the SXG.
 	if resp.NextUpdate.Sub(resp.ThisUpdate) > time.Hour*24*7 {
-		log.Printf("OCSP nextUpdate %+v too far ahead of thisUpdate %+v\n", resp.NextUpdate, resp.ThisUpdate)
+		log.Printf("OCSP nextUpdate %+v too far ahead of thisUpdate %+v", resp.NextUpdate, resp.ThisUpdate)
 		return orig
 	}
 	return respBytes

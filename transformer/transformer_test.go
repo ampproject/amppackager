@@ -81,6 +81,16 @@ func TestPreloads(t *testing.T) {
 			[]*rpb.Metadata_Preload{},
 		},
 		{
+			"<html ⚡><script src=foo crossorigin=anonymous>",
+			"<html ⚡><head><script crossorigin=anonymous src=foo></script></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "foo", As: "script", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "crossorigin", Val: "anonymous"}}}},
+		},
+		{
+			"<html ⚡><script src=mjs type=module async crossorigin=anonymous></script><script src=js async nomodule></script>",
+			"<html ⚡><head><script async crossorigin=anonymous src=mjs type=module></script><script async nomodule src=js></script></head><body></body></html>",
+			[]*rpb.Metadata_Preload{{Url: "mjs", As: "script", Attributes: []*rpb.Metadata_Preload_Attribute{{Key: "crossorigin", Val: "anonymous"}}, Module: true}},
+		},
+		{
 			"<html ⚡><script src=foo>",
 			"<html ⚡><head><script src=foo></script></head><body></body></html>",
 			[]*rpb.Metadata_Preload{{Url: "foo", As: "script"}},
@@ -164,7 +174,7 @@ func TestPreloads(t *testing.T) {
 				t.Fatalf("unexpected failure: %v", err)
 			}
 
-			if diff := diff.Diff(output, tc.expectedHTML); diff != "" {
+			if diff := diff.Diff(tc.expectedHTML, output); diff != "" {
 				t.Errorf("html output differs (-want +got):\n%s", diff)
 			}
 			if diff := cmp.Diff(tc.expectedPreloads, metadata.Preloads, cmp.Comparer(proto.Equal)); diff != "" {
@@ -309,8 +319,8 @@ func TestCustom(t *testing.T) {
 }
 
 func TestCustomFail(t *testing.T) {
-	r := rpb.Request{Html: "<html ⚡><lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{"does_not_exist"}}
-	if html, _, err := Process(&r); err == nil {
+	r := &rpb.Request{Html: "<html ⚡><lemur>", Config: rpb.Request_CUSTOM, Transformers: []string{"does_not_exist"}}
+	if html, _, err := Process(r); err == nil {
 		t.Fatalf("Process(%v) = %s, nil; want error", r, html)
 	}
 }
