@@ -253,6 +253,8 @@ func TestSpecificTagsAreAbsoluted(t *testing.T) {
        cta-image=/foo
        cta-image-2=/foo>
     </amp-story-page-attachment>
+    <amp-story-page-outlink layout=nodisplay cta-image=/foo>
+    </amp-story-page-outlink>
     <form action=/foo></form>
     <form action-xhr=/foo></form>
     <svg><image xlink:href=/foo><image></svg>
