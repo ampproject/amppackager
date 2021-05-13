@@ -52,6 +52,27 @@ The following information is required to be entered into setup.sh:
   8. ACME_EMAIL_ADDRESS. The email address you used for your [Digicert ACME Account](https://docs.digicert.com/manage-certificates/certificate-profile-options/get-your-signed-http-exchange-certificate/).
 
   9. ACME_DIRECTORY_URL.  The [ACME API Directory URL](https://docs.digicert.com/certificate-tools/acme-user-guide/acme-directory-urls-signed-http-exchange-certificates/).  Note that this URL is security sensitive so do not check in any files that contain this into Github.
+  DigiCert has deprecated access to the old style ACME Directory URL from CertCentral UI in order to transition to using EAB/HMAC (which we will support in a future release). In the meantime, you can retrieve the old style ACME Directory URL using:
+
+      curl --location --request POST 'https://www.digicert.com/services/v2/key/acme-url' --header 'X-DC-DEVKEY: $YOUR_DEV_KEY' --header 'Content-Type: application/json' --data-raw '{
+      "name": "myTest",
+      "product_name_id": "ssl_plus",
+      "organization_id": "$YOUR_ORG_ID",
+      "order_validity_days": "350",
+      "validity_days": "90",
+      "container_id": "$YOUR_CONTAINER_ID",
+      "profile_option": "http_signed_exchange",
+      "external_account_binding": false}'
+      
+   $YOUR_DEV_KEY can be found [here](https://www.digicert.com/secure/automation/api-keys/). Add with no restrictions.
+   
+   $YOUR_ORG_ID can be found [here](https://www.digicert.com/secure/organizations/).
+   
+   $YOUR_CONTAINER_ID can be generated using:
+   
+      curl -X GET https://www.digicert.com/services/v2/container \
+         -H 'Content-Type: application/json' \
+         -H 'X-DC-DEVKEY: $YOUR_DEV_KEY'
 
 The following information can be customized in setup.sh, but the default also works fine:
 
