@@ -73,13 +73,7 @@ func New(email string, eabKid string, eabHmac string, certSignRequest *x509.Cert
 	config.CADirURL = acmeDiscoURL
 	config.Certificate.KeyType = certcrypto.EC256
 
-	// A client facilitates communication with the CA server.
-	client, err := lego.NewClient(config)
-	if err != nil {
-		return nil, errors.Wrap(err, "Obtaining LEGO client.")
-	}
-
-	client, err = setupChallenges(client, httpChallengePort, httpChallengeWebRoot, tlsChallengePort, dnsProvider)
+	client, err := NewLegoClient(config, httpChallengePort, httpChallengeWebRoot, tlsChallengePort, dnsProvider)
 	if err != nil {
 		return nil, errors.Wrap(err, "Setting up ACME challenges.")
 	}
@@ -92,12 +86,7 @@ func New(email string, eabKid string, eabHmac string, certSignRequest *x509.Cert
 		acmeUser.Registration = reg
 	} else {
 		// We need to reset the LEGO client after calling Registration.ResolveAccountByKey().
-		client, err = lego.NewClient(config)
-		if err != nil {
-			return nil, errors.Wrap(err, "Obtaining LEGO client.")
-		}
-
-		client, err = setupChallenges(client, httpChallengePort, httpChallengeWebRoot, tlsChallengePort, dnsProvider)
+		client, err = NewLegoClient(config, httpChallengePort, httpChallengeWebRoot, tlsChallengePort, dnsProvider)
 		if err != nil {
 			return nil, errors.Wrap(err, "Setting up ACME challenges.")
 		}
@@ -130,9 +119,16 @@ func New(email string, eabKid string, eabHmac string, certSignRequest *x509.Cert
 	}, nil
 }
 
-func setupChallenges(client *lego.Client, httpChallengePort int,
+// NewLegoClient returns a new Lego ACME Client given the configuration parameters passed in.
+func NewLegoClient(config *lego.Config, httpChallengePort int,
 	httpChallengeWebRoot string, tlsChallengePort int,
 	dnsProvider string) (*lego.Client, error) {
+	// A client facilitates communication with the CA server.
+	client, err := lego.NewClient(config)
+	if err != nil {
+		return nil, errors.Wrap(err, "Obtaining LEGO client.")
+	}
+
 	// We specify an http port of `httpChallengePort`
 	// because we aren't running as root and can't bind a listener to port 80 and 443
 	// (used later when we attempt to pass challenges). Keep in mind that you still
