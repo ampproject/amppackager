@@ -79,6 +79,60 @@ func New(email string, eabKid string, eabHmac string, certSignRequest *x509.Cert
 		return nil, errors.Wrap(err, "Obtaining LEGO client.")
 	}
 
+	client, err = setupChallenges(client, httpChallengePort, httpChallengeWebRoot, tlsChallengePort, dnsProvider)
+	if err != nil {
+		return nil, errors.Wrap(err, "Setting up ACME challenges.")
+	}
+
+	var reg *registration.Resource
+	if !shouldRegister {
+		acmeUser.Registration = new(registration.Resource)
+	} else if reg, err = client.Registration.ResolveAccountByKey(); err == nil {
+		// Check if we already have an account.
+		acmeUser.Registration = reg
+	} else {
+		// We need to reset the LEGO client after calling Registration.ResolveAccountByKey().
+		client, err = lego.NewClient(config)
+		if err != nil {
+			return nil, errors.Wrap(err, "Obtaining LEGO client.")
+		}
+
+		client, err = setupChallenges(client, httpChallengePort, httpChallengeWebRoot, tlsChallengePort, dnsProvider)
+		if err != nil {
+			return nil, errors.Wrap(err, "Setting up ACME challenges.")
+		}
+
+		// TODO(banaag) make sure we present the TOS URL to the user and prompt for confirmation.
+		// The plan is to move this to some separate setup command outside the server which would be
+		// executed one time. Alternatively, we can have a field in the toml file that is documented
+		// to indicate agreement with TOS.
+		if eabKid == "" && eabHmac == "" {
+			reg, err = client.Registration.Register(registration.RegisterOptions{
+				TermsOfServiceAgreed: true})
+		} else {
+			reg, err = client.Registration.RegisterWithExternalAccountBinding(registration.RegisterEABOptions{
+				TermsOfServiceAgreed: true,
+				Kid:                  eabKid,
+				HmacEncoded:          eabHmac})
+		}
+
+		if err != nil {
+			return nil, errors.Wrap(err, "ACME CA client registration")
+		}
+		acmeUser.Registration = reg
+	}
+
+	return &CertFetcher{
+		AcmeDiscoveryURL: acmeDiscoURL,
+		AcmeUser:         acmeUser,
+		legoClient:       client,
+		CertSignRequest:  certSignRequest,
+	}, nil
+}
+
+func setupChallenges(client *lego.Client, httpChallengePort int,
+	httpChallengeWebRoot string, tlsChallengePort int,
+	dnsProvider string) (*lego.Client, error) {
 	// We specify an http port of `httpChallengePort`
 	// because we aren't running as root and can't bind a listener to port 80 and 443
 	// (used later when we attempt to pass challenges). Keep in mind that you still
@@ -119,44 +173,7 @@ func New(email string, eabKid string, eabHmac string, certSignRequest *x509.Cert
 		}
 	}
 
-	var reg *registration.Resource
-	if !shouldRegister {
-		acmeUser.Registration = new(registration.Resource)
-	} else if reg, err = client.Registration.ResolveAccountByKey(); err == nil {
-		// Check if we already have an account.
-		acmeUser.Registration = reg
-	} else {
-		// We need to reset the LEGO client after calling Registration.ResolveAccountByKey().
-		client, err = lego.NewClient(config)
-		if err != nil {
-			return nil, errors.Wrap(err, "Obtaining LEGO client.")
-		}
-		// TODO(banaag) make sure we present the TOS URL to the user and prompt for confirmation.
-		// The plan is to move this to some separate setup command outside the server which would be
-		// executed one time. Alternatively, we can have a field in the toml file that is documented
-		// to indicate agreement with TOS.
-		if eabKid == "" && eabHmac == "" {
-			reg, err = client.Registration.Register(registration.RegisterOptions{
-				TermsOfServiceAgreed: true})
-		} else {
-			reg, err = client.Registration.RegisterWithExternalAccountBinding(registration.RegisterEABOptions{
-				TermsOfServiceAgreed: true,
-				Kid:                  eabKid,
-				HmacEncoded:          eabHmac})
-		}
-
-		if err != nil {
-			return nil, errors.Wrap(err, "ACME CA client registration")
-		}
-		acmeUser.Registration = reg
-	}
-
-	return &CertFetcher{
-		AcmeDiscoveryURL: acmeDiscoURL,
-		AcmeUser:         acmeUser,
-		legoClient:       client,
-		CertSignRequest:  certSignRequest,
-	}, nil
+	return client, nil
 }
 
 func (f *CertFetcher) FetchNewCert() ([]*x509.Certificate, error) {
