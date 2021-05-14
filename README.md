@@ -218,8 +218,21 @@ Running `amppkg` with the `-invalidcert` flag will skip the check for
 `-development` flag.
 
 Chrome can be configured to allow these invalid certificates with the
-*Allow Signed HTTP Exchange certificates without extension* experiment:
-chrome://flags/#allow-sxg-certs-without-extension
+`--ignore-certificate-errors-spki-list` command line flag:
+
+```
+google-chrome --ignore-certificate-errors-spki-list=<hashes> --user-data-dir=<dir>
+```
+
+where `<hashes>` is a comma separated list of Base64-encoded SHA-256 SPKI
+Fingerprints and it is necessary to specify `--user-data-dir` with a valid
+directory `<dir>` when `--ignore-certificate-errors-spki-list` is used.
+
+As an example, the hash for a PEM certificate can be obtained with OpenSSL:
+
+```
+openssl x509 -pubkey -noout -in mycert.crt | openssl pkey -pubin -outform der | openssl sha256 -binary | openssl base64
+```
 
 #### Redundancy
 
