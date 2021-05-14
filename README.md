@@ -225,8 +225,9 @@ google-chrome --ignore-certificate-errors-spki-list=<hashes> --user-data-dir=<di
 ```
 
 where `<hashes>` is a comma separated list of Base64-encoded SHA-256 SPKI
-Fingerprints and it is necessary to specify `--user-data-dir` with a valid
-directory `<dir>` when `--ignore-certificate-errors-spki-list` is used.
+Fingerprints and it is necessary to specify `--user-data-dir` with a valid or
+creatable directory `<dir>` when `--ignore-certificate-errors-spki-list` is
+used.
 
 As an example, the hash for a PEM certificate can be obtained with OpenSSL:
 
