@@ -31,7 +31,8 @@ const (
 	enumSeparator      = "_"
 	attributeSeparator = "-"
 	// The CSS class used for layouts that have size definitions
-	layoutSizeDefinedClass = "i-amphtml-layout-size-defined"
+	layoutSizeDefinedClass  = "i-amphtml-layout-size-defined"
+	layoutAwaitingSizeClass = "i-amphtml-layout-awaiting-size"
 )
 
 // cssDimensions encapsulates both width and height.
