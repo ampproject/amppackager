@@ -18,8 +18,8 @@ FROM golang:1.13
 ENV GO111MODULE=on
 
 # Install AMP Packager
-# Run this if you want to go off master branch.
-# RUN go get -v github.com/ampproject/amppackager/cmd/amppkg@master
+# Run this if you want to go off main branch.
+# RUN go get -v github.com/ampproject/amppackager/cmd/amppkg@main
 RUN go get -v github.com/ampproject/amppackager/cmd/amppkg
 
 # Install git
