@@ -47,6 +47,8 @@ type layoutMetadata struct {
 	isSupported bool
 	// Whether the layout has size defined
 	hasSizeDefinition bool
+	// Whether the layout waits on a runtime size
+	hasAwaitingSize bool
 }
 
 // layoutMetadataMap describes for each AmpLayout enum value, its level of
@@ -55,16 +57,16 @@ type layoutMetadata struct {
 // This map must be kept up-to-date to include every value! There is a
 // corresponding test that ensures this.
 var /* const */ layoutMetadataMap = map[amppb.AmpLayout_Layout]layoutMetadata{
-	amppb.AmpLayout_CONTAINER:    {true, false},
-	amppb.AmpLayout_FILL:         {true, true},
-	amppb.AmpLayout_FIXED:        {true, true},
-	amppb.AmpLayout_FIXED_HEIGHT: {true, true},
-	amppb.AmpLayout_FLEX_ITEM:    {true, true},
-	amppb.AmpLayout_FLUID:        {false, true},
-	amppb.AmpLayout_INTRINSIC:    {false, true},
-	amppb.AmpLayout_NODISPLAY:    {true, false},
-	amppb.AmpLayout_RESPONSIVE:   {true, true},
-	amppb.AmpLayout_UNKNOWN:      {false, false},
+	amppb.AmpLayout_CONTAINER:    {true, false, false},
+	amppb.AmpLayout_FILL:         {true, true, false},
+	amppb.AmpLayout_FIXED:        {true, true, false},
+	amppb.AmpLayout_FIXED_HEIGHT: {true, true, false},
+	amppb.AmpLayout_FLEX_ITEM:    {true, true, false},
+	amppb.AmpLayout_FLUID:        {true, true, true},
+	amppb.AmpLayout_INTRINSIC:    {false, true, false},
+	amppb.AmpLayout_NODISPLAY:    {true, false, false},
+	amppb.AmpLayout_RESPONSIVE:   {true, true, false},
+	amppb.AmpLayout_UNKNOWN:      {false, false, false},
 }
 
 // ApplyLayout applies the AMP layout algorithm to the given custom element
@@ -175,6 +177,9 @@ func apply(n *html.Node, layout amppb.AmpLayout_Layout, dimensions cssDimensions
 	if ok && meta.hasSizeDefinition {
 		class = class + " " + layoutSizeDefinedClass
 	}
+	if ok && meta.hasAwaitingSize {
+		class = class + " " + layoutAwaitingSizeClass
+	}
 	htmlnode.AppendAttributeWithSeparator(n, "", "class", class, " ")
 
 	var styles string
@@ -186,6 +191,8 @@ func apply(n *html.Node, layout amppb.AmpLayout_Layout, dimensions cssDimensions
 			getCSSLengthStyle(dimensions.height, "height")
 	case amppb.AmpLayout_FIXED_HEIGHT:
 		styles = getCSSLengthStyle(dimensions.height, "height")
+	case amppb.AmpLayout_FLUID:
+		styles = "width:100%;height:0;"
 	case amppb.AmpLayout_RESPONSIVE:
 		// Do nothing here but emit <i-amphtml-sizer> later.
 	case amppb.AmpLayout_FILL, amppb.AmpLayout_CONTAINER:
