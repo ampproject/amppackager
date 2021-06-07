@@ -19,11 +19,12 @@ import (
 	"golang.org/x/net/html"
 )
 
-// preloadImageDataHero finds appropriate AMP elements that have opted in with a `data-hero`
-// attribute. There are no size restrictions for these elements.
+// preloadImageDataHero finds appropriate AMP elements and <img> that have
+// opted in with a `data-hero` attribute. There are no size restrictions for
+// these elements.
 func preloadImageDataHero(n *html.Node) (HeroImage, bool, *html.Node) {
 	for n != nil {
-		if n.Data == "amp-img" {
+		if n.Data == "amp-img" || n.Data == "img" {
 			next := htmlnode.NextSkippingChildren(n)
 			if heroImage, ok := dataHeroImageForPreloading(n); ok {
 				return heroImage, true, next
@@ -79,7 +80,7 @@ func dataHeroVideoPosterImage(i *html.Node) (HeroImage, bool) {
 	return HeroImage{
 		src:    poster,
 		srcset: "",
-		ampImg: nil,
+		ampImgOrImg: nil,
 	}, true
 }
 
@@ -91,12 +92,12 @@ func dataHeroWithPlaceholderImage(n *html.Node) (HeroImage, bool) {
 	}
 
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if c.Data != "amp-img" || !htmlnode.HasAttribute(c, "", "placeholder") {
+		if !(c.Data == "amp-img" || c.Data == "img") || !htmlnode.HasAttribute(c, "", "placeholder") {
 			continue
 		}
 
 		layout, hasLayout := htmlnode.GetAttributeVal(c, "", "layout")
-		if !hasLayout || layout != "fill" {
+		if c.Data == "amp-img" && (!hasLayout || layout != "fill") {
 			continue
 		}
 
@@ -106,7 +107,7 @@ func dataHeroWithPlaceholderImage(n *html.Node) (HeroImage, bool) {
 			return HeroImage{
 				src:    src,
 				srcset: srcset,
-				ampImg: c,
+				ampImgOrImg: c,
 			}, true
 		}
 	}
@@ -132,6 +133,6 @@ func dataHeroImageForPreloading(n *html.Node) (HeroImage, bool) {
 	return HeroImage{
 		src:    src,
 		srcset: srcset,
-		ampImg: n,
+		ampImgOrImg: n,
 	}, true
 }

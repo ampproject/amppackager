@@ -95,7 +95,7 @@ func inferredSizeVideoPosterImage(i *html.Node) (HeroImage, bool) {
 	return HeroImage{
 		src:    poster,
 		srcset: "",
-		ampImg: nil,
+		ampImgOrImg: nil,
 	}, true
 }
 
@@ -127,7 +127,7 @@ func inferredSizeWithPlaceholderImage(n *html.Node) (HeroImage, bool) {
 			return HeroImage{
 				src:    src,
 				srcset: srcset,
-				ampImg: c,
+				ampImgOrImg: c,
 			}, true
 		}
 	}
@@ -165,7 +165,7 @@ func inferredSizeImageForPreloading(n *html.Node) (HeroImage, bool) {
 	return HeroImage{
 		src:    src,
 		srcset: srcset,
-		ampImg: n,
+		ampImgOrImg: n,
 	}, true
 }
 
