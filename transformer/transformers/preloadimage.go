@@ -34,9 +34,9 @@ var preloadAttributes = map[string]string{
 
 // HeroImage represents the necessary data to inject a <link ref=preload> and optional <img> tag.
 type HeroImage struct {
-	src    string
-	srcset string
-	ampImg *html.Node
+	src         string
+	srcset      string
+	ampImgOrImg *html.Node
 }
 
 // PreloadImage adds link rel="preload" to head element to preload the most revalent image in the AMP document,
@@ -83,7 +83,7 @@ func prioritizeHeroImage(e *Context, heroImage HeroImage) {
 		if heroImage.srcset != "" {
 			htmlnode.SetAttribute(link, "", "imagesrcset", heroImage.srcset)
 		}
-		if ampImg := heroImage.ampImg; ampImg != nil {
+		if ampImg := heroImage.ampImgOrImg; ampImg != nil {
 			for name, linkName := range preloadAttributes {
 				if value, ok := htmlnode.GetAttributeVal(ampImg, "", name); ok {
 					htmlnode.SetAttribute(link, "", linkName, value)
@@ -93,7 +93,8 @@ func prioritizeHeroImage(e *Context, heroImage HeroImage) {
 		e.DOM.HeadNode.AppendChild(link)
 	}
 
-	if ampImg := heroImage.ampImg; ampImg != nil {
+	// For amp-img (but not img) build and insert an img tag
+	if ampImg := heroImage.ampImgOrImg; ampImg != nil && ampImg.Data == "amp-img" {
 		ampImg.AppendChild(buildImg(ampImg))
 		htmlnode.SetAttribute(ampImg, "", "i-amphtml-ssr", "")
 	}
