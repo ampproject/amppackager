@@ -66,6 +66,9 @@ type nodeMap map[string]*html.Node
 //  * <link rel=icon href>
 //  * <link rel=preload as=image href>
 //  * <link rel=preload imagesrcset>
+//  * <amp-story-page-attachment cta-image>
+//  * <amp-story-page-attachemnt cta-image-2>
+//  * <amp-story-page-outlink cta-image>
 //  * <amp-video poster>
 //  * <use xlink:href>
 //  * a background image given in the <style amp-custom> tag / style attribute
@@ -133,6 +136,13 @@ func URLRewrite(e *Context) error {
 			} else if srcOk {
 				ctx.parseNewSrcset(n, src)
 			}
+
+		case "amp-story-page-attachment":
+			ctx.parseSimpleImageAttr(n, "", "cta-image")
+			ctx.parseSimpleImageAttr(n, "", "cta-image-2")
+
+		case "amp-story-outlink":
+			ctx.parseSimpleImageAttr(n, "", "cta-image")
 
 		case "amp-video", "video":
 			ctx.parseSimpleImageAttr(n, "", "poster")
