@@ -898,41 +898,9 @@ func (this *SignerSuite) minimalisticRequestWithFakeGatewayRequest(handler http.
 	pkgt.NewRequest(this.T(), handler, urlSuffix).Do()
 }
 
-func (this *SignerSuite) TestPrometheusMetricGatewayRequestsTotal() {
-	promGatewayRequestsTotal.Reset()
-
-	urlSets := []util.URLSet{{
-		Sign: &util.URLPattern{[]string{"https"}, "", this.httpsHost(), stringPtr("/amp/.*"), []string{}, stringPtr(""), false, 2000, nil},
-	}}
-	suffix := "/priv/doc?sign=" + url.QueryEscape(this.httpsURL()+fakePath)
-	handler := this.new(urlSets)
-
-	// Two requests with gateway request returning 200 (unmocked).
-	pkgt.NewRequest(this.T(), handler, suffix).Do()
-	pkgt.NewRequest(this.T(), handler, suffix).Do()
-
-	// One request with gateway request returning 304.
-	this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 304)
-
-	// Two requests with gateway request returning something else.
-	this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 502)
-	this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 503)
-
-	expectation := strings.NewReader(`
-		# HELP total_gateway_requests_by_code Total number of underlying requests to AMP document server - by HTTP response status code.
-		# TYPE total_gateway_requests_by_code counter
-		total_gateway_requests_by_code{code="200"} 2
-		total_gateway_requests_by_code{code="304"} 1
-		total_gateway_requests_by_code{code="502"} 1
-		total_gateway_requests_by_code{code="503"} 1
-		`)
-
-	this.Require().NoError(promtest.CollectAndCompare(promGatewayRequestsTotal, expectation, "total_gateway_requests_by_code"))
-}
-
 const promExpectedHeaderGatewayRequestsLatency = `
-	# HELP gateway_request_latencies_in_seconds Latencies (in seconds) of gateway requests to AMP document server - by HTTP response status code.
-	# TYPE gateway_request_latencies_in_seconds summary
+	# HELP amppackager_signer_gateway_duration_seconds Latencies (in seconds) of gateway requests to AMP document server - by HTTP response status code.
+	# TYPE amppackager_signer_gateway_duration_seconds histogram
 	`
 
 func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
@@ -955,11 +923,20 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 				pkgt.NewRequest(this.T(), handler, suffix).Do()
 			},
 			expectation: `
-				gateway_request_latencies_in_seconds{code="200",quantile="0.5"} 1
-				gateway_request_latencies_in_seconds{code="200",quantile="0.9"} 1
-				gateway_request_latencies_in_seconds{code="200",quantile="0.99"} 1
-				gateway_request_latencies_in_seconds_sum{code="200"} 2
-				gateway_request_latencies_in_seconds_count{code="200"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.005"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.01"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.025"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.05"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.1"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.25"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.5"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="1"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="2.5"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="5"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="10"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="+Inf"} 2
+				amppackager_signer_gateway_duration_seconds_sum{code="200"} 2
+				amppackager_signer_gateway_duration_seconds_count{code="200"} 2
 				`,
 		},
 		{
@@ -969,16 +946,34 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 502)
 			},
 			expectation: `
-				gateway_request_latencies_in_seconds{code="304",quantile="0.5"} 1
-				gateway_request_latencies_in_seconds{code="304",quantile="0.9"} 1
-				gateway_request_latencies_in_seconds{code="304",quantile="0.99"} 1
-				gateway_request_latencies_in_seconds_sum{code="304"} 1
-				gateway_request_latencies_in_seconds_count{code="304"} 1
-				gateway_request_latencies_in_seconds{code="502",quantile="0.5"} 1
-				gateway_request_latencies_in_seconds{code="502",quantile="0.9"} 1
-				gateway_request_latencies_in_seconds{code="502",quantile="0.99"} 1
-				gateway_request_latencies_in_seconds_sum{code="502"} 2
-				gateway_request_latencies_in_seconds_count{code="502"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.005"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.01"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.025"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.05"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.1"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.25"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.5"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="1"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="2.5"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="5"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="10"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="+Inf"} 1
+				amppackager_signer_gateway_duration_seconds_sum{code="304"} 1
+				amppackager_signer_gateway_duration_seconds_count{code="304"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.005"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.01"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.025"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.05"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.1"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.25"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.5"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="1"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="2.5"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="5"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="10"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="+Inf"} 2
+				amppackager_signer_gateway_duration_seconds_sum{code="502"} 2
+				amppackager_signer_gateway_duration_seconds_count{code="502"} 2
 				`,
 		},
 		{
@@ -991,21 +986,48 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 502)
 			},
 			expectation: `
-				gateway_request_latencies_in_seconds{code="200",quantile="0.5"} 1
-				gateway_request_latencies_in_seconds{code="200",quantile="0.9"} 1
-				gateway_request_latencies_in_seconds{code="200",quantile="0.99"} 1
-				gateway_request_latencies_in_seconds_sum{code="200"} 3
-				gateway_request_latencies_in_seconds_count{code="200"} 3
-				gateway_request_latencies_in_seconds{code="304",quantile="0.5"} 1
-				gateway_request_latencies_in_seconds{code="304",quantile="0.9"} 1
-				gateway_request_latencies_in_seconds{code="304",quantile="0.99"} 1
-				gateway_request_latencies_in_seconds_sum{code="304"} 1
-				gateway_request_latencies_in_seconds_count{code="304"} 1
-				gateway_request_latencies_in_seconds{code="502",quantile="0.5"} 1
-				gateway_request_latencies_in_seconds{code="502",quantile="0.9"} 1
-				gateway_request_latencies_in_seconds{code="502",quantile="0.99"} 1
-				gateway_request_latencies_in_seconds_sum{code="502"} 2
-				gateway_request_latencies_in_seconds_count{code="502"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.005"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.01"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.025"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.05"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.1"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.25"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.5"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="1"} 3
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="2.5"} 3
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="5"} 3
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="10"} 3
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="+Inf"} 3
+				amppackager_signer_gateway_duration_seconds_sum{code="200"} 3
+				amppackager_signer_gateway_duration_seconds_count{code="200"} 3
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.005"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.01"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.025"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.05"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.1"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.25"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="0.5"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="1"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="2.5"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="5"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="10"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="304",le="+Inf"} 1
+				amppackager_signer_gateway_duration_seconds_sum{code="304"} 1
+				amppackager_signer_gateway_duration_seconds_count{code="304"} 1
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.005"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.01"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.025"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.05"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.1"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.25"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="0.5"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="1"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="2.5"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="5"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="10"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="502",le="+Inf"} 2
+				amppackager_signer_gateway_duration_seconds_sum{code="502"} 2
+				amppackager_signer_gateway_duration_seconds_count{code="502"} 2
 				`,
 		},
 		{
@@ -1017,11 +1039,20 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 				this.minimalisticRequestWithFakeGatewayRequest(handler, suffix, 200)
 			},
 			expectation: `
-				gateway_request_latencies_in_seconds{code="200",quantile="0.5"} 1
-				gateway_request_latencies_in_seconds{code="200",quantile="0.9"} 5
-				gateway_request_latencies_in_seconds{code="200",quantile="0.99"} 5
-				gateway_request_latencies_in_seconds_sum{code="200"} 7
-				gateway_request_latencies_in_seconds_count{code="200"} 3
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.005"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.01"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.025"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.05"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.1"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.25"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="0.5"} 0
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="1"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="2.5"} 2
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="5"} 3
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="10"} 3
+				amppackager_signer_gateway_duration_seconds_bucket{code="200",le="+Inf"} 3
+				amppackager_signer_gateway_duration_seconds_sum{code="200"} 7
+				amppackager_signer_gateway_duration_seconds_count{code="200"} 3
 				`,
 		},
 	}
@@ -1031,7 +1062,7 @@ func (this *SignerSuite) TestPrometheusMetricGatewayRequestsLatency() {
 
 		scenario.requestsFunc()
 		expectation := strings.NewReader(promExpectedHeaderGatewayRequestsLatency + scenario.expectation)
-		this.Require().NoError(promtest.CollectAndCompare(promGatewayRequestsLatency, expectation, "gateway_request_latencies_in_seconds"))
+		this.Require().NoError(promtest.CollectAndCompare(promGatewayRequestsLatency, expectation, "amppackager_signer_gateway_duration_seconds"))
 	}
 
 }
@@ -1090,11 +1121,20 @@ func (this *SignerSuite) TestPrometheusMetricSignedAmpDocumentsSize() {
 				resp.Write([]byte("<html amp>This document has 42 characters."))
 			},
 			expectation: `
-				signed_amp_documents_size_in_bytes{quantile="0.5"} 42
-				signed_amp_documents_size_in_bytes{quantile="0.9"} 42
-				signed_amp_documents_size_in_bytes{quantile="0.99"} 42
-				signed_amp_documents_size_in_bytes_sum 42
-				signed_amp_documents_size_in_bytes_count 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="1024"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="2048"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="4096"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="8192"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="16384"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="32768"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="65536"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="131072"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="262144"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="524288"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="1.048576e+06"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="+Inf"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_sum 42
+				amppackager_signer_signed_amp_documents_size_bytes_count 1
 				`,
 		},
 		{
@@ -1107,11 +1147,20 @@ func (this *SignerSuite) TestPrometheusMetricSignedAmpDocumentsSize() {
 				buf.Flush()
 			},
 			expectation: `
-				signed_amp_documents_size_in_bytes{quantile="0.5"} 42
-				signed_amp_documents_size_in_bytes{quantile="0.9"} 42
-				signed_amp_documents_size_in_bytes{quantile="0.99"} 42
-				signed_amp_documents_size_in_bytes_sum 42
-				signed_amp_documents_size_in_bytes_count 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="1024"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="2048"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="4096"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="8192"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="16384"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="32768"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="65536"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="131072"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="262144"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="524288"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="1.048576e+06"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_bucket{le="+Inf"} 1
+				amppackager_signer_signed_amp_documents_size_bytes_sum 42
+				amppackager_signer_signed_amp_documents_size_bytes_count 1
 				`,
 		},
 		{
@@ -1128,8 +1177,8 @@ func (this *SignerSuite) TestPrometheusMetricSignedAmpDocumentsSize() {
 	}
 
 	const expectedHeader = `
-		# HELP signed_amp_documents_size_in_bytes Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned.
-		# TYPE signed_amp_documents_size_in_bytes summary
+		# HELP amppackager_signer_signed_amp_documents_size_bytes Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned.
+		# TYPE amppackager_signer_signed_amp_documents_size_bytes histogram
 		`
 
 	for _, scenario := range scenarios {
@@ -1139,7 +1188,7 @@ func (this *SignerSuite) TestPrometheusMetricSignedAmpDocumentsSize() {
 		pkgt.NewRequest(this.T(), this.new(urlSets), target).SetHeaders("", header).Do()
 
 		expectation := strings.NewReader(expectedHeader + scenario.expectation)
-		this.Require().NoError(promtest.CollectAndCompare(promSignedAmpDocumentsSize, expectation, "signed_amp_documents_size_in_bytes"), scenario.name+" failed.")
+		this.Require().NoError(promtest.CollectAndCompare(promSignedAmpDocumentsSize, expectation, "amppackager_signer_signed_amp_documents_size_bytes"), scenario.name+" failed.")
 	}
 }
 
@@ -1157,18 +1206,18 @@ func (this *SignerSuite) TestPrometheusMetricDocumentsSignedVsUnsigned() {
 		{
 			name:           "Scenario DocumentSigned",
 			customFakeBody: fakeBody,
-			expectation:    `documents_signed_vs_unsigned{status="signed"} 1`,
+			expectation:    `amppackager_signer_documents_total{status="signed"} 1`,
 		},
 		{
 			name:           "Scenario DocumentUnsigned",
 			customFakeBody: []byte("Not an amp document, won't sign."),
-			expectation:    `documents_signed_vs_unsigned{status="proxied unsigned"} 1`,
+			expectation:    `amppackager_signer_documents_total{status="proxied unsigned"} 1`,
 		},
 	}
 
 	const expectedHeader = `
-		# HELP documents_signed_vs_unsigned Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned.
-		# TYPE documents_signed_vs_unsigned counter
+		# HELP amppackager_signer_documents_total Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned.
+		# TYPE amppackager_signer_documents_total counter
 		`
 
 	for _, scenario := range scenarios {
@@ -1180,6 +1229,6 @@ func (this *SignerSuite) TestPrometheusMetricDocumentsSignedVsUnsigned() {
 		pkgt.NewRequest(this.T(), this.new(urlSets), target).SetHeaders("", header).Do()
 
 		expectation := strings.NewReader(expectedHeader + "\n" + scenario.expectation + "\n")
-		this.Require().NoError(promtest.CollectAndCompare(promDocumentsSignedVsUnsigned, expectation, "documents_signed_vs_unsigned"), scenario.name+" failed.")
+		this.Require().NoError(promtest.CollectAndCompare(promDocumentsSignedVsUnsigned, expectation, "amppackager_signer_documents_total"), scenario.name+" failed.")
 	}
 }

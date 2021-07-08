@@ -311,8 +311,8 @@ You can monitor the packager's error rates, as well as the rates of signed
 vs unsigned documents, via the tools discussed in the next section.
 
 Specifically, you can monitor the requests that resulted in a signed or an
-unsigned document via `documents_signed_vs_unsigned` metric, and the ones that
-resulted in an error - via `total_requests_by_code_and_url` metric.
+unsigned document via `amppackager_signer_documents_total` metric, and the ones that
+resulted in an error - via `amppackager_http_duration_seconds_count` metric.
 
 #### Monitoring `amppackager` in production via its Prometheus endpoints
 
