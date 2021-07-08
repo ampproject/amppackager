@@ -7,20 +7,19 @@ require (
 	github.com/ampproject/amphtml v0.0.0-20180912232012-d3df64d07ae9
 	github.com/go-acme/lego/v3 v3.2.0
 	github.com/gofrs/flock v0.7.1
-	github.com/golang/protobuf v1.4.1
-	github.com/google/go-cmp v0.5.0
+	github.com/golang/protobuf v1.4.3
+	github.com/google/go-cmp v0.5.5
 	github.com/kylelemons/godebug v1.1.0
 	github.com/pelletier/go-toml v1.1.0
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180306154005-525d0eb5f91d
-	github.com/prometheus/client_golang v1.1.0
+	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.4.0
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	google.golang.org/grpc v1.27.0
-	google.golang.org/protobuf v1.25.0
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1
 )
 
