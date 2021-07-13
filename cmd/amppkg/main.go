@@ -25,6 +25,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	_ "net/http/pprof"
 	"time"
 
 	"github.com/pkg/errors"
