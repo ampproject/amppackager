@@ -46,6 +46,8 @@ requests handled by `amppackager`, and for the underlying gateway requests that
 `amppackager` sends to the AMP document server. Get all the metrics by `curl`ing
 the `/metrics` endpoint. 
 
+There is also [Go pprof](https://pkg.go.dev/net/http/pprof) available on `/debug/pprof`.
+
 ## Example: monitoring total requests count
 
 The example command below fetches all the available metrics. It then greps the report for `total_requests_by_code_and_url` metric. This metric counts the HTTP requests the `amppackager` server has processed since it's been up. 
