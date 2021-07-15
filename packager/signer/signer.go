@@ -48,6 +48,10 @@ const userAgent = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) " +
 	"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile " +
 	"Safari/537.36 (compatible; amppackager/0.0.0; +https://github.com/ampproject/amppackager)"
 
+// Prometheus metric namespace and subsystem.
+const promNamespace = "amppackager"
+const promSubsystem = "signer"
+
 // Advised against, per
 // https://tools.ietf.org/html/draft-yasskin-httpbis-origin-signed-exchanges-impl-00#section-4.1
 // and blocked in http://crrev.com/c/958945.
@@ -276,25 +280,14 @@ func (this *Signer) genCertURL(cert *x509.Certificate, signURL *url.URL) (*url.U
 	return ret, nil
 }
 
-// promGatewayRequestsTotal is a Prometheus counter that observes total gateway requests count.
-var promGatewayRequestsTotal = promauto.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "total_gateway_requests_by_code",
-		Help: "Total number of underlying requests to AMP document server - by HTTP response status code.",
-	},
-	[]string{"code"},
-)
-
-// promGatewayRequestsLatency is a Prometheus summary that observes requests latencies.
-// Objectives key value pairs set target quantiles and respective allowed rank variance.
-// Upon query, for each Objective quantile (0.5, 0.9, 0.99) the summary returns
-// an actual observed latency value that is ranked close to the Objective value.
-// For more intuition on the Objectives see http://alexandrutopliceanu.ro/post/targeted-quantiles/.
-var promGatewayRequestsLatency = promauto.NewSummaryVec(
-	prometheus.SummaryOpts{
-		Name:       "gateway_request_latencies_in_seconds",
-		Help:       "Latencies (in seconds) of gateway requests to AMP document server - by HTTP response status code.",
-		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+// promGatewayRequestsLatency is a Prometheus histogram that observes requests latencies.
+var promGatewayRequestsLatency = promauto.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Namespace: promNamespace,
+		Subsystem: promSubsystem,
+		Name:      "gateway_duration_seconds",
+		Help:      "Latencies (in seconds) of gateway requests to AMP document server - by HTTP response status code.",
+		Buckets:   prometheus.DefBuckets,
 	},
 	[]string{"code"},
 )
@@ -307,7 +300,6 @@ func (this *Signer) fetchURLAndMeasure(fetch *url.URL, serveHTTPReq *http.Reques
 		// httpErr is nil, i.e. the gateway request did succeed. Let Prometheus
 		// observe the gateway request and its latency - along with the response code.
 		label := prometheus.Labels{"code": strconv.Itoa(fetchResp.StatusCode)}
-		promGatewayRequestsTotal.With(label).Inc()
 
 		latency := this.timeNow().Sub(startTime)
 		promGatewayRequestsLatency.With(label).Observe(latency.Seconds())
@@ -531,19 +523,23 @@ func (this *Signer) consumeAndSign(resp http.ResponseWriter, fetchResp *http.Res
 
 }
 
-var promSignedAmpDocumentsSize = promauto.NewSummaryVec(
-	prometheus.SummaryOpts{
-		Name:       "signed_amp_documents_size_in_bytes",
-		Help:       "Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned.",
-		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+var promSignedAmpDocumentsSize = promauto.NewHistogramVec(
+	prometheus.HistogramOpts{
+		Namespace: promNamespace,
+		Subsystem: promSubsystem,
+		Name:      "signed_amp_documents_size_bytes",
+		Help:      "Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned.",
+		Buckets:   prometheus.ExponentialBuckets(1024, 2, 11),
 	},
 	[]string{},
 )
 
 var promDocumentsSignedVsUnsigned = promauto.NewCounterVec(
 	prometheus.CounterOpts{
-		Name: "documents_signed_vs_unsigned",
-		Help: "Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned.",
+		Namespace: promNamespace,
+		Subsystem: promSubsystem,
+		Name:      "documents_total",
+		Help:      "Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned.",
 	},
 	[]string{"status"},
 )
