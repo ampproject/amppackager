@@ -20,12 +20,13 @@ import (
 	"strconv"
 
 	"github.com/WICG/webpackage/go/signedexchange"
-	"github.com/go-acme/lego/v3/certcrypto"
-	"github.com/go-acme/lego/v3/challenge/http01"
-	"github.com/go-acme/lego/v3/challenge/tlsalpn01"
-	"github.com/go-acme/lego/v3/lego"
-	"github.com/go-acme/lego/v3/providers/http/webroot"
-	"github.com/go-acme/lego/v3/registration"
+	"github.com/go-acme/lego/v4/certcrypto"
+	"github.com/go-acme/lego/v4/certificate"
+	"github.com/go-acme/lego/v4/challenge/http01"
+	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
+	"github.com/go-acme/lego/v4/lego"
+	"github.com/go-acme/lego/v4/providers/http/webroot"
+	"github.com/go-acme/lego/v4/registration"
 	"github.com/pkg/errors"
 )
 
@@ -173,9 +174,13 @@ func NewLegoClient(config *lego.Config, httpChallengePort int,
 }
 
 func (f *CertFetcher) FetchNewCert() ([]*x509.Certificate, error) {
+	csr := certificate.ObtainForCSRRequest{
+		CSR:    f.CertSignRequest,
+		Bundle: true,
+	}
 	// Each resource comes back with the cert bytes, the bytes of the client's
 	// private key, and a certificate URL.
-	resource, err := f.legoClient.Certificate.ObtainForCSR(*f.CertSignRequest, true)
+	resource, err := f.legoClient.Certificate.ObtainForCSR(csr)
 	if err != nil {
 		return nil, err
 	}
