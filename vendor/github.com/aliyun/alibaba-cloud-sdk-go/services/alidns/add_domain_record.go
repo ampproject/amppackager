@@ -21,7 +21,6 @@ import (
 )
 
 // AddDomainRecord invokes the alidns.AddDomainRecord API synchronously
-// api document: https://help.aliyun.com/api/alidns/adddomainrecord.html
 func (client *Client) AddDomainRecord(request *AddDomainRecordRequest) (response *AddDomainRecordResponse, err error) {
 	response = CreateAddDomainRecordResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) AddDomainRecord(request *AddDomainRecordRequest) (response
 }
 
 // AddDomainRecordWithChan invokes the alidns.AddDomainRecord API asynchronously
-// api document: https://help.aliyun.com/api/alidns/adddomainrecord.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddDomainRecordWithChan(request *AddDomainRecordRequest) (<-chan *AddDomainRecordResponse, <-chan error) {
 	responseChan := make(chan *AddDomainRecordResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) AddDomainRecordWithChan(request *AddDomainRecordRequest) (
 }
 
 // AddDomainRecordWithCallback invokes the alidns.AddDomainRecord API asynchronously
-// api document: https://help.aliyun.com/api/alidns/adddomainrecord.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddDomainRecordWithCallback(request *AddDomainRecordRequest, callback func(response *AddDomainRecordResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,13 +73,13 @@ type AddDomainRecordRequest struct {
 	*requests.RpcRequest
 	RR           string           `position:"Query" name:"RR"`
 	Line         string           `position:"Query" name:"Line"`
-	UserClientIp string           `position:"Query" name:"UserClientIp"`
-	DomainName   string           `position:"Query" name:"DomainName"`
-	Lang         string           `position:"Query" name:"Lang"`
 	Type         string           `position:"Query" name:"Type"`
-	Priority     requests.Integer `position:"Query" name:"Priority"`
+	Lang         string           `position:"Query" name:"Lang"`
 	Value        string           `position:"Query" name:"Value"`
+	DomainName   string           `position:"Query" name:"DomainName"`
+	Priority     requests.Integer `position:"Query" name:"Priority"`
 	TTL          requests.Integer `position:"Query" name:"TTL"`
+	UserClientIp string           `position:"Query" name:"UserClientIp"`
 }
 
 // AddDomainRecordResponse is the response struct for api AddDomainRecord
@@ -99,7 +94,8 @@ func CreateAddDomainRecordRequest() (request *AddDomainRecordRequest) {
 	request = &AddDomainRecordRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "AddDomainRecord", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "AddDomainRecord", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

@@ -22,7 +22,7 @@ type BlockVolumeClient struct {
 // Create creates a new block volume.
 func (c *BlockVolumeClient) Create(params *BlockVolumeParams) (*BlockVolume, error) {
 	var result BlockVolume
-	err := c.Backend.Call("v1/Storage/Block/Volume/create", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storage/Block/Volume/create", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (c *BlockVolumeClient) Details(id string) (*BlockVolume, error) {
 	var result BlockVolume
 	params := BlockVolumeParams{UniqID: id}
 
-	err := c.Backend.Call("v1/Storage/Block/Volume/details", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storage/Block/Volume/details", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -46,17 +46,17 @@ func (c *BlockVolumeClient) Details(id string) (*BlockVolume, error) {
 func (c *BlockVolumeClient) List(params *BlockVolumeParams) (*BlockVolumeList, error) {
 	list := &BlockVolumeList{}
 
-	err := c.Backend.Call("v1/Storage/Block/Volume/list", params, list)
+	err := c.Backend.CallIntoInterface("v1/Storage/Block/Volume/list", params, list)
 	if err != nil {
 		return nil, err
 	}
-	return list, err
+	return list, nil
 }
 
 // Update will update a block volume.
 func (c *BlockVolumeClient) Update(params *BlockVolumeParams) (*BlockVolume, error) {
 	var result BlockVolume
-	err := c.Backend.Call("v1/Storage/Block/Volume/update", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storage/Block/Volume/update", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (c *BlockVolumeClient) Delete(id string) (*BlockVolumeDeletion, error) {
 	var result BlockVolumeDeletion
 	params := BlockVolumeParams{UniqID: id}
 
-	err := c.Backend.Call("v1/Storage/Block/Volume/delete", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storage/Block/Volume/delete", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (c *BlockVolumeClient) Delete(id string) (*BlockVolumeDeletion, error) {
 // Resize will resize a block volume.
 func (c *BlockVolumeClient) Resize(params *BlockVolumeParams) (*BlockVolumeResize, error) {
 	var result BlockVolumeResize
-	err := c.Backend.Call("v1/Storage/Block/Volume/resize", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storage/Block/Volume/resize", params, &result)
 	if err != nil {
 		return nil, err
 	}

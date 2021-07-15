@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeSupportLines invokes the alidns.DescribeSupportLines API synchronously
-// api document: https://help.aliyun.com/api/alidns/describesupportlines.html
 func (client *Client) DescribeSupportLines(request *DescribeSupportLinesRequest) (response *DescribeSupportLinesResponse, err error) {
 	response = CreateDescribeSupportLinesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeSupportLines(request *DescribeSupportLinesRequest)
 }
 
 // DescribeSupportLinesWithChan invokes the alidns.DescribeSupportLines API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describesupportlines.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeSupportLinesWithChan(request *DescribeSupportLinesRequest) (<-chan *DescribeSupportLinesResponse, <-chan error) {
 	responseChan := make(chan *DescribeSupportLinesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeSupportLinesWithChan(request *DescribeSupportLines
 }
 
 // DescribeSupportLinesWithCallback invokes the alidns.DescribeSupportLines API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describesupportlines.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeSupportLinesWithCallback(request *DescribeSupportLinesRequest, callback func(response *DescribeSupportLinesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,8 +71,8 @@ func (client *Client) DescribeSupportLinesWithCallback(request *DescribeSupportL
 // DescribeSupportLinesRequest is the request struct for api DescribeSupportLines
 type DescribeSupportLinesRequest struct {
 	*requests.RpcRequest
-	UserClientIp string `position:"Query" name:"UserClientIp"`
 	DomainName   string `position:"Query" name:"DomainName"`
+	UserClientIp string `position:"Query" name:"UserClientIp"`
 	Lang         string `position:"Query" name:"Lang"`
 }
 
@@ -93,7 +88,8 @@ func CreateDescribeSupportLinesRequest() (request *DescribeSupportLinesRequest) 
 	request = &DescribeSupportLinesRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeSupportLines", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeSupportLines", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

@@ -1,14 +1,12 @@
 # cloud.google.com/go v0.65.0
 cloud.google.com/go/compute/metadata
-# contrib.go.opencensus.io/exporter/ocagent v0.4.12
-contrib.go.opencensus.io/exporter/ocagent
 # github.com/Azure/azure-sdk-for-go v32.4.0+incompatible
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-09-01/dns
 github.com/Azure/azure-sdk-for-go/version
-# github.com/Azure/go-autorest/autorest v0.5.0
+# github.com/Azure/go-autorest/autorest v0.9.0
 github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
-# github.com/Azure/go-autorest/autorest/adal v0.2.0
+# github.com/Azure/go-autorest/autorest/adal v0.5.0
 github.com/Azure/go-autorest/autorest/adal
 # github.com/Azure/go-autorest/autorest/azure/auth v0.1.0
 github.com/Azure/go-autorest/autorest/azure/auth
@@ -22,7 +20,7 @@ github.com/Azure/go-autorest/autorest/to
 github.com/Azure/go-autorest/autorest/validation
 # github.com/Azure/go-autorest/logger v0.1.0
 github.com/Azure/go-autorest/logger
-# github.com/Azure/go-autorest/tracing v0.1.0
+# github.com/Azure/go-autorest/tracing v0.5.0
 github.com/Azure/go-autorest/tracing
 # github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87
 github.com/OpenDNS/vegadns2client
@@ -35,12 +33,12 @@ github.com/WICG/webpackage/go/signedexchange/internal/signingalgorithm
 github.com/WICG/webpackage/go/signedexchange/mice
 github.com/WICG/webpackage/go/signedexchange/structuredheader
 github.com/WICG/webpackage/go/signedexchange/version
-# github.com/akamai/AkamaiOPEN-edgegrid-golang v0.9.0
+# github.com/akamai/AkamaiOPEN-edgegrid-golang v1.1.0
 github.com/akamai/AkamaiOPEN-edgegrid-golang/client-v1
-github.com/akamai/AkamaiOPEN-edgegrid-golang/configdns-v1
+github.com/akamai/AkamaiOPEN-edgegrid-golang/configdns-v2
 github.com/akamai/AkamaiOPEN-edgegrid-golang/edgegrid
 github.com/akamai/AkamaiOPEN-edgegrid-golang/jsonhooks-v1
-# github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190808125512-07798873deee
+# github.com/aliyun/alibaba-cloud-sdk-go v1.61.976
 github.com/aliyun/alibaba-cloud-sdk-go/sdk
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials
@@ -54,7 +52,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
 # github.com/ampproject/amphtml v0.0.0-20180912232012-d3df64d07ae9
 github.com/ampproject/amphtml/validator
-# github.com/aws/aws-sdk-go v1.23.0
+# github.com/aws/aws-sdk-go v1.37.27
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -65,6 +63,7 @@ github.com/aws/aws-sdk-go/aws/credentials
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
 github.com/aws/aws-sdk-go/aws/credentials/processcreds
+github.com/aws/aws-sdk-go/aws/credentials/ssocreds
 github.com/aws/aws-sdk-go/aws/credentials/stscreds
 github.com/aws/aws-sdk-go/aws/csm
 github.com/aws/aws-sdk-go/aws/defaults
@@ -73,148 +72,206 @@ github.com/aws/aws-sdk-go/aws/endpoints
 github.com/aws/aws-sdk-go/aws/request
 github.com/aws/aws-sdk-go/aws/session
 github.com/aws/aws-sdk-go/aws/signer/v4
+github.com/aws/aws-sdk-go/internal/context
 github.com/aws/aws-sdk-go/internal/ini
 github.com/aws/aws-sdk-go/internal/sdkio
+github.com/aws/aws-sdk-go/internal/sdkmath
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/internal/sdkuri
 github.com/aws/aws-sdk-go/internal/shareddefaults
+github.com/aws/aws-sdk-go/internal/strings
+github.com/aws/aws-sdk-go/internal/sync/singleflight
 github.com/aws/aws-sdk-go/private/protocol
 github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
 github.com/aws/aws-sdk-go/private/protocol/jsonrpc
 github.com/aws/aws-sdk-go/private/protocol/query
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/rest
+github.com/aws/aws-sdk-go/private/protocol/restjson
 github.com/aws/aws-sdk-go/private/protocol/restxml
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/lightsail
 github.com/aws/aws-sdk-go/service/route53
+github.com/aws/aws-sdk-go/service/sso
+github.com/aws/aws-sdk-go/service/sso/ssoiface
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
-# github.com/cenkalti/backoff/v3 v3.0.0
-github.com/cenkalti/backoff/v3
-# github.com/census-instrumentation/opencensus-proto v0.2.1
-github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
-github.com/census-instrumentation/opencensus-proto/gen-go/agent/metrics/v1
-github.com/census-instrumentation/opencensus-proto/gen-go/agent/trace/v1
-github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1
-github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1
-github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
+# github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
+github.com/boombuler/barcode
+github.com/boombuler/barcode/qr
+github.com/boombuler/barcode/utils
+# github.com/cenkalti/backoff/v4 v4.1.0
+github.com/cenkalti/backoff/v4
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
-# github.com/cloudflare/cloudflare-go v0.10.2
+# github.com/cloudflare/cloudflare-go v0.14.0
 github.com/cloudflare/cloudflare-go
-# github.com/cpu/goacmedns v0.0.1
+# github.com/cpu/goacmedns v0.1.1
 github.com/cpu/goacmedns
 # github.com/davecgh/go-spew v1.1.1 => github.com/davecgh/go-spew v1.1.0
 github.com/davecgh/go-spew/spew
-# github.com/decker502/dnspod-go v0.2.0
-github.com/decker502/dnspod-go
+# github.com/deepmap/oapi-codegen v1.3.11
+github.com/deepmap/oapi-codegen/pkg/runtime
+github.com/deepmap/oapi-codegen/pkg/types
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
 # github.com/dimchansky/utfbom v1.1.0
 github.com/dimchansky/utfbom
-# github.com/dnsimple/dnsimple-go v0.30.0
+# github.com/dnsimple/dnsimple-go v0.63.0
 github.com/dnsimple/dnsimple-go/dnsimple
-# github.com/exoscale/egoscale v0.18.1
+# github.com/exoscale/egoscale v0.46.0
 github.com/exoscale/egoscale
+github.com/exoscale/egoscale/v2
+github.com/exoscale/egoscale/v2/api
+github.com/exoscale/egoscale/v2/internal/public-api
 # github.com/fatih/structs v1.1.0
 github.com/fatih/structs
-# github.com/go-acme/lego/v3 v3.2.0
-github.com/go-acme/lego/v3/acme
-github.com/go-acme/lego/v3/acme/api
-github.com/go-acme/lego/v3/acme/api/internal/nonces
-github.com/go-acme/lego/v3/acme/api/internal/secure
-github.com/go-acme/lego/v3/acme/api/internal/sender
-github.com/go-acme/lego/v3/certcrypto
-github.com/go-acme/lego/v3/certificate
-github.com/go-acme/lego/v3/challenge
-github.com/go-acme/lego/v3/challenge/dns01
-github.com/go-acme/lego/v3/challenge/http01
-github.com/go-acme/lego/v3/challenge/resolver
-github.com/go-acme/lego/v3/challenge/tlsalpn01
-github.com/go-acme/lego/v3/lego
-github.com/go-acme/lego/v3/log
-github.com/go-acme/lego/v3/platform/config/env
-github.com/go-acme/lego/v3/platform/tester
-github.com/go-acme/lego/v3/platform/wait
-github.com/go-acme/lego/v3/providers/dns
-github.com/go-acme/lego/v3/providers/dns/acmedns
-github.com/go-acme/lego/v3/providers/dns/alidns
-github.com/go-acme/lego/v3/providers/dns/auroradns
-github.com/go-acme/lego/v3/providers/dns/autodns
-github.com/go-acme/lego/v3/providers/dns/azure
-github.com/go-acme/lego/v3/providers/dns/bindman
-github.com/go-acme/lego/v3/providers/dns/bluecat
-github.com/go-acme/lego/v3/providers/dns/cloudflare
-github.com/go-acme/lego/v3/providers/dns/cloudns
-github.com/go-acme/lego/v3/providers/dns/cloudns/internal
-github.com/go-acme/lego/v3/providers/dns/cloudxns
-github.com/go-acme/lego/v3/providers/dns/cloudxns/internal
-github.com/go-acme/lego/v3/providers/dns/conoha
-github.com/go-acme/lego/v3/providers/dns/conoha/internal
-github.com/go-acme/lego/v3/providers/dns/designate
-github.com/go-acme/lego/v3/providers/dns/digitalocean
-github.com/go-acme/lego/v3/providers/dns/dnsimple
-github.com/go-acme/lego/v3/providers/dns/dnsmadeeasy
-github.com/go-acme/lego/v3/providers/dns/dnsmadeeasy/internal
-github.com/go-acme/lego/v3/providers/dns/dnspod
-github.com/go-acme/lego/v3/providers/dns/dode
-github.com/go-acme/lego/v3/providers/dns/dreamhost
-github.com/go-acme/lego/v3/providers/dns/duckdns
-github.com/go-acme/lego/v3/providers/dns/dyn
-github.com/go-acme/lego/v3/providers/dns/easydns
-github.com/go-acme/lego/v3/providers/dns/exec
-github.com/go-acme/lego/v3/providers/dns/exoscale
-github.com/go-acme/lego/v3/providers/dns/fastdns
-github.com/go-acme/lego/v3/providers/dns/gandi
-github.com/go-acme/lego/v3/providers/dns/gandiv5
-github.com/go-acme/lego/v3/providers/dns/gcloud
-github.com/go-acme/lego/v3/providers/dns/glesys
-github.com/go-acme/lego/v3/providers/dns/godaddy
-github.com/go-acme/lego/v3/providers/dns/hostingde
-github.com/go-acme/lego/v3/providers/dns/httpreq
-github.com/go-acme/lego/v3/providers/dns/iij
-github.com/go-acme/lego/v3/providers/dns/inwx
-github.com/go-acme/lego/v3/providers/dns/joker
-github.com/go-acme/lego/v3/providers/dns/lightsail
-github.com/go-acme/lego/v3/providers/dns/linode
-github.com/go-acme/lego/v3/providers/dns/linodev4
-github.com/go-acme/lego/v3/providers/dns/liquidweb
-github.com/go-acme/lego/v3/providers/dns/mydnsjp
-github.com/go-acme/lego/v3/providers/dns/namecheap
-github.com/go-acme/lego/v3/providers/dns/namedotcom
-github.com/go-acme/lego/v3/providers/dns/namesilo
-github.com/go-acme/lego/v3/providers/dns/netcup
-github.com/go-acme/lego/v3/providers/dns/netcup/internal
-github.com/go-acme/lego/v3/providers/dns/nifcloud
-github.com/go-acme/lego/v3/providers/dns/nifcloud/internal
-github.com/go-acme/lego/v3/providers/dns/ns1
-github.com/go-acme/lego/v3/providers/dns/oraclecloud
-github.com/go-acme/lego/v3/providers/dns/otc
-github.com/go-acme/lego/v3/providers/dns/ovh
-github.com/go-acme/lego/v3/providers/dns/pdns
-github.com/go-acme/lego/v3/providers/dns/rackspace
-github.com/go-acme/lego/v3/providers/dns/rfc2136
-github.com/go-acme/lego/v3/providers/dns/route53
-github.com/go-acme/lego/v3/providers/dns/sakuracloud
-github.com/go-acme/lego/v3/providers/dns/selectel
-github.com/go-acme/lego/v3/providers/dns/selectel/internal
-github.com/go-acme/lego/v3/providers/dns/stackpath
-github.com/go-acme/lego/v3/providers/dns/transip
-github.com/go-acme/lego/v3/providers/dns/vegadns
-github.com/go-acme/lego/v3/providers/dns/versio
-github.com/go-acme/lego/v3/providers/dns/vscale
-github.com/go-acme/lego/v3/providers/dns/vscale/internal
-github.com/go-acme/lego/v3/providers/dns/vultr
-github.com/go-acme/lego/v3/providers/dns/zoneee
-github.com/go-acme/lego/v3/providers/http/webroot
-github.com/go-acme/lego/v3/registration
+# github.com/go-acme/lego/v4 v4.4.0
+github.com/go-acme/lego/v4/acme
+github.com/go-acme/lego/v4/acme/api
+github.com/go-acme/lego/v4/acme/api/internal/nonces
+github.com/go-acme/lego/v4/acme/api/internal/secure
+github.com/go-acme/lego/v4/acme/api/internal/sender
+github.com/go-acme/lego/v4/certcrypto
+github.com/go-acme/lego/v4/certificate
+github.com/go-acme/lego/v4/challenge
+github.com/go-acme/lego/v4/challenge/dns01
+github.com/go-acme/lego/v4/challenge/http01
+github.com/go-acme/lego/v4/challenge/resolver
+github.com/go-acme/lego/v4/challenge/tlsalpn01
+github.com/go-acme/lego/v4/lego
+github.com/go-acme/lego/v4/log
+github.com/go-acme/lego/v4/platform/config/env
+github.com/go-acme/lego/v4/platform/tester
+github.com/go-acme/lego/v4/platform/wait
+github.com/go-acme/lego/v4/providers/dns
+github.com/go-acme/lego/v4/providers/dns/acmedns
+github.com/go-acme/lego/v4/providers/dns/alidns
+github.com/go-acme/lego/v4/providers/dns/arvancloud
+github.com/go-acme/lego/v4/providers/dns/arvancloud/internal
+github.com/go-acme/lego/v4/providers/dns/auroradns
+github.com/go-acme/lego/v4/providers/dns/autodns
+github.com/go-acme/lego/v4/providers/dns/azure
+github.com/go-acme/lego/v4/providers/dns/bindman
+github.com/go-acme/lego/v4/providers/dns/bluecat
+github.com/go-acme/lego/v4/providers/dns/checkdomain
+github.com/go-acme/lego/v4/providers/dns/clouddns
+github.com/go-acme/lego/v4/providers/dns/clouddns/internal
+github.com/go-acme/lego/v4/providers/dns/cloudflare
+github.com/go-acme/lego/v4/providers/dns/cloudns
+github.com/go-acme/lego/v4/providers/dns/cloudns/internal
+github.com/go-acme/lego/v4/providers/dns/cloudxns
+github.com/go-acme/lego/v4/providers/dns/cloudxns/internal
+github.com/go-acme/lego/v4/providers/dns/conoha
+github.com/go-acme/lego/v4/providers/dns/conoha/internal
+github.com/go-acme/lego/v4/providers/dns/constellix
+github.com/go-acme/lego/v4/providers/dns/constellix/internal
+github.com/go-acme/lego/v4/providers/dns/desec
+github.com/go-acme/lego/v4/providers/dns/designate
+github.com/go-acme/lego/v4/providers/dns/digitalocean
+github.com/go-acme/lego/v4/providers/dns/dnsimple
+github.com/go-acme/lego/v4/providers/dns/dnsmadeeasy
+github.com/go-acme/lego/v4/providers/dns/dnsmadeeasy/internal
+github.com/go-acme/lego/v4/providers/dns/dnspod
+github.com/go-acme/lego/v4/providers/dns/dode
+github.com/go-acme/lego/v4/providers/dns/domeneshop
+github.com/go-acme/lego/v4/providers/dns/domeneshop/internal
+github.com/go-acme/lego/v4/providers/dns/dreamhost
+github.com/go-acme/lego/v4/providers/dns/duckdns
+github.com/go-acme/lego/v4/providers/dns/dyn
+github.com/go-acme/lego/v4/providers/dns/dynu
+github.com/go-acme/lego/v4/providers/dns/dynu/internal
+github.com/go-acme/lego/v4/providers/dns/easydns
+github.com/go-acme/lego/v4/providers/dns/edgedns
+github.com/go-acme/lego/v4/providers/dns/exec
+github.com/go-acme/lego/v4/providers/dns/exoscale
+github.com/go-acme/lego/v4/providers/dns/gandi
+github.com/go-acme/lego/v4/providers/dns/gandiv5
+github.com/go-acme/lego/v4/providers/dns/gcloud
+github.com/go-acme/lego/v4/providers/dns/glesys
+github.com/go-acme/lego/v4/providers/dns/godaddy
+github.com/go-acme/lego/v4/providers/dns/hetzner
+github.com/go-acme/lego/v4/providers/dns/hetzner/internal
+github.com/go-acme/lego/v4/providers/dns/hostingde
+github.com/go-acme/lego/v4/providers/dns/httpreq
+github.com/go-acme/lego/v4/providers/dns/hurricane
+github.com/go-acme/lego/v4/providers/dns/hurricane/internal
+github.com/go-acme/lego/v4/providers/dns/hyperone
+github.com/go-acme/lego/v4/providers/dns/hyperone/internal
+github.com/go-acme/lego/v4/providers/dns/iij
+github.com/go-acme/lego/v4/providers/dns/infoblox
+github.com/go-acme/lego/v4/providers/dns/infomaniak
+github.com/go-acme/lego/v4/providers/dns/infomaniak/internal
+github.com/go-acme/lego/v4/providers/dns/internal/rimuhosting
+github.com/go-acme/lego/v4/providers/dns/internal/selectel
+github.com/go-acme/lego/v4/providers/dns/inwx
+github.com/go-acme/lego/v4/providers/dns/ionos
+github.com/go-acme/lego/v4/providers/dns/ionos/internal
+github.com/go-acme/lego/v4/providers/dns/joker
+github.com/go-acme/lego/v4/providers/dns/joker/internal/dmapi
+github.com/go-acme/lego/v4/providers/dns/joker/internal/svc
+github.com/go-acme/lego/v4/providers/dns/lightsail
+github.com/go-acme/lego/v4/providers/dns/linode
+github.com/go-acme/lego/v4/providers/dns/liquidweb
+github.com/go-acme/lego/v4/providers/dns/loopia
+github.com/go-acme/lego/v4/providers/dns/loopia/internal
+github.com/go-acme/lego/v4/providers/dns/luadns
+github.com/go-acme/lego/v4/providers/dns/luadns/internal
+github.com/go-acme/lego/v4/providers/dns/mydnsjp
+github.com/go-acme/lego/v4/providers/dns/mythicbeasts
+github.com/go-acme/lego/v4/providers/dns/namecheap
+github.com/go-acme/lego/v4/providers/dns/namedotcom
+github.com/go-acme/lego/v4/providers/dns/namesilo
+github.com/go-acme/lego/v4/providers/dns/netcup
+github.com/go-acme/lego/v4/providers/dns/netcup/internal
+github.com/go-acme/lego/v4/providers/dns/netlify
+github.com/go-acme/lego/v4/providers/dns/netlify/internal
+github.com/go-acme/lego/v4/providers/dns/nifcloud
+github.com/go-acme/lego/v4/providers/dns/nifcloud/internal
+github.com/go-acme/lego/v4/providers/dns/njalla
+github.com/go-acme/lego/v4/providers/dns/njalla/internal
+github.com/go-acme/lego/v4/providers/dns/ns1
+github.com/go-acme/lego/v4/providers/dns/oraclecloud
+github.com/go-acme/lego/v4/providers/dns/otc
+github.com/go-acme/lego/v4/providers/dns/ovh
+github.com/go-acme/lego/v4/providers/dns/pdns
+github.com/go-acme/lego/v4/providers/dns/porkbun
+github.com/go-acme/lego/v4/providers/dns/rackspace
+github.com/go-acme/lego/v4/providers/dns/regru
+github.com/go-acme/lego/v4/providers/dns/regru/internal
+github.com/go-acme/lego/v4/providers/dns/rfc2136
+github.com/go-acme/lego/v4/providers/dns/rimuhosting
+github.com/go-acme/lego/v4/providers/dns/route53
+github.com/go-acme/lego/v4/providers/dns/sakuracloud
+github.com/go-acme/lego/v4/providers/dns/scaleway
+github.com/go-acme/lego/v4/providers/dns/selectel
+github.com/go-acme/lego/v4/providers/dns/servercow
+github.com/go-acme/lego/v4/providers/dns/servercow/internal
+github.com/go-acme/lego/v4/providers/dns/simply
+github.com/go-acme/lego/v4/providers/dns/simply/internal
+github.com/go-acme/lego/v4/providers/dns/sonic
+github.com/go-acme/lego/v4/providers/dns/sonic/internal
+github.com/go-acme/lego/v4/providers/dns/stackpath
+github.com/go-acme/lego/v4/providers/dns/transip
+github.com/go-acme/lego/v4/providers/dns/vegadns
+github.com/go-acme/lego/v4/providers/dns/versio
+github.com/go-acme/lego/v4/providers/dns/vinyldns
+github.com/go-acme/lego/v4/providers/dns/vscale
+github.com/go-acme/lego/v4/providers/dns/vultr
+github.com/go-acme/lego/v4/providers/dns/wedos
+github.com/go-acme/lego/v4/providers/dns/wedos/internal
+github.com/go-acme/lego/v4/providers/dns/yandex
+github.com/go-acme/lego/v4/providers/dns/yandex/internal
+github.com/go-acme/lego/v4/providers/dns/zoneee
+github.com/go-acme/lego/v4/providers/dns/zonomi
+github.com/go-acme/lego/v4/providers/http/webroot
+github.com/go-acme/lego/v4/registration
 # github.com/go-errors/errors v1.0.1
 github.com/go-errors/errors
-# github.com/go-ini/ini v1.44.0
-github.com/go-ini/ini
+# github.com/go-resty/resty/v2 v2.1.1-0.20191201195748-d7b97669fe48
+github.com/go-resty/resty/v2
 # github.com/gofrs/flock v0.7.1
 github.com/gofrs/flock
 # github.com/gofrs/uuid v3.2.0+incompatible
@@ -222,17 +279,11 @@ github.com/gofrs/uuid
 # github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 github.com/golang/groupcache/lru
 # github.com/golang/protobuf v1.4.3
-github.com/golang/protobuf/jsonpb
 github.com/golang/protobuf/proto
-github.com/golang/protobuf/protoc-gen-go/descriptor
-github.com/golang/protobuf/protoc-gen-go/generator
-github.com/golang/protobuf/protoc-gen-go/generator/internal/remap
-github.com/golang/protobuf/protoc-gen-go/plugin
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-github.com/golang/protobuf/ptypes/wrappers
 # github.com/google/go-cmp v0.5.5
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/cmpopts
@@ -246,28 +297,41 @@ github.com/google/go-querystring/query
 github.com/google/uuid
 # github.com/googleapis/gax-go/v2 v2.0.5
 github.com/googleapis/gax-go/v2
-# github.com/gophercloud/gophercloud v0.3.0
+# github.com/gophercloud/gophercloud v0.16.0
 github.com/gophercloud/gophercloud
 github.com/gophercloud/gophercloud/openstack
 github.com/gophercloud/gophercloud/openstack/dns/v2/recordsets
 github.com/gophercloud/gophercloud/openstack/dns/v2/zones
 github.com/gophercloud/gophercloud/openstack/identity/v2/tenants
 github.com/gophercloud/gophercloud/openstack/identity/v2/tokens
+github.com/gophercloud/gophercloud/openstack/identity/v3/extensions/ec2tokens
+github.com/gophercloud/gophercloud/openstack/identity/v3/extensions/oauth1
 github.com/gophercloud/gophercloud/openstack/identity/v3/tokens
 github.com/gophercloud/gophercloud/openstack/utils
 github.com/gophercloud/gophercloud/pagination
-# github.com/grpc-ecosystem/grpc-gateway v1.8.5
-github.com/grpc-ecosystem/grpc-gateway/internal
-github.com/grpc-ecosystem/grpc-gateway/runtime
-github.com/grpc-ecosystem/grpc-gateway/utilities
+# github.com/gophercloud/utils v0.0.0-20210216074907-f6de111f2eae
+github.com/gophercloud/utils/env
+github.com/gophercloud/utils/gnocchi
+github.com/gophercloud/utils/internal
+github.com/gophercloud/utils/openstack/clientconfig
+# github.com/hashicorp/go-cleanhttp v0.5.1
+github.com/hashicorp/go-cleanhttp
+# github.com/hashicorp/go-retryablehttp v0.6.6
+github.com/hashicorp/go-retryablehttp
 # github.com/iij/doapi v0.0.0-20190504054126-0bbf12d6d7df
 github.com/iij/doapi
 github.com/iij/doapi/protocol
-# github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
+# github.com/infobloxopen/infoblox-go-client v1.1.1
+github.com/infobloxopen/infoblox-go-client
+# github.com/jarcoal/httpmock v1.0.6
+github.com/jarcoal/httpmock
+# github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
 # github.com/json-iterator/go v1.1.11
 github.com/json-iterator/go
-# github.com/kolo/xmlrpc v0.0.0-20190717152603-07c4ee3fd181
+# github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213
+github.com/k0kubun/go-ansi
+# github.com/kolo/xmlrpc v0.0.0-20200310150728-e0350524596b
 github.com/kolo/xmlrpc
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
 github.com/konsorten/go-windows-terminal-sequences
@@ -278,22 +342,33 @@ github.com/labbsr0x/bindman-dns-webhook/src/client
 github.com/labbsr0x/bindman-dns-webhook/src/types
 # github.com/labbsr0x/goh v1.0.1
 github.com/labbsr0x/goh/gohclient
-# github.com/linode/linodego v0.10.0
+# github.com/linode/linodego v0.25.3
 github.com/linode/linodego
-# github.com/liquidweb/liquidweb-go v1.6.0
+github.com/linode/linodego/internal/duration
+github.com/linode/linodego/internal/parseabletime
+# github.com/liquidweb/go-lwApi v0.0.5
+github.com/liquidweb/go-lwApi
+# github.com/liquidweb/liquidweb-cli v0.6.9
+github.com/liquidweb/liquidweb-cli/types/api
+github.com/liquidweb/liquidweb-cli/utils
+github.com/liquidweb/liquidweb-cli/validate
+# github.com/liquidweb/liquidweb-go v1.6.3
 github.com/liquidweb/liquidweb-go
+github.com/liquidweb/liquidweb-go/asset
 github.com/liquidweb/liquidweb-go/client
 github.com/liquidweb/liquidweb-go/network
 github.com/liquidweb/liquidweb-go/storage
 github.com/liquidweb/liquidweb-go/storm
 github.com/liquidweb/liquidweb-go/types
+# github.com/mattn/go-isatty v0.0.12
+github.com/mattn/go-isatty
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
-# github.com/miekg/dns v1.1.15
+# github.com/miekg/dns v1.1.40
 github.com/miekg/dns
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
-# github.com/mitchellh/mapstructure v1.1.2
+# github.com/mitchellh/mapstructure v1.3.3
 github.com/mitchellh/mapstructure
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
@@ -301,18 +376,27 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/namedotcom/go v0.0.0-20180403034216-08470befbe04
 github.com/namedotcom/go/namecom
-# github.com/nrdcg/auroradns v1.0.0
+# github.com/nrdcg/auroradns v1.0.1
 github.com/nrdcg/auroradns
-# github.com/nrdcg/goinwx v0.6.1
+# github.com/nrdcg/desec v0.5.0
+github.com/nrdcg/desec
+github.com/nrdcg/desec/internal
+# github.com/nrdcg/dnspod-go v0.4.0
+github.com/nrdcg/dnspod-go
+# github.com/nrdcg/goinwx v0.8.1
 github.com/nrdcg/goinwx
 # github.com/nrdcg/namesilo v0.2.1
 github.com/nrdcg/namesilo
-# github.com/oracle/oci-go-sdk v7.0.0+incompatible
+# github.com/nrdcg/porkbun v0.1.1
+github.com/nrdcg/porkbun
+# github.com/oracle/oci-go-sdk v24.3.0+incompatible
 github.com/oracle/oci-go-sdk/common
 github.com/oracle/oci-go-sdk/dns
-# github.com/ovh/go-ovh v0.0.0-20181109152953-ba5adb4cf014
+# github.com/ovh/go-ovh v1.1.0
 github.com/ovh/go-ovh/ovh
-# github.com/pelletier/go-toml v1.1.0
+# github.com/patrickmn/go-cache v2.1.0+incompatible
+github.com/patrickmn/go-cache
+# github.com/pelletier/go-toml v1.8.1
 github.com/pelletier/go-toml
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
@@ -321,6 +405,10 @@ github.com/pmezard/go-difflib/difflib
 # github.com/pquerna/cachecontrol v0.0.0-20180306154005-525d0eb5f91d
 github.com/pquerna/cachecontrol
 github.com/pquerna/cachecontrol/cacheobject
+# github.com/pquerna/otp v1.3.0
+github.com/pquerna/otp
+github.com/pquerna/otp/hotp
+github.com/pquerna/otp/totp
 # github.com/prometheus/client_golang v1.11.0
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
@@ -339,42 +427,56 @@ github.com/prometheus/common/version
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/sacloud/libsacloud v1.26.1
+# github.com/sacloud/libsacloud v1.36.2
 github.com/sacloud/libsacloud
 github.com/sacloud/libsacloud/api
 github.com/sacloud/libsacloud/sacloud
 github.com/sacloud/libsacloud/sacloud/ostype
 github.com/sacloud/libsacloud/utils/mutexkv
+# github.com/scaleway/scaleway-sdk-go v1.0.0-beta.7.0.20210127161313-bd30bebeac4f
+github.com/scaleway/scaleway-sdk-go/api/domain/v2beta1
+github.com/scaleway/scaleway-sdk-go/internal/auth
+github.com/scaleway/scaleway-sdk-go/internal/errors
+github.com/scaleway/scaleway-sdk-go/internal/marshaler
+github.com/scaleway/scaleway-sdk-go/internal/parameter
+github.com/scaleway/scaleway-sdk-go/logger
+github.com/scaleway/scaleway-sdk-go/namegenerator
+github.com/scaleway/scaleway-sdk-go/scw
+github.com/scaleway/scaleway-sdk-go/validation
 # github.com/sirupsen/logrus v1.6.0
 github.com/sirupsen/logrus
-# github.com/stretchr/objx v0.1.1
+# github.com/smartystreets/go-aws-auth v0.0.0-20180515143844-0c1422d1fdb9
+github.com/smartystreets/go-aws-auth
+# github.com/spf13/cast v1.3.1
+github.com/spf13/cast
+# github.com/stretchr/objx v0.3.0
 github.com/stretchr/objx
-# github.com/stretchr/testify v1.4.0 => github.com/stretchr/testify v1.2.1
+# github.com/stretchr/testify v1.7.0 => github.com/stretchr/testify v1.2.1
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
-# github.com/timewasted/linode v0.0.0-20160829202747-37e84520dcf7
-github.com/timewasted/linode
-github.com/timewasted/linode/dns
-# github.com/transip/gotransip v0.0.0-20190812104329-6d8d9179b66f
-github.com/transip/gotransip
-github.com/transip/gotransip/domain
-github.com/transip/gotransip/util
+# github.com/transip/gotransip/v6 v6.2.0
+github.com/transip/gotransip/v6
+github.com/transip/gotransip/v6/authenticator
+github.com/transip/gotransip/v6/domain
+github.com/transip/gotransip/v6/jwt
+github.com/transip/gotransip/v6/repository
+github.com/transip/gotransip/v6/rest
 # github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 github.com/twifkak/crypto/ocsp
-# github.com/vultr/govultr v0.1.4
-github.com/vultr/govultr
+# github.com/vinyldns/go-vinyldns v0.0.0-20200917153823-148a5f6b8f14
+github.com/vinyldns/go-vinyldns/vinyldns
+# github.com/vultr/govultr/v2 v2.0.0
+github.com/vultr/govultr/v2
 # go.opencensus.io v0.22.4
 go.opencensus.io
 go.opencensus.io/internal
 go.opencensus.io/internal/tagencoding
 go.opencensus.io/metric/metricdata
 go.opencensus.io/metric/metricproducer
-go.opencensus.io/plugin/ocgrpc
 go.opencensus.io/plugin/ochttp
 go.opencensus.io/plugin/ochttp/propagation/b3
-go.opencensus.io/plugin/ochttp/propagation/tracecontext
 go.opencensus.io/resource
 go.opencensus.io/stats
 go.opencensus.io/stats/internal
@@ -387,7 +489,7 @@ go.opencensus.io/trace/tracestate
 # go.uber.org/ratelimit v0.0.0-20180316092928-c15da0234277
 go.uber.org/ratelimit
 go.uber.org/ratelimit/internal/clock
-# golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 => golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac
+# golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad => golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/ocsp
@@ -420,18 +522,20 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
-golang.org/x/sync/semaphore
 # golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.3 => golang.org/x/text v0.3.0
+# golang.org/x/text v0.3.4 => golang.org/x/text v0.3.0
+golang.org/x/text/encoding
+golang.org/x/text/encoding/charmap
+golang.org/x/text/encoding/internal
+golang.org/x/text/encoding/internal/identifier
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/time v0.0.0-20191024005414-555d28b269f0
+# golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 golang.org/x/time/rate
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 golang.org/x/xerrors
@@ -445,7 +549,6 @@ google.golang.org/api/internal/gensupport
 google.golang.org/api/internal/third_party/uritemplates
 google.golang.org/api/option
 google.golang.org/api/option/internaloption
-google.golang.org/api/support/bundler
 google.golang.org/api/transport/cert
 google.golang.org/api/transport/http
 google.golang.org/api/transport/http/internal/propagation
@@ -461,9 +564,7 @@ google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
 # google.golang.org/genproto v0.0.0-20200825200019-8632dd797987
-google.golang.org/genproto/googleapis/api/httpbody
 google.golang.org/genproto/googleapis/rpc/status
-google.golang.org/genproto/protobuf/field_mask
 # google.golang.org/grpc v1.31.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
@@ -507,14 +608,12 @@ google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
 # google.golang.org/protobuf v1.26.0-rc.1
-google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
 google.golang.org/protobuf/internal/descopts
 google.golang.org/protobuf/internal/detrand
 google.golang.org/protobuf/internal/encoding/defval
-google.golang.org/protobuf/internal/encoding/json
 google.golang.org/protobuf/internal/encoding/messageset
 google.golang.org/protobuf/internal/encoding/tag
 google.golang.org/protobuf/internal/encoding/text
@@ -534,25 +633,24 @@ google.golang.org/protobuf/reflect/protoreflect
 google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
-google.golang.org/protobuf/types/descriptorpb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
-google.golang.org/protobuf/types/known/fieldmaskpb
 google.golang.org/protobuf/types/known/timestamppb
-google.golang.org/protobuf/types/known/wrapperspb
-google.golang.org/protobuf/types/pluginpb
-# gopkg.in/ini.v1 v1.44.0
+# gopkg.in/ini.v1 v1.62.0
 gopkg.in/ini.v1
-# gopkg.in/ns1/ns1-go.v2 v2.0.0-20190730140822-b51389932cbc
+# gopkg.in/ns1/ns1-go.v2 v2.4.4
 gopkg.in/ns1/ns1-go.v2/rest
 gopkg.in/ns1/ns1-go.v2/rest/model/account
 gopkg.in/ns1/ns1-go.v2/rest/model/data
+gopkg.in/ns1/ns1-go.v2/rest/model/dhcp
 gopkg.in/ns1/ns1-go.v2/rest/model/dns
 gopkg.in/ns1/ns1-go.v2/rest/model/filter
+gopkg.in/ns1/ns1-go.v2/rest/model/ipam
 gopkg.in/ns1/ns1-go.v2/rest/model/monitor
-# gopkg.in/resty.v1 v1.12.0
-gopkg.in/resty.v1
-# gopkg.in/square/go-jose.v2 v2.3.1
+# gopkg.in/square/go-jose.v2 v2.5.1
 gopkg.in/square/go-jose.v2
 gopkg.in/square/go-jose.v2/cipher
 gopkg.in/square/go-jose.v2/json
+gopkg.in/square/go-jose.v2/jwt
+# gopkg.in/yaml.v2 v2.4.0
+gopkg.in/yaml.v2

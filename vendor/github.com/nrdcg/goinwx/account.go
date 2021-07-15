@@ -1,5 +1,7 @@
 package goinwx
 
+import "github.com/mitchellh/mapstructure"
+
 const (
 	methodAccountLogin  = "account.login"
 	methodAccountLogout = "account.logout"
@@ -11,14 +13,24 @@ const (
 type AccountService service
 
 // Login Account login.
-func (s *AccountService) Login() error {
+func (s *AccountService) Login() (*LoginResponse, error) {
 	req := s.client.NewRequest(methodAccountLogin, map[string]interface{}{
 		"user": s.client.username,
 		"pass": s.client.password,
 	})
 
-	_, err := s.client.Do(*req)
-	return err
+	resp, err := s.client.Do(*req)
+	if err != nil {
+		return nil, err
+	}
+
+	var result LoginResponse
+	err = mapstructure.Decode(*resp, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 // Logout Account logout.
@@ -45,4 +57,13 @@ func (s *AccountService) Unlock(tan string) error {
 
 	_, err := s.client.Do(*req)
 	return err
+}
+
+// LoginResponse API model.
+type LoginResponse struct {
+	CustomerID int64  `mapstructure:"customerId"`
+	AccountID  int64  `mapstructure:"accountId"`
+	TFA        string `mapstructure:"tfa"`
+	BuildDate  string `mapstructure:"builddate"`
+	Version    string `mapstructure:"version"`
 }

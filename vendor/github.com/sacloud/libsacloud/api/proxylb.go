@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -99,21 +113,21 @@ func (api *ProxyLBAPI) Create(value *sacloud.ProxyLB) (*sacloud.ProxyLB, error) 
 }
 
 // Read 読み取り
-func (api *ProxyLBAPI) Read(id int64) (*sacloud.ProxyLB, error) {
+func (api *ProxyLBAPI) Read(id sacloud.ID) (*sacloud.ProxyLB, error) {
 	return api.request(func(res *proxyLBResponse) error {
 		return api.read(id, nil, res)
 	})
 }
 
 // Update 更新
-func (api *ProxyLBAPI) Update(id int64, value *sacloud.ProxyLB) (*sacloud.ProxyLB, error) {
+func (api *ProxyLBAPI) Update(id sacloud.ID, value *sacloud.ProxyLB) (*sacloud.ProxyLB, error) {
 	return api.request(func(res *proxyLBResponse) error {
 		return api.update(id, api.createRequest(value), res)
 	})
 }
 
 // UpdateSetting 設定更新
-func (api *ProxyLBAPI) UpdateSetting(id int64, value *sacloud.ProxyLB) (*sacloud.ProxyLB, error) {
+func (api *ProxyLBAPI) UpdateSetting(id sacloud.ID, value *sacloud.ProxyLB) (*sacloud.ProxyLB, error) {
 	req := &sacloud.ProxyLB{
 		// Settings
 		Settings: value.Settings,
@@ -124,14 +138,14 @@ func (api *ProxyLBAPI) UpdateSetting(id int64, value *sacloud.ProxyLB) (*sacloud
 }
 
 // Delete 削除
-func (api *ProxyLBAPI) Delete(id int64) (*sacloud.ProxyLB, error) {
+func (api *ProxyLBAPI) Delete(id sacloud.ID) (*sacloud.ProxyLB, error) {
 	return api.request(func(res *proxyLBResponse) error {
 		return api.delete(id, nil, res)
 	})
 }
 
 // ChangePlan プラン変更
-func (api *ProxyLBAPI) ChangePlan(id int64, newPlan sacloud.ProxyLBPlan) (*sacloud.ProxyLB, error) {
+func (api *ProxyLBAPI) ChangePlan(id sacloud.ID, newPlan sacloud.ProxyLBPlan) (*sacloud.ProxyLB, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/plan", api.getResourceURL(), id)
@@ -155,7 +169,7 @@ type proxyLBCertificateResponse struct {
 }
 
 // GetCertificates 証明書取得
-func (api *ProxyLBAPI) GetCertificates(id int64) (*sacloud.ProxyLBCertificates, error) {
+func (api *ProxyLBAPI) GetCertificates(id sacloud.ID) (*sacloud.ProxyLBCertificates, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/proxylb/sslcertificate", api.getResourceURL(), id)
@@ -172,7 +186,7 @@ func (api *ProxyLBAPI) GetCertificates(id int64) (*sacloud.ProxyLBCertificates, 
 }
 
 // SetCertificates 証明書設定
-func (api *ProxyLBAPI) SetCertificates(id int64, certs *sacloud.ProxyLBCertificates) (bool, error) {
+func (api *ProxyLBAPI) SetCertificates(id sacloud.ID, certs *sacloud.ProxyLBCertificates) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/proxylb/sslcertificate", api.getResourceURL(), id)
@@ -188,7 +202,7 @@ func (api *ProxyLBAPI) SetCertificates(id int64, certs *sacloud.ProxyLBCertifica
 }
 
 // DeleteCertificates 証明書削除
-func (api *ProxyLBAPI) DeleteCertificates(id int64) (bool, error) {
+func (api *ProxyLBAPI) DeleteCertificates(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/proxylb/sslcertificate", api.getResourceURL(), id)
@@ -197,7 +211,7 @@ func (api *ProxyLBAPI) DeleteCertificates(id int64) (bool, error) {
 }
 
 // RenewLetsEncryptCert 証明書更新
-func (api *ProxyLBAPI) RenewLetsEncryptCert(id int64) (bool, error) {
+func (api *ProxyLBAPI) RenewLetsEncryptCert(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/proxylb/letsencryptrenew", api.getResourceURL(), id)
@@ -211,7 +225,7 @@ type proxyLBHealthResponse struct {
 }
 
 // Health ヘルスチェックステータス取得
-func (api *ProxyLBAPI) Health(id int64) (*sacloud.ProxyLBStatus, error) {
+func (api *ProxyLBAPI) Health(id sacloud.ID) (*sacloud.ProxyLBStatus, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/health", api.getResourceURL(), id)
@@ -228,6 +242,6 @@ func (api *ProxyLBAPI) Health(id int64) (*sacloud.ProxyLBStatus, error) {
 }
 
 // Monitor アクティビティーモニター取得
-func (api *ProxyLBAPI) Monitor(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *ProxyLBAPI) Monitor(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "activity/proxylb", 0, body)
 }

@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -52,7 +66,7 @@ func (api *WebAccelAPI) Read(id string) (*sacloud.WebAccelSite, error) {
 }
 
 // ReadCertificate 証明書 参照
-func (api *WebAccelAPI) ReadCertificate(id string) (*sacloud.WebAccelCertResponseBody, error) {
+func (api *WebAccelAPI) ReadCertificate(id sacloud.ID) (*sacloud.WebAccelCertResponseBody, error) {
 	uri := fmt.Sprintf("%s/site/%s/certificate", api.getResourceURL(), id)
 
 	data, err := api.client.newRequest("GET", uri, nil)
@@ -67,8 +81,33 @@ func (api *WebAccelAPI) ReadCertificate(id string) (*sacloud.WebAccelCertRespons
 	return res.Certificate, nil
 }
 
+// CreateCertificate 証明書 更新
+func (api *WebAccelAPI) CreateCertificate(id sacloud.ID, request *sacloud.WebAccelCertRequest) (*sacloud.WebAccelCertResponse, error) {
+	uri := fmt.Sprintf("%s/site/%s/certificate", api.getResourceURL(), id)
+
+	if request.CertificateChain != "" {
+		request.CertificateChain = strings.TrimRight(request.CertificateChain, "\n")
+	}
+	if request.Key != "" {
+		request.Key = strings.TrimRight(request.Key, "\n")
+	}
+
+	data, err := api.client.newRequest("POST", uri, map[string]interface{}{
+		"Certificate": request,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var res sacloud.WebAccelCertResponse
+	if err := json.Unmarshal(data, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
 // UpdateCertificate 証明書 更新
-func (api *WebAccelAPI) UpdateCertificate(id string, request *sacloud.WebAccelCertRequest) (*sacloud.WebAccelCertResponse, error) {
+func (api *WebAccelAPI) UpdateCertificate(id sacloud.ID, request *sacloud.WebAccelCertRequest) (*sacloud.WebAccelCertResponse, error) {
 	uri := fmt.Sprintf("%s/site/%s/certificate", api.getResourceURL(), id)
 
 	if request.CertificateChain != "" {
@@ -81,6 +120,22 @@ func (api *WebAccelAPI) UpdateCertificate(id string, request *sacloud.WebAccelCe
 	data, err := api.client.newRequest("PUT", uri, map[string]interface{}{
 		"Certificate": request,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	var res sacloud.WebAccelCertResponse
+	if err := json.Unmarshal(data, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+// DeleteCertificate 証明書 削除
+func (api *WebAccelAPI) DeleteCertificate(id string) (*sacloud.WebAccelCertResponse, error) {
+	uri := fmt.Sprintf("%s/site/%s/certificate", api.getResourceURL(), id)
+
+	data, err := api.client.newRequest("DELETE", uri, nil)
 	if err != nil {
 		return nil, err
 	}

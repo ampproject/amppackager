@@ -10,6 +10,9 @@ type ServerBackend interface {
 	Update(ServerParams) (*Server, error)
 	Destroy(string) (*ServerDeletion, error)
 	Status(string) (*ServerStatus, error)
+	Stop(string, ...bool) (*ServerStop, error)
+	Reboot(string) (*ServerReboot, error)
+	Start(string) (*ServerStart, error)
 }
 
 // ServerClient is the API client for storm servers.
@@ -20,7 +23,7 @@ type ServerClient struct {
 // List will fetch a list of storm servers.
 func (c *ServerClient) List(params ServerListParams) (*ServerList, error) {
 	var result ServerList
-	err := c.Backend.Call("v1/Storm/Server/list", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storm/Server/list", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +34,7 @@ func (c *ServerClient) List(params ServerListParams) (*ServerList, error) {
 // Create a new storm server.
 func (c *ServerClient) Create(params ServerParams) (*Server, error) {
 	var result Server
-	err := c.Backend.Call("v1/Storm/Server/create", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storm/Server/create", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +47,11 @@ func (c *ServerClient) Details(id string) (*Server, error) {
 	var result Server
 	params := ServerParams{UniqID: id}
 
-	err := c.Backend.Call("v1/Storm/Server/details", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storm/Server/details", params, &result)
 	if err != nil {
 		return nil, err
 	}
+
 	return &result, nil
 }
 
@@ -55,7 +59,7 @@ func (c *ServerClient) Details(id string) (*Server, error) {
 func (c *ServerClient) Update(params ServerParams) (*Server, error) {
 	var result Server
 
-	err := c.Backend.Call("v1/Storm/Server/update", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storm/Server/update", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +72,7 @@ func (c *ServerClient) Destroy(id string) (*ServerDeletion, error) {
 	var result ServerDeletion
 	params := ServerParams{UniqID: id}
 
-	err := c.Backend.Call("v1/Storm/Server/destroy", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storm/Server/destroy", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +85,55 @@ func (c *ServerClient) Status(id string) (*ServerStatus, error) {
 	var result ServerStatus
 	params := ServerParams{UniqID: id}
 
-	err := c.Backend.Call("v1/Storm/Server/status", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Storm/Server/status", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// Stop a storm server.
+func (c *ServerClient) Stop(uniqId string, force ...bool) (*ServerStop, error) {
+	var result ServerStop
+	args := map[string]interface{}{
+		"uniq_id": uniqId,
+	}
+
+	if len(force) > 0 {
+		args["force"] = force[0]
+	}
+	err := c.Backend.CallIntoInterface("bleed/server/shutdown", args, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// Reboot a storm server.
+func (c *ServerClient) Reboot(uniqId string) (*ServerReboot, error) {
+	var result ServerReboot
+	args := map[string]interface{}{
+		"uniq_id": uniqId,
+	}
+
+	err := c.Backend.CallIntoInterface("bleed/storm/server/reboot", args, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// Start a Storm Server.
+func (c *ServerClient) Start(uniqId string) (*ServerStart, error) {
+	var result ServerStart
+	args := map[string]interface{}{
+		"uniq_id": uniqId,
+	}
+
+	err := c.Backend.CallIntoInterface("bleed/server/start", args, &result)
 	if err != nil {
 		return nil, err
 	}

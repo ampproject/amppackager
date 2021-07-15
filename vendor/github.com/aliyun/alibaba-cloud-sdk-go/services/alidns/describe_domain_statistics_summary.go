@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeDomainStatisticsSummary invokes the alidns.DescribeDomainStatisticsSummary API synchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainstatisticssummary.html
 func (client *Client) DescribeDomainStatisticsSummary(request *DescribeDomainStatisticsSummaryRequest) (response *DescribeDomainStatisticsSummaryResponse, err error) {
 	response = CreateDescribeDomainStatisticsSummaryResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeDomainStatisticsSummary(request *DescribeDomainSta
 }
 
 // DescribeDomainStatisticsSummaryWithChan invokes the alidns.DescribeDomainStatisticsSummary API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainstatisticssummary.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainStatisticsSummaryWithChan(request *DescribeDomainStatisticsSummaryRequest) (<-chan *DescribeDomainStatisticsSummaryResponse, <-chan error) {
 	responseChan := make(chan *DescribeDomainStatisticsSummaryResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeDomainStatisticsSummaryWithChan(request *DescribeD
 }
 
 // DescribeDomainStatisticsSummaryWithCallback invokes the alidns.DescribeDomainStatisticsSummary API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainstatisticssummary.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainStatisticsSummaryWithCallback(request *DescribeDomainStatisticsSummaryRequest, callback func(response *DescribeDomainStatisticsSummaryResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,17 +71,17 @@ func (client *Client) DescribeDomainStatisticsSummaryWithCallback(request *Descr
 // DescribeDomainStatisticsSummaryRequest is the request struct for api DescribeDomainStatisticsSummary
 type DescribeDomainStatisticsSummaryRequest struct {
 	*requests.RpcRequest
+	Threshold    requests.Integer `position:"Query" name:"Threshold"`
+	StartDate    string           `position:"Query" name:"StartDate"`
+	PageNumber   requests.Integer `position:"Query" name:"PageNumber"`
+	PageSize     requests.Integer `position:"Query" name:"PageSize"`
+	Lang         string           `position:"Query" name:"Lang"`
+	Keyword      string           `position:"Query" name:"Keyword"`
+	Direction    string           `position:"Query" name:"Direction"`
+	OrderBy      string           `position:"Query" name:"OrderBy"`
 	EndDate      string           `position:"Query" name:"EndDate"`
 	UserClientIp string           `position:"Query" name:"UserClientIp"`
-	PageSize     requests.Integer `position:"Query" name:"PageSize"`
-	OrderBy      string           `position:"Query" name:"OrderBy"`
 	SearchMode   string           `position:"Query" name:"SearchMode"`
-	Threshold    requests.Integer `position:"Query" name:"Threshold"`
-	Lang         string           `position:"Query" name:"Lang"`
-	StartDate    string           `position:"Query" name:"StartDate"`
-	Keyword      string           `position:"Query" name:"Keyword"`
-	PageNumber   requests.Integer `position:"Query" name:"PageNumber"`
-	Direction    string           `position:"Query" name:"Direction"`
 }
 
 // DescribeDomainStatisticsSummaryResponse is the response struct for api DescribeDomainStatisticsSummary
@@ -105,7 +100,8 @@ func CreateDescribeDomainStatisticsSummaryRequest() (request *DescribeDomainStat
 	request = &DescribeDomainStatisticsSummaryRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainStatisticsSummary", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainStatisticsSummary", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

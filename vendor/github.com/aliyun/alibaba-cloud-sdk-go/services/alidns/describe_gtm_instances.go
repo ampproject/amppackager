@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeGtmInstances invokes the alidns.DescribeGtmInstances API synchronously
-// api document: https://help.aliyun.com/api/alidns/describegtminstances.html
 func (client *Client) DescribeGtmInstances(request *DescribeGtmInstancesRequest) (response *DescribeGtmInstancesResponse, err error) {
 	response = CreateDescribeGtmInstancesResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeGtmInstances(request *DescribeGtmInstancesRequest)
 }
 
 // DescribeGtmInstancesWithChan invokes the alidns.DescribeGtmInstances API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describegtminstances.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeGtmInstancesWithChan(request *DescribeGtmInstancesRequest) (<-chan *DescribeGtmInstancesResponse, <-chan error) {
 	responseChan := make(chan *DescribeGtmInstancesResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeGtmInstancesWithChan(request *DescribeGtmInstances
 }
 
 // DescribeGtmInstancesWithCallback invokes the alidns.DescribeGtmInstances API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describegtminstances.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeGtmInstancesWithCallback(request *DescribeGtmInstancesRequest, callback func(response *DescribeGtmInstancesResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,23 +71,24 @@ func (client *Client) DescribeGtmInstancesWithCallback(request *DescribeGtmInsta
 // DescribeGtmInstancesRequest is the request struct for api DescribeGtmInstances
 type DescribeGtmInstancesRequest struct {
 	*requests.RpcRequest
-	ResourceGroupId string           `position:"Query" name:"ResourceGroupId"`
-	UserClientIp    string           `position:"Query" name:"UserClientIp"`
-	PageSize        requests.Integer `position:"Query" name:"PageSize"`
-	Lang            string           `position:"Query" name:"Lang"`
-	Keyword         string           `position:"Query" name:"Keyword"`
-	PageNumber      requests.Integer `position:"Query" name:"PageNumber"`
+	PageNumber           requests.Integer `position:"Query" name:"PageNumber"`
+	ResourceGroupId      string           `position:"Query" name:"ResourceGroupId"`
+	UserClientIp         string           `position:"Query" name:"UserClientIp"`
+	PageSize             requests.Integer `position:"Query" name:"PageSize"`
+	Lang                 string           `position:"Query" name:"Lang"`
+	Keyword              string           `position:"Query" name:"Keyword"`
+	NeedDetailAttributes requests.Boolean `position:"Query" name:"NeedDetailAttributes"`
 }
 
 // DescribeGtmInstancesResponse is the response struct for api DescribeGtmInstances
 type DescribeGtmInstancesResponse struct {
 	*responses.BaseResponse
-	RequestId    string       `json:"RequestId" xml:"RequestId"`
-	PageNumber   int          `json:"PageNumber" xml:"PageNumber"`
-	PageSize     int          `json:"PageSize" xml:"PageSize"`
-	TotalItems   int          `json:"TotalItems" xml:"TotalItems"`
-	TotalPages   int          `json:"TotalPages" xml:"TotalPages"`
-	GtmInstances GtmInstances `json:"GtmInstances" xml:"GtmInstances"`
+	RequestId    string                             `json:"RequestId" xml:"RequestId"`
+	PageNumber   int                                `json:"PageNumber" xml:"PageNumber"`
+	PageSize     int                                `json:"PageSize" xml:"PageSize"`
+	TotalItems   int                                `json:"TotalItems" xml:"TotalItems"`
+	TotalPages   int                                `json:"TotalPages" xml:"TotalPages"`
+	GtmInstances GtmInstancesInDescribeGtmInstances `json:"GtmInstances" xml:"GtmInstances"`
 }
 
 // CreateDescribeGtmInstancesRequest creates a request to invoke DescribeGtmInstances API
@@ -100,7 +96,8 @@ func CreateDescribeGtmInstancesRequest() (request *DescribeGtmInstancesRequest) 
 	request = &DescribeGtmInstancesRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeGtmInstances", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeGtmInstances", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

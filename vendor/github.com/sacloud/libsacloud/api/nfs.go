@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -149,28 +163,28 @@ func (api *NFSAPI) GetNFSPlans() (*sacloud.NFSPlans, error) {
 }
 
 // Read 読み取り
-func (api *NFSAPI) Read(id int64) (*sacloud.NFS, error) {
+func (api *NFSAPI) Read(id sacloud.ID) (*sacloud.NFS, error) {
 	return api.request(func(res *nfsResponse) error {
 		return api.read(id, nil, res)
 	})
 }
 
 // Update 更新
-func (api *NFSAPI) Update(id int64, value *sacloud.NFS) (*sacloud.NFS, error) {
+func (api *NFSAPI) Update(id sacloud.ID, value *sacloud.NFS) (*sacloud.NFS, error) {
 	return api.request(func(res *nfsResponse) error {
 		return api.update(id, api.createRequest(value), res)
 	})
 }
 
 // Delete 削除
-func (api *NFSAPI) Delete(id int64) (*sacloud.NFS, error) {
+func (api *NFSAPI) Delete(id sacloud.ID) (*sacloud.NFS, error) {
 	return api.request(func(res *nfsResponse) error {
 		return api.delete(id, nil, res)
 	})
 }
 
 // Config 設定変更の反映
-func (api *NFSAPI) Config(id int64) (bool, error) {
+func (api *NFSAPI) Config(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/config", api.getResourceURL(), id)
@@ -179,7 +193,7 @@ func (api *NFSAPI) Config(id int64) (bool, error) {
 }
 
 // IsUp 起動しているか判定
-func (api *NFSAPI) IsUp(id int64) (bool, error) {
+func (api *NFSAPI) IsUp(id sacloud.ID) (bool, error) {
 	lb, err := api.Read(id)
 	if err != nil {
 		return false, err
@@ -188,7 +202,7 @@ func (api *NFSAPI) IsUp(id int64) (bool, error) {
 }
 
 // IsDown ダウンしているか判定
-func (api *NFSAPI) IsDown(id int64) (bool, error) {
+func (api *NFSAPI) IsDown(id sacloud.ID) (bool, error) {
 	lb, err := api.Read(id)
 	if err != nil {
 		return false, err
@@ -197,7 +211,7 @@ func (api *NFSAPI) IsDown(id int64) (bool, error) {
 }
 
 // Boot 起動
-func (api *NFSAPI) Boot(id int64) (bool, error) {
+func (api *NFSAPI) Boot(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -206,7 +220,7 @@ func (api *NFSAPI) Boot(id int64) (bool, error) {
 }
 
 // Shutdown シャットダウン(graceful)
-func (api *NFSAPI) Shutdown(id int64) (bool, error) {
+func (api *NFSAPI) Shutdown(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -216,7 +230,7 @@ func (api *NFSAPI) Shutdown(id int64) (bool, error) {
 }
 
 // Stop シャットダウン(force)
-func (api *NFSAPI) Stop(id int64) (bool, error) {
+func (api *NFSAPI) Stop(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -226,7 +240,7 @@ func (api *NFSAPI) Stop(id int64) (bool, error) {
 }
 
 // RebootForce 再起動
-func (api *NFSAPI) RebootForce(id int64) (bool, error) {
+func (api *NFSAPI) RebootForce(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/reset", api.getResourceURL(), id)
@@ -236,7 +250,7 @@ func (api *NFSAPI) RebootForce(id int64) (bool, error) {
 }
 
 // ResetForce リセット
-func (api *NFSAPI) ResetForce(id int64, recycleProcess bool) (bool, error) {
+func (api *NFSAPI) ResetForce(id sacloud.ID, recycleProcess bool) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/reset", api.getResourceURL(), id)
@@ -246,7 +260,7 @@ func (api *NFSAPI) ResetForce(id int64, recycleProcess bool) (bool, error) {
 }
 
 // SleepUntilUp 起動するまで待機
-func (api *NFSAPI) SleepUntilUp(id int64, timeout time.Duration) error {
+func (api *NFSAPI) SleepUntilUp(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForUpFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, 0)
@@ -254,7 +268,7 @@ func (api *NFSAPI) SleepUntilUp(id int64, timeout time.Duration) error {
 }
 
 // SleepUntilDown ダウンするまで待機
-func (api *NFSAPI) SleepUntilDown(id int64, timeout time.Duration) error {
+func (api *NFSAPI) SleepUntilDown(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForDownFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, 0)
@@ -262,7 +276,7 @@ func (api *NFSAPI) SleepUntilDown(id int64, timeout time.Duration) error {
 }
 
 // SleepWhileCopying コピー終了まで待機
-func (api *NFSAPI) SleepWhileCopying(id int64, timeout time.Duration, maxRetry int) error {
+func (api *NFSAPI) SleepWhileCopying(id sacloud.ID, timeout time.Duration, maxRetry int) error {
 	handler := waitingForAvailableFunc(func() (hasAvailable, error) {
 		return api.Read(id)
 	}, maxRetry)
@@ -270,7 +284,7 @@ func (api *NFSAPI) SleepWhileCopying(id int64, timeout time.Duration, maxRetry i
 }
 
 // AsyncSleepWhileCopying コピー終了まで待機(非同期)
-func (api *NFSAPI) AsyncSleepWhileCopying(id int64, timeout time.Duration, maxRetry int) (chan (interface{}), chan (interface{}), chan (error)) {
+func (api *NFSAPI) AsyncSleepWhileCopying(id sacloud.ID, timeout time.Duration, maxRetry int) (chan (interface{}), chan (interface{}), chan (error)) {
 	handler := waitingForAvailableFunc(func() (hasAvailable, error) {
 		return api.Read(id)
 	}, maxRetry)
@@ -278,11 +292,11 @@ func (api *NFSAPI) AsyncSleepWhileCopying(id int64, timeout time.Duration, maxRe
 }
 
 // MonitorFreeDiskSize NFSディスク残量アクティビティモニター取得
-func (api *NFSAPI) MonitorFreeDiskSize(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *NFSAPI) MonitorFreeDiskSize(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "database", 0, body)
 }
 
 // MonitorInterface NICアクティビティーモニター取得
-func (api *NFSAPI) MonitorInterface(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *NFSAPI) MonitorInterface(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "interface", 0, body)
 }

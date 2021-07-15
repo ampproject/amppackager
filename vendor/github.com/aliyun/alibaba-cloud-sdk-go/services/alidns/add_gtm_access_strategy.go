@@ -21,7 +21,6 @@ import (
 )
 
 // AddGtmAccessStrategy invokes the alidns.AddGtmAccessStrategy API synchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmaccessstrategy.html
 func (client *Client) AddGtmAccessStrategy(request *AddGtmAccessStrategyRequest) (response *AddGtmAccessStrategyResponse, err error) {
 	response = CreateAddGtmAccessStrategyResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) AddGtmAccessStrategy(request *AddGtmAccessStrategyRequest)
 }
 
 // AddGtmAccessStrategyWithChan invokes the alidns.AddGtmAccessStrategy API asynchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmaccessstrategy.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddGtmAccessStrategyWithChan(request *AddGtmAccessStrategyRequest) (<-chan *AddGtmAccessStrategyResponse, <-chan error) {
 	responseChan := make(chan *AddGtmAccessStrategyResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) AddGtmAccessStrategyWithChan(request *AddGtmAccessStrategy
 }
 
 // AddGtmAccessStrategyWithCallback invokes the alidns.AddGtmAccessStrategy API asynchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmaccessstrategy.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddGtmAccessStrategyWithCallback(request *AddGtmAccessStrategyRequest, callback func(response *AddGtmAccessStrategyResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,11 +71,11 @@ func (client *Client) AddGtmAccessStrategyWithCallback(request *AddGtmAccessStra
 // AddGtmAccessStrategyRequest is the request struct for api AddGtmAccessStrategy
 type AddGtmAccessStrategyRequest struct {
 	*requests.RpcRequest
-	StrategyName       string `position:"Query" name:"StrategyName"`
 	DefaultAddrPoolId  string `position:"Query" name:"DefaultAddrPoolId"`
+	FailoverAddrPoolId string `position:"Query" name:"FailoverAddrPoolId"`
+	StrategyName       string `position:"Query" name:"StrategyName"`
 	AccessLines        string `position:"Query" name:"AccessLines"`
 	InstanceId         string `position:"Query" name:"InstanceId"`
-	FailoverAddrPoolId string `position:"Query" name:"FailoverAddrPoolId"`
 	UserClientIp       string `position:"Query" name:"UserClientIp"`
 	Lang               string `position:"Query" name:"Lang"`
 }
@@ -97,7 +92,8 @@ func CreateAddGtmAccessStrategyRequest() (request *AddGtmAccessStrategyRequest) 
 	request = &AddGtmAccessStrategyRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "AddGtmAccessStrategy", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "AddGtmAccessStrategy", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

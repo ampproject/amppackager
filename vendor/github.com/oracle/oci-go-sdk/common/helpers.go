@@ -1,4 +1,5 @@
-// Copyright (c) 2016, 2018, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2016, 2018, 2020, Oracle and/or its affiliates.  All rights reserved.
+// This software is dual-licensed to you under the Universal Permissive License (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl or Apache License 2.0 as shown at http://www.apache.org/licenses/LICENSE-2.0. You may choose either license.
 
 package common
 
@@ -204,27 +205,54 @@ func (t *SDKDate) MarshalJSON() (buff []byte, e error) {
 }
 
 // PrivateKeyFromBytes is a helper function that will produce a RSA private
-// key from bytes.
+// key from bytes. This function is deprecated in favour of PrivateKeyFromBytesWithPassword
+// Deprecated
 func PrivateKeyFromBytes(pemData []byte, password *string) (key *rsa.PrivateKey, e error) {
+	if password == nil {
+		return PrivateKeyFromBytesWithPassword(pemData, nil)
+	}
+
+	return PrivateKeyFromBytesWithPassword(pemData, []byte(*password))
+}
+
+// PrivateKeyFromBytesWithPassword is a helper function that will produce a RSA private
+// key from bytes and a password.
+func PrivateKeyFromBytesWithPassword(pemData, password []byte) (key *rsa.PrivateKey, e error) {
 	if pemBlock, _ := pem.Decode(pemData); pemBlock != nil {
 		decrypted := pemBlock.Bytes
 		if x509.IsEncryptedPEMBlock(pemBlock) {
 			if password == nil {
-				e = fmt.Errorf("private_key_password is required for encrypted private keys")
+				e = fmt.Errorf("private key password is required for encrypted private keys")
 				return
 			}
-			if decrypted, e = x509.DecryptPEMBlock(pemBlock, []byte(*password)); e != nil {
+			if decrypted, e = x509.DecryptPEMBlock(pemBlock, password); e != nil {
 				return
 			}
 		}
 
-		key, e = x509.ParsePKCS1PrivateKey(decrypted)
+		key, e = parsePKCSPrivateKey(decrypted)
 
 	} else {
 		e = fmt.Errorf("PEM data was not found in buffer")
 		return
 	}
 	return
+}
+
+// ParsePrivateKey using PKCS1 or PKCS8
+func parsePKCSPrivateKey(decryptedKey []byte) (*rsa.PrivateKey, error) {
+	if key, err := x509.ParsePKCS1PrivateKey(decryptedKey); err == nil {
+		return key, nil
+	}
+	if key, err := x509.ParsePKCS8PrivateKey(decryptedKey); err == nil {
+		switch key := key.(type) {
+		case *rsa.PrivateKey:
+			return key, nil
+		default:
+			return nil, fmt.Errorf("unsupportesd private key type in PKCS8 wrapping")
+		}
+	}
+	return nil, fmt.Errorf("failed to parse private key")
 }
 
 func generateRandUUID() (string, error) {

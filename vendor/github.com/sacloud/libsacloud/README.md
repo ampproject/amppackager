@@ -292,10 +292,7 @@ func main() {
 
 # License
 
-  `libsacloud` Copyright (C) 2016-2019 Kazumichi Yamamoto.
+  `libsacloud` Copyright (C) 2016-2020 The Libsacloud Authors.
 
   This project is published under [Apache 2.0 License](LICENSE).
 
-# Author
-
-* Kazumichi Yamamoto ([@yamamoto-febc](https://github.com/yamamoto-febc))

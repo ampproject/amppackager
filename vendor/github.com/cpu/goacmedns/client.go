@@ -2,6 +2,7 @@ package goacmedns
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,7 +13,7 @@ import (
 )
 
 const (
-	// ua is a custom user-agent identifier
+	// ua is a custom user-agent identifier.
 	ua = "goacmedns"
 )
 
@@ -24,12 +25,16 @@ func userAgent() string {
 }
 
 var (
-	// defaultTimeout is used for the httpClient Timeout settings
+	// defaultTimeout is used for the httpClient Timeout settings.
 	defaultTimeout = 30 * time.Second
-	// httpClient is a `http.Client` that is customized with the `defaultTimeout`
+	// httpClient is a `http.Client` that is customized with the `defaultTimeout`.
 	httpClient = http.Client{
-		Transport: &http.Transport{
-			Dial: (&net.Dialer{
+		CheckRedirect: nil,
+		Jar:           nil,
+		Timeout:       defaultTimeout,
+		Transport: &http.Transport{ //nolint:exhaustivestruct
+			Proxy: http.ProxyFromEnvironment,
+			Dial: (&net.Dialer{ //nolint:exhaustivestruct
 				Timeout:   defaultTimeout,
 				KeepAlive: defaultTimeout,
 			}).Dial,
@@ -47,29 +52,33 @@ var (
 // populated with the `userAgent` function and a `Content-Type` header of
 // `application/json`.
 func postAPI(url string, body []byte, headers map[string]string) ([]byte, *http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(body))
 	if err != nil {
-		fmt.Printf("Failed to make req: %s\n", err.Error())
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("Failed to make req: %w", err)
 	}
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", userAgent())
+
 	for h, v := range headers {
 		req.Header.Set(h, v)
 	}
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		fmt.Printf("Failed to do req: %s\n", err.Error())
-		return nil, resp, err
+		return nil, resp, fmt.Errorf("Failed to do req: %w", err)
 	}
+
 	defer func() { _ = resp.Body.Close() }()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Failed to read body: %s\n", err.Error())
-		return nil, resp, err
+		return nil, resp, fmt.Errorf("Failed to read body: %w", err)
 	}
+
 	return respBody, resp, nil
 }
 
@@ -86,14 +95,14 @@ type ClientError struct {
 	Body []byte
 }
 
-// Error collects all of the ClientError fields into a single string
+// Error collects all of the ClientError fields into a single string.
 func (e ClientError) Error() string {
 	return fmt.Sprintf("%s : status code %d response: %s",
 		e.Message, e.HTTPStatus, string(e.Body))
 }
 
 // newClientError creates a ClientError instance populated with the given
-// arguments
+// arguments.
 func newClientError(msg string, respCode int, respBody []byte) ClientError {
 	return ClientError{
 		Message:    msg,
@@ -122,21 +131,26 @@ func NewClient(url string) Client {
 // created Account.
 func (c Client) RegisterAccount(allowFrom []string) (Account, error) {
 	var body []byte
+
 	if len(allowFrom) > 0 {
 		req := struct {
 			AllowFrom []string
 		}{
 			AllowFrom: allowFrom,
 		}
+
 		reqBody, err := json.Marshal(req)
 		if err != nil {
-			return Account{}, err
+			return Account{}, fmt.Errorf("Failed to marshal account: %w", err)
 		}
+
 		body = reqBody
 	}
 
 	url := fmt.Sprintf("%s/register", c.baseURL)
-	respBody, resp, err := postAPI(url, body, nil)
+
+	// golangci-lint doesn't know it but postAPI() defers a body close.
+	respBody, resp, err := postAPI(url, body, nil) //nolint:bodyclose
 	if err != nil {
 		return Account{}, err
 	}
@@ -147,10 +161,13 @@ func (c Client) RegisterAccount(allowFrom []string) (Account, error) {
 	}
 
 	var acct Account
+
 	err = json.Unmarshal(respBody, &acct)
 	if err != nil {
-		return Account{}, err
+		return Account{}, fmt.Errorf("Failed to unmarshal account: %w", err)
 	}
+
+	acct.ServerURL = c.baseURL
 
 	return acct, nil
 }
@@ -165,10 +182,10 @@ func (c Client) UpdateTXTRecord(account Account, value string) error {
 		SubDomain: account.SubDomain,
 		Txt:       value,
 	}
+
 	updateBody, err := json.Marshal(update)
 	if err != nil {
-		fmt.Printf("Failed to marshal update: %s\n", update)
-		return err
+		return fmt.Errorf("Failed to marshal update: %w", err)
 	}
 
 	headers := map[string]string{
@@ -177,7 +194,9 @@ func (c Client) UpdateTXTRecord(account Account, value string) error {
 	}
 
 	url := fmt.Sprintf("%s/update", c.baseURL)
-	respBody, resp, err := postAPI(url, updateBody, headers)
+
+	// golangci-lint doesn't know it but postAPI() defers a body close.
+	respBody, resp, err := postAPI(url, updateBody, headers) //nolint:bodyclose
 	if err != nil {
 		return err
 	}

@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -114,14 +128,14 @@ func (api *DatabaseAPI) Create(value *sacloud.Database) (*sacloud.Database, erro
 }
 
 // Read 読み取り
-func (api *DatabaseAPI) Read(id int64) (*sacloud.Database, error) {
+func (api *DatabaseAPI) Read(id sacloud.ID) (*sacloud.Database, error) {
 	return api.request(func(res *databaseResponse) error {
 		return api.read(id, nil, res)
 	})
 }
 
 // Status DBの設定/起動状態の取得
-func (api *DatabaseAPI) Status(id int64) (*sacloud.DatabaseStatus, error) {
+func (api *DatabaseAPI) Status(id sacloud.ID) (*sacloud.DatabaseStatus, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/status", api.getResourceURL(), id)
@@ -136,7 +150,7 @@ func (api *DatabaseAPI) Status(id int64) (*sacloud.DatabaseStatus, error) {
 }
 
 // Backup バックアップ取得
-func (api *DatabaseAPI) Backup(id int64) (string, error) {
+func (api *DatabaseAPI) Backup(id sacloud.ID) (string, error) {
 	var (
 		method = "POST"
 		uri    = fmt.Sprintf("%s/%d/action/history", api.getResourceURL(), id)
@@ -163,7 +177,7 @@ func (api *DatabaseAPI) Backup(id int64) (string, error) {
 }
 
 // DownloadLog ログ取得
-func (api *DatabaseAPI) DownloadLog(id int64, logID string) (string, error) {
+func (api *DatabaseAPI) DownloadLog(id sacloud.ID, logID string) (string, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/download/log/%s", api.getResourceURL(), id, logID)
@@ -178,7 +192,7 @@ func (api *DatabaseAPI) DownloadLog(id int64, logID string) (string, error) {
 }
 
 // Restore バックアップからの復元
-func (api *DatabaseAPI) Restore(id int64, backupID string) (string, error) {
+func (api *DatabaseAPI) Restore(id sacloud.ID, backupID string) (string, error) {
 	var (
 		method = "POST"
 		uri    = fmt.Sprintf("%s/%d/action/history/%s", api.getResourceURL(), id, backupID)
@@ -197,7 +211,7 @@ func (api *DatabaseAPI) Restore(id int64, backupID string) (string, error) {
 }
 
 // DeleteBackup バックアップの削除
-func (api *DatabaseAPI) DeleteBackup(id int64, backupID string) (string, error) {
+func (api *DatabaseAPI) DeleteBackup(id sacloud.ID, backupID string) (string, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/action/history/%s", api.getResourceURL(), id, backupID)
@@ -216,7 +230,7 @@ func (api *DatabaseAPI) DeleteBackup(id int64, backupID string) (string, error) 
 }
 
 // HistoryLock バックアップ削除ロック
-func (api *DatabaseAPI) HistoryLock(id int64, backupID string) (string, error) {
+func (api *DatabaseAPI) HistoryLock(id sacloud.ID, backupID string) (string, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/action/history-lock/%s", api.getResourceURL(), id, backupID)
@@ -235,7 +249,7 @@ func (api *DatabaseAPI) HistoryLock(id int64, backupID string) (string, error) {
 }
 
 // HistoryUnlock バックアップ削除アンロック
-func (api *DatabaseAPI) HistoryUnlock(id int64, backupID string) (string, error) {
+func (api *DatabaseAPI) HistoryUnlock(id sacloud.ID, backupID string) (string, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/action/history-lock/%s", api.getResourceURL(), id, backupID)
@@ -254,14 +268,14 @@ func (api *DatabaseAPI) HistoryUnlock(id int64, backupID string) (string, error)
 }
 
 // Update 更新
-func (api *DatabaseAPI) Update(id int64, value *sacloud.Database) (*sacloud.Database, error) {
+func (api *DatabaseAPI) Update(id sacloud.ID, value *sacloud.Database) (*sacloud.Database, error) {
 	return api.request(func(res *databaseResponse) error {
 		return api.update(id, api.createRequest(value), res)
 	})
 }
 
 // UpdateSetting 設定更新
-func (api *DatabaseAPI) UpdateSetting(id int64, value *sacloud.Database) (*sacloud.Database, error) {
+func (api *DatabaseAPI) UpdateSetting(id sacloud.ID, value *sacloud.Database) (*sacloud.Database, error) {
 	req := &sacloud.Database{
 		// Settings
 		Settings: value.Settings,
@@ -272,14 +286,14 @@ func (api *DatabaseAPI) UpdateSetting(id int64, value *sacloud.Database) (*saclo
 }
 
 // Delete 削除
-func (api *DatabaseAPI) Delete(id int64) (*sacloud.Database, error) {
+func (api *DatabaseAPI) Delete(id sacloud.ID) (*sacloud.Database, error) {
 	return api.request(func(res *databaseResponse) error {
 		return api.delete(id, nil, res)
 	})
 }
 
 // Config 設定変更の反映
-func (api *DatabaseAPI) Config(id int64) (bool, error) {
+func (api *DatabaseAPI) Config(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/config", api.getResourceURL(), id)
@@ -288,7 +302,7 @@ func (api *DatabaseAPI) Config(id int64) (bool, error) {
 }
 
 // IsUp 起動しているか判定
-func (api *DatabaseAPI) IsUp(id int64) (bool, error) {
+func (api *DatabaseAPI) IsUp(id sacloud.ID) (bool, error) {
 	lb, err := api.Read(id)
 	if err != nil {
 		return false, err
@@ -297,7 +311,7 @@ func (api *DatabaseAPI) IsUp(id int64) (bool, error) {
 }
 
 // IsDown ダウンしているか判定
-func (api *DatabaseAPI) IsDown(id int64) (bool, error) {
+func (api *DatabaseAPI) IsDown(id sacloud.ID) (bool, error) {
 	lb, err := api.Read(id)
 	if err != nil {
 		return false, err
@@ -306,7 +320,7 @@ func (api *DatabaseAPI) IsDown(id int64) (bool, error) {
 }
 
 // IsDatabaseRunning データベースプロセスが起動しているか判定
-func (api *DatabaseAPI) IsDatabaseRunning(id int64) (bool, error) {
+func (api *DatabaseAPI) IsDatabaseRunning(id sacloud.ID) (bool, error) {
 	db, err := api.Status(id)
 	if err != nil {
 		return false, err
@@ -316,7 +330,7 @@ func (api *DatabaseAPI) IsDatabaseRunning(id int64) (bool, error) {
 }
 
 // Boot 起動
-func (api *DatabaseAPI) Boot(id int64) (bool, error) {
+func (api *DatabaseAPI) Boot(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -325,7 +339,7 @@ func (api *DatabaseAPI) Boot(id int64) (bool, error) {
 }
 
 // Shutdown シャットダウン(graceful)
-func (api *DatabaseAPI) Shutdown(id int64) (bool, error) {
+func (api *DatabaseAPI) Shutdown(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -335,7 +349,7 @@ func (api *DatabaseAPI) Shutdown(id int64) (bool, error) {
 }
 
 // Stop シャットダウン(force)
-func (api *DatabaseAPI) Stop(id int64) (bool, error) {
+func (api *DatabaseAPI) Stop(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -345,7 +359,7 @@ func (api *DatabaseAPI) Stop(id int64) (bool, error) {
 }
 
 // RebootForce 再起動
-func (api *DatabaseAPI) RebootForce(id int64) (bool, error) {
+func (api *DatabaseAPI) RebootForce(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/reset", api.getResourceURL(), id)
@@ -355,7 +369,7 @@ func (api *DatabaseAPI) RebootForce(id int64) (bool, error) {
 }
 
 // ResetForce リセット
-func (api *DatabaseAPI) ResetForce(id int64, recycleProcess bool) (bool, error) {
+func (api *DatabaseAPI) ResetForce(id sacloud.ID, recycleProcess bool) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/reset", api.getResourceURL(), id)
@@ -365,7 +379,7 @@ func (api *DatabaseAPI) ResetForce(id int64, recycleProcess bool) (bool, error) 
 }
 
 // SleepUntilUp 起動するまで待機
-func (api *DatabaseAPI) SleepUntilUp(id int64, timeout time.Duration) error {
+func (api *DatabaseAPI) SleepUntilUp(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForUpFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, 0)
@@ -373,7 +387,7 @@ func (api *DatabaseAPI) SleepUntilUp(id int64, timeout time.Duration) error {
 }
 
 // SleepUntilDatabaseRunning 起動するまで待機
-func (api *DatabaseAPI) SleepUntilDatabaseRunning(id int64, timeout time.Duration, maxRetry int) error {
+func (api *DatabaseAPI) SleepUntilDatabaseRunning(id sacloud.ID, timeout time.Duration, maxRetry int) error {
 	handler := waitingForUpFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, maxRetry)
@@ -381,7 +395,7 @@ func (api *DatabaseAPI) SleepUntilDatabaseRunning(id int64, timeout time.Duratio
 }
 
 // SleepUntilDown ダウンするまで待機
-func (api *DatabaseAPI) SleepUntilDown(id int64, timeout time.Duration) error {
+func (api *DatabaseAPI) SleepUntilDown(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForDownFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, 0)
@@ -389,7 +403,7 @@ func (api *DatabaseAPI) SleepUntilDown(id int64, timeout time.Duration) error {
 }
 
 // SleepWhileCopying コピー終了まで待機
-func (api *DatabaseAPI) SleepWhileCopying(id int64, timeout time.Duration, maxRetry int) error {
+func (api *DatabaseAPI) SleepWhileCopying(id sacloud.ID, timeout time.Duration, maxRetry int) error {
 	handler := waitingForAvailableFunc(func() (hasAvailable, error) {
 		return api.Read(id)
 	}, maxRetry)
@@ -397,7 +411,7 @@ func (api *DatabaseAPI) SleepWhileCopying(id int64, timeout time.Duration, maxRe
 }
 
 // AsyncSleepWhileCopying コピー終了まで待機(非同期)
-func (api *DatabaseAPI) AsyncSleepWhileCopying(id int64, timeout time.Duration, maxRetry int) (chan (interface{}), chan (interface{}), chan (error)) {
+func (api *DatabaseAPI) AsyncSleepWhileCopying(id sacloud.ID, timeout time.Duration, maxRetry int) (chan (interface{}), chan (interface{}), chan (error)) {
 	handler := waitingForAvailableFunc(func() (hasAvailable, error) {
 		return api.Read(id)
 	}, maxRetry)
@@ -405,26 +419,26 @@ func (api *DatabaseAPI) AsyncSleepWhileCopying(id int64, timeout time.Duration, 
 }
 
 // MonitorCPU CPUアクティビティーモニター取得
-func (api *DatabaseAPI) MonitorCPU(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *DatabaseAPI) MonitorCPU(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "cpu", 0, body)
 }
 
 // MonitorDatabase データーベース固有項目アクティビティモニター取得
-func (api *DatabaseAPI) MonitorDatabase(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *DatabaseAPI) MonitorDatabase(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "database", 0, body)
 }
 
 // MonitorInterface NICアクティビティーモニター取得
-func (api *DatabaseAPI) MonitorInterface(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *DatabaseAPI) MonitorInterface(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "interface", 0, body)
 }
 
 // MonitorSystemDisk システムディスクアクティビティーモニター取得
-func (api *DatabaseAPI) MonitorSystemDisk(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *DatabaseAPI) MonitorSystemDisk(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "disk", 1, body)
 }
 
 // MonitorBackupDisk バックアップディスクアクティビティーモニター取得
-func (api *DatabaseAPI) MonitorBackupDisk(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *DatabaseAPI) MonitorBackupDisk(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "disk", 2, body)
 }

@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -38,7 +52,7 @@ func (api *CDROMAPI) Create(value *sacloud.CDROM) (*sacloud.CDROM, *sacloud.FTPS
 }
 
 // OpenFTP FTP接続開始
-func (api *CDROMAPI) OpenFTP(id int64, reset bool) (*sacloud.FTPServer, error) {
+func (api *CDROMAPI) OpenFTP(id sacloud.ID, reset bool) (*sacloud.FTPServer, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/ftp", api.getResourceURL(), id)
@@ -55,7 +69,7 @@ func (api *CDROMAPI) OpenFTP(id int64, reset bool) (*sacloud.FTPServer, error) {
 }
 
 // CloseFTP FTP接続終了
-func (api *CDROMAPI) CloseFTP(id int64) (bool, error) {
+func (api *CDROMAPI) CloseFTP(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/ftp", api.getResourceURL(), id)
@@ -65,7 +79,7 @@ func (api *CDROMAPI) CloseFTP(id int64) (bool, error) {
 }
 
 // SleepWhileCopying コピー終了まで待機
-func (api *CDROMAPI) SleepWhileCopying(id int64, timeout time.Duration) error {
+func (api *CDROMAPI) SleepWhileCopying(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForAvailableFunc(func() (hasAvailable, error) {
 		return api.Read(id)
 	}, 0)
@@ -73,7 +87,7 @@ func (api *CDROMAPI) SleepWhileCopying(id int64, timeout time.Duration) error {
 }
 
 // AsyncSleepWhileCopying コピー終了まで待機(非同期)
-func (api *CDROMAPI) AsyncSleepWhileCopying(id int64, timeout time.Duration) (chan (interface{}), chan (interface{}), chan (error)) {
+func (api *CDROMAPI) AsyncSleepWhileCopying(id sacloud.ID, timeout time.Duration) (chan (interface{}), chan (interface{}), chan (error)) {
 	handler := waitingForAvailableFunc(func() (hasAvailable, error) {
 		return api.Read(id)
 	}, 0)

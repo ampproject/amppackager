@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -25,7 +39,7 @@ func NewInternetAPI(client *Client) *InternetAPI {
 }
 
 // UpdateBandWidth 帯域幅更新
-func (api *InternetAPI) UpdateBandWidth(id int64, bandWidth int) (*sacloud.Internet, error) {
+func (api *InternetAPI) UpdateBandWidth(id sacloud.ID, bandWidth int) (*sacloud.Internet, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/bandwidth", api.getResourceURL(), id)
@@ -39,7 +53,7 @@ func (api *InternetAPI) UpdateBandWidth(id int64, bandWidth int) (*sacloud.Inter
 }
 
 // AddSubnet IPアドレスブロックの追加割り当て
-func (api *InternetAPI) AddSubnet(id int64, nwMaskLen int, nextHop string) (*sacloud.Subnet, error) {
+func (api *InternetAPI) AddSubnet(id sacloud.ID, nwMaskLen int, nextHop string) (*sacloud.Subnet, error) {
 	var (
 		method = "POST"
 		uri    = fmt.Sprintf("%s/%d/subnet", api.getResourceURL(), id)
@@ -58,7 +72,7 @@ func (api *InternetAPI) AddSubnet(id int64, nwMaskLen int, nextHop string) (*sac
 }
 
 // UpdateSubnet IPアドレスブロックの更新
-func (api *InternetAPI) UpdateSubnet(id int64, subnetID int64, nextHop string) (*sacloud.Subnet, error) {
+func (api *InternetAPI) UpdateSubnet(id sacloud.ID, subnetID sacloud.ID, nextHop string) (*sacloud.Subnet, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/subnet/%d", api.getResourceURL(), id, subnetID)
@@ -76,7 +90,7 @@ func (api *InternetAPI) UpdateSubnet(id int64, subnetID int64, nextHop string) (
 }
 
 // DeleteSubnet IPアドレスブロックの削除
-func (api *InternetAPI) DeleteSubnet(id int64, subnetID int64) (*sacloud.ResultFlagValue, error) {
+func (api *InternetAPI) DeleteSubnet(id sacloud.ID, subnetID sacloud.ID) (*sacloud.ResultFlagValue, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/subnet/%d", api.getResourceURL(), id, subnetID)
@@ -91,7 +105,7 @@ func (api *InternetAPI) DeleteSubnet(id int64, subnetID int64) (*sacloud.ResultF
 }
 
 // EnableIPv6 IPv6有効化
-func (api *InternetAPI) EnableIPv6(id int64) (*sacloud.IPv6Net, error) {
+func (api *InternetAPI) EnableIPv6(id sacloud.ID) (*sacloud.IPv6Net, error) {
 	var (
 		method = "POST"
 		uri    = fmt.Sprintf("%s/%d/ipv6net", api.getResourceURL(), id)
@@ -106,7 +120,7 @@ func (api *InternetAPI) EnableIPv6(id int64) (*sacloud.IPv6Net, error) {
 }
 
 // DisableIPv6 IPv6無効化
-func (api *InternetAPI) DisableIPv6(id int64, ipv6NetID int64) (bool, error) {
+func (api *InternetAPI) DisableIPv6(id sacloud.ID, ipv6NetID sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/ipv6net/%d", api.getResourceURL(), id, ipv6NetID)
@@ -121,7 +135,7 @@ func (api *InternetAPI) DisableIPv6(id int64, ipv6NetID int64) (bool, error) {
 }
 
 // SleepWhileCreating 作成完了まで待機(リトライ10)
-func (api *InternetAPI) SleepWhileCreating(id int64, timeout time.Duration) error {
+func (api *InternetAPI) SleepWhileCreating(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForReadFunc(func() (interface{}, error) {
 		return api.Read(id)
 	}, 10) // 作成直後はReadが404を返すことがあるためリトライ
@@ -130,7 +144,7 @@ func (api *InternetAPI) SleepWhileCreating(id int64, timeout time.Duration) erro
 }
 
 // RetrySleepWhileCreating 作成完了まで待機 作成直後はReadが404を返すことがあるためmaxRetryまでリトライする
-func (api *InternetAPI) RetrySleepWhileCreating(id int64, timeout time.Duration, maxRetry int) error {
+func (api *InternetAPI) RetrySleepWhileCreating(id sacloud.ID, timeout time.Duration, maxRetry int) error {
 	handler := waitingForReadFunc(func() (interface{}, error) {
 		return api.Read(id)
 	}, maxRetry)
@@ -139,6 +153,6 @@ func (api *InternetAPI) RetrySleepWhileCreating(id int64, timeout time.Duration,
 }
 
 // Monitor アクティビティーモニター取得
-func (api *InternetAPI) Monitor(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *InternetAPI) Monitor(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.monitor(id, body)
 }

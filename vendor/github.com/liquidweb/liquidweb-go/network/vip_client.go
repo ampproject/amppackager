@@ -19,7 +19,7 @@ type VIPClient struct {
 // Create creates a new VIP.
 func (c *VIPClient) Create(params VIPParams) (*VIP, error) {
 	var result VIP
-	err := c.Backend.Call("v1/VIP/create", params, &result)
+	err := c.Backend.CallIntoInterface("v1/VIP/create", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (c *VIPClient) Details(uniqID string) (*VIP, error) {
 	var result VIP
 	params := VIPParams{UniqID: uniqID}
 
-	err := c.Backend.Call("v1/VIP/details", params, &result)
+	err := c.Backend.CallIntoInterface("v1/VIP/details", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (c *VIPClient) Destroy(uniqID string) (*VIPDeletion, error) {
 	var result VIPDeletion
 	params := VIPParams{UniqID: uniqID}
 
-	err := c.Backend.Call("v1/VIP/destroy", params, &result)
+	err := c.Backend.CallIntoInterface("v1/VIP/destroy", params, &result)
 	if err != nil {
 		return nil, err
 	}

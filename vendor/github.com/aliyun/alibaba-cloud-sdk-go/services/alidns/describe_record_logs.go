@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeRecordLogs invokes the alidns.DescribeRecordLogs API synchronously
-// api document: https://help.aliyun.com/api/alidns/describerecordlogs.html
 func (client *Client) DescribeRecordLogs(request *DescribeRecordLogsRequest) (response *DescribeRecordLogsResponse, err error) {
 	response = CreateDescribeRecordLogsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeRecordLogs(request *DescribeRecordLogsRequest) (re
 }
 
 // DescribeRecordLogsWithChan invokes the alidns.DescribeRecordLogs API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describerecordlogs.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeRecordLogsWithChan(request *DescribeRecordLogsRequest) (<-chan *DescribeRecordLogsResponse, <-chan error) {
 	responseChan := make(chan *DescribeRecordLogsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeRecordLogsWithChan(request *DescribeRecordLogsRequ
 }
 
 // DescribeRecordLogsWithCallback invokes the alidns.DescribeRecordLogs API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describerecordlogs.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeRecordLogsWithCallback(request *DescribeRecordLogsRequest, callback func(response *DescribeRecordLogsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,14 +71,14 @@ func (client *Client) DescribeRecordLogsWithCallback(request *DescribeRecordLogs
 // DescribeRecordLogsRequest is the request struct for api DescribeRecordLogs
 type DescribeRecordLogsRequest struct {
 	*requests.RpcRequest
+	DomainName   string           `position:"Query" name:"DomainName"`
+	StartDate    string           `position:"Query" name:"StartDate"`
+	PageNumber   requests.Integer `position:"Query" name:"PageNumber"`
 	EndDate      string           `position:"Query" name:"endDate"`
 	UserClientIp string           `position:"Query" name:"UserClientIp"`
-	DomainName   string           `position:"Query" name:"DomainName"`
 	PageSize     requests.Integer `position:"Query" name:"PageSize"`
 	Lang         string           `position:"Query" name:"Lang"`
 	KeyWord      string           `position:"Query" name:"KeyWord"`
-	StartDate    string           `position:"Query" name:"StartDate"`
-	PageNumber   requests.Integer `position:"Query" name:"PageNumber"`
 }
 
 // DescribeRecordLogsResponse is the response struct for api DescribeRecordLogs
@@ -101,7 +96,8 @@ func CreateDescribeRecordLogsRequest() (request *DescribeRecordLogsRequest) {
 	request = &DescribeRecordLogsRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeRecordLogs", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeRecordLogs", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 
