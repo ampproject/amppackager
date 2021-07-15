@@ -1,0 +1,10 @@
+{
+  "baseBranches": ["main"],
+  "extends": [
+    "config:base"
+  ],
+  "postUpdateOptions": [
+    "gomodUpdateImportPaths",
+    "gomodTidy"
+  ]
+}
