@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -201,7 +215,7 @@ func (api *baseAPI) create(body interface{}, res interface{}) error {
 	return api.request(method, uri, body, res)
 }
 
-func (api *baseAPI) read(id int64, body interface{}, res interface{}) error {
+func (api *baseAPI) read(id sacloud.ID, body interface{}, res interface{}) error {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d", api.getResourceURL(), id)
@@ -210,7 +224,7 @@ func (api *baseAPI) read(id int64, body interface{}, res interface{}) error {
 	return api.request(method, uri, body, res)
 }
 
-func (api *baseAPI) update(id int64, body interface{}, res interface{}) error {
+func (api *baseAPI) update(id sacloud.ID, body interface{}, res interface{}) error {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d", api.getResourceURL(), id)
@@ -218,7 +232,7 @@ func (api *baseAPI) update(id int64, body interface{}, res interface{}) error {
 	return api.request(method, uri, body, res)
 }
 
-func (api *baseAPI) delete(id int64, body interface{}, res interface{}) error {
+func (api *baseAPI) delete(id sacloud.ID, body interface{}, res interface{}) error {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d", api.getResourceURL(), id)
@@ -243,7 +257,7 @@ func (api *baseAPI) action(method string, uri string, body interface{}, res inte
 	return true, nil
 }
 
-func (api *baseAPI) monitor(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *baseAPI) monitor(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/monitor", api.getResourceURL(), id)
@@ -256,7 +270,7 @@ func (api *baseAPI) monitor(id int64, body *sacloud.ResourceMonitorRequest) (*sa
 	return res.Data, nil
 }
 
-func (api *baseAPI) applianceMonitorBy(id int64, target string, nicIndex int, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *baseAPI) applianceMonitorBy(id sacloud.ID, target string, nicIndex int, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/%s/%d/monitor", api.getResourceURL(), id, target, nicIndex)

@@ -18,7 +18,7 @@ func (c *ZoneClient) Details(id int) (*Zone, error) {
 	var zoneResult *Zone
 	zoneParams := ZoneParams{ID: id}
 
-	err := c.Backend.Call("v1/Network/Zone/detail", zoneParams, zoneResult)
+	err := c.Backend.CallIntoInterface("v1/Network/Zone/detail", zoneParams, zoneResult)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (c *ZoneClient) Details(id int) (*Zone, error) {
 func (c *ZoneClient) List(params *ZoneListParams) (*ZoneList, error) {
 	zoneList := &ZoneList{}
 
-	err := c.Backend.Call("v1/Network/Zone/list", params, zoneList)
+	err := c.Backend.CallIntoInterface("v1/Network/Zone/list", params, zoneList)
 	if err != nil {
 		return nil, err
 	}

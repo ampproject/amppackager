@@ -45,7 +45,7 @@ func (s *NameserverService) Check(domain string, nameservers []string) (*Nameser
 	return &result, nil
 }
 
-// Info Gets informations.
+// Info Gets information.
 func (s *NameserverService) Info(request *NameserverInfoRequest) (*NamserverInfoResponse, error) {
 	req := s.client.NewRequest(methodNameserverInfo, structs.Map(request))
 
@@ -53,7 +53,8 @@ func (s *NameserverService) Info(request *NameserverInfoRequest) (*NamserverInfo
 	if err != nil {
 		return nil, err
 	}
-	var result NamserverInfoResponse
+
+	result := NamserverInfoResponse{}
 	err = mapstructure.Decode(*resp, &result)
 	if err != nil {
 		return nil, err
@@ -68,16 +69,19 @@ func (s *NameserverService) List(domain string) (*NamserverListResponse, error) 
 		"domain": "*",
 		"wide":   2,
 	}
+
 	if domain != "" {
 		requestMap["domain"] = domain
 	}
+
 	req := s.client.NewRequest(methodNameserverList, requestMap)
 
 	resp, err := s.client.Do(*req)
 	if err != nil {
 		return nil, err
 	}
-	var result NamserverListResponse
+
+	result := NamserverListResponse{}
 	err = mapstructure.Decode(*resp, &result)
 	if err != nil {
 		return nil, err
@@ -86,7 +90,7 @@ func (s *NameserverService) List(domain string) (*NamserverListResponse, error) 
 	return &result, nil
 }
 
-// Create Creates a namesever.
+// Create Creates a nameserver.
 func (s *NameserverService) Create(request *NameserverCreateRequest) (int, error) {
 	req := s.client.NewRequest(methodNameserverCreate, structs.Map(request))
 
@@ -127,6 +131,7 @@ func (s *NameserverService) UpdateRecord(recID int, request *NameserverRecordReq
 	if request == nil {
 		return errors.New("request can't be nil")
 	}
+
 	requestMap := structs.Map(request)
 	requestMap["id"] = recID
 
@@ -175,7 +180,6 @@ func (s *NameserverService) FindRecordByID(recID int) (*NameserverRecord, *Names
 	}
 
 	return nil, nil, fmt.Errorf("couldn't find INWX Record for id %d", recID)
-
 }
 
 // NameserverCheckResponse API model.

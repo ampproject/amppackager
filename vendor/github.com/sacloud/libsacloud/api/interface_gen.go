@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 /************************************************
@@ -198,21 +212,21 @@ func (api *InterfaceAPI) Create(value *sacloud.Interface) (*sacloud.Interface, e
 }
 
 // Read 読み取り
-func (api *InterfaceAPI) Read(id int64) (*sacloud.Interface, error) {
+func (api *InterfaceAPI) Read(id sacloud.ID) (*sacloud.Interface, error) {
 	return api.request(func(res *sacloud.Response) error {
 		return api.read(id, nil, res)
 	})
 }
 
 // Update 更新
-func (api *InterfaceAPI) Update(id int64, value *sacloud.Interface) (*sacloud.Interface, error) {
+func (api *InterfaceAPI) Update(id sacloud.ID, value *sacloud.Interface) (*sacloud.Interface, error) {
 	return api.request(func(res *sacloud.Response) error {
 		return api.update(id, api.createRequest(value), res)
 	})
 }
 
 // Delete 削除
-func (api *InterfaceAPI) Delete(id int64) (*sacloud.Interface, error) {
+func (api *InterfaceAPI) Delete(id sacloud.ID) (*sacloud.Interface, error) {
 	return api.request(func(res *sacloud.Response) error {
 		return api.delete(id, nil, res)
 	})

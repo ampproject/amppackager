@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -105,28 +119,28 @@ func (api *LoadBalancerAPI) Create(value *sacloud.LoadBalancer) (*sacloud.LoadBa
 }
 
 // Read 読み取り
-func (api *LoadBalancerAPI) Read(id int64) (*sacloud.LoadBalancer, error) {
+func (api *LoadBalancerAPI) Read(id sacloud.ID) (*sacloud.LoadBalancer, error) {
 	return api.request(func(res *loadBalancerResponse) error {
 		return api.read(id, nil, res)
 	})
 }
 
 // Update 更新
-func (api *LoadBalancerAPI) Update(id int64, value *sacloud.LoadBalancer) (*sacloud.LoadBalancer, error) {
+func (api *LoadBalancerAPI) Update(id sacloud.ID, value *sacloud.LoadBalancer) (*sacloud.LoadBalancer, error) {
 	return api.request(func(res *loadBalancerResponse) error {
 		return api.update(id, api.createRequest(value), res)
 	})
 }
 
 // Delete 削除
-func (api *LoadBalancerAPI) Delete(id int64) (*sacloud.LoadBalancer, error) {
+func (api *LoadBalancerAPI) Delete(id sacloud.ID) (*sacloud.LoadBalancer, error) {
 	return api.request(func(res *loadBalancerResponse) error {
 		return api.delete(id, nil, res)
 	})
 }
 
 // Config 設定変更の反映
-func (api *LoadBalancerAPI) Config(id int64) (bool, error) {
+func (api *LoadBalancerAPI) Config(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/config", api.getResourceURL(), id)
@@ -135,7 +149,7 @@ func (api *LoadBalancerAPI) Config(id int64) (bool, error) {
 }
 
 // IsUp 起動しているか判定
-func (api *LoadBalancerAPI) IsUp(id int64) (bool, error) {
+func (api *LoadBalancerAPI) IsUp(id sacloud.ID) (bool, error) {
 	lb, err := api.Read(id)
 	if err != nil {
 		return false, err
@@ -144,7 +158,7 @@ func (api *LoadBalancerAPI) IsUp(id int64) (bool, error) {
 }
 
 // IsDown ダウンしているか判定
-func (api *LoadBalancerAPI) IsDown(id int64) (bool, error) {
+func (api *LoadBalancerAPI) IsDown(id sacloud.ID) (bool, error) {
 	lb, err := api.Read(id)
 	if err != nil {
 		return false, err
@@ -153,7 +167,7 @@ func (api *LoadBalancerAPI) IsDown(id int64) (bool, error) {
 }
 
 // Boot 起動
-func (api *LoadBalancerAPI) Boot(id int64) (bool, error) {
+func (api *LoadBalancerAPI) Boot(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -162,7 +176,7 @@ func (api *LoadBalancerAPI) Boot(id int64) (bool, error) {
 }
 
 // Shutdown シャットダウン(graceful)
-func (api *LoadBalancerAPI) Shutdown(id int64) (bool, error) {
+func (api *LoadBalancerAPI) Shutdown(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -172,7 +186,7 @@ func (api *LoadBalancerAPI) Shutdown(id int64) (bool, error) {
 }
 
 // Stop シャットダウン(force)
-func (api *LoadBalancerAPI) Stop(id int64) (bool, error) {
+func (api *LoadBalancerAPI) Stop(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -182,7 +196,7 @@ func (api *LoadBalancerAPI) Stop(id int64) (bool, error) {
 }
 
 // RebootForce 再起動
-func (api *LoadBalancerAPI) RebootForce(id int64) (bool, error) {
+func (api *LoadBalancerAPI) RebootForce(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/reset", api.getResourceURL(), id)
@@ -192,7 +206,7 @@ func (api *LoadBalancerAPI) RebootForce(id int64) (bool, error) {
 }
 
 // ResetForce リセット
-func (api *LoadBalancerAPI) ResetForce(id int64, recycleProcess bool) (bool, error) {
+func (api *LoadBalancerAPI) ResetForce(id sacloud.ID, recycleProcess bool) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/reset", api.getResourceURL(), id)
@@ -202,7 +216,7 @@ func (api *LoadBalancerAPI) ResetForce(id int64, recycleProcess bool) (bool, err
 }
 
 // SleepUntilUp 起動するまで待機
-func (api *LoadBalancerAPI) SleepUntilUp(id int64, timeout time.Duration) error {
+func (api *LoadBalancerAPI) SleepUntilUp(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForUpFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, 0)
@@ -210,7 +224,7 @@ func (api *LoadBalancerAPI) SleepUntilUp(id int64, timeout time.Duration) error 
 }
 
 // SleepUntilDown ダウンするまで待機
-func (api *LoadBalancerAPI) SleepUntilDown(id int64, timeout time.Duration) error {
+func (api *LoadBalancerAPI) SleepUntilDown(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForDownFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, 0)
@@ -218,7 +232,7 @@ func (api *LoadBalancerAPI) SleepUntilDown(id int64, timeout time.Duration) erro
 }
 
 // SleepWhileCopying コピー終了まで待機
-func (api *LoadBalancerAPI) SleepWhileCopying(id int64, timeout time.Duration, maxRetry int) error {
+func (api *LoadBalancerAPI) SleepWhileCopying(id sacloud.ID, timeout time.Duration, maxRetry int) error {
 	handler := waitingForAvailableFunc(func() (hasAvailable, error) {
 		return api.Read(id)
 	}, maxRetry)
@@ -226,7 +240,7 @@ func (api *LoadBalancerAPI) SleepWhileCopying(id int64, timeout time.Duration, m
 }
 
 // AsyncSleepWhileCopying コピー終了まで待機(非同期)
-func (api *LoadBalancerAPI) AsyncSleepWhileCopying(id int64, timeout time.Duration, maxRetry int) (chan (interface{}), chan (interface{}), chan (error)) {
+func (api *LoadBalancerAPI) AsyncSleepWhileCopying(id sacloud.ID, timeout time.Duration, maxRetry int) (chan (interface{}), chan (interface{}), chan (error)) {
 	handler := waitingForAvailableFunc(func() (hasAvailable, error) {
 		return api.Read(id)
 	}, maxRetry)
@@ -234,12 +248,12 @@ func (api *LoadBalancerAPI) AsyncSleepWhileCopying(id int64, timeout time.Durati
 }
 
 // Monitor アクティビティーモニター取得
-func (api *LoadBalancerAPI) Monitor(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *LoadBalancerAPI) Monitor(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.applianceMonitorBy(id, "interface", 0, body)
 }
 
 // Status ステータス取得
-func (api *LoadBalancerAPI) Status(id int64) (*sacloud.LoadBalancerStatusResult, error) {
+func (api *LoadBalancerAPI) Status(id sacloud.ID) (*sacloud.LoadBalancerStatusResult, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/status", api.getResourceURL(), id)

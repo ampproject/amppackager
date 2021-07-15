@@ -21,7 +21,6 @@ import (
 )
 
 // UpdateGtmAddressPool invokes the alidns.UpdateGtmAddressPool API synchronously
-// api document: https://help.aliyun.com/api/alidns/updategtmaddresspool.html
 func (client *Client) UpdateGtmAddressPool(request *UpdateGtmAddressPoolRequest) (response *UpdateGtmAddressPoolResponse, err error) {
 	response = CreateUpdateGtmAddressPoolResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) UpdateGtmAddressPool(request *UpdateGtmAddressPoolRequest)
 }
 
 // UpdateGtmAddressPoolWithChan invokes the alidns.UpdateGtmAddressPool API asynchronously
-// api document: https://help.aliyun.com/api/alidns/updategtmaddresspool.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) UpdateGtmAddressPoolWithChan(request *UpdateGtmAddressPoolRequest) (<-chan *UpdateGtmAddressPoolResponse, <-chan error) {
 	responseChan := make(chan *UpdateGtmAddressPoolResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) UpdateGtmAddressPoolWithChan(request *UpdateGtmAddressPool
 }
 
 // UpdateGtmAddressPoolWithCallback invokes the alidns.UpdateGtmAddressPool API asynchronously
-// api document: https://help.aliyun.com/api/alidns/updategtmaddresspool.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) UpdateGtmAddressPoolWithCallback(request *UpdateGtmAddressPoolRequest, callback func(response *UpdateGtmAddressPoolResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,13 +71,13 @@ func (client *Client) UpdateGtmAddressPoolWithCallback(request *UpdateGtmAddress
 // UpdateGtmAddressPoolRequest is the request struct for api UpdateGtmAddressPool
 type UpdateGtmAddressPoolRequest struct {
 	*requests.RpcRequest
+	Type                string                      `position:"Query" name:"Type"`
+	MinAvailableAddrNum requests.Integer            `position:"Query" name:"MinAvailableAddrNum"`
 	AddrPoolId          string                      `position:"Query" name:"AddrPoolId"`
 	UserClientIp        string                      `position:"Query" name:"UserClientIp"`
 	Name                string                      `position:"Query" name:"Name"`
 	Lang                string                      `position:"Query" name:"Lang"`
-	Type                string                      `position:"Query" name:"Type"`
 	Addr                *[]UpdateGtmAddressPoolAddr `position:"Query" name:"Addr"  type:"Repeated"`
-	MinAvailableAddrNum requests.Integer            `position:"Query" name:"MinAvailableAddrNum"`
 }
 
 // UpdateGtmAddressPoolAddr is a repeated param struct in UpdateGtmAddressPoolRequest
@@ -103,7 +98,8 @@ func CreateUpdateGtmAddressPoolRequest() (request *UpdateGtmAddressPoolRequest) 
 	request = &UpdateGtmAddressPoolRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "UpdateGtmAddressPool", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "UpdateGtmAddressPool", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

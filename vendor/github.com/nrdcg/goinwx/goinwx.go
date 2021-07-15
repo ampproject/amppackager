@@ -10,7 +10,7 @@ import (
 const (
 	APIBaseURL        = "https://api.domrobot.com/xmlrpc/"
 	APISandboxBaseURL = "https://api.ote.domrobot.com/xmlrpc/"
-	APILanguage       = "eng"
+	APILanguage       = "en"
 )
 
 // Client manages communication with INWX API.
@@ -18,12 +18,11 @@ type Client struct {
 	// HTTP client used to communicate with the INWX API.
 	RPCClient *xmlrpc.Client
 
-	// Base URL for API requests.
-	BaseURL *url.URL
-
 	// API username and password
 	username string
 	password string
+
+	lang string
 
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
@@ -41,6 +40,12 @@ type service struct {
 // ClientOptions Options of the API client.
 type ClientOptions struct {
 	Sandbox bool
+
+	// Language of the return message. (en/de/es)
+	Lang string
+
+	// Base URL for API requests (only for client testing purpose).
+	BaseURL *url.URL
 }
 
 // Request The representation of an API request.
@@ -51,26 +56,19 @@ type Request struct {
 
 // NewClient returns a new INWX API client.
 func NewClient(username, password string, opts *ClientOptions) *Client {
-	var useSandbox bool
-	if opts != nil {
-		useSandbox = opts.Sandbox
-	}
+	baseURL := getBaseURL(opts).String()
 
-	var baseURL *url.URL
-
-	if useSandbox {
-		baseURL, _ = url.Parse(APISandboxBaseURL)
-	} else {
-		baseURL, _ = url.Parse(APIBaseURL)
-	}
-
-	rpcClient, _ := xmlrpc.NewClient(baseURL.String(), nil)
+	rpcClient, _ := xmlrpc.NewClient(baseURL, nil)
 
 	client := &Client{
 		RPCClient: rpcClient,
-		BaseURL:   baseURL,
 		username:  username,
 		password:  password,
+		lang:      APILanguage,
+	}
+
+	if opts != nil && opts.Lang != "" {
+		client.lang = opts.Lang
 	}
 
 	client.common.client = client
@@ -109,4 +107,25 @@ func checkResponse(r *Response) error {
 	}
 
 	return &ErrorResponse{Code: r.Code, Message: r.Message, Reason: r.Reason, ReasonCode: r.ReasonCode}
+}
+
+func getBaseURL(opts *ClientOptions) *url.URL {
+	var useSandbox bool
+	if opts != nil {
+		useSandbox = opts.Sandbox
+	}
+
+	var baseURL *url.URL
+
+	if useSandbox {
+		baseURL, _ = url.Parse(APISandboxBaseURL)
+	} else {
+		baseURL, _ = url.Parse(APIBaseURL)
+	}
+
+	if opts != nil && opts.BaseURL != nil {
+		baseURL = opts.BaseURL
+	}
+
+	return baseURL
 }

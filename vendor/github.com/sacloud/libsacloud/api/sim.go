@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -103,28 +117,28 @@ func (api *SIMAPI) New(name, iccID, passcode string) *sacloud.SIM {
 }
 
 // Read 読み取り
-func (api *SIMAPI) Read(id int64) (*sacloud.SIM, error) {
+func (api *SIMAPI) Read(id sacloud.ID) (*sacloud.SIM, error) {
 	return api.request(func(res *simResponse) error {
 		return api.read(id, nil, res)
 	})
 }
 
 // Update 更新
-func (api *SIMAPI) Update(id int64, value *sacloud.SIM) (*sacloud.SIM, error) {
+func (api *SIMAPI) Update(id sacloud.ID, value *sacloud.SIM) (*sacloud.SIM, error) {
 	return api.request(func(res *simResponse) error {
 		return api.update(id, api.createRequest(value), res)
 	})
 }
 
 // Delete 削除
-func (api *SIMAPI) Delete(id int64) (*sacloud.SIM, error) {
+func (api *SIMAPI) Delete(id sacloud.ID) (*sacloud.SIM, error) {
 	return api.request(func(res *simResponse) error {
 		return api.delete(id, nil, res)
 	})
 }
 
 // Activate SIM有効化
-func (api *SIMAPI) Activate(id int64) (bool, error) {
+func (api *SIMAPI) Activate(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/sim/activate", api.getResourceURL(), id)
@@ -134,7 +148,7 @@ func (api *SIMAPI) Activate(id int64) (bool, error) {
 }
 
 // Deactivate SIM無効化
-func (api *SIMAPI) Deactivate(id int64) (bool, error) {
+func (api *SIMAPI) Deactivate(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/sim/deactivate", api.getResourceURL(), id)
@@ -144,7 +158,7 @@ func (api *SIMAPI) Deactivate(id int64) (bool, error) {
 }
 
 // AssignIP SIMへのIP割り当て
-func (api *SIMAPI) AssignIP(id int64, ip string) (bool, error) {
+func (api *SIMAPI) AssignIP(id sacloud.ID, ip string) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/sim/ip", api.getResourceURL(), id)
@@ -158,7 +172,7 @@ func (api *SIMAPI) AssignIP(id int64, ip string) (bool, error) {
 }
 
 // ClearIP SIMからのIP割り当て解除
-func (api *SIMAPI) ClearIP(id int64) (bool, error) {
+func (api *SIMAPI) ClearIP(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/sim/ip", api.getResourceURL(), id)
@@ -167,7 +181,7 @@ func (api *SIMAPI) ClearIP(id int64) (bool, error) {
 }
 
 // IMEILock IMEIロック
-func (api *SIMAPI) IMEILock(id int64, imei string) (bool, error) {
+func (api *SIMAPI) IMEILock(id sacloud.ID, imei string) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/sim/imeilock", api.getResourceURL(), id)
@@ -181,7 +195,7 @@ func (api *SIMAPI) IMEILock(id int64, imei string) (bool, error) {
 }
 
 // IMEIUnlock IMEIアンロック
-func (api *SIMAPI) IMEIUnlock(id int64) (bool, error) {
+func (api *SIMAPI) IMEIUnlock(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/sim/imeilock", api.getResourceURL(), id)
@@ -190,7 +204,7 @@ func (api *SIMAPI) IMEIUnlock(id int64) (bool, error) {
 }
 
 // Logs セッションログ取得
-func (api *SIMAPI) Logs(id int64, body interface{}) ([]sacloud.SIMLog, error) {
+func (api *SIMAPI) Logs(id sacloud.ID, body interface{}) ([]sacloud.SIMLog, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/sim/sessionlog", api.getResourceURL(), id)
@@ -205,7 +219,7 @@ func (api *SIMAPI) Logs(id int64, body interface{}) ([]sacloud.SIMLog, error) {
 }
 
 // GetNetworkOperator 通信キャリア 取得
-func (api *SIMAPI) GetNetworkOperator(id int64) (*sacloud.SIMNetworkOperatorConfigs, error) {
+func (api *SIMAPI) GetNetworkOperator(id sacloud.ID) (*sacloud.SIMNetworkOperatorConfigs, error) {
 
 	var (
 		method = "GET"
@@ -221,7 +235,7 @@ func (api *SIMAPI) GetNetworkOperator(id int64) (*sacloud.SIMNetworkOperatorConf
 }
 
 // SetNetworkOperator 通信キャリア 設定
-func (api *SIMAPI) SetNetworkOperator(id int64, opConfig ...*sacloud.SIMNetworkOperatorConfig) (bool, error) {
+func (api *SIMAPI) SetNetworkOperator(id sacloud.ID, opConfig ...*sacloud.SIMNetworkOperatorConfig) (bool, error) {
 
 	var (
 		method = "PUT"
@@ -236,7 +250,7 @@ func (api *SIMAPI) SetNetworkOperator(id int64, opConfig ...*sacloud.SIMNetworkO
 }
 
 // Monitor アクティビティーモニター(Up/Down link BPS)取得
-func (api *SIMAPI) Monitor(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *SIMAPI) Monitor(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/sim/metrics", api.getResourceURL(), id)

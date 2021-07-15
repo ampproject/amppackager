@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeBatchResultDetail invokes the alidns.DescribeBatchResultDetail API synchronously
-// api document: https://help.aliyun.com/api/alidns/describebatchresultdetail.html
 func (client *Client) DescribeBatchResultDetail(request *DescribeBatchResultDetailRequest) (response *DescribeBatchResultDetailResponse, err error) {
 	response = CreateDescribeBatchResultDetailResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeBatchResultDetail(request *DescribeBatchResultDeta
 }
 
 // DescribeBatchResultDetailWithChan invokes the alidns.DescribeBatchResultDetail API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describebatchresultdetail.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeBatchResultDetailWithChan(request *DescribeBatchResultDetailRequest) (<-chan *DescribeBatchResultDetailResponse, <-chan error) {
 	responseChan := make(chan *DescribeBatchResultDetailResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeBatchResultDetailWithChan(request *DescribeBatchRe
 }
 
 // DescribeBatchResultDetailWithCallback invokes the alidns.DescribeBatchResultDetail API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describebatchresultdetail.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeBatchResultDetailWithCallback(request *DescribeBatchResultDetailRequest, callback func(response *DescribeBatchResultDetailResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,11 +72,12 @@ func (client *Client) DescribeBatchResultDetailWithCallback(request *DescribeBat
 type DescribeBatchResultDetailRequest struct {
 	*requests.RpcRequest
 	BatchType    string           `position:"Query" name:"BatchType"`
+	PageNumber   requests.Integer `position:"Query" name:"PageNumber"`
 	UserClientIp string           `position:"Query" name:"UserClientIp"`
 	PageSize     requests.Integer `position:"Query" name:"PageSize"`
 	Lang         string           `position:"Query" name:"Lang"`
-	PageNumber   requests.Integer `position:"Query" name:"PageNumber"`
 	TaskId       requests.Integer `position:"Query" name:"TaskId"`
+	Status       string           `position:"Query" name:"Status"`
 }
 
 // DescribeBatchResultDetailResponse is the response struct for api DescribeBatchResultDetail
@@ -99,7 +95,8 @@ func CreateDescribeBatchResultDetailRequest() (request *DescribeBatchResultDetai
 	request = &DescribeBatchResultDetailRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeBatchResultDetail", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeBatchResultDetail", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

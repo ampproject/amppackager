@@ -1,7 +1,9 @@
 package cloudflare
 
 import (
+	"context"
 	"encoding/json"
+	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
@@ -56,20 +58,22 @@ type LoadBalancerMonitor struct {
 
 // LoadBalancer represents a load balancer's properties.
 type LoadBalancer struct {
-	ID             string              `json:"id,omitempty"`
-	CreatedOn      *time.Time          `json:"created_on,omitempty"`
-	ModifiedOn     *time.Time          `json:"modified_on,omitempty"`
-	Description    string              `json:"description"`
-	Name           string              `json:"name"`
-	TTL            int                 `json:"ttl,omitempty"`
-	FallbackPool   string              `json:"fallback_pool"`
-	DefaultPools   []string            `json:"default_pools"`
-	RegionPools    map[string][]string `json:"region_pools"`
-	PopPools       map[string][]string `json:"pop_pools"`
-	Proxied        bool                `json:"proxied"`
-	Enabled        *bool               `json:"enabled,omitempty"`
-	Persistence    string              `json:"session_affinity,omitempty"`
-	PersistenceTTL int                 `json:"session_affinity_ttl,omitempty"`
+	ID                        string                     `json:"id,omitempty"`
+	CreatedOn                 *time.Time                 `json:"created_on,omitempty"`
+	ModifiedOn                *time.Time                 `json:"modified_on,omitempty"`
+	Description               string                     `json:"description"`
+	Name                      string                     `json:"name"`
+	TTL                       int                        `json:"ttl,omitempty"`
+	FallbackPool              string                     `json:"fallback_pool"`
+	DefaultPools              []string                   `json:"default_pools"`
+	RegionPools               map[string][]string        `json:"region_pools"`
+	PopPools                  map[string][]string        `json:"pop_pools"`
+	Proxied                   bool                       `json:"proxied"`
+	Enabled                   *bool                      `json:"enabled,omitempty"`
+	Persistence               string                     `json:"session_affinity,omitempty"`
+	PersistenceTTL            int                        `json:"session_affinity_ttl,omitempty"`
+	SessionAffinityAttributes *SessionAffinityAttributes `json:"session_affinity_attributes,omitempty"`
+	Rules                     []*LoadBalancerRule        `json:"rules,omitempty"`
 
 	// SteeringPolicy controls pool selection logic.
 	// "off" select pools in DefaultPools order
@@ -78,6 +82,73 @@ type LoadBalancer struct {
 	// "random" selects pools in a random order
 	// "" maps to "geo" if RegionPools or PopPools have entries otherwise "off"
 	SteeringPolicy string `json:"steering_policy,omitempty"`
+}
+
+// LoadBalancerRule represents a single rule entry for a Load Balancer. Each rules
+// is run one after the other in priority order. Disabled rules are skipped.
+type LoadBalancerRule struct {
+	// Name is required but is only used for human readability
+	Name string `json:"name"`
+	// Priority controls the order of rule execution the lowest value will be invoked first
+	Priority int  `json:"priority"`
+	Disabled bool `json:"disabled"`
+
+	Condition string                    `json:"condition"`
+	Overrides LoadBalancerRuleOverrides `json:"overrides"`
+
+	// Terminates flag this rule as 'terminating'. No further rules will
+	// be executed after this one.
+	Terminates bool `json:"terminates,omitempty"`
+
+	// FixedResponse if set and the condition is true we will not run
+	// routing logic but rather directly respond with the provided fields.
+	// FixedResponse implies terminates.
+	FixedResponse *LoadBalancerFixedResponseData `json:"fixed_response,omitempty"`
+}
+
+// LoadBalancerFixedResponseData contains all the data needed to generate
+// a fixed response from a Load Balancer. This behavior can be enabled via Rules.
+type LoadBalancerFixedResponseData struct {
+	// MessageBody data to write into the http body
+	MessageBody string `json:"message_body,omitempty"`
+	// StatusCode the http status code to response with
+	StatusCode int `json:"status_code,omitempty"`
+	// ContentType value of the http 'content-type' header
+	ContentType string `json:"content_type,omitempty"`
+	// Location value of the http 'location' header
+	Location string `json:"location,omitempty"`
+}
+
+// LoadBalancerRuleOverrides are the set of field overridable by the rules system.
+type LoadBalancerRuleOverrides struct {
+	// session affinity
+	Persistence    string `json:"session_affinity,omitempty"`
+	PersistenceTTL *uint  `json:"session_affinity_ttl,omitempty"`
+
+	SessionAffinityAttrs *LoadBalancerRuleOverridesSessionAffinityAttrs `json:"session_affinity_attributes,omitempty"`
+
+	TTL uint `json:"ttl,omitempty"`
+
+	SteeringPolicy string `json:"steering_policy,omitempty"`
+	FallbackPool   string `json:"fallback_pool,omitempty"`
+
+	DefaultPools []string            `json:"default_pools,omitempty"`
+	PoPPools     map[string][]string `json:"pop_pools,omitempty"`
+	RegionPools  map[string][]string `json:"region_pools,omitempty"`
+}
+
+// LoadBalancerRuleOverridesSessionAffinityAttrs mimics SessionAffinityAttributes without the
+// DrainDuration field as that field can not be overwritten via rules.
+type LoadBalancerRuleOverridesSessionAffinityAttrs struct {
+	SameSite string `json:"samesite,omitempty"`
+	Secure   string `json:"secure,omitempty"`
+}
+
+// SessionAffinityAttributes represents the fields used to set attributes in a load balancer session affinity cookie.
+type SessionAffinityAttributes struct {
+	SameSite      string `json:"samesite,omitempty"`
+	Secure        string `json:"secure,omitempty"`
+	DrainDuration int    `json:"drain_duration,omitempty"`
 }
 
 // LoadBalancerOriginHealth represents the health of the origin.
@@ -147,12 +218,12 @@ type loadBalancerPoolHealthResponse struct {
 
 // CreateLoadBalancerPool creates a new load balancer pool.
 //
-// API reference: https://api.cloudflare.com/#load-balancer-pools-create-a-pool
-func (api *API) CreateLoadBalancerPool(pool LoadBalancerPool) (LoadBalancerPool, error) {
+// API reference: https://api.cloudflare.com/#load-balancer-pools-create-pool
+func (api *API) CreateLoadBalancerPool(ctx context.Context, pool LoadBalancerPool) (LoadBalancerPool, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/pools"
-	res, err := api.makeRequest("POST", uri, pool)
+	res, err := api.makeRequestContext(ctx, http.MethodPost, uri, pool)
 	if err != nil {
-		return LoadBalancerPool{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancerPool{}, err
 	}
 	var r loadBalancerPoolResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -164,11 +235,11 @@ func (api *API) CreateLoadBalancerPool(pool LoadBalancerPool) (LoadBalancerPool,
 // ListLoadBalancerPools lists load balancer pools connected to an account.
 //
 // API reference: https://api.cloudflare.com/#load-balancer-pools-list-pools
-func (api *API) ListLoadBalancerPools() ([]LoadBalancerPool, error) {
+func (api *API) ListLoadBalancerPools(ctx context.Context) ([]LoadBalancerPool, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/pools"
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, errMakeRequestError)
+		return nil, err
 	}
 	var r loadBalancerPoolListResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -180,11 +251,11 @@ func (api *API) ListLoadBalancerPools() ([]LoadBalancerPool, error) {
 // LoadBalancerPoolDetails returns the details for a load balancer pool.
 //
 // API reference: https://api.cloudflare.com/#load-balancer-pools-pool-details
-func (api *API) LoadBalancerPoolDetails(poolID string) (LoadBalancerPool, error) {
+func (api *API) LoadBalancerPoolDetails(ctx context.Context, poolID string) (LoadBalancerPool, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/pools/" + poolID
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return LoadBalancerPool{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancerPool{}, err
 	}
 	var r loadBalancerPoolResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -195,23 +266,23 @@ func (api *API) LoadBalancerPoolDetails(poolID string) (LoadBalancerPool, error)
 
 // DeleteLoadBalancerPool disables and deletes a load balancer pool.
 //
-// API reference: https://api.cloudflare.com/#load-balancer-pools-delete-a-pool
-func (api *API) DeleteLoadBalancerPool(poolID string) error {
+// API reference: https://api.cloudflare.com/#load-balancer-pools-delete-pool
+func (api *API) DeleteLoadBalancerPool(ctx context.Context, poolID string) error {
 	uri := api.userBaseURL("/user") + "/load_balancers/pools/" + poolID
-	if _, err := api.makeRequest("DELETE", uri, nil); err != nil {
-		return errors.Wrap(err, errMakeRequestError)
+	if _, err := api.makeRequestContext(ctx, http.MethodDelete, uri, nil); err != nil {
+		return err
 	}
 	return nil
 }
 
 // ModifyLoadBalancerPool modifies a configured load balancer pool.
 //
-// API reference: https://api.cloudflare.com/#load-balancer-pools-modify-a-pool
-func (api *API) ModifyLoadBalancerPool(pool LoadBalancerPool) (LoadBalancerPool, error) {
+// API reference: https://api.cloudflare.com/#load-balancer-pools-update-pool
+func (api *API) ModifyLoadBalancerPool(ctx context.Context, pool LoadBalancerPool) (LoadBalancerPool, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/pools/" + pool.ID
-	res, err := api.makeRequest("PUT", uri, pool)
+	res, err := api.makeRequestContext(ctx, http.MethodPut, uri, pool)
 	if err != nil {
-		return LoadBalancerPool{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancerPool{}, err
 	}
 	var r loadBalancerPoolResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -222,12 +293,12 @@ func (api *API) ModifyLoadBalancerPool(pool LoadBalancerPool) (LoadBalancerPool,
 
 // CreateLoadBalancerMonitor creates a new load balancer monitor.
 //
-// API reference: https://api.cloudflare.com/#load-balancer-monitors-create-a-monitor
-func (api *API) CreateLoadBalancerMonitor(monitor LoadBalancerMonitor) (LoadBalancerMonitor, error) {
+// API reference: https://api.cloudflare.com/#load-balancer-monitors-create-monitor
+func (api *API) CreateLoadBalancerMonitor(ctx context.Context, monitor LoadBalancerMonitor) (LoadBalancerMonitor, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/monitors"
-	res, err := api.makeRequest("POST", uri, monitor)
+	res, err := api.makeRequestContext(ctx, http.MethodPost, uri, monitor)
 	if err != nil {
-		return LoadBalancerMonitor{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancerMonitor{}, err
 	}
 	var r loadBalancerMonitorResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -239,11 +310,11 @@ func (api *API) CreateLoadBalancerMonitor(monitor LoadBalancerMonitor) (LoadBala
 // ListLoadBalancerMonitors lists load balancer monitors connected to an account.
 //
 // API reference: https://api.cloudflare.com/#load-balancer-monitors-list-monitors
-func (api *API) ListLoadBalancerMonitors() ([]LoadBalancerMonitor, error) {
+func (api *API) ListLoadBalancerMonitors(ctx context.Context) ([]LoadBalancerMonitor, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/monitors"
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, errMakeRequestError)
+		return nil, err
 	}
 	var r loadBalancerMonitorListResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -255,11 +326,11 @@ func (api *API) ListLoadBalancerMonitors() ([]LoadBalancerMonitor, error) {
 // LoadBalancerMonitorDetails returns the details for a load balancer monitor.
 //
 // API reference: https://api.cloudflare.com/#load-balancer-monitors-monitor-details
-func (api *API) LoadBalancerMonitorDetails(monitorID string) (LoadBalancerMonitor, error) {
+func (api *API) LoadBalancerMonitorDetails(ctx context.Context, monitorID string) (LoadBalancerMonitor, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/monitors/" + monitorID
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return LoadBalancerMonitor{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancerMonitor{}, err
 	}
 	var r loadBalancerMonitorResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -270,23 +341,23 @@ func (api *API) LoadBalancerMonitorDetails(monitorID string) (LoadBalancerMonito
 
 // DeleteLoadBalancerMonitor disables and deletes a load balancer monitor.
 //
-// API reference: https://api.cloudflare.com/#load-balancer-monitors-delete-a-monitor
-func (api *API) DeleteLoadBalancerMonitor(monitorID string) error {
+// API reference: https://api.cloudflare.com/#load-balancer-monitors-delete-monitor
+func (api *API) DeleteLoadBalancerMonitor(ctx context.Context, monitorID string) error {
 	uri := api.userBaseURL("/user") + "/load_balancers/monitors/" + monitorID
-	if _, err := api.makeRequest("DELETE", uri, nil); err != nil {
-		return errors.Wrap(err, errMakeRequestError)
+	if _, err := api.makeRequestContext(ctx, http.MethodDelete, uri, nil); err != nil {
+		return err
 	}
 	return nil
 }
 
 // ModifyLoadBalancerMonitor modifies a configured load balancer monitor.
 //
-// API reference: https://api.cloudflare.com/#load-balancer-monitors-modify-a-monitor
-func (api *API) ModifyLoadBalancerMonitor(monitor LoadBalancerMonitor) (LoadBalancerMonitor, error) {
+// API reference: https://api.cloudflare.com/#load-balancer-monitors-update-monitor
+func (api *API) ModifyLoadBalancerMonitor(ctx context.Context, monitor LoadBalancerMonitor) (LoadBalancerMonitor, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/monitors/" + monitor.ID
-	res, err := api.makeRequest("PUT", uri, monitor)
+	res, err := api.makeRequestContext(ctx, http.MethodPut, uri, monitor)
 	if err != nil {
-		return LoadBalancerMonitor{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancerMonitor{}, err
 	}
 	var r loadBalancerMonitorResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -297,12 +368,12 @@ func (api *API) ModifyLoadBalancerMonitor(monitor LoadBalancerMonitor) (LoadBala
 
 // CreateLoadBalancer creates a new load balancer.
 //
-// API reference: https://api.cloudflare.com/#load-balancers-create-a-load-balancer
-func (api *API) CreateLoadBalancer(zoneID string, lb LoadBalancer) (LoadBalancer, error) {
+// API reference: https://api.cloudflare.com/#load-balancers-create-load-balancer
+func (api *API) CreateLoadBalancer(ctx context.Context, zoneID string, lb LoadBalancer) (LoadBalancer, error) {
 	uri := "/zones/" + zoneID + "/load_balancers"
-	res, err := api.makeRequest("POST", uri, lb)
+	res, err := api.makeRequestContext(ctx, http.MethodPost, uri, lb)
 	if err != nil {
-		return LoadBalancer{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancer{}, err
 	}
 	var r loadBalancerResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -314,11 +385,11 @@ func (api *API) CreateLoadBalancer(zoneID string, lb LoadBalancer) (LoadBalancer
 // ListLoadBalancers lists load balancers configured on a zone.
 //
 // API reference: https://api.cloudflare.com/#load-balancers-list-load-balancers
-func (api *API) ListLoadBalancers(zoneID string) ([]LoadBalancer, error) {
+func (api *API) ListLoadBalancers(ctx context.Context, zoneID string) ([]LoadBalancer, error) {
 	uri := "/zones/" + zoneID + "/load_balancers"
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, errMakeRequestError)
+		return nil, err
 	}
 	var r loadBalancerListResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -330,11 +401,11 @@ func (api *API) ListLoadBalancers(zoneID string) ([]LoadBalancer, error) {
 // LoadBalancerDetails returns the details for a load balancer.
 //
 // API reference: https://api.cloudflare.com/#load-balancers-load-balancer-details
-func (api *API) LoadBalancerDetails(zoneID, lbID string) (LoadBalancer, error) {
+func (api *API) LoadBalancerDetails(ctx context.Context, zoneID, lbID string) (LoadBalancer, error) {
 	uri := "/zones/" + zoneID + "/load_balancers/" + lbID
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return LoadBalancer{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancer{}, err
 	}
 	var r loadBalancerResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -345,23 +416,23 @@ func (api *API) LoadBalancerDetails(zoneID, lbID string) (LoadBalancer, error) {
 
 // DeleteLoadBalancer disables and deletes a load balancer.
 //
-// API reference: https://api.cloudflare.com/#load-balancers-delete-a-load-balancer
-func (api *API) DeleteLoadBalancer(zoneID, lbID string) error {
+// API reference: https://api.cloudflare.com/#load-balancers-delete-load-balancer
+func (api *API) DeleteLoadBalancer(ctx context.Context, zoneID, lbID string) error {
 	uri := "/zones/" + zoneID + "/load_balancers/" + lbID
-	if _, err := api.makeRequest("DELETE", uri, nil); err != nil {
-		return errors.Wrap(err, errMakeRequestError)
+	if _, err := api.makeRequestContext(ctx, http.MethodDelete, uri, nil); err != nil {
+		return err
 	}
 	return nil
 }
 
 // ModifyLoadBalancer modifies a configured load balancer.
 //
-// API reference: https://api.cloudflare.com/#load-balancers-modify-a-load-balancer
-func (api *API) ModifyLoadBalancer(zoneID string, lb LoadBalancer) (LoadBalancer, error) {
+// API reference: https://api.cloudflare.com/#load-balancers-update-load-balancer
+func (api *API) ModifyLoadBalancer(ctx context.Context, zoneID string, lb LoadBalancer) (LoadBalancer, error) {
 	uri := "/zones/" + zoneID + "/load_balancers/" + lb.ID
-	res, err := api.makeRequest("PUT", uri, lb)
+	res, err := api.makeRequestContext(ctx, http.MethodPut, uri, lb)
 	if err != nil {
-		return LoadBalancer{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancer{}, err
 	}
 	var r loadBalancerResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -373,11 +444,11 @@ func (api *API) ModifyLoadBalancer(zoneID string, lb LoadBalancer) (LoadBalancer
 // PoolHealthDetails fetches the latest healtcheck details for a single pool.
 //
 // API reference: https://api.cloudflare.com/#load-balancer-pools-pool-health-details
-func (api *API) PoolHealthDetails(poolID string) (LoadBalancerPoolHealth, error) {
+func (api *API) PoolHealthDetails(ctx context.Context, poolID string) (LoadBalancerPoolHealth, error) {
 	uri := api.userBaseURL("/user") + "/load_balancers/pools/" + poolID + "/health"
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return LoadBalancerPoolHealth{}, errors.Wrap(err, errMakeRequestError)
+		return LoadBalancerPoolHealth{}, err
 	}
 	var r loadBalancerPoolHealthResponse
 	if err := json.Unmarshal(res, &r); err != nil {

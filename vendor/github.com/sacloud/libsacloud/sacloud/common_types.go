@@ -1,58 +1,63 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import (
-	"fmt"
-	"strconv"
 	"time"
 )
 
 // Resource IDを持つ、さくらのクラウド上のリソース
 type Resource struct {
-	ID int64 // ID
+	ID ID // ID
 }
 
 // ResourceIDHolder ID保持インターフェース
 type ResourceIDHolder interface {
-	SetID(int64)
-	GetID() int64
+	SetID(id ID)
+	GetID() ID
 }
 
 // EmptyID 空ID
-const EmptyID int64 = 0
+const EmptyID = ID(0)
 
 // NewResource 新規リソース作成
-func NewResource(id int64) *Resource {
+func NewResource(id ID) *Resource {
 	return &Resource{ID: id}
 }
 
 // NewResourceByStringID ID文字列からリソース作成
 func NewResourceByStringID(id string) *Resource {
-	intID, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	return &Resource{ID: intID}
+	return &Resource{ID: StringID(id)}
 }
 
 // SetID ID 設定
-func (n *Resource) SetID(id int64) {
+func (n *Resource) SetID(id ID) {
 	n.ID = id
 }
 
 // GetID ID 取得
-func (n *Resource) GetID() int64 {
+func (n *Resource) GetID() ID {
 	if n == nil {
-		return -1
+		return EmptyID
 	}
 	return n.ID
 }
 
 // GetStrID 文字列でID取得
 func (n *Resource) GetStrID() string {
-	if n == nil {
-		return ""
-	}
-	return fmt.Sprintf("%d", n.ID)
+	return n.ID.String()
 }
 
 // EAvailability 有効状態
@@ -245,15 +250,17 @@ type SakuraCloudResourceList struct {
 }
 
 // Request APIリクエスト型
+//
+// FromとCountに0を指定するとページングが無効となる
 type Request struct {
 	SakuraCloudResources                        // さくらのクラウドリソース
-	From                 int                    `json:",omitempty"` // ページング FROM
-	Count                int                    `json:",omitempty"` // 取得件数
+	From                 int                    // ページング FROM
+	Count                int                    // 取得件数
 	Sort                 []string               `json:",omitempty"` // ソート
 	Filter               map[string]interface{} `json:",omitempty"` // フィルタ
 	Exclude              []string               `json:",omitempty"` // 除外する項目
 	Include              []string               `json:",omitempty"` // 取得する項目
-	DistantFrom          []int64                `json:",omitempty"` // ストレージ隔離対象ディスク
+	DistantFrom          []ID                   `json:",omitempty"` // ストレージ隔離対象ディスク
 }
 
 // AddFilter フィルタの追加
@@ -325,9 +332,9 @@ type ResultErrorValue struct {
 
 // MigrationJobStatus マイグレーションジョブステータス
 type MigrationJobStatus struct {
-	Status string `json:",omitempty"` // ステータス
-
-	Delays *struct { // Delays
+	Status      string          `json:",omitempty"` // ステータス
+	ConfigError *JobConfigError `json:",omitempty"`
+	Delays      *struct {       // Delays
 		Start *struct { // 開始
 			Max int `json:",omitempty"` // 最大
 			Min int `json:",omitempty"` // 最小
@@ -338,6 +345,13 @@ type MigrationJobStatus struct {
 			Min int `json:",omitempty"` // 最小
 		} `json:",omitempty"`
 	}
+}
+
+// JobConfigError マイグレーションジョブのエラー
+type JobConfigError struct {
+	ErrorCode string `json:",omitempty"`
+	ErrorMsg  string `json:",omitempty"`
+	Status    string `json:",omitempty"`
 }
 
 var (
@@ -360,6 +374,9 @@ var (
 	TagBootCDROM = "@boot-cdrom"
 	// TagBootNetwork 優先ブートデバイスをPXE bootに設定します
 	TagBootNetwork = "@boot-network"
+
+	// TagCPUTopology CPUソケット数を1と認識させる
+	TagCPUTopology = "@cpu-topology"
 )
 
 // DatetimeLayout さくらのクラウドAPIで利用される日付型のレイアウト(RFC3339)

@@ -1,5 +1,5 @@
 language: go
-go: "1.12"
+go: "1.13.x"
 
 install:
   - go get -u golang.org/x/lint/golint
@@ -9,4 +9,3 @@ install:
 script:
   - make vet goimports
   - make test
-  - travis_wait 120 make test-builder

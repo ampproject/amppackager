@@ -3,7 +3,8 @@
 A Go library to handle [acme-dns](https://github.com/joohoi/acme-dns) client
 communication and persistent account storage.
 
-[![Build Status](https://travis-ci.org/cpu/goacmedns.svg?branch=master)](https://travis-ci.org/cpu/goacmedns)
+[![CI Status](https://github.com/cpu/goacmedns/workflows/Go/badge.svg)](https://github.com/cpu/goacmedns/actions?query=workflow%3AGo)
+[![Lint Status](https://github.com/cpu/goacmedns/workflows/golangci-lint/badge.svg)](https://github.com/cpu/goacmedns/actions?query=workflow%3Agolangci-lint)
 [![Coverage Status](https://coveralls.io/repos/github/cpu/goacmedns/badge.svg?branch=master)](https://coveralls.io/github/cpu/goacmedns?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/cpu/goacmedns)](https://goreportcard.com/report/github.com/cpu/goacmedns)
 
@@ -12,7 +13,7 @@ You may also be interested in a Python equivalent,
 
 # Installation
 
-Once you have [installed Go](https://golang.org/doc/install) 1.10+ you can
+Once you have [installed Go](https://golang.org/doc/install) 1.15+ you can
 install `goacmedns` with `go get`:
 
      go get github.com/cpu/goacmedns/...

@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import (
@@ -24,7 +38,7 @@ type NFSRemark struct {
 }
 
 // SetRemarkPlanID プランID設定
-func (n NFSRemark) SetRemarkPlanID(planID int64) {
+func (n NFSRemark) SetRemarkPlanID(planID ID) {
 	if n.Plan == nil {
 		n.Plan = &struct {
 			ID json.Number `json:",omitempty"`
@@ -63,6 +77,8 @@ func (p NFSPlan) String() string {
 type NFSSize int
 
 var (
+	// NFSSize20G 20Gプラン
+	NFSSize20G = NFSSize(20)
 	// NFSSize100G 100Gプラン
 	NFSSize100G = NFSSize(100)
 	// NFSSize500G 500Gプラン
@@ -95,6 +111,7 @@ func AllowNFSNormalPlanSizes() []int {
 // AllowNFSSSDPlanSizes 指定可能なNFSサイズ(SSDプラン)
 func AllowNFSSSDPlanSizes() []int {
 	return []int{
+		int(NFSSize20G),
 		int(NFSSize100G),
 		int(NFSSize500G),
 		int(NFSSize1T),
@@ -103,9 +120,25 @@ func AllowNFSSSDPlanSizes() []int {
 	}
 }
 
+// AllowNFSAllPlanSizes 指定可能なNFSサイズ(HDD/SSD両方)
+//
+// ディスクプランによって選択できないサイズを含むため、利用する側で適切にバリデーションを行う必要がある
+func AllowNFSAllPlanSizes() []int {
+	return []int{
+		int(NFSSize20G),
+		int(NFSSize100G),
+		int(NFSSize500G),
+		int(NFSSize1T),
+		int(NFSSize2T),
+		int(NFSSize4T),
+		int(NFSSize8T),
+		int(NFSSize12T),
+	}
+}
+
 // CreateNFSValue NFS作成用パラメーター
 type CreateNFSValue struct {
-	SwitchID        string    // 接続先スイッチID
+	SwitchID        ID        // 接続先スイッチID
 	IPAddress       string    // IPアドレス
 	MaskLen         int       // ネットワークマスク長
 	DefaultRoute    string    // デフォルトルート
@@ -191,7 +224,7 @@ type NFSPlans struct {
 }
 
 // FindPlanID プランとサイズからプランIDを取得
-func (p NFSPlans) FindPlanID(plan NFSPlan, size NFSSize) int64 {
+func (p NFSPlans) FindPlanID(plan NFSPlan, size NFSSize) ID {
 	var plans []NFSPlanValue
 	switch plan {
 	case NFSPlanHDD:
@@ -204,11 +237,7 @@ func (p NFSPlans) FindPlanID(plan NFSPlan, size NFSSize) int64 {
 
 	for _, plan := range plans {
 		if plan.Availability == "available" && plan.Size == int(size) {
-			res, err := plan.PlanID.Int64()
-			if err != nil {
-				return -1
-			}
-			return res
+			return plan.PlanID
 		}
 	}
 
@@ -216,23 +245,17 @@ func (p NFSPlans) FindPlanID(plan NFSPlan, size NFSSize) int64 {
 }
 
 // FindByPlanID プランIDから該当プランを取得
-func (p NFSPlans) FindByPlanID(planID int64) (NFSPlan, *NFSPlanValue) {
+func (p NFSPlans) FindByPlanID(planID ID) (NFSPlan, *NFSPlanValue) {
 
 	for _, plan := range p.SSD {
-		id, err := plan.PlanID.Int64()
-		if err != nil {
-			continue
-		}
+		id := plan.PlanID
 		if id == planID {
 			return NFSPlanSSD, &plan
 		}
 	}
 
 	for _, plan := range p.HDD {
-		id, err := plan.PlanID.Int64()
-		if err != nil {
-			continue
-		}
+		id := plan.PlanID
 		if id == planID {
 			return NFSPlanHDD, &plan
 		}
@@ -242,7 +265,7 @@ func (p NFSPlans) FindByPlanID(planID int64) (NFSPlan, *NFSPlanValue) {
 
 // NFSPlanValue NFSプラン
 type NFSPlanValue struct {
-	Size         int         `json:"size"`
-	Availability string      `json:"availability"`
-	PlanID       json.Number `json:"planId"`
+	Size         int    `json:"size"`
+	Availability string `json:"availability"`
+	PlanID       ID     `json:"planId"`
 }

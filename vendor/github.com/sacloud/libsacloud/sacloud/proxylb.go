@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import (
@@ -56,10 +70,10 @@ func CreateNewProxyLB(name string) *ProxyLB {
 		},
 		Settings: ProxyLBSettings{
 			ProxyLB: ProxyLBSetting{
-				HealthCheck:   defaultProxyLBHealthCheck,
-				SorryServer:   ProxyLBSorryServer{},
-				Servers:       []ProxyLBServer{},
-				LetsEncrypt:   ProxyLBACMESetting{},
+				HealthCheck: defaultProxyLBHealthCheck,
+				SorryServer: ProxyLBSorryServer{},
+				Servers:     []ProxyLBServer{},
+				//LetsEncrypt:   ProxyLBACMESetting{},
 				StickySession: ProxyLBSessionSetting{},
 			},
 		},
@@ -84,6 +98,8 @@ var (
 	ProxyLBPlan50000 = ProxyLBPlan(50000)
 	// ProxyLBPlan100000 100,000cpsプラン
 	ProxyLBPlan100000 = ProxyLBPlan(100000)
+	// ProxyLBPlan400000 400,000cpsプラン
+	ProxyLBPlan400000 = ProxyLBPlan(400000)
 )
 
 // AllowProxyLBPlans 有効なプランIDリスト
@@ -95,6 +111,7 @@ var AllowProxyLBPlans = []int{
 	int(ProxyLBPlan10000),
 	int(ProxyLBPlan50000),
 	int(ProxyLBPlan100000),
+	int(ProxyLBPlan400000),
 }
 
 // GetPlan プラン取得(デフォルト: 1000cps)
@@ -179,8 +196,8 @@ func (p *ProxyLB) ClearBindPorts() {
 }
 
 // AddServer ProxyLB配下のサーバーを追加
-func (p *ProxyLB) AddServer(ip string, port int, enabled bool) {
-	p.Settings.ProxyLB.AddServer(ip, port, enabled)
+func (p *ProxyLB) AddServer(ip string, port int, enabled bool, serverGroup string) {
+	p.Settings.ProxyLB.AddServer(ip, port, enabled, serverGroup)
 }
 
 // DeleteServer ProxyLB配下のサーバーを削除
@@ -190,12 +207,14 @@ func (p *ProxyLB) DeleteServer(ip string, port int) {
 
 // ProxyLBSetting ProxyLBセッティング
 type ProxyLBSetting struct {
-	HealthCheck   ProxyLBHealthCheck    `json:",omitempty"` // ヘルスチェック
-	SorryServer   ProxyLBSorryServer    `json:",omitempty"` // ソーリーサーバー
-	BindPorts     []*ProxyLBBindPorts   `json:",omitempty"` // プロキシ方式(プロトコル&ポート)
-	Servers       []ProxyLBServer       `json:",omitempty"` // サーバー
-	LetsEncrypt   ProxyLBACMESetting    `json:",omitempty"` // Let's encryptでの証明書取得設定
-	StickySession ProxyLBSessionSetting `json:",omitempty"`
+	HealthCheck   ProxyLBHealthCheck  // ヘルスチェック
+	SorryServer   ProxyLBSorryServer  // ソーリーサーバー
+	BindPorts     []*ProxyLBBindPorts // プロキシ方式(プロトコル&ポート)
+	Servers       []ProxyLBServer     // サーバー
+	Rules         []ProxyLBRule       // 振り分けルール
+	LetsEncrypt   *ProxyLBACMESetting `json:",omitempty"` // Let's encryptでの証明書取得設定
+	StickySession ProxyLBSessionSetting
+	Timeout       *ProxyLBTimeout `json:",omitempty"` // タイムアウト
 }
 
 // ProxyLBSorryServer ソーリーサーバ
@@ -236,7 +255,7 @@ func (s *ProxyLBSetting) DeleteBindPort(mode string, port int) {
 }
 
 // AddServer ProxyLB配下のサーバーを追加
-func (s *ProxyLBSetting) AddServer(ip string, port int, enabled bool) {
+func (s *ProxyLBSetting) AddServer(ip string, port int, enabled bool, serverGroup string) {
 	var record ProxyLBServer
 	var isExist = false
 	for i := range s.Servers {
@@ -248,9 +267,10 @@ func (s *ProxyLBSetting) AddServer(ip string, port int, enabled bool) {
 
 	if !isExist {
 		record = ProxyLBServer{
-			IPAddress: ip,
-			Port:      port,
-			Enabled:   enabled,
+			IPAddress:   ip,
+			Port:        port,
+			Enabled:     enabled,
+			ServerGroup: serverGroup,
 		}
 		s.Servers = append(s.Servers, record)
 	}
@@ -269,7 +289,7 @@ func (s *ProxyLBSetting) DeleteServer(ip string, port int) {
 }
 
 // AllowProxyLBBindModes プロキシ方式
-var AllowProxyLBBindModes = []string{"http", "https"}
+var AllowProxyLBBindModes = []string{"http", "https", "tcp"}
 
 // ProxyLBBindPorts プロキシ方式
 type ProxyLBBindPorts struct {
@@ -277,7 +297,7 @@ type ProxyLBBindPorts struct {
 	Port              int                      `json:",omitempty"`      // ポート
 	RedirectToHTTPS   bool                     `json:"RedirectToHttps"` // HTTPSへのリダイレクト(モードがhttpの場合のみ)
 	SupportHTTP2      bool                     `json:"SupportHttp2"`    // HTTP/2のサポート(モードがhttpsの場合のみ)
-	AddResponseHeader []*ProxyLBResponseHeader // レスポンスヘッダ
+	AddResponseHeader []*ProxyLBResponseHeader `json:",omitempty"`      // レスポンスヘッダ
 }
 
 // ProxyLBResponseHeader ポートごとの追加レスポンスヘッダ
@@ -288,9 +308,10 @@ type ProxyLBResponseHeader struct {
 
 // ProxyLBServer ProxyLB配下のサーバー
 type ProxyLBServer struct {
-	IPAddress string `json:",omitempty"` // IPアドレス
-	Port      int    `json:",omitempty"` // ポート
-	Enabled   bool   // 有効/無効
+	IPAddress   string `json:",omitempty"` // IPアドレス
+	Port        int    `json:",omitempty"` // ポート
+	ServerGroup string // サーバグループ
+	Enabled     bool   // 有効/無効
 }
 
 // NewProxyLBServer ProxyLB配下のサーバ作成
@@ -300,6 +321,13 @@ func NewProxyLBServer(ipaddress string, port int) *ProxyLBServer {
 		Port:      port,
 		Enabled:   true,
 	}
+}
+
+// ProxyLBRule ProxyLBの振り分けルール
+type ProxyLBRule struct {
+	Host        string `json:",omitempty"` // ホストヘッダのパターン(ワイルドカードとして?と*が利用可能)
+	Path        string `json:",omitempty"` // パス
+	ServerGroup string
 }
 
 // ProxyLBACMESetting Let's Encryptでの証明書取得設定
@@ -312,6 +340,11 @@ type ProxyLBACMESetting struct {
 type ProxyLBSessionSetting struct {
 	Enabled bool
 	Method  string `json:",omitempty"`
+}
+
+// ProxyLBTimeout 実サーバの通信タイムアウト
+type ProxyLBTimeout struct {
+	InactiveSec int `json:",omitempty"` // 10から600まで1秒刻みで設定可
 }
 
 // ProxyLBStickySessionDefaultMethod セッション維持のデフォルトメソッド(クッキー)
@@ -341,17 +374,13 @@ type ProxyLBAdditionalCerts []*ProxyLBCertificate
 
 // ProxyLBCertificates ProxyLBのSSL証明書
 type ProxyLBCertificates struct {
-	ServerCertificate       string    // サーバ証明書
-	IntermediateCertificate string    // 中間証明書
-	PrivateKey              string    // 秘密鍵
-	CertificateEndDate      time.Time `json:",omitempty"` // 有効期限
-	CertificateCommonName   string    `json:",omitempty"` // CommonName
-	AdditionalCerts         ProxyLBAdditionalCerts
+	PrimaryCert     *ProxyLBCertificate
+	AdditionalCerts ProxyLBAdditionalCerts
 }
 
 // UnmarshalJSON UnmarshalJSON(AdditionalCertsが空の場合に空文字を返す問題への対応)
 func (p *ProxyLBAdditionalCerts) UnmarshalJSON(data []byte) error {
-	targetData := strings.Replace(strings.Replace(string(data), " ", "", -1), "\n", "", -1)
+	targetData := strings.Replace(strings.Replace(strings.Replace(string(data), " ", "", -1), "\n", "", -1), `""`, ``, -1)
 	if targetData == `` {
 		return nil
 	}
@@ -367,18 +396,16 @@ func (p *ProxyLBAdditionalCerts) UnmarshalJSON(data []byte) error {
 
 // SetPrimaryCert PrimaryCertを設定
 func (p *ProxyLBCertificates) SetPrimaryCert(cert *ProxyLBCertificate) {
-	p.ServerCertificate = cert.ServerCertificate
-	p.IntermediateCertificate = cert.IntermediateCertificate
-	p.PrivateKey = cert.PrivateKey
-	p.CertificateEndDate = cert.CertificateEndDate
-	p.CertificateCommonName = cert.CertificateCommonName
+	p.PrimaryCert = cert
 }
 
 // SetPrimaryCertValue PrimaryCertを設定
 func (p *ProxyLBCertificates) SetPrimaryCertValue(serverCert, intermediateCert, privateKey string) {
-	p.ServerCertificate = serverCert
-	p.IntermediateCertificate = intermediateCert
-	p.PrivateKey = privateKey
+	p.PrimaryCert = &ProxyLBCertificate{
+		ServerCertificate:       serverCert,
+		IntermediateCertificate: intermediateCert,
+		PrivateKey:              privateKey,
+	}
 }
 
 // AddAdditionalCert AdditionalCertを追加
@@ -417,44 +444,9 @@ func (p *ProxyLBCertificates) RemoveAdditionalCerts() {
 	p.AdditionalCerts = []*ProxyLBCertificate{}
 }
 
-// UnmarshalJSON UnmarshalJSON(CertificateEndDateのtime.TimeへのUnmarshal対応)
-func (p *ProxyLBCertificates) UnmarshalJSON(data []byte) error {
-	var tmp map[string]interface{}
-	if err := json.Unmarshal(data, &tmp); err != nil {
-		return err
-	}
-
-	p.ServerCertificate = tmp["ServerCertificate"].(string)
-	p.IntermediateCertificate = tmp["IntermediateCertificate"].(string)
-	p.PrivateKey = tmp["PrivateKey"].(string)
-	p.CertificateCommonName = tmp["CertificateCommonName"].(string)
-	endDate := tmp["CertificateEndDate"].(string)
-	if endDate != "" {
-		date, err := time.Parse("Jan _2 15:04:05 2006 MST", endDate)
-		if err != nil {
-			return err
-		}
-		p.CertificateEndDate = date
-	}
-
-	if _, ok := tmp["AdditionalCerts"].(string); !ok {
-		rawCerts, err := json.Marshal(tmp["AdditionalCerts"])
-		if err != nil {
-			return err
-		}
-		var additionalCerts ProxyLBAdditionalCerts
-		if err := json.Unmarshal(rawCerts, &additionalCerts); err != nil {
-			return err
-		}
-		p.AdditionalCerts = additionalCerts
-	}
-
-	return nil
-}
-
 // ParseServerCertificate サーバ証明書のパース
 func (p *ProxyLBCertificates) ParseServerCertificate() (*x509.Certificate, error) {
-	cert, e := p.parseCertificate(p.ServerCertificate)
+	cert, e := p.parseCertificate(p.PrimaryCert.ServerCertificate)
 	if e != nil {
 		return nil, e
 	}
@@ -463,7 +455,7 @@ func (p *ProxyLBCertificates) ParseServerCertificate() (*x509.Certificate, error
 
 // ParseIntermediateCertificate 中間証明書のパース
 func (p *ProxyLBCertificates) ParseIntermediateCertificate() (*x509.Certificate, error) {
-	cert, e := p.parseCertificate(p.IntermediateCertificate)
+	cert, e := p.parseCertificate(p.PrimaryCert.IntermediateCertificate)
 	if e != nil {
 		return nil, e
 	}

@@ -18,7 +18,7 @@ func (c *ConfigClient) Details(id string) (*Config, error) {
 	var config Config
 	params := ConfigParams{ID: id}
 
-	err := c.Backend.Call("v1/Storm/Config/details", params, config)
+	err := c.Backend.CallIntoInterface("v1/Storm/Config/details", params, config)
 	if err != nil {
 		return nil, err
 	}
@@ -28,12 +28,12 @@ func (c *ConfigClient) Details(id string) (*Config, error) {
 
 // List fetches a list of storm configs.
 func (c *ConfigClient) List(params ConfigListParams) (*ConfigList, error) {
-	configList := &ConfigList{}
+	var configList ConfigList
 
-	err := c.Backend.Call("v1/Storm/Config/list", params, configList)
+	err := c.Backend.CallIntoInterface("v1/Storm/Config/list", params, configList)
 	if err != nil {
 		return nil, err
 	}
 
-	return configList, nil
+	return &configList, nil
 }

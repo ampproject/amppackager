@@ -12,9 +12,11 @@ import (
 )
 
 const (
-	clientVersion    = "2.0.0"
-	defaultEndpoint  = "https://api.nsone.net/v1/"
-	defaultUserAgent = "go-ns1/" + clientVersion
+	clientVersion = "2.4.4"
+
+	defaultEndpoint               = "https://api.nsone.net/v1/"
+	defaultShouldFollowPagination = true
+	defaultUserAgent              = "go-ns1/" + clientVersion
 
 	headerAuth          = "X-NSONE-Key"
 	headerRateLimit     = "X-Ratelimit-Limit"
@@ -46,6 +48,12 @@ type Client struct {
 	// Func to call after response is returned in Do
 	RateLimitFunc func(RateLimit)
 
+	// Whether the client should handle paginated responses automatically.
+	FollowPagination bool
+
+	// Enables permissions compatibility with the DDI API.
+	DDI bool
+
 	// From the excellent github-go client.
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
@@ -62,6 +70,12 @@ type Client struct {
 	Users         *UsersService
 	Warnings      *WarningsService
 	Zones         *ZonesService
+	DNSSEC        *DNSSECService
+	IPAM          *IPAMService
+	ScopeGroup    *ScopeGroupService
+	Scope         *ScopeService
+	Reservation   *ReservationService
+	OptionDef     *OptionDefService
 }
 
 // NewClient constructs and returns a reference to an instantiated Client.
@@ -73,10 +87,11 @@ func NewClient(httpClient Doer, options ...func(*Client)) *Client {
 	}
 
 	c := &Client{
-		httpClient:    httpClient,
-		Endpoint:      endpoint,
-		RateLimitFunc: defaultRateLimitFunc,
-		UserAgent:     defaultUserAgent,
+		httpClient:       httpClient,
+		Endpoint:         endpoint,
+		RateLimitFunc:    defaultRateLimitFunc,
+		UserAgent:        defaultUserAgent,
+		FollowPagination: defaultShouldFollowPagination,
 	}
 
 	c.common.client = c
@@ -92,6 +107,12 @@ func NewClient(httpClient Doer, options ...func(*Client)) *Client {
 	c.Users = (*UsersService)(&c.common)
 	c.Warnings = (*WarningsService)(&c.common)
 	c.Zones = (*ZonesService)(&c.common)
+	c.DNSSEC = (*DNSSECService)(&c.common)
+	c.IPAM = (*IPAMService)(&c.common)
+	c.ScopeGroup = (*ScopeGroupService)(&c.common)
+	c.Scope = (*ScopeService)(&c.common)
+	c.Reservation = (*ReservationService)(&c.common)
+	c.OptionDef = (*OptionDefService)(&c.common)
 
 	for _, option := range options {
 		option(c)
@@ -128,7 +149,19 @@ func SetRateLimitFunc(ratefunc func(rl RateLimit)) func(*Client) {
 	return func(c *Client) { c.RateLimitFunc = ratefunc }
 }
 
-// Do satisfies the Doer interface.
+// SetFollowPagination sets a Client instances' FollowPagination attribute.
+func SetFollowPagination(shouldFollow bool) func(*Client) {
+	return func(c *Client) { c.FollowPagination = shouldFollow }
+}
+
+// SetDDIAPI configures the client to use permissions compatible with the DDI API.
+func SetDDIAPI() func(*Client) {
+	return func(c *Client) { c.DDI = true }
+}
+
+// Do satisfies the Doer interface. resp will be nil if a non-HTTP error
+// occurs, otherwise it is available for inspection when the error reflects a
+// non-2XX response.
 func (c Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -152,6 +185,33 @@ func (c Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 
 	return resp, err
+}
+
+// NextFunc knows how to get and parse additional info from uri into v.
+type NextFunc func(v *interface{}, uri string) (*http.Response, error)
+
+// DoWithPagination Does, and follows Link headers for pagination. The returned
+// Response is from the last URI visited - either the last page, or one that
+// responded with a non-2XX status. If a non-HTTP error occurs, resp will be
+// nil.
+func (c Client) DoWithPagination(req *http.Request, v interface{}, f NextFunc) (*http.Response, error) {
+	resp, err := c.Do(req, v)
+	if err != nil {
+		return resp, err
+	}
+
+	// See PLAT-188
+	forceHTTPS := c.Endpoint.Scheme == "https"
+
+	nextURI := ParseLink(resp.Header.Get("Link"), forceHTTPS).Next()
+	for nextURI != "" {
+		resp, err = f(&v, nextURI)
+		if err != nil {
+			return resp, err
+		}
+		nextURI = ParseLink(resp.Header.Get("Link"), forceHTTPS).Next()
+	}
+	return resp, nil
 }
 
 // NewRequest constructs and returns a http.Request.
@@ -246,6 +306,9 @@ func (rl RateLimit) WaitTime() time.Duration {
 
 // WaitTimeRemaining returns the time.Duration ratio of Period to Remaining
 func (rl RateLimit) WaitTimeRemaining() time.Duration {
+	if rl.Remaining < 2 {
+		return time.Second * time.Duration(rl.Period)
+	}
 	return (time.Second * time.Duration(rl.Period)) / time.Duration(rl.Remaining)
 }
 
@@ -254,6 +317,17 @@ func (c *Client) RateLimitStrategySleep() {
 	c.RateLimitFunc = func(rl RateLimit) {
 		remaining := rl.WaitTimeRemaining()
 		time.Sleep(remaining)
+	}
+}
+
+// RateLimitStrategyConcurrent sleeps for WaitTime * parallelism when
+// remaining is less than or equal to parallelism.
+func (c *Client) RateLimitStrategyConcurrent(parallelism int) {
+	c.RateLimitFunc = func(rl RateLimit) {
+		if rl.Remaining <= parallelism {
+			wait := rl.WaitTime() * time.Duration(parallelism)
+			time.Sleep(wait)
+		}
 	}
 }
 
@@ -292,4 +366,14 @@ func SetStringParam(key, val string) func(*url.Values) {
 // SetIntParam sets a url integer query param given the parameters name.
 func SetIntParam(key string, val int) func(*url.Values) {
 	return func(v *url.Values) { v.Set(key, strconv.Itoa(val)) }
+}
+
+func (c *Client) getURI(v interface{}, uri string) (*http.Response, error) {
+	req, err := c.NewRequest("GET", uri, nil)
+	if err != nil {
+		return nil, err
+	}
+	// For non-2XX responses, Do returns the response as well as an error, for
+	// other errs, resp will be nil. Caller's responsibility to sort that out.
+	return c.Do(req, v)
 }

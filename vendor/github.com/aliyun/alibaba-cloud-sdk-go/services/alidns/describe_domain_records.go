@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeDomainRecords invokes the alidns.DescribeDomainRecords API synchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainrecords.html
 func (client *Client) DescribeDomainRecords(request *DescribeDomainRecordsRequest) (response *DescribeDomainRecordsResponse, err error) {
 	response = CreateDescribeDomainRecordsResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeDomainRecords(request *DescribeDomainRecordsReques
 }
 
 // DescribeDomainRecordsWithChan invokes the alidns.DescribeDomainRecords API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainrecords.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainRecordsWithChan(request *DescribeDomainRecordsRequest) (<-chan *DescribeDomainRecordsResponse, <-chan error) {
 	responseChan := make(chan *DescribeDomainRecordsResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeDomainRecordsWithChan(request *DescribeDomainRecor
 }
 
 // DescribeDomainRecordsWithCallback invokes the alidns.DescribeDomainRecords API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describedomainrecords.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeDomainRecordsWithCallback(request *DescribeDomainRecordsRequest, callback func(response *DescribeDomainRecordsResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -78,19 +73,19 @@ type DescribeDomainRecordsRequest struct {
 	*requests.RpcRequest
 	ValueKeyWord string           `position:"Query" name:"ValueKeyWord"`
 	Line         string           `position:"Query" name:"Line"`
+	Type         string           `position:"Query" name:"Type"`
+	PageNumber   requests.Integer `position:"Query" name:"PageNumber"`
+	PageSize     requests.Integer `position:"Query" name:"PageSize"`
+	Lang         string           `position:"Query" name:"Lang"`
+	KeyWord      string           `position:"Query" name:"KeyWord"`
+	RRKeyWord    string           `position:"Query" name:"RRKeyWord"`
+	Direction    string           `position:"Query" name:"Direction"`
 	GroupId      requests.Integer `position:"Query" name:"GroupId"`
 	DomainName   string           `position:"Query" name:"DomainName"`
 	OrderBy      string           `position:"Query" name:"OrderBy"`
-	Type         string           `position:"Query" name:"Type"`
-	PageNumber   requests.Integer `position:"Query" name:"PageNumber"`
 	UserClientIp string           `position:"Query" name:"UserClientIp"`
-	PageSize     requests.Integer `position:"Query" name:"PageSize"`
 	SearchMode   string           `position:"Query" name:"SearchMode"`
-	Lang         string           `position:"Query" name:"Lang"`
-	KeyWord      string           `position:"Query" name:"KeyWord"`
 	TypeKeyWord  string           `position:"Query" name:"TypeKeyWord"`
-	RRKeyWord    string           `position:"Query" name:"RRKeyWord"`
-	Direction    string           `position:"Query" name:"Direction"`
 	Status       string           `position:"Query" name:"Status"`
 }
 
@@ -109,7 +104,8 @@ func CreateDescribeDomainRecordsRequest() (request *DescribeDomainRecordsRequest
 	request = &DescribeDomainRecordsRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainRecords", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeDomainRecords", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

@@ -11,6 +11,7 @@ type User struct {
 	Username   string   `json:"username"`
 	Email      string   `json:"email"`
 	Restricted bool     `json:"restricted"`
+	TFAEnabled bool     `json:"tfa_enabled"`
 	SSHKeys    []string `json:"ssh_keys"`
 }
 
@@ -18,15 +19,13 @@ type User struct {
 type UserCreateOptions struct {
 	Username   string `json:"username"`
 	Email      string `json:"email"`
-	Restricted bool   `json:"restricted,omitempty"`
+	Restricted bool   `json:"restricted"`
 }
 
 // UserUpdateOptions fields are those accepted by UpdateUser
 type UserUpdateOptions struct {
-	Username   string    `json:"username,omitempty"`
-	Email      string    `json:"email,omitempty"`
-	Restricted *bool     `json:"restricted,omitempty"`
-	SSHKeys    *[]string `json:"ssh_keys,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Restricted *bool  `json:"restricted,omitempty"`
 }
 
 // GetCreateOptions converts a User to UserCreateOptions for use in CreateUser
@@ -34,14 +33,15 @@ func (i User) GetCreateOptions() (o UserCreateOptions) {
 	o.Username = i.Username
 	o.Email = i.Email
 	o.Restricted = i.Restricted
+
 	return
 }
 
 // GetUpdateOptions converts a User to UserUpdateOptions for use in UpdateUser
 func (i User) GetUpdateOptions() (o UserUpdateOptions) {
 	o.Username = i.Username
-	o.Email = i.Email
 	o.Restricted = copyBool(&i.Restricted)
+
 	return
 }
 
@@ -57,6 +57,7 @@ func (UsersPagedResponse) endpoint(c *Client) string {
 	if err != nil {
 		panic(err)
 	}
+
 	return endpoint
 }
 
@@ -69,18 +70,12 @@ func (resp *UsersPagedResponse) appendData(r *UsersPagedResponse) {
 func (c *Client) ListUsers(ctx context.Context, opts *ListOptions) ([]User, error) {
 	response := UsersPagedResponse{}
 	err := c.listHelper(ctx, &response, opts)
-	for i := range response.Data {
-		response.Data[i].fixDates()
-	}
+
 	if err != nil {
 		return nil, err
 	}
-	return response.Data, nil
-}
 
-// fixDates converts JSON timestamps to Go time.Time values
-func (i *User) fixDates() *User {
-	return i
+	return response.Data, nil
 }
 
 // GetUser gets the user with the provided ID
@@ -89,19 +84,24 @@ func (c *Client) GetUser(ctx context.Context, id string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	e = fmt.Sprintf("%s/%s", e, id)
 	r, err := coupleAPIErrors(c.R(ctx).SetResult(&User{}).Get(e))
+
 	if err != nil {
 		return nil, err
 	}
-	return r.Result().(*User).fixDates(), nil
+
+	return r.Result().(*User), nil
 }
 
 // CreateUser creates a User.  The email address must be confirmed before the
 // User account can be accessed.
 func (c *Client) CreateUser(ctx context.Context, createOpts UserCreateOptions) (*User, error) {
 	var body string
+
 	e, err := c.Users.Endpoint()
+
 	if err != nil {
 		return nil, err
 	}
@@ -121,16 +121,20 @@ func (c *Client) CreateUser(ctx context.Context, createOpts UserCreateOptions) (
 	if err != nil {
 		return nil, err
 	}
-	return r.Result().(*User).fixDates(), nil
+
+	return r.Result().(*User), nil
 }
 
 // UpdateUser updates the User with the specified id
 func (c *Client) UpdateUser(ctx context.Context, id string, updateOpts UserUpdateOptions) (*User, error) {
 	var body string
+
 	e, err := c.Users.Endpoint()
+
 	if err != nil {
 		return nil, err
 	}
+
 	e = fmt.Sprintf("%s/%s", e, id)
 
 	req := c.R(ctx).SetResult(&User{})
@@ -148,7 +152,8 @@ func (c *Client) UpdateUser(ctx context.Context, id string, updateOpts UserUpdat
 	if err != nil {
 		return nil, err
 	}
-	return r.Result().(*User).fixDates(), nil
+
+	return r.Result().(*User), nil
 }
 
 // DeleteUser deletes the User with the specified id
@@ -157,8 +162,10 @@ func (c *Client) DeleteUser(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+
 	e = fmt.Sprintf("%s/%s", e, id)
 
 	_, err = coupleAPIErrors(c.R(ctx).Delete(e))
+
 	return err
 }

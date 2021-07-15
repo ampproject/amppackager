@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import (
@@ -118,7 +132,7 @@ type MobileGatewayPlan int
 
 var (
 	// MobileGatewayPlanStandard スタンダードプラン // TODO 正式名称不明なため暫定の名前
-	MobileGatewayPlanStandard = MobileGatewayPlan(1)
+	MobileGatewayPlanStandard = MobileGatewayPlan(2)
 )
 
 // CreateMobileGatewayValue モバイルゲートウェイ作成用パラメーター
@@ -126,7 +140,7 @@ type CreateMobileGatewayValue struct {
 	Name        string   // 名称
 	Description string   // 説明
 	Tags        []string // タグ
-	IconID      int64    // アイコン
+	IconID      ID       // アイコン
 }
 
 // CreateNewMobileGateway モバイルゲートウェイ作成
@@ -138,7 +152,7 @@ func CreateNewMobileGateway(values *CreateMobileGatewayValue, setting *MobileGat
 			propName:        propName{Name: values.Name},
 			propDescription: propDescription{Description: values.Description},
 			propTags:        propTags{Tags: values.Tags},
-			propPlanID:      propPlanID{Plan: &Resource{ID: int64(MobileGatewayPlanStandard)}},
+			propPlanID:      propPlanID{Plan: &Resource{ID: ID(MobileGatewayPlanStandard)}},
 			propIcon: propIcon{
 				&Icon{
 					Resource: NewResource(values.IconID),
@@ -300,7 +314,7 @@ type MobileGatewaySIMRoutes struct {
 }
 
 // AddSIMRoute SIMルート追加
-func (m *MobileGatewaySIMRoutes) AddSIMRoute(simID int64, prefix string) (int, *MobileGatewaySIMRoute) {
+func (m *MobileGatewaySIMRoutes) AddSIMRoute(simID ID, prefix string) (int, *MobileGatewaySIMRoute) {
 	var exists bool
 	for _, route := range m.SIMRoutes {
 		if route.ResourceID == fmt.Sprintf("%d", simID) && route.Prefix == prefix {
@@ -320,7 +334,7 @@ func (m *MobileGatewaySIMRoutes) AddSIMRoute(simID int64, prefix string) (int, *
 }
 
 // DeleteSIMRoute SIMルート削除
-func (m *MobileGatewaySIMRoutes) DeleteSIMRoute(simID int64, prefix string) bool {
+func (m *MobileGatewaySIMRoutes) DeleteSIMRoute(simID ID, prefix string) bool {
 	routes := []*MobileGatewaySIMRoute{} // nolint (JSONヘのMarshal時に要素が0の場合にNULLではなく[]とするため)
 	var exists bool
 
@@ -343,15 +357,13 @@ func (m *MobileGatewaySIMRoutes) DeleteSIMRouteAt(index int) bool {
 
 	if index < len(m.SIMRoutes) {
 		s := m.SIMRoutes[index]
-		if simID, err := strconv.ParseInt(s.ResourceID, 10, 64); err == nil {
-			return m.DeleteSIMRoute(simID, s.Prefix)
-		}
+		return m.DeleteSIMRoute(StringID(s.ResourceID), s.Prefix)
 	}
 	return false
 }
 
 // FindSIMRoute SIMルート設定 検索
-func (m *MobileGatewaySIMRoutes) FindSIMRoute(simID int64, prefix string) (int, *MobileGatewaySIMRoute) {
+func (m *MobileGatewaySIMRoutes) FindSIMRoute(simID ID, prefix string) (int, *MobileGatewaySIMRoute) {
 	for i, r := range m.SIMRoutes {
 		if r.Prefix == prefix && r.ResourceID == fmt.Sprintf("%d", simID) {
 			return i, r

@@ -3,6 +3,7 @@ package goacmedns
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -19,13 +20,15 @@ type Storage interface {
 	// the provided domain does not have an `Account` saved in the storage
 	// `ErrDomainNotFound` will be returned
 	Fetch(string) (Account, error)
+	// FetchAll retrieves all the `Account` objects from the storage and
+	// returns a map that has domain names as its keys and `Account` objects
+	// as values.
+	FetchAll() map[string]Account
 }
 
-var (
-	// ErrDomainNotFound is returned from `Fetch` when the provided domain is not
-	// present in the storage.
-	ErrDomainNotFound = errors.New("requested domain is not present in storage")
-)
+// ErrDomainNotFound is returned from `Fetch` when the provided domain is not
+// present in the storage.
+var ErrDomainNotFound = errors.New("requested domain is not present in storage")
 
 // fileStorage implements the `Storage` interface and persists `Accounts` to
 // a JSON file on disk.
@@ -49,6 +52,7 @@ func NewFileStorage(path string, mode os.FileMode) Storage {
 		mode:     mode,
 		accounts: make(map[string]Account),
 	}
+
 	// Opportunistically try to load the account data. Return an empty account if
 	// any errors occur.
 	if jsonData, err := ioutil.ReadFile(path); err == nil {
@@ -56,6 +60,7 @@ func NewFileStorage(path string, mode os.FileMode) Storage {
 			return fs
 		}
 	}
+
 	return fs
 }
 
@@ -63,18 +68,20 @@ func NewFileStorage(path string, mode os.FileMode) Storage {
 // file at that path will be created with the fileStorage's mode if required.
 func (f fileStorage) Save() error {
 	if serialized, err := json.Marshal(f.accounts); err != nil {
-		return err
+		return fmt.Errorf("Failed to marshal account: %w", err)
 	} else if err = ioutil.WriteFile(f.path, serialized, f.mode); err != nil {
-		return err
+		return fmt.Errorf("Failed to write storage file: %w", err)
 	}
+
 	return nil
 }
 
 // Put saves an `Account` for the given `Domain` into the in-memory accounts of
 // the fileStorage instance. The `Account` data will not be written to disk
-// until the `Save` function is called
+// until the `Save` function is called.
 func (f fileStorage) Put(domain string, acct Account) error {
 	f.accounts[domain] = acct
+
 	return nil
 }
 
@@ -85,5 +92,13 @@ func (f fileStorage) Fetch(domain string) (Account, error) {
 	if acct, exists := f.accounts[domain]; exists {
 		return acct, nil
 	}
+
 	return Account{}, ErrDomainNotFound
+}
+
+// FetchAll retrieves all the `Account` objects from the fileStorage and
+// returns a map that has domain names as its keys and `Account` objects
+// as values.
+func (f fileStorage) FetchAll() map[string]Account {
+	return f.accounts
 }

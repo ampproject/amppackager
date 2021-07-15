@@ -21,7 +21,6 @@ import (
 )
 
 // AddDomainGroup invokes the alidns.AddDomainGroup API synchronously
-// api document: https://help.aliyun.com/api/alidns/adddomaingroup.html
 func (client *Client) AddDomainGroup(request *AddDomainGroupRequest) (response *AddDomainGroupResponse, err error) {
 	response = CreateAddDomainGroupResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) AddDomainGroup(request *AddDomainGroupRequest) (response *
 }
 
 // AddDomainGroupWithChan invokes the alidns.AddDomainGroup API asynchronously
-// api document: https://help.aliyun.com/api/alidns/adddomaingroup.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddDomainGroupWithChan(request *AddDomainGroupRequest) (<-chan *AddDomainGroupResponse, <-chan error) {
 	responseChan := make(chan *AddDomainGroupResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) AddDomainGroupWithChan(request *AddDomainGroupRequest) (<-
 }
 
 // AddDomainGroupWithCallback invokes the alidns.AddDomainGroup API asynchronously
-// api document: https://help.aliyun.com/api/alidns/adddomaingroup.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddDomainGroupWithCallback(request *AddDomainGroupRequest, callback func(response *AddDomainGroupResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,9 +71,9 @@ func (client *Client) AddDomainGroupWithCallback(request *AddDomainGroupRequest,
 // AddDomainGroupRequest is the request struct for api AddDomainGroup
 type AddDomainGroupRequest struct {
 	*requests.RpcRequest
+	GroupName    string `position:"Query" name:"GroupName"`
 	UserClientIp string `position:"Query" name:"UserClientIp"`
 	Lang         string `position:"Query" name:"Lang"`
-	GroupName    string `position:"Query" name:"GroupName"`
 }
 
 // AddDomainGroupResponse is the response struct for api AddDomainGroup
@@ -94,7 +89,8 @@ func CreateAddDomainGroupRequest() (request *AddDomainGroupRequest) {
 	request = &AddDomainGroupRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "AddDomainGroup", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "AddDomainGroup", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

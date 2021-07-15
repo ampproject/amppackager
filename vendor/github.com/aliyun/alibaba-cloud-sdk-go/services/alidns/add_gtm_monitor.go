@@ -21,7 +21,6 @@ import (
 )
 
 // AddGtmMonitor invokes the alidns.AddGtmMonitor API synchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmmonitor.html
 func (client *Client) AddGtmMonitor(request *AddGtmMonitorRequest) (response *AddGtmMonitorResponse, err error) {
 	response = CreateAddGtmMonitorResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) AddGtmMonitor(request *AddGtmMonitorRequest) (response *Ad
 }
 
 // AddGtmMonitorWithChan invokes the alidns.AddGtmMonitor API asynchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmmonitor.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddGtmMonitorWithChan(request *AddGtmMonitorRequest) (<-chan *AddGtmMonitorResponse, <-chan error) {
 	responseChan := make(chan *AddGtmMonitorResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) AddGtmMonitorWithChan(request *AddGtmMonitorRequest) (<-ch
 }
 
 // AddGtmMonitorWithCallback invokes the alidns.AddGtmMonitor API asynchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmmonitor.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddGtmMonitorWithCallback(request *AddGtmMonitorRequest, callback func(response *AddGtmMonitorResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,14 +72,13 @@ func (client *Client) AddGtmMonitorWithCallback(request *AddGtmMonitorRequest, c
 type AddGtmMonitorRequest struct {
 	*requests.RpcRequest
 	MonitorExtendInfo string                      `position:"Query" name:"MonitorExtendInfo"`
+	Timeout           requests.Integer            `position:"Query" name:"Timeout"`
 	AddrPoolId        string                      `position:"Query" name:"AddrPoolId"`
 	UserClientIp      string                      `position:"Query" name:"UserClientIp"`
-	Name              string                      `position:"Query" name:"Name"`
 	EvaluationCount   requests.Integer            `position:"Query" name:"EvaluationCount"`
 	ProtocolType      string                      `position:"Query" name:"ProtocolType"`
 	Interval          requests.Integer            `position:"Query" name:"Interval"`
 	Lang              string                      `position:"Query" name:"Lang"`
-	Timeout           requests.Integer            `position:"Query" name:"Timeout"`
 	IspCityNode       *[]AddGtmMonitorIspCityNode `position:"Query" name:"IspCityNode"  type:"Repeated"`
 }
 
@@ -106,7 +100,8 @@ func CreateAddGtmMonitorRequest() (request *AddGtmMonitorRequest) {
 	request = &AddGtmMonitorRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "AddGtmMonitor", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "AddGtmMonitor", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

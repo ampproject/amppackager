@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/linode/linodego/internal/parseabletime"
 )
 
 // InstanceBackupsResponse response struct for backup snapshot
@@ -27,10 +29,6 @@ type RestoreInstanceOptions struct {
 
 // InstanceSnapshot represents a linode backup snapshot
 type InstanceSnapshot struct {
-	CreatedStr  string `json:"created"`
-	UpdatedStr  string `json:"updated"`
-	FinishedStr string `json:"finished"`
-
 	ID       int                     `json:"id"`
 	Label    string                  `json:"label"`
 	Status   InstanceSnapshotStatus  `json:"status"`
@@ -63,25 +61,43 @@ var (
 	SnapshotUserAborted         InstanceSnapshotStatus = "userAborted"
 )
 
-func (l *InstanceSnapshot) fixDates() *InstanceSnapshot {
-	l.Created, _ = parseDates(l.CreatedStr)
-	l.Updated, _ = parseDates(l.UpdatedStr)
-	l.Finished, _ = parseDates(l.FinishedStr)
-	return l
+// UnmarshalJSON implements the json.Unmarshaler interface
+func (i *InstanceSnapshot) UnmarshalJSON(b []byte) error {
+	type Mask InstanceSnapshot
+
+	p := struct {
+		*Mask
+		Created  *parseabletime.ParseableTime `json:"created"`
+		Updated  *parseabletime.ParseableTime `json:"updated"`
+		Finished *parseabletime.ParseableTime `json:"finished"`
+	}{
+		Mask: (*Mask)(i),
+	}
+
+	if err := json.Unmarshal(b, &p); err != nil {
+		return err
+	}
+
+	i.Created = (*time.Time)(p.Created)
+	i.Updated = (*time.Time)(p.Updated)
+	i.Finished = (*time.Time)(p.Finished)
+
+	return nil
 }
 
 // GetInstanceSnapshot gets the snapshot with the provided ID
 func (c *Client) GetInstanceSnapshot(ctx context.Context, linodeID int, snapshotID int) (*InstanceSnapshot, error) {
-	e, err := c.InstanceSnapshots.endpointWithID(linodeID)
+	e, err := c.InstanceSnapshots.endpointWithParams(linodeID)
 	if err != nil {
 		return nil, err
 	}
 	e = fmt.Sprintf("%s/%d", e, snapshotID)
 	r, err := coupleAPIErrors(c.R(ctx).SetResult(&InstanceSnapshot{}).Get(e))
+
 	if err != nil {
 		return nil, err
 	}
-	return r.Result().(*InstanceSnapshot).fixDates(), nil
+	return r.Result().(*InstanceSnapshot), nil
 }
 
 // CreateInstanceSnapshot Creates or Replaces the snapshot Backup of a Linode. If a previous snapshot exists for this Linode, it will be deleted.
@@ -91,7 +107,8 @@ func (c *Client) CreateInstanceSnapshot(ctx context.Context, linodeID int, label
 		return nil, err
 	}
 	body := string(o)
-	e, err := c.InstanceSnapshots.endpointWithID(linodeID)
+	e, err := c.InstanceSnapshots.endpointWithParams(linodeID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -105,28 +122,29 @@ func (c *Client) CreateInstanceSnapshot(ctx context.Context, linodeID int, label
 		return nil, err
 	}
 
-	return r.Result().(*InstanceSnapshot).fixDates(), nil
+	return r.Result().(*InstanceSnapshot), nil
 }
 
 // GetInstanceBackups gets the Instance's available Backups.
 // This is not called ListInstanceBackups because a single object is returned, matching the API response.
 func (c *Client) GetInstanceBackups(ctx context.Context, linodeID int) (*InstanceBackupsResponse, error) {
-	e, err := c.InstanceSnapshots.endpointWithID(linodeID)
+	e, err := c.InstanceSnapshots.endpointWithParams(linodeID)
 	if err != nil {
 		return nil, err
 	}
 	r, err := coupleAPIErrors(c.R(ctx).
 		SetResult(&InstanceBackupsResponse{}).
 		Get(e))
+
 	if err != nil {
 		return nil, err
 	}
-	return r.Result().(*InstanceBackupsResponse).fixDates(), nil
+	return r.Result().(*InstanceBackupsResponse), nil
 }
 
 // EnableInstanceBackups Enables backups for the specified Linode.
 func (c *Client) EnableInstanceBackups(ctx context.Context, linodeID int) error {
-	e, err := c.InstanceSnapshots.endpointWithID(linodeID)
+	e, err := c.InstanceSnapshots.endpointWithParams(linodeID)
 	if err != nil {
 		return err
 	}
@@ -138,7 +156,7 @@ func (c *Client) EnableInstanceBackups(ctx context.Context, linodeID int) error 
 
 // CancelInstanceBackups Cancels backups for the specified Linode.
 func (c *Client) CancelInstanceBackups(ctx context.Context, linodeID int) error {
-	e, err := c.InstanceSnapshots.endpointWithID(linodeID)
+	e, err := c.InstanceSnapshots.endpointWithParams(linodeID)
 	if err != nil {
 		return err
 	}
@@ -155,7 +173,7 @@ func (c *Client) RestoreInstanceBackup(ctx context.Context, linodeID int, backup
 		return NewError(err)
 	}
 	body := string(o)
-	e, err := c.InstanceSnapshots.endpointWithID(linodeID)
+	e, err := c.InstanceSnapshots.endpointWithParams(linodeID)
 	if err != nil {
 		return err
 	}
@@ -164,25 +182,4 @@ func (c *Client) RestoreInstanceBackup(ctx context.Context, linodeID int, backup
 	_, err = coupleAPIErrors(c.R(ctx).SetBody(body).Post(e))
 
 	return err
-
-}
-
-func (l *InstanceBackupSnapshotResponse) fixDates() *InstanceBackupSnapshotResponse {
-	if l.Current != nil {
-		l.Current.fixDates()
-	}
-	if l.InProgress != nil {
-		l.InProgress.fixDates()
-	}
-	return l
-}
-
-func (l *InstanceBackupsResponse) fixDates() *InstanceBackupsResponse {
-	for i := range l.Automatic {
-		l.Automatic[i].fixDates()
-	}
-	if l.Snapshot != nil {
-		l.Snapshot.fixDates()
-	}
-	return l
 }

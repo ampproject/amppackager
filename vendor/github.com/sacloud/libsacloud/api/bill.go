@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -98,26 +112,26 @@ func (res *BillDetailCSVResponse) buildCSVBody() {
 }
 
 // ByContract アカウントIDごとの請求取得
-func (api *BillAPI) ByContract(accountID int64) (*BillResponse, error) {
+func (api *BillAPI) ByContract(accountID sacloud.ID) (*BillResponse, error) {
 
 	uri := fmt.Sprintf("%s/by-contract/%d", api.getResourceURL(), accountID)
 	return api.getContract(uri)
 }
 
 // ByContractYear 年指定での請求取得
-func (api *BillAPI) ByContractYear(accountID int64, year int) (*BillResponse, error) {
+func (api *BillAPI) ByContractYear(accountID sacloud.ID, year int) (*BillResponse, error) {
 	uri := fmt.Sprintf("%s/by-contract/%d/%d", api.getResourceURL(), accountID, year)
 	return api.getContract(uri)
 }
 
 // ByContractYearMonth 年月指定での請求指定
-func (api *BillAPI) ByContractYearMonth(accountID int64, year int, month int) (*BillResponse, error) {
+func (api *BillAPI) ByContractYearMonth(accountID sacloud.ID, year int, month int) (*BillResponse, error) {
 	uri := fmt.Sprintf("%s/by-contract/%d/%d/%d", api.getResourceURL(), accountID, year, month)
 	return api.getContract(uri)
 }
 
 // Read 読み取り
-func (api *BillAPI) Read(billNo int64) (*BillResponse, error) {
+func (api *BillAPI) Read(billNo sacloud.ID) (*BillResponse, error) {
 	uri := fmt.Sprintf("%s/id/%d/", api.getResourceURL(), billNo)
 	return api.getContract(uri)
 
@@ -138,7 +152,7 @@ func (api *BillAPI) getContract(uri string) (*BillResponse, error) {
 }
 
 // GetDetail 請求明細取得
-func (api *BillAPI) GetDetail(memberCD string, billNo int64) (*BillDetailResponse, error) {
+func (api *BillAPI) GetDetail(memberCD string, billNo sacloud.ID) (*BillDetailResponse, error) {
 
 	oldFunc := api.FuncGetResourceURL
 	defer func() { api.FuncGetResourceURL = oldFunc }()
@@ -160,7 +174,7 @@ func (api *BillAPI) GetDetail(memberCD string, billNo int64) (*BillDetailRespons
 }
 
 // GetDetailCSV 請求明細CSV取得
-func (api *BillAPI) GetDetailCSV(memberCD string, billNo int64) (*BillDetailCSVResponse, error) {
+func (api *BillAPI) GetDetailCSV(memberCD string, billNo sacloud.ID) (*BillDetailCSVResponse, error) {
 
 	oldFunc := api.FuncGetResourceURL
 	defer func() { api.FuncGetResourceURL = oldFunc }()
