@@ -2,7 +2,6 @@ package signedexchange
 
 import (
 	"bytes"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,9 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/WICG/webpackage/go/internal/signingalgorithm"
 	"github.com/WICG/webpackage/go/signedexchange/certurl"
-	"github.com/WICG/webpackage/go/signedexchange/internal/signingalgorithm"
-	"github.com/WICG/webpackage/go/signedexchange/mice"
 	"github.com/WICG/webpackage/go/signedexchange/structuredheader"
 	"github.com/WICG/webpackage/go/signedexchange/version"
 )
@@ -64,7 +62,7 @@ func extractSignatureFields(pi structuredheader.ParameterisedIdentifier) (*Signa
 	return sig, nil
 }
 
-// CertFetcher takes certificat URL and returns certificate bytes in
+// CertFetcher takes certificate URL and returns certificate bytes in
 // application/cert-chain+cbor format.
 type CertFetcher = func(url string) ([]byte, error)
 
@@ -131,7 +129,7 @@ func (e *Exchange) Verify(verificationTime time.Time, certFetcher CertFetcher, l
 		//         return a certificate chain, return "invalid"."
 		_, decodedPayload, err := verifySignature(e, verificationTime, certFetcher, signature)
 		if err != nil {
-			l.Printf("Verification of sinature %q failed: %v", signature.Label, err)
+			l.Printf("Verification of signature %q failed: %v", signature.Label, err)
 			continue
 		}
 
@@ -294,8 +292,8 @@ func verifySignature(e *Exchange, verificationTime time.Time, fetch CertFetcher,
 	if err != nil {
 		return nil, nil, fmt.Errorf("verify: could not parse certificate CBOR: %v", err)
 	}
-	mainCert := certs[0].Cert
-	verifier, err := signingalgorithm.VerifierForPublicKey(mainCert.PublicKey)
+	mainCert := certs[0]
+	verifier, err := signingalgorithm.VerifierForPublicKey(mainCert.Cert.PublicKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("verify: unsupported main certificate public key: %v", err)
 	}
@@ -305,10 +303,7 @@ func verifySignature(e *Exchange, verificationTime time.Time, fetch CertFetcher,
 		return nil, nil, err
 	}
 	// Step 5: Reconstruct the signing message
-	certSha256 := calculateCertSha256([]*x509.Certificate{mainCert})
-	if certSha256 == nil {
-		return nil, nil, errors.New("verify: cannot calculate certificate fingerprint")
-	}
+	certSha256 := mainCert.CertSha256()
 	msg, err := serializeSignedMessage(e, certSha256, signature.ValidityUrl, signature.Date, signature.Expires)
 	if err != nil {
 		return nil, nil, errors.New("verify: cannot reconstruct signed message")
@@ -357,18 +352,8 @@ func verifyTimestamps(sig *Signature, verificationTime time.Time) error {
 }
 
 func verifyPayload(e *Exchange, signature *Signature) ([]byte, error) {
-	var integrityStr string
-	var enc mice.Encoding
-	switch e.Version {
-	case version.Version1b1:
-		enc = mice.Draft02Encoding
-		integrityStr = "mi-draft2"
-	case version.Version1b2, version.Version1b3:
-		enc = mice.Draft03Encoding
-		integrityStr = "digest/" + enc.ContentEncoding()
-	default:
-		panic("not reached")
-	}
+	enc := e.Version.MiceEncoding()
+	integrityStr := enc.IntegrityIdentifier()
 	if signature.Integrity != integrityStr {
 		return nil, fmt.Errorf("verify: unsupported integrity scheme %q", signature.Integrity)
 	}

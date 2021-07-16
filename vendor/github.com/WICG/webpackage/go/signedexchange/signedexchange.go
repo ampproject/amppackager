@@ -2,6 +2,8 @@ package signedexchange
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -13,7 +15,6 @@ import (
 
 	"github.com/WICG/webpackage/go/signedexchange/cbor"
 	"github.com/WICG/webpackage/go/signedexchange/internal/bigendian"
-	"github.com/WICG/webpackage/go/signedexchange/mice"
 	"github.com/WICG/webpackage/go/signedexchange/version"
 )
 
@@ -53,15 +54,7 @@ func NewExchange(ver version.Version, uri string, method string, requestHeaders 
 }
 
 func (e *Exchange) MiEncodePayload(recordSize int) error {
-	var enc mice.Encoding
-	switch e.Version {
-	case version.Version1b1:
-		enc = mice.Draft02Encoding
-	case version.Version1b2, version.Version1b3:
-		enc = mice.Draft03Encoding
-	default:
-		panic("not reached")
-	}
+	enc := e.Version.MiceEncoding()
 
 	if e.ResponseHeaders.Get(enc.DigestHeaderName()) != "" {
 		return fmt.Errorf("signedexchange: response already has %q header", enc.DigestHeaderName())
@@ -137,6 +130,10 @@ func (e *Exchange) decodeRequestMap(dec *cbor.Decoder) error {
 		if err != nil {
 			return err
 		}
+		key_str := string(key)
+		if key_str != strings.ToLower(key_str) {
+			return fmt.Errorf("signedexchange: request header key MUST NOT contain uppercase alphabet(s): %s", key)
+		}
 		value, err := dec.DecodeByteString()
 		if err != nil {
 			return err
@@ -155,7 +152,7 @@ func (e *Exchange) decodeRequestMap(dec *cbor.Decoder) error {
 			}
 			return fmt.Errorf("signedexchange: found a deprecated request key %q", keyURL)
 		}
-		e.RequestHeaders.Add(string(key), string(value))
+		e.RequestHeaders.Add(key_str, string(value))
 	}
 	return nil
 }
@@ -192,6 +189,10 @@ func (e *Exchange) decodeResponseMap(dec *cbor.Decoder) error {
 		if err != nil {
 			return err
 		}
+		key_str := string(key)
+		if key_str != strings.ToLower(key_str) {
+			return fmt.Errorf("signedexchange: response header key MUST NOT contain uppercase alphabet(s): %s", key)
+		}
 		value, err := dec.DecodeByteString()
 		if err != nil {
 			return err
@@ -203,7 +204,7 @@ func (e *Exchange) decodeResponseMap(dec *cbor.Decoder) error {
 			}
 			continue
 		}
-		e.ResponseHeaders.Add(string(key), string(value))
+		e.ResponseHeaders.Add(key_str, string(value))
 	}
 	return nil
 }
@@ -236,7 +237,7 @@ func (e *Exchange) decodeExchangeHeaders(dec *cbor.Decoder) error {
 			return fmt.Errorf("signedexchange: failed to decode top-level array header: %v", err)
 		}
 		if n != 2 {
-			return fmt.Errorf("singedexchange: length of header array must be 2 but %d", n)
+			return fmt.Errorf("signedexchange: length of header array must be 2 but %d", n)
 		}
 		if err := e.decodeRequestMap(dec); err != nil {
 			return err
@@ -377,7 +378,7 @@ func (e *Exchange) Write(w io.Writer) error {
 }
 
 // draft-yasskin-http-origin-signed-responses.html#application-http-exchange
-func ReadExchange(r io.Reader) (*Exchange, error) {
+func ReadExchangePrologue(r io.Reader) (*Exchange, error) {
 	// Step 1. "8 bytes consisting of the ASCII characters “sxg1” followed by 4 0x00 bytes, to serve as a file signature. This is redundant with the MIME type, and recipients that receive both MUST check that they match and stop parsing if they don’t." [spec text]
 	// "Note: RFC EDITOR PLEASE DELETE THIS NOTE; The implementation of the final RFC MUST use this file signature, but implementations of drafts MUST NOT use it and MUST use another implementation-specific 8-byte string beginning with “sxg1-“." [spec text]
 	magic := make([]byte, version.HeaderMagicBytesLen)
@@ -446,6 +447,15 @@ func ReadExchange(r io.Reader) (*Exchange, error) {
 		return nil, err
 	}
 
+	return e, nil
+}
+
+func ReadExchange(r io.Reader) (*Exchange, error) {
+	e, err := ReadExchangePrologue(r)
+	if err != nil {
+		return nil, err
+	}
+
 	// Step 8. "The payload body (Section 3.3 of [RFC7230]) of the exchange represented by the application/signed-exchange resource." [spec text]
 	// "Note that the use of the payload body here means that a Transfer-Encoding header field inside the application/signed-exchange header block has no effect. A Transfer-Encoding header field on the outer HTTP response that transfers this resource still has its normal effect." [spec text]
 	e.Payload, err = ioutil.ReadAll(r)
@@ -503,4 +513,22 @@ func (e *Exchange) PrettyPrintHeaders(w io.Writer) {
 func (e *Exchange) PrettyPrintPayload(w io.Writer) {
 	fmt.Fprintf(w, "payload [%d bytes]:\n", len(e.Payload))
 	w.Write(e.Payload)
+}
+
+func (e *Exchange) ComputeHeaderIntegrity() (string, error) {
+	var headerBuf bytes.Buffer
+	if err := e.DumpExchangeHeaders(&headerBuf); err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(headerBuf.Bytes())
+	return "sha256-" + base64.StdEncoding.EncodeToString(sum[:]), nil
+}
+
+func (e *Exchange) PrettyPrintHeaderIntegrity(w io.Writer) error {
+	headerIntegrity, err := e.ComputeHeaderIntegrity()
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(w, "header integrity: %s\n", headerIntegrity)
+	return nil
 }

@@ -32,7 +32,7 @@ Here, we assume that you have an access to an HTTPS server capable of serving st
     echo "<h1>hi</h1>" > payload.html
     ```
 
-1. Prepare a certificate and private key pair to use for signing the exchange. As of July 2018, we need to use self-signed certificate for testing, since there are no CA that issues certificate with ["CanSignHttpExchanges" extension](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#cross-origin-cert-req). To generate a signed-exchange-compatible self-signed key pair with OpenSSL, invoke:
+1. Prepare a certificate and private key pair to use for signing the exchange. To generate a signed-exchange-compatible self-signed key pair with OpenSSL, invoke:
     ```
     # Generate prime256v1 ecdsa private key.
     openssl ecparam -out priv.key -name prime256v1 -genkey
@@ -40,7 +40,7 @@ Here, we assume that you have an access to an HTTPS server capable of serving st
     openssl req -new -sha256 -key priv.key -out cert.csr \
       -subj '/CN=example.org/O=Test/C=US'
     # Self-sign the certificate with "CanSignHttpExchanges" extension.
-    openssl x509 -req -days 360 -in cert.csr -signkey priv.key -out cert.pem \
+    openssl x509 -req -days 90 -in cert.csr -signkey priv.key -out cert.pem \
       -extfile <(echo -e "1.3.6.1.4.1.11129.2.1.22 = ASN1:NULL\nsubjectAltName=DNS:example.org")
     ```
 
@@ -51,7 +51,7 @@ Here, we assume that you have an access to an HTTPS server capable of serving st
     ```
 
 1. Host the `application/cert-chain+cbor` created in Step 3 on the HTTPS server. Configure the resource to be served with `Content-Type: application/cert-chain+cbor` HTTP header. The steps below assume the `cert.cbor` is hosted at `https://yourcdn.example.net/cert.cbor`, so substitute the URL to the actual URL in below steps.
-    - Note: If you are using [Firebase Hosting](https://firebase.google.com/docs/hosting/) as your HTTPS server, see an example config [here](https://github.com/WICG/webpackage/blob/master/examples/firebase.json).
+    - Note: If you are using [Firebase Hosting](https://firebase.google.com/docs/hosting/) as your HTTPS server, see an example config [here](https://github.com/WICG/webpackage/blob/main/examples/firebase.json).
 
 1. Generate the signed exchange using `gen-signedexchange` tool.
     ```
@@ -65,18 +65,17 @@ Here, we assume that you have an access to an HTTPS server capable of serving st
       -o example.org.hello.sxg
     ```
 
-1. Host the signed exchange file `example.org.hello.sxg` on the HTTPS server. Configure the resource to be served with `Content-Type: application/signed-exchange;v=b2` HTTP header.
-    - Note: If you are using [Firebase Hosting](https://firebase.google.com/docs/hosting/) as your HTTPS server, see an example config [here](https://github.com/WICG/webpackage/blob/master/examples/firebase.json).
+1. Host the signed exchange file `example.org.hello.sxg` on the HTTPS server. Configure the resource to be served with `Content-Type: application/signed-exchange;v=b3` HTTP header.
+    - Note: If you are using [Firebase Hosting](https://firebase.google.com/docs/hosting/) as your HTTPS server, see an example config [here](https://github.com/WICG/webpackage/blob/main/examples/firebase.json).
 
 1. Navigate to the signed exchange URL using a web browser supporting signed exchanges.
-    - As of July 2018, you can use Chrome M69 [Dev](https://www.google.com/chrome/?extra=devchannel)/[Canary](https://www.google.com/chrome/browser/canary.html) versions with a command-line flag to enable signed exchange support.
+    - Chrome: To ignore certificate errors of the self-signed certificate:
       ```
-      # Launch chrome dev set to ignore certificate errors of the self-signed certificate,
-      # with an experimental feature of signed exchange support enabled.
-      google-chrome-unstable \
+      # Note that --user-data-dir is required for --ignore-certificate-errors-spki-list
+      # to take effect.
+      google-chrome \
         --user-data-dir=/tmp/udd \
         --ignore-certificate-errors-spki-list=`openssl x509 -noout -pubkey -in cert.pem | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64` \
-        --enable-features=SignedHTTPExchange \
         https://yourcdn.example.net/example.org.hello.sxg
       ```
 
@@ -86,9 +85,9 @@ Here, we assume that you have an access to an HTTPS server capable of serving st
 
 In this section, you will create a signed exchange using a certificate issued by a publicly trusted CA.
 
-As of July 2018, there are no CA that issues certificate with ["CanSignHttpExchanges" extension](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#cross-origin-cert-req). So, created signed exchange can be used only for testing.
+Your signed exchange needs to be signed with a certificate with the ["CanSignHttpExchanges" extension](https://wicg.github.io/webpackage/draft-yasskin-http-origin-signed-responses.html#cross-origin-cert-req).
 
-1. Get a certificate from a CA. You have to use prime256v1 ecdsa keys, as you did in the previous section. Please follow the CA's instructions.
+1. Get a certificate from a CA. You have to use prime256v1 ecdsa keys, as you did in the previous section. Please follow the CA's instructions. (For example, [DigiCert](https://www.digicert.com/account/ietf/http-signed-exchange.php) offers the right kind of certificates.)
 
    Assume you got a server certificate `server.pem` and an intermediate certificate `intermediates.pem`. The tools need all certificates in a single file, so concatenate them.
     ```
@@ -137,9 +136,6 @@ As of July 2018, there are no CA that issues certificate with ["CanSignHttpExcha
 1. Host `example.org.hello.sxg` on a HTTPS server. Please see the previous section for details.
 
 1. Navigate to the signed exchange URL using a web browser supporting signed exchanges.
-    - As of July 2018, you can use Chrome M69 [Dev](https://www.google.com/chrome/?extra=devchannel)/[Canary](https://www.google.com/chrome/browser/canary.html) versions with the following two flags enabled:
-      - chrome://flags/#enable-signed-http-exchange
-      - chrome://flags/#allow-sxg-certs-without-extension
 
 ### Dump a signed exchange file
 
@@ -149,11 +145,50 @@ You can dump the content of your sxg file by `dump-signedexchange`. If you want 
 dump-signedexchange -i example.org.hello.sxg
 ```
 
-If `-verify` command-line flag is specified, `dump-signedexchange` checks if the signed exchange is valid.
+If the `-json` flag is passed, the output will be in JSON.
+
+```
+dump-signedexchange -i example.org.hello.sxg -json
+```
+
+You can also dump the content of a signed exchange from a URI. If you want to see the content of the signed exchange you're hosting at https://example.org/hello.html, run this command. By default this will request the latest version.
+
+```
+dump-signedexchange -uri https://example.org/hello.html
+```
+
+If the specified URI requires a special header to serve a signed exchange, you can pass request headers via the `-requestHeader` flag. The header key and value should be separated by a `:`.
+
+```
+dump-signedexchange -uri https://example.org/hello.html -requestHeader AMP-Cache-Transform:any -requestHeader "foo:bar"
+```
+
+When the `-uri` flag is passed to `dump-signedexchange`, you can specify the sxg version to request by passing a `-version` flag. For instance, if you wanted to request a `1b2` signed exchange, you would run the following command. By default, the version is `1b3`.
+
+```
+dump-signedexchange -uri https://example.org/hello.html -version=1b2
+```
+
+`dump-signedexchange` can also operate on piped input. For instance, you could run the following command to retrieve a b3 signed exchange.
+
+```
+curl -H "AMP-Cache-Transform:any" -H "Accept:application/signed-exchange;v=b3" https://example.org/hello.html | dump-signedexchange
+```
+
+`dump-signedexchange` can print the information you want about your signed exchange. By default, both the headers and the payload are printed, but they can be suppressed by passing `-headers=false` and `-payload=false`.
+
+If you would like only the signature to be printed, pass the `-signature` flag.
+
+```
+dump-signedexchange -i example.org.hello.sxg -signature
+```
+
+If the `-verify` command-line flag is specified, `dump-signedexchange` checks if the signed exchange is valid.
 
 By default, `dump-signedexchange` fetches certificate chain from network (from the URL you specified as `-certUrl` parameter of `gen-signedexchange`). But if `-cert filename` flag is given, `dump-signedexchange` reads certificates from `filename`.
 
 For example, If you want to verify `example.org.hello.sxg` using certificates in `cert.cbor`, run this command.
+
 ```
 dump-signedexchange -i example.org.hello.sxg -verify -cert cert.cbor
 ```
