@@ -249,7 +249,7 @@ func (this *CertCache) createCertChainCBOR(ocsp []byte) ([]byte, error) {
 
 	certChain := make(certurl.CertChain, len(this.certs))
 	for i, cert := range this.certs {
-		certChain[i] = &certurl.CertChainItem{Cert: cert}
+		certChain[i] = &certurl.AugmentedCertificate{Cert: cert}
 	}
 	certChain[0].OCSPResponse = ocsp
 
