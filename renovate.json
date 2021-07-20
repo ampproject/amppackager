@@ -6,5 +6,11 @@
   "postUpdateOptions": [
     "gomodUpdateImportPaths",
     "gomodTidy"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["github.com/ampproject/amphtml"],
+      "extends": ["schedule:weekly"]
+    }
   ]
 }
