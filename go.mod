@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/WICG/webpackage v0.0.0-20190215052515-70386c3750f2
-	github.com/ampproject/amphtml v0.0.0-20210719164946-31db64d03ff3
+	github.com/ampproject/amphtml v0.0.0-20210720192858-7e1085f5f9b4
 	github.com/go-acme/lego/v4 v4.4.0
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
