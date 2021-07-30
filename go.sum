@@ -69,6 +69,8 @@ github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWX
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/WICG/webpackage v0.0.0-20190215052515-70386c3750f2 h1:IJIQQSysq7xk5oO0/6fbYZY0ZLz/KMM+k63ZrJphef8=
 github.com/WICG/webpackage v0.0.0-20190215052515-70386c3750f2/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
+github.com/WICG/webpackage v0.0.0-20210623222345-39b429db6dac h1:V4vrCWeKDq0U/y2PQjlwqKR2iffx4jSiARk4yjLOhgo=
+github.com/WICG/webpackage v0.0.0-20210623222345-39b429db6dac/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
 github.com/akamai/AkamaiOPEN-edgegrid-golang v1.1.0 h1:NNsy0ugDFZbu6S11NlsR4Kmko9hJ00gv9U2JHbwpf3g=
 github.com/akamai/AkamaiOPEN-edgegrid-golang v1.1.0/go.mod h1:kX6YddBkXqqywAe8c9LyvgTCyFuZCTMF4cRPQhc3Fy8=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
