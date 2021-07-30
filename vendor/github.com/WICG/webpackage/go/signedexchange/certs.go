@@ -32,11 +32,24 @@ func ParseCertificates(text []byte) ([]*x509.Certificate, error) {
 	return certs, nil
 }
 
-func ParsePrivateKey(derKey []byte) (crypto.PrivateKey, error) {
-	// Try each of 3 key formats and take the first one that successfully parses.
-	if key, err := x509.ParsePKCS1PrivateKey(derKey); err == nil {
-		return key, nil
+func ParsePrivateKey(text []byte) (crypto.PrivateKey, error) {
+	for len(text) > 0 {
+		var block *pem.Block
+		block, text = pem.Decode(text)
+		if block == nil {
+			return nil, errors.New("signedexchange: invalid PEM block in private key.")
+		}
+
+		privkey, err := parsePrivateKeyBlock(block.Bytes)
+		if err == nil {
+			return privkey, nil
+		}
 	}
+	return nil, errors.New("signedexchange: could not find private key.")
+}
+
+func parsePrivateKeyBlock(derKey []byte) (crypto.PrivateKey, error) {
+	// Try each of 2 key formats and take the first one that successfully parses.
 	if keyInterface, err := x509.ParsePKCS8PrivateKey(derKey); err == nil {
 		switch typedKey := keyInterface.(type) {
 		case *ecdsa.PrivateKey:

@@ -15,32 +15,18 @@
 package certloader
 
 import (
-	"crypto/rsa"
 	"crypto/x509"
-	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/WICG/webpackage/go/signedexchange"
+	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/ampproject/amppackager/packager/util"
 )
 
 func stringPtr(s string) *string {
 	return &s
 }
-
-var caCert = func() *x509.Certificate {
-	certPem, _ := ioutil.ReadFile("../../testdata/b3/ca.cert")
-	certs, _ := signedexchange.ParseCertificates(certPem)
-	return certs[0]
-}()
-
-var caKey = func() *rsa.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("../../testdata/b3/ca.privkey")
-	key, _ := util.ParsePrivateKey(keyPem)
-	return key.(*rsa.PrivateKey)
-}()
 
 func TestLoadCertsFromFile(t *testing.T) {
 	// Cert file does not exist.
@@ -57,7 +43,7 @@ func TestLoadCertsFromFile(t *testing.T) {
 			CertFile: "../../testdata/b3/ca.cert",
 		},
 		true)
-	assert.Equal(t, caCert, certs[0])
+	assert.Equal(t, pkgt.CACert, certs[0])
 	assert.Nil(t, err)
 
 	// Cert file is not ok for prod mode.
@@ -81,8 +67,8 @@ func TestLoadKeyFromFile(t *testing.T) {
 	// Key is valid.
 	key, err = LoadKeyFromFile(
 		&util.Config{
-			KeyFile: "../../testdata/b3/ca.privkey",
+			KeyFile: "../../testdata/b3/server.privkey",
 		})
-	assert.Equal(t, caKey, key)
+	assert.Equal(t, pkgt.Key, key)
 	assert.Nil(t, err)
 }

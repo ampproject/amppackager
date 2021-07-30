@@ -16,7 +16,9 @@ package testing
 
 import (
 	"crypto"
+	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -83,6 +85,33 @@ var B3KeyP521 = func() crypto.PrivateKey {
 	keyPem, _ := ioutil.ReadFile("../../testdata/b3/server_p521.privkey")
 	key, _ := util.ParsePrivateKey(keyPem)
 	return key
+}()
+
+// Cert for a fake CA
+var CACert = func() *x509.Certificate {
+	certPem, _ := ioutil.ReadFile("../../testdata/b3/ca.cert")
+	certs, _ := signedexchange.ParseCertificates(certPem)
+	return certs[0]
+}()
+
+// RSA private key for a fake CA
+var CAKey = func() *rsa.PrivateKey {
+	keyPem, _ := ioutil.ReadFile("../../testdata/b3/ca.privkey")
+	for {
+		var pemBlock *pem.Block
+		pemBlock, keyPem := pem.Decode(keyPem)
+		if pemBlock == nil {
+			panic("Error parsing PEM block in ca.privkey.")
+		}
+
+		if key, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes); err == nil {
+			return key
+		}
+		if len(keyPem) == 0 {
+			panic("Failed to parse ca.privkey; no matching PEM blocks.")
+		}
+		// Else try next PEM block.
+	}
 }()
 
 // The URL path component corresponding to the cert's sha-256.

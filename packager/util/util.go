@@ -22,7 +22,6 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/base64"
-	"encoding/pem"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -51,26 +50,11 @@ const MetricsPath = "/metrics"
 
 // ParsePrivateKey returns the first PEM block that looks like a private key.
 func ParsePrivateKey(keyPem []byte) (crypto.PrivateKey, error) {
-	var privkey crypto.PrivateKey
-	for {
-		var pemBlock *pem.Block
-		pemBlock, keyPem = pem.Decode(keyPem)
-		if pemBlock == nil {
-			return nil, errors.New("invalid PEM block in private key file, make sure to use the right key type. See: https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange")
-
-		}
-
-		var err error
-		privkey, err = signedexchange.ParsePrivateKey(pemBlock.Bytes)
-		if err == nil {
-			return privkey, nil
-		}
-		if len(keyPem) == 0 {
-			// No more PEM blocks to try.
-			return nil, errors.New("failed to parse private key file")
-		}
-		// Else try next PEM block.
+	privKey, err := signedexchange.ParsePrivateKey(keyPem)
+	if err != nil {
+		return nil, errors.Wrap(err, "Make sure to use the right key type. See: https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange; error is")
 	}
+	return privKey, nil
 }
 
 func hasCanSignHttpExchangesExtension(cert *x509.Certificate) bool {
