@@ -67,8 +67,6 @@ github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87 h1:xPMsUicZ
 github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87/go.mod h1:iGLljf5n9GjT6kc0HBvyI1nOKnGQbNB66VzSNbK5iks=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/WICG/webpackage v0.0.0-20190215052515-70386c3750f2 h1:IJIQQSysq7xk5oO0/6fbYZY0ZLz/KMM+k63ZrJphef8=
-github.com/WICG/webpackage v0.0.0-20190215052515-70386c3750f2/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
 github.com/WICG/webpackage v0.0.0-20210623222345-39b429db6dac h1:V4vrCWeKDq0U/y2PQjlwqKR2iffx4jSiARk4yjLOhgo=
 github.com/WICG/webpackage v0.0.0-20210623222345-39b429db6dac/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
 github.com/akamai/AkamaiOPEN-edgegrid-golang v1.1.0 h1:NNsy0ugDFZbu6S11NlsR4Kmko9hJ00gv9U2JHbwpf3g=
@@ -80,8 +78,8 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d/go.mod h1:rBZYJk541a8SKzHPHnH3zbiI+7dagKZ0cgpgrD7Fyho=
 github.com/aliyun/alibaba-cloud-sdk-go v1.61.976 h1:I9fs4eZbZqimF3TstEqEwK66R2b7QKd6D6OCxibSD60=
 github.com/aliyun/alibaba-cloud-sdk-go v1.61.976/go.mod h1:pUKYbK5JQ+1Dfxk80P0qxGqe5dkxDoabbZS7zOcouyA=
-github.com/ampproject/amphtml v0.0.0-20210726215739-65a3b3c8c758 h1:Uoob4bhN8Jpr4vveUqMzsD0fmf8/UeMXMlLnvP5joPg=
-github.com/ampproject/amphtml v0.0.0-20210726215739-65a3b3c8c758/go.mod h1:VdGPUI5OhDH1JDFyOSvCz3x2Ap3YmdLvJ0QboKqoc1c=
+github.com/ampproject/amphtml v0.0.0-20210802160724-a648a87e5643 h1:XlW88I8vHvEJhbzl76/limhHaZ40PtTv+SZaXx+tuCo=
+github.com/ampproject/amphtml v0.0.0-20210802160724-a648a87e5643/go.mod h1:VdGPUI5OhDH1JDFyOSvCz3x2Ap3YmdLvJ0QboKqoc1c=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
