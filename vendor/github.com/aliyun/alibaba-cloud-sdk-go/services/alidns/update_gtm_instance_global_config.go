@@ -21,7 +21,6 @@ import (
 )
 
 // UpdateGtmInstanceGlobalConfig invokes the alidns.UpdateGtmInstanceGlobalConfig API synchronously
-// api document: https://help.aliyun.com/api/alidns/updategtminstanceglobalconfig.html
 func (client *Client) UpdateGtmInstanceGlobalConfig(request *UpdateGtmInstanceGlobalConfigRequest) (response *UpdateGtmInstanceGlobalConfigResponse, err error) {
 	response = CreateUpdateGtmInstanceGlobalConfigResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) UpdateGtmInstanceGlobalConfig(request *UpdateGtmInstanceGl
 }
 
 // UpdateGtmInstanceGlobalConfigWithChan invokes the alidns.UpdateGtmInstanceGlobalConfig API asynchronously
-// api document: https://help.aliyun.com/api/alidns/updategtminstanceglobalconfig.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) UpdateGtmInstanceGlobalConfigWithChan(request *UpdateGtmInstanceGlobalConfigRequest) (<-chan *UpdateGtmInstanceGlobalConfigResponse, <-chan error) {
 	responseChan := make(chan *UpdateGtmInstanceGlobalConfigResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) UpdateGtmInstanceGlobalConfigWithChan(request *UpdateGtmIn
 }
 
 // UpdateGtmInstanceGlobalConfigWithCallback invokes the alidns.UpdateGtmInstanceGlobalConfig API asynchronously
-// api document: https://help.aliyun.com/api/alidns/updategtminstanceglobalconfig.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) UpdateGtmInstanceGlobalConfigWithCallback(request *UpdateGtmInstanceGlobalConfigRequest, callback func(response *UpdateGtmInstanceGlobalConfigResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -77,15 +72,15 @@ func (client *Client) UpdateGtmInstanceGlobalConfigWithCallback(request *UpdateG
 type UpdateGtmInstanceGlobalConfigRequest struct {
 	*requests.RpcRequest
 	AlertGroup            string           `position:"Query" name:"AlertGroup"`
+	CnameMode             string           `position:"Query" name:"CnameMode"`
+	LbaStrategy           string           `position:"Query" name:"LbaStrategy"`
+	Ttl                   requests.Integer `position:"Query" name:"Ttl"`
+	CnameCustomDomainName string           `position:"Query" name:"CnameCustomDomainName"`
 	InstanceId            string           `position:"Query" name:"InstanceId"`
 	InstanceName          string           `position:"Query" name:"InstanceName"`
 	UserDomainName        string           `position:"Query" name:"UserDomainName"`
-	CnameMode             string           `position:"Query" name:"CnameMode"`
 	UserClientIp          string           `position:"Query" name:"UserClientIp"`
-	LbaStrategy           string           `position:"Query" name:"LbaStrategy"`
 	Lang                  string           `position:"Query" name:"Lang"`
-	Ttl                   requests.Integer `position:"Query" name:"Ttl"`
-	CnameCustomDomainName string           `position:"Query" name:"CnameCustomDomainName"`
 }
 
 // UpdateGtmInstanceGlobalConfigResponse is the response struct for api UpdateGtmInstanceGlobalConfig
@@ -99,7 +94,8 @@ func CreateUpdateGtmInstanceGlobalConfigRequest() (request *UpdateGtmInstanceGlo
 	request = &UpdateGtmInstanceGlobalConfigRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "UpdateGtmInstanceGlobalConfig", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "UpdateGtmInstanceGlobalConfig", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

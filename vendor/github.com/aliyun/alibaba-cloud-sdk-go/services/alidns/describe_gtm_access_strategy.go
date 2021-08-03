@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeGtmAccessStrategy invokes the alidns.DescribeGtmAccessStrategy API synchronously
-// api document: https://help.aliyun.com/api/alidns/describegtmaccessstrategy.html
 func (client *Client) DescribeGtmAccessStrategy(request *DescribeGtmAccessStrategyRequest) (response *DescribeGtmAccessStrategyResponse, err error) {
 	response = CreateDescribeGtmAccessStrategyResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeGtmAccessStrategy(request *DescribeGtmAccessStrate
 }
 
 // DescribeGtmAccessStrategyWithChan invokes the alidns.DescribeGtmAccessStrategy API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describegtmaccessstrategy.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeGtmAccessStrategyWithChan(request *DescribeGtmAccessStrategyRequest) (<-chan *DescribeGtmAccessStrategyResponse, <-chan error) {
 	responseChan := make(chan *DescribeGtmAccessStrategyResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeGtmAccessStrategyWithChan(request *DescribeGtmAcce
 }
 
 // DescribeGtmAccessStrategyWithCallback invokes the alidns.DescribeGtmAccessStrategy API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describegtmaccessstrategy.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeGtmAccessStrategyWithCallback(request *DescribeGtmAccessStrategyRequest, callback func(response *DescribeGtmAccessStrategyResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -84,18 +79,22 @@ type DescribeGtmAccessStrategyRequest struct {
 // DescribeGtmAccessStrategyResponse is the response struct for api DescribeGtmAccessStrategy
 type DescribeGtmAccessStrategyResponse struct {
 	*responses.BaseResponse
-	RequestId            string                           `json:"RequestId" xml:"RequestId"`
-	StrategyId           string                           `json:"StrategyId" xml:"StrategyId"`
-	StrategyName         string                           `json:"StrategyName" xml:"StrategyName"`
-	DefultAddrPoolId     string                           `json:"DefultAddrPoolId" xml:"DefultAddrPoolId"`
-	DefaultAddrPoolName  string                           `json:"DefaultAddrPoolName" xml:"DefaultAddrPoolName"`
-	FailoverAddrPoolId   string                           `json:"FailoverAddrPoolId" xml:"FailoverAddrPoolId"`
-	FailoverAddrPoolName string                           `json:"FailoverAddrPoolName" xml:"FailoverAddrPoolName"`
-	StrategyMode         string                           `json:"StrategyMode" xml:"StrategyMode"`
-	AccessMode           string                           `json:"AccessMode" xml:"AccessMode"`
-	AccessStatus         string                           `json:"AccessStatus" xml:"AccessStatus"`
-	InstanceId           string                           `json:"InstanceId" xml:"InstanceId"`
-	Lines                LinesInDescribeGtmAccessStrategy `json:"Lines" xml:"Lines"`
+	RequestId                     string                           `json:"RequestId" xml:"RequestId"`
+	StrategyId                    string                           `json:"StrategyId" xml:"StrategyId"`
+	StrategyName                  string                           `json:"StrategyName" xml:"StrategyName"`
+	DefultAddrPoolId              string                           `json:"DefultAddrPoolId" xml:"DefultAddrPoolId"`
+	DefaultAddrPoolName           string                           `json:"DefaultAddrPoolName" xml:"DefaultAddrPoolName"`
+	FailoverAddrPoolId            string                           `json:"FailoverAddrPoolId" xml:"FailoverAddrPoolId"`
+	FailoverAddrPoolName          string                           `json:"FailoverAddrPoolName" xml:"FailoverAddrPoolName"`
+	StrategyMode                  string                           `json:"StrategyMode" xml:"StrategyMode"`
+	AccessMode                    string                           `json:"AccessMode" xml:"AccessMode"`
+	AccessStatus                  string                           `json:"AccessStatus" xml:"AccessStatus"`
+	InstanceId                    string                           `json:"InstanceId" xml:"InstanceId"`
+	DefaultAddrPoolStatus         string                           `json:"DefaultAddrPoolStatus" xml:"DefaultAddrPoolStatus"`
+	FailoverAddrPoolStatus        string                           `json:"FailoverAddrPoolStatus" xml:"FailoverAddrPoolStatus"`
+	DefaultAddrPoolMonitorStatus  string                           `json:"DefaultAddrPoolMonitorStatus" xml:"DefaultAddrPoolMonitorStatus"`
+	FailoverAddrPoolMonitorStatus string                           `json:"FailoverAddrPoolMonitorStatus" xml:"FailoverAddrPoolMonitorStatus"`
+	Lines                         LinesInDescribeGtmAccessStrategy `json:"Lines" xml:"Lines"`
 }
 
 // CreateDescribeGtmAccessStrategyRequest creates a request to invoke DescribeGtmAccessStrategy API
@@ -103,7 +102,8 @@ func CreateDescribeGtmAccessStrategyRequest() (request *DescribeGtmAccessStrateg
 	request = &DescribeGtmAccessStrategyRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeGtmAccessStrategy", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeGtmAccessStrategy", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

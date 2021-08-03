@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import "fmt"
@@ -102,14 +116,14 @@ func (s *Server) UpstreamTypeAt(index int) EUpstreamNetworkType {
 // SwitchID 上流のスイッチのID
 //
 // NICがない、上流スイッチが見つからない、上流が共有セグメントの場合は-1を返す
-func (s *Server) SwitchID() int64 {
+func (s *Server) SwitchID() ID {
 	return s.SwitchIDAt(0)
 }
 
 // SwitchIDAt 上流ネットワークのスイッチのID
 //
 // NICがない、上流スイッチが見つからない、上流が共有セグメントの場合は-1を返す
-func (s *Server) SwitchIDAt(index int) int64 {
+func (s *Server) SwitchIDAt(index int) ID {
 	if len(s.Interfaces) <= index {
 		return -1
 	}

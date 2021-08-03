@@ -1,5 +1,7 @@
 module github.com/sacloud/libsacloud
 
+go 1.12
+
 require (
 	github.com/davecgh/go-spew v1.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.3 // indirect

@@ -1,9 +1,18 @@
-package sacloud
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-import (
-	"encoding/json"
-	"fmt"
-)
+package sacloud
 
 // AutoBackup 自動バックアップ(CommonServiceItem)
 type AutoBackup struct {
@@ -24,9 +33,9 @@ type AutoBackup struct {
 
 // AutoBackupSettings 自動バックアップ設定
 type AutoBackupSettings struct {
-	AccountID  json.Number           `json:"AccountId,omitempty"` // アカウントID
-	DiskID     string                `json:"DiskId,omitempty"`    // ディスクID
-	ZoneID     int64                 `json:"ZoneId,omitempty"`    // ゾーンID
+	AccountID  ID                    `json:"AccountId,omitempty"` // アカウントID
+	DiskID     ID                    `json:"DiskId,omitempty"`    // ディスクID
+	ZoneID     ID                    `json:"ZoneId,omitempty"`    // ゾーンID
 	ZoneName   string                `json:",omitempty"`          // ゾーン名称
 	Autobackup *AutoBackupRecordSets `json:",omitempty"`          // 自動バックアップ定義
 
@@ -34,10 +43,10 @@ type AutoBackupSettings struct {
 
 // AutoBackupStatus 自動バックアップステータス
 type AutoBackupStatus struct {
-	AccountID json.Number `json:"AccountId,omitempty"` // アカウントID
-	DiskID    string      `json:"DiskId,omitempty"`    // ディスクID
-	ZoneID    int64       `json:"ZoneId,omitempty"`    // ゾーンID
-	ZoneName  string      `json:",omitempty"`          // ゾーン名称
+	AccountID ID     `json:"AccountId,omitempty"` // アカウントID
+	DiskID    ID     `json:"DiskId,omitempty"`    // ディスクID
+	ZoneID    ID     `json:"ZoneId,omitempty"`    // ゾーンID
+	ZoneName  string `json:",omitempty"`          // ゾーン名称
 }
 
 // AutoBackupProvider 自動バックアッププロバイダ
@@ -46,12 +55,12 @@ type AutoBackupProvider struct {
 }
 
 // CreateNewAutoBackup 自動バックアップ 作成(CommonServiceItem)
-func CreateNewAutoBackup(backupName string, diskID int64) *AutoBackup {
+func CreateNewAutoBackup(backupName string, diskID ID) *AutoBackup {
 	return &AutoBackup{
 		Resource: &Resource{},
 		propName: propName{Name: backupName},
 		Status: &AutoBackupStatus{
-			DiskID: fmt.Sprintf("%d", diskID),
+			DiskID: diskID,
 		},
 		Provider: &AutoBackupProvider{
 			Class: "autobackup",

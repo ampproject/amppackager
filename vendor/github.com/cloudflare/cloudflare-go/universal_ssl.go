@@ -1,7 +1,9 @@
 package cloudflare
 
 import (
+	"context"
 	"encoding/json"
+	"net/http"
 
 	"github.com/pkg/errors"
 )
@@ -16,7 +18,7 @@ type universalSSLSettingResponse struct {
 	Result UniversalSSLSetting `json:"result"`
 }
 
-// UniversalSSLVerificationDetails represents a universal ssl verifcation's properties.
+// UniversalSSLVerificationDetails represents a universal ssl verification's properties.
 type UniversalSSLVerificationDetails struct {
 	CertificateStatus  string                       `json:"certificate_status"`
 	VerificationType   string                       `json:"verification_type"`
@@ -41,11 +43,11 @@ type universalSSLVerificationResponse struct {
 // UniversalSSLSettingDetails returns the details for a universal ssl setting
 //
 // API reference: https://api.cloudflare.com/#universal-ssl-settings-for-a-zone-universal-ssl-settings-details
-func (api *API) UniversalSSLSettingDetails(zoneID string) (UniversalSSLSetting, error) {
+func (api *API) UniversalSSLSettingDetails(ctx context.Context, zoneID string) (UniversalSSLSetting, error) {
 	uri := "/zones/" + zoneID + "/ssl/universal/settings"
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return UniversalSSLSetting{}, errors.Wrap(err, errMakeRequestError)
+		return UniversalSSLSetting{}, err
 	}
 	var r universalSSLSettingResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -54,14 +56,14 @@ func (api *API) UniversalSSLSettingDetails(zoneID string) (UniversalSSLSetting, 
 	return r.Result, nil
 }
 
-// EditUniversalSSLSetting edits the uniersal ssl setting for a zone
+// EditUniversalSSLSetting edits the universal ssl setting for a zone
 //
 // API reference: https://api.cloudflare.com/#universal-ssl-settings-for-a-zone-edit-universal-ssl-settings
-func (api *API) EditUniversalSSLSetting(zoneID string, setting UniversalSSLSetting) (UniversalSSLSetting, error) {
+func (api *API) EditUniversalSSLSetting(ctx context.Context, zoneID string, setting UniversalSSLSetting) (UniversalSSLSetting, error) {
 	uri := "/zones/" + zoneID + "/ssl/universal/settings"
-	res, err := api.makeRequest("PATCH", uri, setting)
+	res, err := api.makeRequestContext(ctx, http.MethodPatch, uri, setting)
 	if err != nil {
-		return UniversalSSLSetting{}, errors.Wrap(err, errMakeRequestError)
+		return UniversalSSLSetting{}, err
 	}
 	var r universalSSLSettingResponse
 	if err := json.Unmarshal(res, &r); err != nil {
@@ -71,14 +73,14 @@ func (api *API) EditUniversalSSLSetting(zoneID string, setting UniversalSSLSetti
 
 }
 
-// UniversalSSLVerificationDetails returns the details for a universal ssl verifcation
+// UniversalSSLVerificationDetails returns the details for a universal ssl verification
 //
 // API reference: https://api.cloudflare.com/#ssl-verification-ssl-verification-details
-func (api *API) UniversalSSLVerificationDetails(zoneID string) ([]UniversalSSLVerificationDetails, error) {
+func (api *API) UniversalSSLVerificationDetails(ctx context.Context, zoneID string) ([]UniversalSSLVerificationDetails, error) {
 	uri := "/zones/" + zoneID + "/ssl/verification"
-	res, err := api.makeRequest("GET", uri, nil)
+	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return []UniversalSSLVerificationDetails{}, errors.Wrap(err, errMakeRequestError)
+		return []UniversalSSLVerificationDetails{}, err
 	}
 	var r universalSSLVerificationResponse
 	if err := json.Unmarshal(res, &r); err != nil {

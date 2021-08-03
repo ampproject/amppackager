@@ -21,7 +21,6 @@ import (
 )
 
 // AddGtmAddressPool invokes the alidns.AddGtmAddressPool API synchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmaddresspool.html
 func (client *Client) AddGtmAddressPool(request *AddGtmAddressPoolRequest) (response *AddGtmAddressPoolResponse, err error) {
 	response = CreateAddGtmAddressPoolResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) AddGtmAddressPool(request *AddGtmAddressPoolRequest) (resp
 }
 
 // AddGtmAddressPoolWithChan invokes the alidns.AddGtmAddressPool API asynchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmaddresspool.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddGtmAddressPoolWithChan(request *AddGtmAddressPoolRequest) (<-chan *AddGtmAddressPoolResponse, <-chan error) {
 	responseChan := make(chan *AddGtmAddressPoolResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) AddGtmAddressPoolWithChan(request *AddGtmAddressPoolReques
 }
 
 // AddGtmAddressPoolWithCallback invokes the alidns.AddGtmAddressPool API asynchronously
-// api document: https://help.aliyun.com/api/alidns/addgtmaddresspool.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) AddGtmAddressPoolWithCallback(request *AddGtmAddressPoolRequest, callback func(response *AddGtmAddressPoolResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -76,13 +71,20 @@ func (client *Client) AddGtmAddressPoolWithCallback(request *AddGtmAddressPoolRe
 // AddGtmAddressPoolRequest is the request struct for api AddGtmAddressPool
 type AddGtmAddressPoolRequest struct {
 	*requests.RpcRequest
-	InstanceId          string                   `position:"Query" name:"InstanceId"`
-	UserClientIp        string                   `position:"Query" name:"UserClientIp"`
-	Name                string                   `position:"Query" name:"Name"`
-	Lang                string                   `position:"Query" name:"Lang"`
-	Type                string                   `position:"Query" name:"Type"`
-	Addr                *[]AddGtmAddressPoolAddr `position:"Query" name:"Addr"  type:"Repeated"`
-	MinAvailableAddrNum requests.Integer         `position:"Query" name:"MinAvailableAddrNum"`
+	MonitorExtendInfo   string                          `position:"Query" name:"MonitorExtendInfo"`
+	Type                string                          `position:"Query" name:"Type"`
+	Timeout             requests.Integer                `position:"Query" name:"Timeout"`
+	MinAvailableAddrNum requests.Integer                `position:"Query" name:"MinAvailableAddrNum"`
+	EvaluationCount     requests.Integer                `position:"Query" name:"EvaluationCount"`
+	Lang                string                          `position:"Query" name:"Lang"`
+	Addr                *[]AddGtmAddressPoolAddr        `position:"Query" name:"Addr"  type:"Repeated"`
+	MonitorStatus       string                          `position:"Query" name:"MonitorStatus"`
+	InstanceId          string                          `position:"Query" name:"InstanceId"`
+	UserClientIp        string                          `position:"Query" name:"UserClientIp"`
+	Name                string                          `position:"Query" name:"Name"`
+	ProtocolType        string                          `position:"Query" name:"ProtocolType"`
+	Interval            requests.Integer                `position:"Query" name:"Interval"`
+	IspCityNode         *[]AddGtmAddressPoolIspCityNode `position:"Query" name:"IspCityNode"  type:"Repeated"`
 }
 
 // AddGtmAddressPoolAddr is a repeated param struct in AddGtmAddressPoolRequest
@@ -92,11 +94,18 @@ type AddGtmAddressPoolAddr struct {
 	Value     string `name:"Value"`
 }
 
+// AddGtmAddressPoolIspCityNode is a repeated param struct in AddGtmAddressPoolRequest
+type AddGtmAddressPoolIspCityNode struct {
+	CityCode string `name:"CityCode"`
+	IspCode  string `name:"IspCode"`
+}
+
 // AddGtmAddressPoolResponse is the response struct for api AddGtmAddressPool
 type AddGtmAddressPoolResponse struct {
 	*responses.BaseResponse
-	RequestId  string `json:"RequestId" xml:"RequestId"`
-	AddrPoolId string `json:"AddrPoolId" xml:"AddrPoolId"`
+	RequestId       string `json:"RequestId" xml:"RequestId"`
+	AddrPoolId      string `json:"AddrPoolId" xml:"AddrPoolId"`
+	MonitorConfigId string `json:"MonitorConfigId" xml:"MonitorConfigId"`
 }
 
 // CreateAddGtmAddressPoolRequest creates a request to invoke AddGtmAddressPool API
@@ -104,7 +113,8 @@ func CreateAddGtmAddressPoolRequest() (request *AddGtmAddressPoolRequest) {
 	request = &AddGtmAddressPoolRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "AddGtmAddressPool", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "AddGtmAddressPool", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

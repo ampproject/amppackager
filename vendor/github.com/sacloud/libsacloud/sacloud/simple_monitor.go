@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import "time"
@@ -16,7 +30,6 @@ type SimpleMonitor struct {
 	Settings *SimpleMonitorSettings `json:",omitempty"` // 設定
 	Status   *SimpleMonitorStatus   `json:",omitempty"` // ステータス
 	Provider *SimpleMonitorProvider `json:",omitempty"` // プロバイダ
-
 }
 
 // SimpleMonitorSettings シンプル監視設定 リスト
@@ -26,11 +39,12 @@ type SimpleMonitorSettings struct {
 
 // SimpleMonitorSetting シンプル監視設定
 type SimpleMonitorSetting struct {
-	DelayLoop   int                       `json:",omitempty"` // 監視間隔
-	HealthCheck *SimpleMonitorHealthCheck `json:",omitempty"` // ヘルスチェック
-	Enabled     string                    `json:",omitempty"` // 有効/無効
-	NotifyEmail *SimpleMonitorNotify      `json:",omitempty"` // Email通知
-	NotifySlack *SimpleMonitorNotify      `json:",omitempty"` // Slack通知
+	DelayLoop      int                       `json:",omitempty"` // 監視間隔
+	NotifyInterval int                       `json:",omitempty"` // 再通知間隔(秒数)
+	HealthCheck    *SimpleMonitorHealthCheck `json:",omitempty"` // ヘルスチェック
+	Enabled        string                    `json:",omitempty"` // 有効/無効
+	NotifyEmail    *SimpleMonitorNotify      `json:",omitempty"` // Email通知
+	NotifySlack    *SimpleMonitorNotify      `json:",omitempty"` // Slack通知
 }
 
 // SimpleMonitorStatus シンプル監視ステータス
@@ -286,4 +300,9 @@ func (s *SimpleMonitor) DisableNotifySlack() {
 // SetDelayLoop 監視間隔の設定
 func (s *SimpleMonitor) SetDelayLoop(loop int) {
 	s.Settings.SimpleMonitor.DelayLoop = loop
+}
+
+// SetNotifyInterval 再通知間隔の設定
+func (s *SimpleMonitor) SetNotifyInterval(loop int) {
+	s.Settings.SimpleMonitor.NotifyInterval = loop
 }

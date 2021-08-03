@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 /************************************************
@@ -196,19 +210,19 @@ func (api *ProductInternetAPI) SortByName(reverse bool) *ProductInternetAPI {
 // }
 
 // Read 読み取り
-func (api *ProductInternetAPI) Read(id int64) (*sacloud.ProductInternet, error) {
+func (api *ProductInternetAPI) Read(id sacloud.ID) (*sacloud.ProductInternet, error) {
 	return api.request(func(res *sacloud.Response) error {
 		return api.read(id, nil, res)
 	})
 }
 
-// func (api *ProductInternetAPI) Update(id int64, value *sacloud.ProductInternet) (*sacloud.ProductInternet, error) {
+// func (api *ProductInternetAPI) Update(id sacloud.ID, value *sacloud.ProductInternet) (*sacloud.ProductInternet, error) {
 // 	return api.request(func(res *sacloud.Response) error {
 // 		return api.update(id, api.createRequest(value), res)
 // 	})
 // }
 
-// func (api *ProductInternetAPI) Delete(id int64) (*sacloud.ProductInternet, error) {
+// func (api *ProductInternetAPI) Delete(id sacloud.ID) (*sacloud.ProductInternet, error) {
 // 	return api.request(func(res *sacloud.Response) error {
 // 		return api.delete(id, nil, res)
 // 	})

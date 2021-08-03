@@ -254,7 +254,7 @@ var testcaseInferSize = []TestCase{
 	},
 }
 
-var testcaseDataHero = []TestCase{
+var testcaseDataHeroAmpImg = []TestCase{
 	{
 		"data-hero",
 		`<html><head></head><body><amp-img data-hero width="500" height="400" src="https://example.com/foo.png"></body></html>`,
@@ -442,6 +442,194 @@ var testcaseDataHero = []TestCase{
 	},
 }
 
+var testcaseDataHeroImg = []TestCase{
+	{
+		"data-hero",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png"/></body></html>`,
+	},
+	{
+		"data-hero: Allows multiple heros",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png"/><img data-hero width="500" height="400" src="https://example.com/bar.png"/><img data-hero width="500" height="400" src="https://example.com/baz.png"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/><link rel="preload" as="image" href="https://example.com/bar.png"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png"/><img data-hero="" width="500" height="400" src="https://example.com/bar.png"/><img data-hero="" width="500" height="400" src="https://example.com/baz.png"/></body></html>`,
+	},
+	{
+		"data-hero: Prioritizes data-hero",
+		`<html><head></head><body><img width="100" height="100" src="https://example.com/foo.png"/><img data-hero width="500" height="400" src="https://example.com/bar.png"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/bar.png"/></head><body><img width="100" height="100" src="https://example.com/foo.png"/><img data-hero="" width="500" height="400" src="https://example.com/bar.png"/></body></html>`,
+	},
+	{
+		"data-hero: Prevents size-inferred hero",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png"/><img width="500" height="400" src="https://example.com/bar.png"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png"/><img width="500" height="400" src="https://example.com/bar.png"/></body></html>`,
+	},
+	{
+		"data-hero: Dimensions too small",
+		`<html><head></head><body><img data-hero height="100" src="https://example.com/foo.png" width="100"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><img data-hero="" height="100" src="https://example.com/foo.png" width="100"/></body></html>`,
+	},
+	{
+		"data-hero: Crossorigin attribute.",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png" crossorigin="anonymous"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" crossorigin="anonymous"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png" crossorigin="anonymous"/></body></html>`,
+	},
+	{
+		"data-hero: Referrerpolicy referrerpolicy.",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png" referrerpolicy="origin"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" referrerpolicy="origin"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png" referrerpolicy="origin"/></body></html>`,
+	},
+	{
+		"data-hero: Srcset attribute.",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></body></html>`,
+	},
+	{
+		"inferred-size: Srcset without src.",
+		`<html><head></head><body><img data-hero width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><img data-hero="" width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></body></html>`,
+	},
+	{
+		"inferred-size: Sizes.",
+		`<html><head></head><body><img data-hero width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" sizes="100vw"/></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w" imagesizes="100vw"/></head><body><img data-hero="" width="500" height="400" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w" sizes="100vw"/></body></html>`,
+	},
+	{
+		"data-hero: Iframe placeholder",
+		`<html><head></head><body><amp-iframe data-hero height="500" width="500" src="/foo.html"><img placeholder src="https://example.com/bar.png"/></amp-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/bar.png"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><img placeholder="" src="https://example.com/bar.png"/></amp-iframe></body></html>`,
+	},
+	{
+		"data-hero: Iframe placeholder crossorigin",
+		`<html><head></head><body><amp-iframe data-hero height="500" width="500" src="/foo.html"><img placeholder src="https://example.com/bar.png" crossorigin="anonymous"/></amp-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/bar.png" crossorigin="anonymous"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><img placeholder="" src="https://example.com/bar.png" crossorigin="anonymous"/></amp-iframe></body></html>`,
+	},
+	{
+		"data-hero: Iframe placeholder referrerpolicy",
+		`<html><head></head><body><amp-iframe data-hero height="500" width="500" src="/foo.html"><img placeholder src="https://example.com/bar.png" referrerpolicy="origin"/></amp-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/bar.png" referrerpolicy="origin"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><img placeholder="" src="https://example.com/bar.png" referrerpolicy="origin"/></amp-iframe></body></html>`,
+	},
+	{
+		"inferred-size: Iframe placeholder srcset",
+		`<html><head></head><body><amp-iframe data-hero height="500" width="500" src="/foo.html"><img placeholder srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-iframe data-hero="" height="500" width="500" src="/foo.html"><img placeholder="" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-iframe></body></html>`,
+	},
+	{
+		"data-hero: No placeholder image",
+		`<html><head></head><body><amp-iframe data-hero src="/foo.html"></amp-iframe></body></html>`,
+		`<html><head></head><body><amp-iframe data-hero="" src="/foo.html"></amp-iframe></body></html>`,
+	},
+	{
+		"data-hero: iframe video placeholder",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html"><img placeholder src="https://example.com/foo.png"/></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><img placeholder="" src="https://example.com/foo.png"/></amp-video-iframe></body></html>`,
+	},
+	{
+		"data-hero: iframe video placeholder crossorigin",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html"><img placeholder src="https://example.com/foo.png" crossorigin="anonymous"/></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" crossorigin="anonymous"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><img placeholder="" src="https://example.com/foo.png" crossorigin="anonymous"/></amp-video-iframe></body></html>`,
+	},
+	{
+		"data-hero: iframe video placeholder referrerpolicy",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html"><img placeholder src="https://example.com/foo.png" referrerpolicy="origin"/></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png" referrerpolicy="origin"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><img placeholder="" src="https://example.com/foo.png" referrerpolicy="origin"/></amp-video-iframe></body></html>`,
+	},
+	{
+		"inferred-size: iframe video placeholder srcset",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html"><img placeholder srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" imagesrcset="https://example.com/foolarge.png 1200w, https://example.com/foomedium.png 800w"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html"><img placeholder="" srcset="https://example.com/foomedium.png 800w, https://example.com/foolarge.png 1200w"/></amp-video-iframe></body></html>`,
+	},
+	{
+		"data-hero: iframe video poster",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html" poster="https://example.com/foo.png"></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html" poster="https://example.com/foo.png"></amp-video-iframe></body></html>`,
+	},
+	{
+		"data-hero: iframe video poster crossorigin",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html" poster="https://example.com/foo.png" crossorigin="anonymous"></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html" poster="https://example.com/foo.png" crossorigin="anonymous"></amp-video-iframe></body></html>`,
+	},
+	{
+		"data-hero: iframe video poster referrerpolicy",
+		`<html><head></head><body><amp-video-iframe data-hero height="500" width="500" src="/foo.html" poster="https://example.com/foo.png" referrerpolicy="origin"></amp-video-iframe></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video-iframe data-hero="" height="500" width="500" src="/foo.html" poster="https://example.com/foo.png" referrerpolicy="origin"></amp-video-iframe></body></html>`,
+	},
+	{
+		"data-hero: No placeholder image",
+		`<html><head></head><body><amp-video-iframe data-hero src="/foo.html"></amp-video-iframe></body></html>`,
+		`<html><head></head><body><amp-video-iframe data-hero="" src="/foo.html"></amp-video-iframe></body></html>`,
+	},
+	{
+		"data-hero: Video poster",
+		`<html><head></head><body><amp-video data-hero poster="https://example.com/foo.png" width="400" height="400"><source src="foo.mp4" /></amp-video></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video data-hero="" poster="https://example.com/foo.png" width="400" height="400"><source src="foo.mp4"/></amp-video></body></html>`,
+	},
+	{
+		"data-hero: Video poster crossorigin",
+		`<html><head></head><body><amp-video data-hero poster="https://example.com/foo.png" width="400" height="400" crossorigin="anonymous"><source src="foo.mp4" /></amp-video></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video data-hero="" poster="https://example.com/foo.png" width="400" height="400" crossorigin="anonymous"><source src="foo.mp4"/></amp-video></body></html>`,
+	},
+	{
+		"data-hero: Video poster referrerpolicy",
+		`<html><head></head><body><amp-video data-hero poster="https://example.com/foo.png" width="400" height="400" referrerpolicy="origin"><source src="foo.mp4" /></amp-video></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><amp-video data-hero="" poster="https://example.com/foo.png" width="400" height="400" referrerpolicy="origin"><source src="foo.mp4"/></amp-video></body></html>`,
+	},
+	{
+		"data-hero: amp-video with missing poster.",
+		`<html><head></head><body><amp-video data-hero width="400" height="400"><source src="foo.mp4" /></amp-video></body></html>`,
+		`<html><head></head><body><amp-video data-hero="" width="400" height="400"><source src="foo.mp4"/></amp-video></body></html>`,
+	},
+	{
+		"data-hero: No display layout",
+		`<html><head></head><body><img data-hero height="500" src="https://example.com/foo.png" width="500" layout="nodisplay"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><img data-hero="" height="500" src="https://example.com/foo.png" width="500" layout="nodisplay"/></body></html>`,
+	},
+	{
+		"data-hero: Same as above with nodisplay layout removed.",
+		`<html><head></head><body><img data-hero height="500" src="https://example.com/foo.png" width="500"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><img data-hero="" height="500" src="https://example.com/foo.png" width="500"/></body></html>`,
+	},
+	{
+		"data-hero: Invalid protocol",
+		`<html><head></head><body><img data-hero width="500" height="400" src="ftp://example.com/ftp.png"/></body></html>`,
+		`<html><head></head><body><img data-hero="" width="500" height="400" src="ftp://example.com/ftp.png"/></body></html>`,
+	},
+	{
+		"data-hero: Srcset validity. Empty srcset.",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png" srcset=""/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png" srcset=""/></body></html>`,
+	},
+	{
+		"data-hero: Invalid srcset",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png" srcset="foo bar baz"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png" srcset="foo bar baz"/></body></html>`,
+	},
+	{
+		"data-hero: Invalid srcset duplicates.",
+		`<html><head></head><body><img data-hero width="500" height="400" src="https://example.com/foo.png" srcset="foo 10w, bar 10w, baz 100w"/></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><img data-hero="" width="500" height="400" src="https://example.com/foo.png" srcset="foo 10w, bar 10w, baz 100w"/></body></html>`,
+	},
+	{
+		"data-hero: Hero image dimensions from parent container.",
+		`<html><head></head><body><div width="500" height="500"><img data-hero src="https://example.com/foo.png"/></div></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><div width="500" height="500"><img data-hero="" src="https://example.com/foo.png"/></div></body></html>`,
+	},
+	{
+		"data-hero: Hero image dimesions from parent container, too small.",
+		`<html><head></head><body><div width="50" height="50"><img data-hero src="https://example.com/foo.png"/></div></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><div width="50" height="50"><img data-hero="" src="https://example.com/foo.png"/></div></body></html>`,
+	},
+	{
+		"data-hero: No dimensions in parent containers.",
+		`<html><head></head><body><div><img data-hero src="https://example.com/foo.png"/></div></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><div><img data-hero="" src="https://example.com/foo.png"/></div></body></html>`,
+	},
+	{
+		"data-hero: No dimension from parent because layout is not responsive or fill",
+		`<html><head></head><body><div><img data-hero src="https://example.com/foo.png"/></div></body></html>`,
+		`<html><head><link rel="preload" as="image" href="https://example.com/foo.png"/></head><body><div><img data-hero="" src="https://example.com/foo.png"/></div></body></html>`,
+	},
+}
+
 var testLazyLoadImg = []TestCase{
 	{
 		"data-hero leftover",
@@ -474,8 +662,12 @@ func TestInferSizeCases(t *testing.T) {
 	testCases(t, testcaseInferSize, 0)
 }
 
-func TestDataHeroCases(t *testing.T) {
-	testCases(t, testcaseDataHero, 0)
+func TestDataHeroCasesAmpImg(t *testing.T) {
+	testCases(t, testcaseDataHeroAmpImg, 0)
+}
+
+func TestDataHeroCasesImg(t *testing.T) {
+	testCases(t, testcaseDataHeroImg, 0)
 }
 
 func TestLazyLoadCases(t *testing.T) {

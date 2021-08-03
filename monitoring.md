@@ -46,20 +46,20 @@ requests handled by `amppackager`, and for the underlying gateway requests that
 `amppackager` sends to the AMP document server. Get all the metrics by `curl`ing
 the `/metrics` endpoint. 
 
+There is also [Go pprof](https://pkg.go.dev/net/http/pprof) available on `/debug/pprof`.
+
 ## Example: monitoring total requests count
 
-The example command below fetches all the available metrics. It then greps the report for `total_requests_by_code_and_url` metric. This metric counts the HTTP requests the `amppackager` server has processed since it's been up. 
+The example command below fetches all the available metrics. It then greps the report for `amppackager_http_duration_seconds_count` metric. This metric counts the HTTP requests the `amppackager` server has processed since it's been up.
 
 ```console
-$ curl  https://127.0.0.1:8080/metrics | grep total_requests_by_code_and_url
+$ curl -s https://127.0.0.1:8080/metrics | grep amppackager_http_duration_seconds_count
 
-# HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
-# TYPE total_requests_by_code_and_url counter
-total_requests_by_code_and_url{code="200",handler="healthz"} 3
-total_requests_by_code_and_url{code="200",handler="validityMap"} 5
-total_requests_by_code_and_url{code="200",handler="signer"} 6
-total_requests_by_code_and_url{code="502",handler="signer"} 4
-total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
+amppackager_http_duration_seconds_count{code="200",handler="healthz"} 3
+amppackager_http_duration_seconds_count{code="200",handler="validityMap"} 5
+amppackager_http_duration_seconds_count{code="200",handler="signer"} 6
+amppackager_http_duration_seconds_count{code="502",handler="signer"} 4
+amppackager_http_duration_seconds_count{code="404",handler="handler_not_assigned"} 1
 ```
  
 The example stats above are broken down by response HTTP code, and by the
@@ -81,115 +81,56 @@ The table below lists `amppackager`'s handlers accounted for by the metrics:
 
 ## Metrics labels: breakdown by handler and response code
 
-For some metrics like `total_requests_by_code_and_url` the stats in the
+For some metrics like `amppackager_http_duration_seconds_count` the stats in the
 `/metrics` response are grouped into buckets by two dimensions: the handler
 name, and the HTTP response code. E.g. note the buckets in the the example
 above:
 
 ```console
-total_requests_by_code_and_url{code="200",handler="healthz"} 3
-total_requests_by_code_and_url{code="200",handler="signer"} 6
-total_requests_by_code_and_url{code="502",handler="signer"} 4
+amppackager_http_duration_seconds_count{code="200",handler="healthz"} 3
+amppackager_http_duration_seconds_count{code="200",handler="signer"} 6
+amppackager_http_duration_seconds_count{code="502",handler="signer"} 4
 ```
 
 Invalid requests that were not routed by `amppackager` to any handler are
 assigned a special label `handler_not_assigned`:
 
 ```console
-total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 1
+amppackager_http_duration_seconds_count{code="404",handler="handler_not_assigned"} 1
 ```
 
 Some metrics only make sense for a particular handler. E.g.
-`gateway_request_latencies_in_seconds` and other metrics related to gateway
+`amppackager_signer_gateway_duration_seconds` and other metrics related to gateway
 requests are only related to `signer` handler's operation. Such metrics are only
 broken down into buckets by the response code, not by the handler. 
 
 __Labels__ are key-value properties of buckets that indicate the specific
 values of the breakdown dimensions, e.g. `code="200"` or `handler="healthz"`.
 
-## Metrics types: counters and summaries
+## Metric types
 
-The two types of metrics are *counters* and *summaries*. 
+The two types of metrics are *counters* and *histograms*.
 
-For some metrics like `total_requests_by_code_and_url`, each request increases
-the total by 1, so the metric is a *counter* that has no historical data, just
-the accumulated total. 
+Counter metrics like `amppackager_signer_documents_total` are monotonic increasing.
+They track the accumlated increase since the start of the process.
 
-For other metrics like `request_latencies_in_seconds`, a distribution of
-requests latencies is stored, and a few historical percentiles are reported -
-0.5 percentile, 0.9 percentile 0.99 percentile. Such metrics are *summaries*.
+[Histogram metrics](https://prometheus.io/docs/practices/histograms/) like `amppackager_request_duration_seconds` track observed values
+in buckets. They also track the number of observations.
+
+For more information, see the [Official Prometheus documentation](https://prometheus.io/docs/concepts/metric_types/).
 
 ## Available metrics
 
 The table below lists the key available metrics, along with their types and
 labels.
 
-| Metric | Metric type | Explanation | Broken down by HTTP response code? | Broken down by [handler](https://github.com/MichaelRybak/amppackager/blob/doc/monitoring.md#understanding-stats-broken-down-by-amppackagers-handlers)? | 
+| Metric | Metric type | Explanation | Broken down by HTTP response code? | Broken down by [handler](https://github.com/ampproject/amppackager/blob/doc/monitoring.md#amppackagers-handlers)? |
 |--|--|--|--|--|
-| total_requests_by_code_and_url | Counter | Total number of requests handled by `amppackager` since it's been up. | Yes | Yes |
-| request_latencies_in_seconds | [Summary](#metrics-types-counters-and-summaries) | `amppackager`'s handlers latencies in seconds, measured from the moment the handler starts processing the request, to the moment the response is returned. | Yes | Yes |
-| total_gateway_requests_by_code | Counter | Total number of underlying requests sent by `signer` handler to the AMP document server. | Yes | No, specific to [`signer` handler](#amppackagers-handlers). |
-| gateway_request_latencies_in_seconds | [Summary](#metrics-types-counters-and-summaries) | Latencies (in seconds) of gateway requests to the AMP document server. | Yes | No, specific to [`signer` handler](#amppackagers-handlers). |
-| signed_amp_documents_size_in_bytes | [Summary](#metrics-types-counters-and-summaries) | Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned. | No, specific to 200 (OK) responses. | No, specific to [`signer` handler](#amppackagers-handlers). |
-| documents_signed_vs_unsigned | Counter | Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned. Does not account for requests to `amppackager` that resulted in an HTTP error. | No, specific to 200 (OK) responses. | No, specific to [`signer` handler](#amppackagers-handlers). |
-
-## Understanding percentiles reported by Summaries
-
-A [percentile](https://en.wikipedia.org/wiki/Percentile) indicates the value
-below which a given percentage of observations in a group of observations falls.
-E.g. if in a room of 100 people, 80% are shorter than you, then you are the 80%
-percentile. The 50% percentile is also known as
-[median](https://en.wikipedia.org/wiki/Median).
-
-For summary metrics like `request_latencies_in_seconds`, the `/metrics` endpoint provides three percentiles: 0.5, 0.9, 0.99. 
-
-To get an idea of how long it __usually__ takes `amppackager` to handle a
-request, look at the respective 0.5 percentile. To check the rare, __worst case
-scenarios__, look at 0.9 and 0.99 percentiles.
-
-Consider the following example. Let's say you're interested in the stats for the `request_latencies_in_seconds` metric, specifically for requests that got an OK response (200) from the `signer` handler:
-
-```console
-$ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\"
-
-request_latencies_in_seconds{code="200",handler="signer",quantile="0.5"} 0.023
-request_latencies_in_seconds{code="200",handler="signer",quantile="0.9"} 0.237
-request_latencies_in_seconds{code="200",handler="signer",quantile="0.99"} 0.238
-request_latencies_in_seconds_sum{code="200",handler="signer"} 661.00
-request_latencies_in_seconds_count{code="200",handler="signer"} 10000
-```
-
-According to the example stats above, `signer` has handled 10000 requests.
-Consider the respective 10000 latencies ranked from smallest to largest. The
-latency of the request handled the fastest gets ranked 1, and of the one handled
-the slowest - 10000. According to the stats above, the latency ranked 5001 is
-0.023s, the latency ranked 9001 is 0.237s, and the latency ranked 9901 is
-0.238s. 
-
-__The conclusion for the example above__: successful signer requests are usually handled within 0.023s, but occasionally may take up to 0.238s.
-
-Note that the results provided for latencies and other summaries may be off by a
-few rank positions in the ranking. This is due to metrics engine optimizations
-that allow to not store all the historical data, therefore saving RAM
-significantly. The results are still accurate enough for performance monitoring.
-
-
-Also note that every stat (e.g. 0.9 percentile latency) provided by the metrics
-is an actual historical value that has been seen by the server, not an
-approximation.
-
-### Mean vs percentiles
-
-In the example above all the 10000 requests were handled in 661 seconds, which
-means the mean (average) latency was 0.0661s. This value is ~3 times larger than
-the median. So which one more accurately represents the "typical" scenario? Why
-not look at mean instead of looking at percentiles?
-
-Median (0.5 percentile) is [more stable against
-outliers](https://en.wikipedia.org/wiki/Median) than mean, and therefore gives a
-better understanding of the typical response time. At the same time the 0.9 and
-0.99 percentiles give you a good idea about the large outliers, i.e. abnormally
-slow response times.
+| amppackager_http_duration_seconds | [Histogram](#metric-types) | `amppackager`'s handlers' latencies in seconds, measured from the moment the handler starts processing the request, to the moment the response is returned. | Yes | Yes |
+| amppackager_signer_gateway_requests_total | Counter | Total number of underlying requests sent by `signer` handler to the AMP document server. | Yes | No, specific to [`signer` handler](#amppackagers-handlers). |
+| amppackager_signer_gateway_duration_seconds | [Histogram](#metric-types) | Latencies (in seconds) of gateway requests to the AMP document server. | Yes | No, specific to [`signer` handler](#amppackagers-handlers). |
+| amppackager_signer_signed_amp_documents_size_bytes | [Histogram](#metric-types) | Actual size (in bytes) of gateway response body from AMP document server. Reported only if signer decided to sign, not return an error or proxy unsigned. | No, specific to 200 (OK) responses. | No, specific to [`signer` handler](#amppackagers-handlers). |
+| amppackager_signer_documents_total | Counter | Total number of successful underlying requests to AMP document server, broken down by status based on the action signer has taken: sign or proxy unsigned. Does not account for requests to `amppackager` that resulted in an HTTP error. | No, specific to 200 (OK) responses. | No, specific to [`signer` handler](#amppackagers-handlers). |
 
 ## More examples
 
@@ -205,18 +146,24 @@ Check stats for the `total_gateway_requests_by_code` metric:
 $ curl https://127.0.0.1:8080/metrics | grep total_gateway_requests_by_code
 ```
 
-Check stats for the `gateway_request_latencies_in_seconds` metric, for requests
+Check stats for the `amppackager_signer_gateway_duration_seconds_count` metric, for requests
 that got an OK response (200) : 
 
 ```console
-$ curl https://127.0.0.1:8080/metrics | grep gateway_request_latencies_in_seconds | grep code=\"200\"
+$ curl https://127.0.0.1:8080/metrics | grep amppackager_signer_gateway_duration_seconds | grep code=\"200\"
 ```
 
-Check the 0.9 percentile latency for the `request_latencies_in_seconds` metric,
-for requests that got an OK response (200) from the `signer` handler:
+To check the 90th percentile latency, you can use [PromQL](https://prometheus.io/docs/prometheus/latest/querying/basics/) to calculate this from the histogram data.
 
-```console
-$ curl https://127.0.0.1:8080/metrics | grep request_latencies_in_seconds | grep signer | grep code=\"200\" | grep quantile=\"0.9\"
+For example, requests that got an OK response (200) from the `signer` handler:
+
+```
+histogram_quantile(
+  0.9,
+  sum by (le) (
+    rate(amppackager_request_duration_seconds{handler="signer",status="200"}[5m])
+  )
+)
 ```
 
 ## Performance metrics lifetime

@@ -29,6 +29,7 @@ var /* const */ ampInstallServiceWorkerTagAttrs = []string{"data-iframe-src", "d
 var /* const */ ampStoryTagAttrs = []string{"background-audio", "bookend-config-src", "poster-landscape-src", "poster-square-src", "publisher-logo-src"}
 var /* const */ ampStoryPageTagAttrs = []string{"background-audio"}
 var /* const */ ampStoryPageAttachmentTagAttrs = []string{"cta-image", "cta-image-2"}
+var /* const */ ampStoryPageOutlinkTagAttrs = []string{"cta-image"}
 var /* const */ formTagAttrs = []string{"action", "action-xhr", "verify-xhr"}
 var /* const */ imgTagAttrs = []string{"longdesc"}
 
@@ -61,6 +62,8 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 //   * Any <amp-story-page-attachment> tag with attribute:
 //     * cta-image
 //     * cta-image-2
+//   * Any <amp-story-page-outlink> tag with attribute:
+//     * cta-image
 //   * Any <form> tag with attribute:
 //     * action
 //     * action-xhr
@@ -105,6 +108,9 @@ func AbsoluteURL(e *Context) error {
 			case "amp-story-page-attachment":
 				// Make attributes with URLs portable on <amp-story-page-attachment> tag.
 				rewriteAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryPageAttachmentTagAttrs)
+			case "amp-story-page-outlink":
+				// Make attributes with URLs portable on <amp-story-page-outlink> tag.
+				rewriteAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryPageOutlinkTagAttrs)
 			}
 		}
 

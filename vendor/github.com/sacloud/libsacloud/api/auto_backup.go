@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -83,7 +97,7 @@ func (api *AutoBackupAPI) createRequest(value *sacloud.AutoBackup) *autoBackupRe
 }
 
 // New 新規作成用パラメーター作成
-func (api *AutoBackupAPI) New(name string, diskID int64) *sacloud.AutoBackup {
+func (api *AutoBackupAPI) New(name string, diskID sacloud.ID) *sacloud.AutoBackup {
 	return sacloud.CreateNewAutoBackup(name, diskID)
 }
 
@@ -95,21 +109,21 @@ func (api *AutoBackupAPI) Create(value *sacloud.AutoBackup) (*sacloud.AutoBackup
 }
 
 // Read 読み取り
-func (api *AutoBackupAPI) Read(id int64) (*sacloud.AutoBackup, error) {
+func (api *AutoBackupAPI) Read(id sacloud.ID) (*sacloud.AutoBackup, error) {
 	return api.request(func(res *autoBackupResponse) error {
 		return api.read(id, nil, res)
 	})
 }
 
 // Update 更新
-func (api *AutoBackupAPI) Update(id int64, value *sacloud.AutoBackup) (*sacloud.AutoBackup, error) {
+func (api *AutoBackupAPI) Update(id sacloud.ID, value *sacloud.AutoBackup) (*sacloud.AutoBackup, error) {
 	return api.request(func(res *autoBackupResponse) error {
 		return api.update(id, api.createRequest(value), res)
 	})
 }
 
 // Delete 削除
-func (api *AutoBackupAPI) Delete(id int64) (*sacloud.AutoBackup, error) {
+func (api *AutoBackupAPI) Delete(id sacloud.ID) (*sacloud.AutoBackup, error) {
 	return api.request(func(res *autoBackupResponse) error {
 		return api.delete(id, nil, res)
 	})

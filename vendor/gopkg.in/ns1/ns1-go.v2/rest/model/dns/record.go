@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -26,6 +27,15 @@ type Record struct {
 	Filters []*filter.Filter `json:"filters"`
 	// The records' regions.
 	Regions data.Regions `json:"regions,omitempty"`
+
+	// Contains the key/value tag information associated to the record
+	Tags map[string]string `json:"tags,omitempty"` // Only relevant for DDI
+
+	// List of tag key names that should not inherit from the parent zone
+	BlockedTags []string `json:"blocked_tags,omitempty"` //Only relevant for DDI
+
+	// Read-only fields
+	LocalTags []string `json:"local_tags,omitempty"` // Only relevant for DDI
 }
 
 func (r Record) String() string {
@@ -74,4 +84,41 @@ func (r *Record) AddFilter(fil *filter.Filter) {
 	}
 
 	r.Filters = append(r.Filters, fil)
+}
+
+// MarshalJSON attempts to convert any Rdata elements that cannot be passed as
+// strings to the API to their correct type.
+func (r *Record) MarshalJSON() ([]byte, error) {
+	if r.Type == "URLFWD" {
+		prepared, err := prepareURLFWDRecord(r)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(prepared)
+	}
+	// avoid an infinite loop
+	type Alias Record
+	return json.Marshal((*Alias)(r))
+}
+
+// returns Record with Answers as list of interface, with the Answer RData
+// typed correctly for the API.
+func prepareURLFWDRecord(r *Record) (interface{}, error) {
+	as := []interface{}{}
+	for i := range r.Answers {
+		a, err := prepareURLFWDAnswer(r.Answers[i])
+		if err != nil {
+			return nil, err
+		}
+		as = append(as, a)
+	}
+	type Alias Record
+	prepared := &struct {
+		Answers []interface{} `json:"answers"`
+		*Alias
+	}{
+		Answers: as,
+		Alias:   (*Alias)(r),
+	}
+	return prepared, nil
 }

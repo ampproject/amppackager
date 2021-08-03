@@ -65,7 +65,7 @@ func TestParsePrivateKeyWithInvalidType(t *testing.T) {
 
 	key, err := util.ParsePrivateKey(x509.MarshalPKCS1PrivateKey(privateKey))
 	assert.Nil(t, key)
-	assert.EqualError(t, err, "invalid PEM block in private key file, make sure to use the right key type. See: https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange")
+	assert.EqualError(t, err, "Make sure to use the right key type. See: https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange; error is: signedexchange: invalid PEM block in private key.")
 }
 
 func TestCanSignHttpExchangesExtension(t *testing.T) {

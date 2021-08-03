@@ -13,13 +13,13 @@
 # limitations under the License.
 
 # Use an official Go runtime as a parent image
-FROM golang:1.13
+FROM golang:1.16
 
 ENV GO111MODULE=on
 
 # Install AMP Packager
-# Run this if you want to go off master branch.
-# RUN go get -v github.com/ampproject/amppackager/cmd/amppkg@master
+# Run this if you want to go off main branch.
+# RUN go get -v github.com/ampproject/amppackager/cmd/amppkg@main
 RUN go get -v github.com/ampproject/amppackager/cmd/amppkg
 
 # Install git

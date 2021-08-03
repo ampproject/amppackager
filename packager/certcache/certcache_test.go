@@ -15,7 +15,6 @@
 package certcache
 
 import (
-	"crypto/rsa"
 	"crypto/x509"
 	"io"
 	"io/ioutil"
@@ -27,7 +26,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/WICG/webpackage/go/signedexchange"
 	"github.com/WICG/webpackage/go/signedexchange/cbor"
 	"github.com/ampproject/amppackager/packager/mux"
 	pkgt "github.com/ampproject/amppackager/packager/testing"
@@ -36,18 +34,6 @@ import (
 	ocsptest "github.com/twifkak/crypto/ocsp"
 	"golang.org/x/crypto/ocsp"
 )
-
-var caCert = func() *x509.Certificate {
-	certPem, _ := ioutil.ReadFile("../../testdata/b3/ca.cert")
-	certs, _ := signedexchange.ParseCertificates(certPem)
-	return certs[0]
-}()
-
-var caKey = func() *rsa.PrivateKey {
-	keyPem, _ := ioutil.ReadFile("../../testdata/b3/ca.privkey")
-	key, _ := util.ParsePrivateKey(keyPem)
-	return key.(*rsa.PrivateKey)
-}()
 
 // FakeOCSPResponse returns a DER-encoded fake OCSP response. producedAt is
 // rounded up to the nearest minute, rather than the default ocsp lib behavior
@@ -62,7 +48,7 @@ func FakeOCSPResponse(thisUpdate, producedAt time.Time) ([]byte, error) {
 		RevokedAt:        thisUpdate.AddDate( /*years=*/ 0 /*months=*/, 0 /*days=*/, 365),
 		RevocationReason: ocsp.Unspecified,
 	}
-	return ocsptest.CreateResponse(caCert, caCert, template, caKey, producedAt.Add(1*time.Minute))
+	return ocsptest.CreateResponse(pkgt.CACert, pkgt.CACert, template, pkgt.CAKey, producedAt.Add(1*time.Minute))
 }
 
 type CertCacheSuite struct {

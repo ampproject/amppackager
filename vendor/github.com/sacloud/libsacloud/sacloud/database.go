@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import (
@@ -22,13 +36,35 @@ type Database struct {
 // DatabaseRemark データベースリマーク
 type DatabaseRemark struct {
 	*ApplianceRemarkBase
-	propPlanID                             // プランID
-	DBConf          *DatabaseCommonRemarks // コンフィグ
-	Network         *DatabaseRemarkNetwork // ネットワーク
-	SourceAppliance *Resource              // クローン元DB
-	Zone            struct {               // ゾーン
-		ID json.Number `json:",omitempty"` // ゾーンID
+	propPlanID                               // プランID
+	DBConf          *DatabaseCommonRemarks   // コンフィグ
+	Network         *DatabaseRemarkNetwork   // ネットワーク
+	SourceAppliance *DatabaseSourceAppliance `json:",omitempty"` // クローン元DB
+	Zone            struct {                 // ゾーン
+		ID ID `json:",omitempty"` // ゾーンID
 	}
+}
+
+// DatabaseSourceAppliance ソースアプライアンス(クローン元DB)
+type DatabaseSourceAppliance struct {
+	ID ID `json:",omitempty"`
+}
+
+// UnmarshalJSON 配列/オブジェクトが混在することへの対応
+//
+// v2からのバックポート
+func (s *DatabaseSourceAppliance) UnmarshalJSON(b []byte) error {
+	if string(b) == "[]" {
+		return nil
+	}
+	type alias DatabaseSourceAppliance
+
+	var a alias
+	if err := json.Unmarshal(b, &a); err != nil {
+		return err
+	}
+	*s = DatabaseSourceAppliance(a)
+	return nil
 }
 
 // DatabaseRemarkNetwork ネットワーク
@@ -181,9 +217,7 @@ type DatabaseReplicationSetting struct {
 	// Model レプリケーションモデル
 	Model DatabaseReplicationModels `json:",omitempty"`
 	// Appliance マスター側アプライアンス
-	Appliance *struct {
-		ID string
-	} `json:",omitempty"`
+	Appliance *DatabaseSourceAppliance `json:",omitempty"`
 	// IPAddress IPアドレス
 	IPAddress string `json:",omitempty"`
 	// Port ポート
@@ -216,7 +250,7 @@ type CreateDatabaseValue struct {
 	BackupRotate     int          // バックアップ世代数
 	BackupTime       string       // バックアップ開始時間
 	BackupDayOfWeek  []string     // バックアップ取得曜日
-	SwitchID         string       // 接続先スイッチ
+	SwitchID         ID           // 接続先スイッチ
 	IPAddress1       string       // IPアドレス1
 	MaskLen          int          // ネットワークマスク長
 	DefaultRoute     string       // デフォルトルート
@@ -239,7 +273,7 @@ type SlaveDatabaseValue struct {
 	Plan            DatabasePlan // プラン
 	DefaultUser     string       // ユーザー名
 	UserPassword    string       // パスワード
-	SwitchID        string       // 接続先スイッチ
+	SwitchID        ID           // 接続先スイッチ
 	IPAddress1      string       // IPアドレス1
 	MaskLen         int          // ネットワークマスク長
 	DefaultRoute    string       // デフォルトルート
@@ -251,7 +285,7 @@ type SlaveDatabaseValue struct {
 	DatabaseVersion string       // データベースバージョン
 	// ReplicaUser      string    // レプリケーションユーザー 現在はreplica固定
 	ReplicaPassword   string // レプリケーションパスワード
-	MasterApplianceID int64  // クローン元DB
+	MasterApplianceID ID     // クローン元DB
 	MasterIPAddress   string // マスターIPアドレス
 	MasterPort        int    // マスターポート
 }
@@ -260,7 +294,7 @@ type SlaveDatabaseValue struct {
 func NewCreatePostgreSQLDatabaseValue() *CreateDatabaseValue {
 	return &CreateDatabaseValue{
 		DatabaseName:    "postgres",
-		DatabaseVersion: "11",
+		DatabaseVersion: "12",
 	}
 }
 
@@ -268,7 +302,7 @@ func NewCreatePostgreSQLDatabaseValue() *CreateDatabaseValue {
 func NewCreateMariaDBDatabaseValue() *CreateDatabaseValue {
 	return &CreateDatabaseValue{
 		DatabaseName:    "MariaDB",
-		DatabaseVersion: "10.3",
+		DatabaseVersion: "10.4",
 	}
 }
 
@@ -330,8 +364,7 @@ func CreateNewDatabase(values *CreateDatabaseValue) *Database {
 				},
 			},
 			// Plan
-			propPlanID:      propPlanID{Plan: &Resource{ID: int64(values.Plan)}},
-			SourceAppliance: values.SourceAppliance,
+			propPlanID: propPlanID{Plan: &Resource{ID: ID(values.Plan)}},
 		},
 		// Settings
 		Settings: &DatabaseSettings{
@@ -358,6 +391,10 @@ func CreateNewDatabase(values *CreateDatabaseValue) *Database {
 				},
 			},
 		},
+	}
+
+	if !values.SourceAppliance.ID.IsEmpty() {
+		db.Remark.SourceAppliance = &DatabaseSourceAppliance{ID: values.SourceAppliance.ID}
 	}
 
 	if values.ServicePort > 0 {
@@ -442,7 +479,7 @@ func NewSlaveDatabaseValue(values *SlaveDatabaseValue) *Database {
 				},
 			},
 			// Plan
-			propPlanID: propPlanID{Plan: &Resource{ID: int64(values.Plan) + 1}},
+			propPlanID: propPlanID{Plan: &Resource{ID: ID(int64(values.Plan) + 1)}},
 		},
 		// Settings
 		Settings: &DatabaseSettings{
@@ -458,7 +495,7 @@ func NewSlaveDatabaseValue(values *SlaveDatabaseValue) *Database {
 				// Replication
 				Replication: &DatabaseReplicationSetting{
 					Model:     DatabaseReplicationModelAsyncReplica,
-					Appliance: &struct{ ID string }{ID: fmt.Sprintf("%d", values.MasterApplianceID)},
+					Appliance: &DatabaseSourceAppliance{ID: values.MasterApplianceID},
 					IPAddress: values.MasterIPAddress,
 					Port:      values.MasterPort,
 					User:      "replica",

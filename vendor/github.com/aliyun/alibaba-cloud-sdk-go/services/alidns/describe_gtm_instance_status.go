@@ -21,7 +21,6 @@ import (
 )
 
 // DescribeGtmInstanceStatus invokes the alidns.DescribeGtmInstanceStatus API synchronously
-// api document: https://help.aliyun.com/api/alidns/describegtminstancestatus.html
 func (client *Client) DescribeGtmInstanceStatus(request *DescribeGtmInstanceStatusRequest) (response *DescribeGtmInstanceStatusResponse, err error) {
 	response = CreateDescribeGtmInstanceStatusResponse()
 	err = client.DoAction(request, response)
@@ -29,8 +28,6 @@ func (client *Client) DescribeGtmInstanceStatus(request *DescribeGtmInstanceStat
 }
 
 // DescribeGtmInstanceStatusWithChan invokes the alidns.DescribeGtmInstanceStatus API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describegtminstancestatus.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeGtmInstanceStatusWithChan(request *DescribeGtmInstanceStatusRequest) (<-chan *DescribeGtmInstanceStatusResponse, <-chan error) {
 	responseChan := make(chan *DescribeGtmInstanceStatusResponse, 1)
 	errChan := make(chan error, 1)
@@ -53,8 +50,6 @@ func (client *Client) DescribeGtmInstanceStatusWithChan(request *DescribeGtmInst
 }
 
 // DescribeGtmInstanceStatusWithCallback invokes the alidns.DescribeGtmInstanceStatus API asynchronously
-// api document: https://help.aliyun.com/api/alidns/describegtminstancestatus.html
-// asynchronous document: https://help.aliyun.com/document_detail/66220.html
 func (client *Client) DescribeGtmInstanceStatusWithCallback(request *DescribeGtmInstanceStatusRequest, callback func(response *DescribeGtmInstanceStatusResponse, err error)) <-chan int {
 	result := make(chan int, 1)
 	err := client.AddAsyncTask(func() {
@@ -84,9 +79,13 @@ type DescribeGtmInstanceStatusRequest struct {
 // DescribeGtmInstanceStatusResponse is the response struct for api DescribeGtmInstanceStatus
 type DescribeGtmInstanceStatusResponse struct {
 	*responses.BaseResponse
-	RequestId    string `json:"RequestId" xml:"RequestId"`
-	AccessStatus string `json:"AccessStatus" xml:"AccessStatus"`
-	AlertStatus  string `json:"AlertStatus" xml:"AlertStatus"`
+	RequestId                   string `json:"RequestId" xml:"RequestId"`
+	AddrNotAvailableNum         int    `json:"AddrNotAvailableNum" xml:"AddrNotAvailableNum"`
+	AddrPoolNotAvailableNum     int    `json:"AddrPoolNotAvailableNum" xml:"AddrPoolNotAvailableNum"`
+	SwitchToFailoverStrategyNum int    `json:"SwitchToFailoverStrategyNum" xml:"SwitchToFailoverStrategyNum"`
+	StrategyNotAvailableNum     int    `json:"StrategyNotAvailableNum" xml:"StrategyNotAvailableNum"`
+	Status                      string `json:"Status" xml:"Status"`
+	StatusReason                string `json:"StatusReason" xml:"StatusReason"`
 }
 
 // CreateDescribeGtmInstanceStatusRequest creates a request to invoke DescribeGtmInstanceStatus API
@@ -94,7 +93,8 @@ func CreateDescribeGtmInstanceStatusRequest() (request *DescribeGtmInstanceStatu
 	request = &DescribeGtmInstanceStatusRequest{
 		RpcRequest: &requests.RpcRequest{},
 	}
-	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeGtmInstanceStatus", "Alidns", "openAPI")
+	request.InitWithApiInfo("Alidns", "2015-01-09", "DescribeGtmInstanceStatus", "alidns", "openAPI")
+	request.Method = requests.POST
 	return
 }
 

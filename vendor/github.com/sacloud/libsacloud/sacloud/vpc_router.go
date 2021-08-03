@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import (
@@ -75,6 +89,11 @@ func (v *VPCRouter) IsHighSpecPlan() bool {
 	return v.Plan.ID == 3
 }
 
+// IsHighSpec4000MbpsPlan ハイスペック4000Mbpsプランか判定
+func (v *VPCRouter) IsHighSpec4000MbpsPlan() bool {
+	return v.Plan.ID == 4
+}
+
 // SetStandardPlan スタンダードプランへ設定
 func (v *VPCRouter) SetStandardPlan() {
 	v.Plan.SetID(1)
@@ -97,9 +116,15 @@ func (v *VPCRouter) SetHighSpecPlan(switchID string, virtualIPAddress string, ip
 	v.setPremiumServices(switchID, virtualIPAddress, ipAddress1, ipAddress2, vrid, ipAliases)
 }
 
+// SetHighSpec4000MbpsPlan ハイスペックプランへ設定
+func (v *VPCRouter) SetHighSpec4000MbpsPlan(switchID string, virtualIPAddress string, ipAddress1 string, ipAddress2 string, vrid int, ipAliases []string) {
+	v.Plan.SetID(4)
+	v.setPremiumServices(switchID, virtualIPAddress, ipAddress1, ipAddress2, vrid, ipAliases)
+}
+
 func (v *VPCRouter) setPremiumServices(switchID string, virtualIPAddress string, ipAddress1 string, ipAddress2 string, vrid int, ipAliases []string) {
 	v.Remark.Switch = &ApplianceRemarkSwitch{
-		ID: switchID,
+		ID: StringID(switchID),
 	}
 	v.Remark.Servers = []interface{}{
 		map[string]string{"IPAddress": ipAddress1},

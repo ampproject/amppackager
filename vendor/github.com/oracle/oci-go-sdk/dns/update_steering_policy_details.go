@@ -1,4 +1,5 @@
-// Copyright (c) 2016, 2018, 2019, Oracle and/or its affiliates. All rights reserved.
+// Copyright (c) 2016, 2018, 2020, Oracle and/or its affiliates.  All rights reserved.
+// This software is dual-licensed to you under the Universal Permissive License (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl or Apache License 2.0 as shown at http://www.apache.org/licenses/LICENSE-2.0. You may choose either license.
 // Code generated. DO NOT EDIT.
 
 // DNS API
@@ -116,21 +117,29 @@ func (m *UpdateSteeringPolicyDetails) UnmarshalJSON(data []byte) (e error) {
 	if e != nil {
 		return
 	}
+	var nn interface{}
 	m.DisplayName = model.DisplayName
+
 	m.Ttl = model.Ttl
+
 	m.HealthCheckMonitorId = model.HealthCheckMonitorId
+
 	m.Template = model.Template
+
 	m.FreeformTags = model.FreeformTags
+
 	m.DefinedTags = model.DefinedTags
+
 	m.Answers = make([]SteeringPolicyAnswer, len(model.Answers))
 	for i, n := range model.Answers {
 		m.Answers[i] = n
 	}
+
 	m.Rules = make([]SteeringPolicyRule, len(model.Rules))
 	for i, n := range model.Rules {
-		nn, err := n.UnmarshalPolymorphicJSON(n.JsonData)
-		if err != nil {
-			return err
+		nn, e = n.UnmarshalPolymorphicJSON(n.JsonData)
+		if e != nil {
+			return e
 		}
 		if nn != nil {
 			m.Rules[i] = nn.(SteeringPolicyRule)
@@ -138,6 +147,7 @@ func (m *UpdateSteeringPolicyDetails) UnmarshalJSON(data []byte) (e error) {
 			m.Rules[i] = nil
 		}
 	}
+
 	return
 }
 

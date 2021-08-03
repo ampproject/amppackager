@@ -21,7 +21,12 @@ func (s *ZonesService) List() ([]*dns.Zone, *http.Response, error) {
 	}
 
 	zl := []*dns.Zone{}
-	resp, err := s.client.Do(req, &zl)
+	var resp *http.Response
+	if s.client.FollowPagination {
+		resp, err = s.client.DoWithPagination(req, &zl, s.nextZones)
+	} else {
+		resp, err = s.client.Do(req, &zl)
+	}
 	if err != nil {
 		return nil, resp, err
 	}
@@ -41,7 +46,12 @@ func (s *ZonesService) Get(zone string) (*dns.Zone, *http.Response, error) {
 	}
 
 	var z dns.Zone
-	resp, err := s.client.Do(req, &z)
+	var resp *http.Response
+	if s.client.FollowPagination {
+		resp, err = s.client.DoWithPagination(req, &z, s.nextRecords)
+	} else {
+		resp, err = s.client.Do(req, &z)
+	}
 	if err != nil {
 		switch err.(type) {
 		case *Error:
@@ -129,6 +139,44 @@ func (s *ZonesService) Delete(zone string) (*http.Response, error) {
 		return resp, err
 	}
 
+	return resp, nil
+}
+
+// nextZones is a pagination helper than gets and appends another list of zones
+// to the passed list.
+func (s *ZonesService) nextZones(v *interface{}, uri string) (*http.Response, error) {
+	tmpZl := []*dns.Zone{}
+	resp, err := s.client.getURI(&tmpZl, uri)
+	if err != nil {
+		return resp, err
+	}
+	zoneList, ok := (*v).(*[]*dns.Zone)
+	if !ok {
+		return nil, fmt.Errorf(
+			"incorrect value for v, expected value of type *[]*dns.Zone, got: %T", v,
+		)
+	}
+	*zoneList = append(*zoneList, tmpZl...)
+	return resp, nil
+}
+
+// nextRecords is a pagination helper tha gets and appends another set of
+// records to the passed zone.
+func (s *ZonesService) nextRecords(v *interface{}, uri string) (*http.Response, error) {
+	var tmpZone dns.Zone
+	resp, err := s.client.getURI(&tmpZone, uri)
+	if err != nil {
+		return resp, err
+	}
+	zone, ok := (*v).(*dns.Zone)
+	if !ok {
+		return nil, fmt.Errorf(
+			"incorrect value for v, expected value of type *dns.Zone, got: %T", v,
+		)
+	}
+	// Aside from Records, the rest of the zone data is identical in the
+	// paginated response.
+	zone.Records = append(zone.Records, tmpZone.Records...)
 	return resp, nil
 }
 

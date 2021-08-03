@@ -25,10 +25,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	_ "net/http/pprof"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/version"
 
 	"github.com/ampproject/amppackager/packager/certcache"
 	"github.com/ampproject/amppackager/packager/certloader"
@@ -67,7 +70,13 @@ func (this logIntercept) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 //  - It exposes an API that allows people to sign any URL as any other URL.
 //  - It is in cleartext.
 func main() {
+	prometheus.MustRegister(version.NewCollector("amppackager"))
+	showVersion := flag.Bool("version", false, "Print version info")
+
 	flag.Parse()
+	if *showVersion {
+		die(version.Print("amppackager"))
+	}
 	if *flagConfig == "" {
 		die("must specify --config")
 	}
@@ -164,7 +173,7 @@ func main() {
 	}
 
 	// TODO(twifkak): Add monitoring (e.g. per the above Cloudflare blog).
-
+	log.Println("Starting amppackager", version.Info())
 	log.Println("Serving on port", config.Port)
 
 	// TCP keep-alive timeout on ListenAndServe is 3 minutes. To shorten,

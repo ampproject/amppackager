@@ -31,34 +31,16 @@ own and can obtain certificates for.
 
 ##### Manual installation
 
-  1. Install Go version 1.10 or higher. Optionally, set
-     [$GOPATH](https://github.com/golang/go/wiki/GOPATH) to something (default
-     is `~/go`) and/or add `$GOPATH/bin` to `$PATH`.
+  1. Install Go version 1.13 or higher.
   1. Get amppackager.
-
-     Check your Go version by running `go version`.
-
-     For Go 1.16 and higher run:
 
        ```
        git clone https://github.com/ampproject/amppackager.git my-amp-directory
        cd my-amp-directory
-       go install github.com/ampproject/amppackager/cmd/amppkg
+       make build
        ```
 
-     For Go 1.14 and Go 1.15 run:
-
-       ```
-       go get -u github.com/ampproject/amppackager/cmd/amppkg
-       ```
-
-     For Go 1.13 and earlier versions run:
-
-       ```
-       go get -u -mod=vendor github.com/ampproject/amppackager/cmd/amppkg
-       ```
-
-  1. Optionally, move the built `~/go/bin/amppkg` wherever you like.
+  1. Optionally, move the built `amppkg` wherever you like.
   1. Prepare a temporary certificate and private key pair to use for signing the
      exchange when testing your config. Follow WICG
      [instructions](https://github.com/WICG/webpackage/tree/master/go/signedexchange#creating-our-first-signed-exchange)
@@ -311,8 +293,8 @@ You can monitor the packager's error rates, as well as the rates of signed
 vs unsigned documents, via the tools discussed in the next section.
 
 Specifically, you can monitor the requests that resulted in a signed or an
-unsigned document via `documents_signed_vs_unsigned` metric, and the ones that
-resulted in an error - via `total_requests_by_code_and_url` metric.
+unsigned document via `amppackager_signer_documents_total` metric, and the ones that
+resulted in an error - via `amppackager_http_duration_seconds_count` metric.
 
 #### Monitoring `amppackager` in production via its Prometheus endpoints
 

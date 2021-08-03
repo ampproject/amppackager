@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sacloud
 
 import "fmt"
@@ -49,14 +63,14 @@ const (
 
 var (
 	// DiskPlanHDD HDDプラン
-	DiskPlanHDD = &Resource{ID: int64(DiskPlanHDDID)}
+	DiskPlanHDD = DiskPlanHDDID.ToResource()
 	// DiskPlanSSD SSDプラン
-	DiskPlanSSD = &Resource{ID: int64(DiskPlanSSDID)}
+	DiskPlanSSD = DiskPlanSSDID.ToResource()
 )
 
 // ToResource ディスクプランIDからリソースへの変換
 func (d DiskPlanID) ToResource() *Resource {
-	return &Resource{ID: int64(d)}
+	return &Resource{ID: ID(d)}
 }
 
 // CreateNewDisk ディスクの作成
@@ -94,6 +108,7 @@ func (d *Disk) SetDiskPlanToSSD() {
 //
 // 設定を行う項目のみ値をセットする。値のセットにはセッターを利用すること。
 type DiskEditValue struct {
+	Background    bool        `json:",omitempty"` // バックグラウンド実行
 	Password      *string     `json:",omitempty"` // パスワード
 	SSHKey        *SSHKey     `json:",omitempty"` // 公開鍵(単体)
 	SSHKeys       []*SSHKey   `json:",omitempty"` // 公開鍵(複数)
@@ -105,6 +120,11 @@ type DiskEditValue struct {
 		DefaultRoute   string `json:",omitempty"` // デフォルトルート
 		NetworkMaskLen string `json:",omitempty"` // ネットワークマスク長
 	} `json:",omitempty"`
+}
+
+// SetBackground バックグラウンド実行 設定
+func (d *DiskEditValue) SetBackground(value bool) {
+	d.Background = value
 }
 
 // SetHostName ホスト名 設定

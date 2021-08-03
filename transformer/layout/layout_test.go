@@ -187,6 +187,13 @@ func TestApplyLayout(t *testing.T) {
 				html.Attribute{Key: "height", Val: "400"}, html.Attribute{Key: "layout", Val: "fixed"}, html.Attribute{Key: "style", Val: "display:none;height:200px;position:relative;width:150px"}, html.Attribute{Key: "width", Val: "300"}),
 			`<amp-img height="400" layout="fixed" style="display:none;height:200px;position:relative;width:150px;width:300px;height:400px;" width="300" class="i-amphtml-layout-fixed i-amphtml-layout-size-defined" i-amphtml-layout="fixed"></amp-img>`,
 		},
+		{
+			"Fluid",
+			htmlnode.Element(
+				"amp-ad",
+				html.Attribute{Key: "layout", Val: "fluid"}),
+			`<amp-ad layout="fluid" class="i-amphtml-layout-fluid i-amphtml-layout-size-defined i-amphtml-layout-awaiting-size" style="width:100%;height:0;" i-amphtml-layout="fluid"></amp-ad>`,
+		},
 	}
 	for _, tc := range testCases {
 		if err := ApplyLayout(tc.node); err != nil {
@@ -229,12 +236,6 @@ func TestUnsupported(t *testing.T) {
 		node *html.Node
 	}{
 		{
-			"Fluid",
-			htmlnode.Element(
-				"amp-img",
-				html.Attribute{Key: "layout", Val: "fluid"}),
-		},
-		{
 			"Intrinsic",
 			htmlnode.Element(
 				"amp-img",
@@ -243,13 +244,13 @@ func TestUnsupported(t *testing.T) {
 		{
 			"fluid width",
 			htmlnode.Element(
-				"amp-img",
+				"amp-ad",
 				html.Attribute{Key: "layout", Val: "fixed-height"}, html.Attribute{Key: "width", Val: "fluid"}),
 		},
 		{
 			"fluid height, but not fluid layout",
 			htmlnode.Element(
-				"amp-img",
+				"amp-ad",
 				html.Attribute{Key: "layout", Val: "fixed-height"}, html.Attribute{Key: "height", Val: "fluid"}),
 		},
 	}

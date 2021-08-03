@@ -20,7 +20,7 @@ type LoadBalancerClient struct {
 // Create creates a new load balancer.
 func (c *LoadBalancerClient) Create(params LoadBalancerParams) (*LoadBalancer, error) {
 	var result LoadBalancer
-	err := c.Backend.Call("v1/Network/LoadBalancer/create", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Network/LoadBalancer/create", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (c *LoadBalancerClient) Details(uniqID string) (*LoadBalancer, error) {
 	var result LoadBalancer
 	params := LoadBalancerParams{UniqID: uniqID}
 
-	err := c.Backend.Call("v1/Network/LoadBalancer/details", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Network/LoadBalancer/details", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (c *LoadBalancerClient) Details(uniqID string) (*LoadBalancer, error) {
 // Update will update a load balancer.
 func (c *LoadBalancerClient) Update(params LoadBalancerParams) (*LoadBalancer, error) {
 	var result LoadBalancer
-	err := c.Backend.Call("v1/Network/LoadBalancer/update", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Network/LoadBalancer/update", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *LoadBalancerClient) Delete(uniqID string) (*LoadBalancerDeletion, error
 	var result LoadBalancerDeletion
 	params := LoadBalancerParams{UniqID: uniqID}
 
-	err := c.Backend.Call("v1/Network/LoadBalancer/delete", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Network/LoadBalancer/delete", params, &result)
 	if err != nil {
 		return nil, err
 	}

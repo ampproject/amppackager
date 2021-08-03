@@ -26,8 +26,6 @@ import (
 
 	pkgt "github.com/ampproject/amppackager/packager/testing"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	promtest "github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -226,152 +224,6 @@ func TestParamsIncorrectValueType(t *testing.T) {
 	assert.Equal(t, Params(req), map[string]string{})
 }
 
-const promExpectedHeaderRequestsTotal = `
-	# HELP total_requests_by_code_and_url Total number of requests by HTTP code and URL.
-	# TYPE total_requests_by_code_and_url counter
-	`
-
-// TestPrometheusMetricRequestsTotal tests the respective Prometheus metric.
-// Test each scenario in isolation to make sure each of them works, then test
-// them altogether to make sure they don't interfere with each other.
-func TestPrometheusMetricRequestsTotal(t *testing.T) {
-	nopHandler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-
-	tests := []struct {
-		testName        string
-		testHint        string
-		testFunc        func()
-		expectedMetrics string
-	}{
-		{
-			/* testName= */ `AllHandlersNOP200`,
-			/* testHint= */ `
-				Make requests to mux with all handlers being NOPs returning 200.
-				Request Healthz twice to test aggregation of identical requests.
-			`,
-			/* testFunc= */ func() {
-				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-				pkgt.NewRequest(t, mux, expand(`$HOST/priv/doc?fetch=$FETCH&sign=$SIGN`)).Do()
-				pkgt.NewRequest(t, mux, expand(`$HOST/amppkg/cert/$CERT`)).Do()
-				pkgt.NewRequest(t, mux, expand(`$HOST/amppkg/validity`)).Do()
-				pkgt.NewRequest(t, mux, expand(`$HOST/healthz`)).Do()
-				pkgt.NewRequest(t, mux, expand(`$HOST/healthz`)).Do()
-			},
-			/* expectedMetrics = */ `
-				total_requests_by_code_and_url{code="200",handler="signer"} 1
-				total_requests_by_code_and_url{code="200",handler="certCache"} 1
-				total_requests_by_code_and_url{code="200",handler="validityMap"} 1
-				total_requests_by_code_and_url{code="200",handler="healthz"} 2
-			`,
-		},
-		{
-			/* testName= */ `ErrorsReturnedByMuxDirectly`,
-			/* testHint= */ `
-				Test counting requests to same handler that returned different codes.
-				Trigger a 404 attributed to healthz by adding an unexpected suffix to path.
-			`,
-			/* testFunc= */ func() {
-				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-				pkgt.NewRequest(t, mux, expand(`$HOST/healthzSOME_SUFFIX`)).Do()
-			},
-			/* expectedMetrics = */ `
-				total_requests_by_code_and_url{code="404",handler="healthz"} 1
-			`,
-		},
-		{
-			/* testName= */ `UnassignedRequests`,
-			/* testHint= */ `
-				Test counting request not assigned to a handler.
-			`,
-			/* testFunc= */ func() {
-				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-				pkgt.NewRequest(t, mux, expand(`$HOST/abc`)).Do()
-				pkgt.NewRequest(t, mux, expand(`$HOST/def`)).Do()
-				pkgt.NewRequest(t, mux, expand(`$HOST/ghi`)).Do()
-			},
-			/* expectedMetrics = */ `
-				total_requests_by_code_and_url{code="404",handler="handler_not_assigned"} 3
-			`,
-		},
-		{
-			/* testName= */ `ForbiddenMethod`,
-			/* testHint= */ `
-				Special case: forbidden method.
-			`,
-			/* testFunc= */ func() {
-				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, nopHandler)
-				body := strings.NewReader("Non empty body so this will be a POST request")
-				pkgt.NewRequest(t, mux, expand("$HOST/healthz")).SetBody(body).Do()
-			},
-			/* expectedMetrics = */ `
-				total_requests_by_code_and_url{code="405",handler="healthz"} 1
-			`,
-		},
-		{
-			/* testName= */ `ErrorReturnedByHandler`,
-			/* testHint= */ `
-				Some of the above requests generated errors, but those errors were thrown
-				by mux, not by handlers. Handlers were no-ops. Now let's simulate a
-				request that triggers a handler-generated error.
-				Specifically let's simulate signer returning a 400.
-			`,
-			/* testFunc= */ func() {
-				signerMockReturning400 := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "Bad Request", 400) }))
-				mux := New(nopHandler, signerMockReturning400, nopHandler, nopHandler, nopHandler)
-				pkgt.NewRequest(t, mux, expand("$HOST/priv/doc/abc")).Do()
-			},
-			/* expectedMetrics = */ `
-				total_requests_by_code_and_url{code="400",handler="signer"} 1
-			`,
-		},
-		{
-			/* testName= */ `FetchMetricsEndpoint`,
-			/* testHint= */ `
-				Special case: send a request to "metrics" endpoint, which results in two actions:
-				1) Previously collected metrics are returned in response with status 200.
-				2) Prometheus requests counter is incremented for respective handler and code ("metric", 200).
-				Let's test that these actions work fine together.
-				Let's send a "metric" request to a new mux instance that has a real, non-mocked
-				metric handler. Such request, along with downstream validation, checks
-				that the "metric" endpoint's underlying logic doesn't interfere
-				with accounting for the actual metric request.
-			`,
-			/* testFunc= */ func() {
-				mux := New(nopHandler, nopHandler, nopHandler, nopHandler, promhttp.Handler())
-				pkgt.NewRequest(t, mux, expand(`$HOST/metrics`)).Do()
-			},
-			/* expectedMetrics = */ `
-				total_requests_by_code_and_url{code="200",handler="metrics"} 1
-			`,
-		},
-	}
-
-	// Test each scenario in isolation.
-	for _, tt := range tests {
-		t.Run(tt.testName, func(t *testing.T) {
-			promRequestsTotal.Reset()
-			expectedMetrics := promExpectedHeaderRequestsTotal + tt.expectedMetrics
-			tt.testFunc()
-			expectation := strings.NewReader(expectedMetrics)
-			if err := promtest.CollectAndCompare(promRequestsTotal, expectation, "total_requests_by_code_and_url"); err != nil {
-				t.Errorf("TestPrometheusMetricRequestsTotal - "+tt.testName+": unexpected collecting result:\n%s", err)
-			}
-		})
-	}
-
-	// Test all scenarios together.
-	promRequestsTotal.Reset()
-	expectedMetrics := promExpectedHeaderRequestsTotal
-	for _, tt := range tests {
-		expectedMetrics += tt.expectedMetrics
-		tt.testFunc()
-	}
-	expectation := strings.NewReader(expectedMetrics)
-	if err := promtest.CollectAndCompare(promRequestsTotal, expectation, "total_requests_by_code_and_url"); err != nil {
-		t.Errorf("TestPrometheusMetricRequestsTotal - all scenarios in single run: unexpected collecting result:\n%s", err)
-	}
-}
-
 // TestPrometheusMetricRequestsLatency tests the end-to-end latencies metrics.
 // It checks that the right error codes and handlers are accounted for. It also
 // checks that the latencies are positive, but doesn't expect exact values,
@@ -431,9 +283,11 @@ func TestPrometheusMetricRequestsLatency(t *testing.T) {
 				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
 				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
 				{urlTemplate: `$HOST/healthz`, mockHandlerThrows404: false},
+				{urlTemplate: `$HOST/healthzINVALID`, mockHandlerThrows404: false},
 			},
 			scenarioExpectedSampleCountMap{
 				{`name:"code" value:"200" `, `name:"handler" value:"healthz" `}: 3,
+				{`name:"code" value:"404" `, `name:"handler" value:"healthz" `}: 1,
 			},
 		},
 		{
@@ -484,7 +338,7 @@ func TestPrometheusMetricRequestsLatency(t *testing.T) {
 		assert.Equal(t, 1, len(actualMetricFamilyArr),
 			hintPrefix+" expects exactly one metric family.")
 
-		assert.Equal(t, "request_latencies_in_seconds", *actualMetricFamilyArr[0].Name,
+		assert.Equal(t, "amppackager_http_duration_seconds", *actualMetricFamilyArr[0].Name,
 			hintPrefix+" expects the right metric name.")
 
 		assert.Equal(t, len(expectedSampleCountMap), len(actualMetricFamilyArr[0].Metric),
@@ -495,19 +349,19 @@ func TestPrometheusMetricRequestsLatency(t *testing.T) {
 			code := actualMetric.Label[0].String()
 			handler := actualMetric.Label[1].String()
 			expectedSampleCount := expectedSampleCountMap[metricRecordKey{code, handler}]
-			actualSampleCount := actualMetric.Summary.GetSampleCount()
+			actualSampleCount := actualMetric.Histogram.GetSampleCount()
 			assert.Equal(t, expectedSampleCount, actualSampleCount, hintPrefix+" expects the right sample count for "+code+" "+handler)
 
-			// Expect the right number of quantiles.
-			assert.Equal(t, 3, len(actualMetric.Summary.Quantile), hintPrefix+" expects the right number of quantiles.")
+			// Expect the right number of buckets.
+			assert.Equal(t, 11, len(actualMetric.Histogram.Bucket), hintPrefix+" expects the right number of buckets.")
 
-			// Expect the right quantiles.
-			// Expect positive quantile values, because latencies are non-zero.
+			// Expect the right bucket values.
+			// Expect positive bucket values because we have observed more than once.
 			// Don't check the exact values, because latencies are non-deterministic.
-			expectedQuantileKeys := []float64{0.5, 0.9, 0.99}
-			for i, quantile := range actualMetric.Summary.Quantile {
-				assert.Equal(t, expectedQuantileKeys[i], quantile.GetQuantile(), hintPrefix+" expects the right quantile.")
-				assert.True(t, quantile.GetValue() > .0, hintPrefix+" expects non-zero quantile value (latency).")
+			expectedBuckets := prometheus.DefBuckets
+			for i, bucket := range actualMetric.Histogram.Bucket {
+				assert.Equal(t, expectedBuckets[i], *bucket.UpperBound, hintPrefix+" expects the right bucket.")
+				assert.True(t, *bucket.CumulativeCount > 0, hintPrefix+" expects non-zero bucket value (count).")
 			}
 		}
 	}

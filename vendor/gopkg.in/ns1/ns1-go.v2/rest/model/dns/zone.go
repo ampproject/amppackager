@@ -1,7 +1,10 @@
 package dns
 
-import "encoding/json"
-import "gopkg.in/ns1/ns1-go.v2/rest/model/data"
+import (
+	"encoding/json"
+
+	"gopkg.in/ns1/ns1-go.v2/rest/model/data"
+)
 
 // Zone wraps an NS1 /zone resource
 type Zone struct {
@@ -11,7 +14,8 @@ type Zone struct {
 	// Read-only fields
 	DNSServers   []string `json:"dns_servers,omitempty"`
 	NetworkPools []string `json:"network_pools,omitempty"`
-	Pool         string   `json:"pool,omitempty"` // Deprecated
+	Pool         string   `json:"pool,omitempty"`       // Deprecated
+	LocalTags    []string `json:"local_tags,omitempty"` // Only relevant for DDI
 
 	ID   string `json:"id,omitempty"`
 	Zone string `json:"zone,omitempty"`
@@ -37,6 +41,13 @@ type Zone struct {
 	Primary *ZonePrimary `json:"primary,omitempty"`
 	// Secondary contains info for slaving the zone to a primary dns server.
 	Secondary *ZoneSecondary `json:"secondary,omitempty"`
+
+	// Whether or not DNSSEC is enabled on the zone. Note we use a pointer so
+	// leaving this unset will not change a previous setting.
+	DNSSEC *bool `json:"dnssec,omitempty"`
+
+	// Contains the key/value tag information associated to the zone
+	Tags map[string]string `json:"tags,omitempty"` // Only relevant for DDI
 }
 
 func (z Zone) String() string {
@@ -52,6 +63,12 @@ type ZoneRecord struct {
 	Tier     json.Number `json:"tier,omitempty"`
 	TTL      int         `json:"ttl,omitempty"`
 	Type     string      `json:"type,omitempty"`
+
+	// Contains the key/value tag information associated to the zone
+	Tags map[string]string `json:"tags,omitempty"` // Only relevant for DDI
+
+	// Read-only fields
+	LocalTags []string `json:"local_tags,omitempty"` // Only relevant for DDI
 }
 
 // ZonePrimary wraps a Zone's "primary" attribute
@@ -158,4 +175,5 @@ func (z *Zone) LinkTo(to string) {
 	z.Pool = ""
 	z.Secondary = nil
 	z.Link = &to
+	z.DNSSEC = nil
 }

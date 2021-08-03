@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Package ostype is define OS type of SakuraCloud public archive
 package ostype
 
@@ -9,12 +23,24 @@ type ArchiveOSTypes int
 const (
 	// CentOS OS種別:CentOS
 	CentOS ArchiveOSTypes = iota
+	// CentOS8 OS種別:CentOS8
+	CentOS8
+	// CentOS7 OS種別:CentOS7
+	CentOS7
 	// CentOS6 OS種別:CentOS6
 	CentOS6
 	// Ubuntu OS種別:Ubuntu
 	Ubuntu
+	// Ubuntu1804 OS種別:Ubuntu(Bionic)
+	Ubuntu1804
+	// Ubuntu1604 OS種別:Ubuntu(Xenial)
+	Ubuntu1604
 	// Debian OS種別:Debian
 	Debian
+	// Debian10 OS種別:Debian10
+	Debian10
+	// Debian9 OS種別:Debian9
+	Debian9
 	// CoreOS OS種別:CoreOS
 	CoreOS
 	// RancherOS OS種別:RancherOS
@@ -55,8 +81,10 @@ const (
 
 // OSTypeShortNames OSTypeとして利用できる文字列のリスト
 var OSTypeShortNames = []string{
-	"centos", "centos6", "ubuntu", "debian", "coreos",
-	"rancheros", "k3os", "kusanagi", "sophos-utm", "freebsd",
+	"centos", "centos8", "centos7", "centos6",
+	"ubuntu", "ubuntu1804", "ubuntu1604",
+	"debian", "debian10", "debian9",
+	"coreos", "rancheros", "k3os", "kusanagi", "sophos-utm", "freebsd",
 	"netwiser", "opnsense",
 	"windows2016", "windows2016-rds", "windows2016-rds-office",
 	"windows2016-sql-web", "windows2016-sql-standard", "windows2016-sql-standard-all",
@@ -80,7 +108,10 @@ func (o ArchiveOSTypes) IsWindows() bool {
 // IsSupportDiskEdit ディスクの修正機能をフルサポートしているか(Windowsは一部サポートのためfalseを返す)
 func (o ArchiveOSTypes) IsSupportDiskEdit() bool {
 	switch o {
-	case CentOS, CentOS6, Ubuntu, Debian, CoreOS, RancherOS, K3OS, Kusanagi, FreeBSD:
+	case CentOS, CentOS8, CentOS7, CentOS6,
+		Ubuntu, Ubuntu1804, Ubuntu1604,
+		Debian, Debian10, Debian9,
+		CoreOS, RancherOS, K3OS, Kusanagi, FreeBSD:
 		return true
 	default:
 		return false
@@ -92,12 +123,24 @@ func StrToOSType(osType string) ArchiveOSTypes {
 	switch osType {
 	case "centos":
 		return CentOS
+	case "centos8":
+		return CentOS8
+	case "centos7":
+		return CentOS7
 	case "centos6":
 		return CentOS6
 	case "ubuntu":
 		return Ubuntu
+	case "ubuntu1804":
+		return Ubuntu1804
+	case "ubuntu1604":
+		return Ubuntu1604
 	case "debian":
 		return Debian
+	case "debian10":
+		return Debian10
+	case "debian9":
+		return Debian9
 	case "coreos":
 		return CoreOS
 	case "rancheros":

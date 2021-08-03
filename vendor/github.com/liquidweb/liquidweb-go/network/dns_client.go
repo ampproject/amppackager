@@ -21,7 +21,7 @@ type DNSClient struct {
 // Create creates a new DNS Record.
 func (c *DNSClient) Create(params *DNSRecordParams) (*DNSRecord, error) {
 	var result DNSRecord
-	err := c.Backend.Call("v1/Network/DNS/Record/create", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Network/DNS/Record/create", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (c *DNSClient) Details(id int) (*DNSRecord, error) {
 	var result DNSRecord
 	params := DNSRecordParams{ID: id}
 
-	err := c.Backend.Call("v1/Network/DNS/Record/details", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Network/DNS/Record/details", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (c *DNSClient) Details(id int) (*DNSRecord, error) {
 func (c *DNSClient) List(params *DNSRecordParams) (*DNSRecordList, error) {
 	list := &DNSRecordList{}
 
-	err := c.Backend.Call("v1/Network/DNS/Record/list", params, list)
+	err := c.Backend.CallIntoInterface("v1/Network/DNS/Record/list", params, list)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (c *DNSClient) List(params *DNSRecordParams) (*DNSRecordList, error) {
 // Update will update a DNS Record.
 func (c *DNSClient) Update(params *DNSRecordParams) (*DNSRecord, error) {
 	var result DNSRecord
-	err := c.Backend.Call("v1/Network/DNS/Record/update", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Network/DNS/Record/update", params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (c *DNSClient) Update(params *DNSRecordParams) (*DNSRecord, error) {
 // Delete will delete a DNS Record.
 func (c *DNSClient) Delete(params *DNSRecordParams) (*DNSRecordDeletion, error) {
 	var result DNSRecordDeletion
-	err := c.Backend.Call("v1/Network/DNS/Record/delete", params, &result)
+	err := c.Backend.CallIntoInterface("v1/Network/DNS/Record/delete", params, &result)
 	if err != nil {
 		return nil, err
 	}

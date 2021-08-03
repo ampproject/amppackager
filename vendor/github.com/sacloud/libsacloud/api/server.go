@@ -1,3 +1,17 @@
+// Copyright 2016-2020 The Libsacloud Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package api
 
 import (
@@ -45,7 +59,7 @@ func (api *ServerAPI) WithStatusDown() *ServerAPI {
 }
 
 // WithISOImage ISOイメージ条件
-func (api *ServerAPI) WithISOImage(imageID int64) *ServerAPI {
+func (api *ServerAPI) WithISOImage(imageID sacloud.ID) *ServerAPI {
 	return api.FilterBy("Instance.CDROM.ID", imageID)
 }
 
@@ -62,14 +76,14 @@ func (api *ServerAPI) SortByMemory(reverse bool) *ServerAPI {
 }
 
 // DeleteWithDisk 指定のディスクと共に削除する
-func (api *ServerAPI) DeleteWithDisk(id int64, disks []int64) (*sacloud.Server, error) {
+func (api *ServerAPI) DeleteWithDisk(id sacloud.ID, disks []sacloud.ID) (*sacloud.Server, error) {
 	return api.request(func(res *sacloud.Response) error {
 		return api.delete(id, map[string]interface{}{"WithDisk": disks}, res)
 	})
 }
 
 // State ステータス(Availability)取得
-func (api *ServerAPI) State(id int64) (string, error) {
+func (api *ServerAPI) State(id sacloud.ID) (string, error) {
 	server, err := api.Read(id)
 	if err != nil {
 		return "", err
@@ -78,7 +92,7 @@ func (api *ServerAPI) State(id int64) (string, error) {
 }
 
 // IsUp 起動しているか判定
-func (api *ServerAPI) IsUp(id int64) (bool, error) {
+func (api *ServerAPI) IsUp(id sacloud.ID) (bool, error) {
 	server, err := api.Read(id)
 	if err != nil {
 		return false, err
@@ -87,7 +101,7 @@ func (api *ServerAPI) IsUp(id int64) (bool, error) {
 }
 
 // IsDown ダウンしているか判定
-func (api *ServerAPI) IsDown(id int64) (bool, error) {
+func (api *ServerAPI) IsDown(id sacloud.ID) (bool, error) {
 	server, err := api.Read(id)
 	if err != nil {
 		return false, err
@@ -96,7 +110,7 @@ func (api *ServerAPI) IsDown(id int64) (bool, error) {
 }
 
 // Boot 起動
-func (api *ServerAPI) Boot(id int64) (bool, error) {
+func (api *ServerAPI) Boot(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -105,7 +119,7 @@ func (api *ServerAPI) Boot(id int64) (bool, error) {
 }
 
 // Shutdown シャットダウン(graceful)
-func (api *ServerAPI) Shutdown(id int64) (bool, error) {
+func (api *ServerAPI) Shutdown(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -115,7 +129,7 @@ func (api *ServerAPI) Shutdown(id int64) (bool, error) {
 }
 
 // Stop シャットダウン(force)
-func (api *ServerAPI) Stop(id int64) (bool, error) {
+func (api *ServerAPI) Stop(id sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/power", api.getResourceURL(), id)
@@ -125,7 +139,7 @@ func (api *ServerAPI) Stop(id int64) (bool, error) {
 }
 
 // RebootForce 再起動
-func (api *ServerAPI) RebootForce(id int64) (bool, error) {
+func (api *ServerAPI) RebootForce(id sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/reset", api.getResourceURL(), id)
@@ -135,7 +149,7 @@ func (api *ServerAPI) RebootForce(id int64) (bool, error) {
 }
 
 // SleepUntilUp 起動するまで待機
-func (api *ServerAPI) SleepUntilUp(id int64, timeout time.Duration) error {
+func (api *ServerAPI) SleepUntilUp(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForUpFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, 0)
@@ -143,7 +157,7 @@ func (api *ServerAPI) SleepUntilUp(id int64, timeout time.Duration) error {
 }
 
 // SleepUntilDown ダウンするまで待機
-func (api *ServerAPI) SleepUntilDown(id int64, timeout time.Duration) error {
+func (api *ServerAPI) SleepUntilDown(id sacloud.ID, timeout time.Duration) error {
 	handler := waitingForDownFunc(func() (hasUpDown, error) {
 		return api.Read(id)
 	}, 0)
@@ -151,7 +165,7 @@ func (api *ServerAPI) SleepUntilDown(id int64, timeout time.Duration) error {
 }
 
 // ChangePlan サーバープラン変更(サーバーIDが変更となるため注意)
-func (api *ServerAPI) ChangePlan(serverID int64, plan *sacloud.ProductServer) (*sacloud.Server, error) {
+func (api *ServerAPI) ChangePlan(serverID sacloud.ID, plan *sacloud.ProductServer) (*sacloud.Server, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/plan", api.getResourceURL(), serverID)
@@ -168,7 +182,7 @@ func (api *ServerAPI) ChangePlan(serverID int64, plan *sacloud.ProductServer) (*
 }
 
 // FindDisk 指定サーバーに接続されているディスク一覧を取得
-func (api *ServerAPI) FindDisk(serverID int64) ([]sacloud.Disk, error) {
+func (api *ServerAPI) FindDisk(serverID sacloud.ID) ([]sacloud.Disk, error) {
 	server, err := api.Read(serverID)
 	if err != nil {
 		return nil, err
@@ -177,7 +191,7 @@ func (api *ServerAPI) FindDisk(serverID int64) ([]sacloud.Disk, error) {
 }
 
 // InsertCDROM ISOイメージを挿入
-func (api *ServerAPI) InsertCDROM(serverID int64, cdromID int64) (bool, error) {
+func (api *ServerAPI) InsertCDROM(serverID sacloud.ID, cdromID sacloud.ID) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/cdrom", api.getResourceURL(), serverID)
@@ -193,7 +207,7 @@ func (api *ServerAPI) InsertCDROM(serverID int64, cdromID int64) (bool, error) {
 }
 
 // EjectCDROM ISOイメージを取り出し
-func (api *ServerAPI) EjectCDROM(serverID int64, cdromID int64) (bool, error) {
+func (api *ServerAPI) EjectCDROM(serverID sacloud.ID, cdromID sacloud.ID) (bool, error) {
 	var (
 		method = "DELETE"
 		uri    = fmt.Sprintf("%s/%d/cdrom", api.getResourceURL(), serverID)
@@ -214,7 +228,7 @@ func (api *ServerAPI) NewKeyboardRequest() *sacloud.KeyboardRequest {
 }
 
 // SendKey キーボード入力送信
-func (api *ServerAPI) SendKey(serverID int64, body *sacloud.KeyboardRequest) (bool, error) {
+func (api *ServerAPI) SendKey(serverID sacloud.ID, body *sacloud.KeyboardRequest) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/keyboard", api.getResourceURL(), serverID)
@@ -231,7 +245,7 @@ func (api *ServerAPI) NewMouseRequest() *sacloud.MouseRequest {
 }
 
 // SendMouse マウス入力送信
-func (api *ServerAPI) SendMouse(serverID int64, mouseIndex string, body *sacloud.MouseRequest) (bool, error) {
+func (api *ServerAPI) SendMouse(serverID sacloud.ID, mouseIndex string, body *sacloud.MouseRequest) (bool, error) {
 	var (
 		method = "PUT"
 		uri    = fmt.Sprintf("%s/%d/mouse/%s", api.getResourceURL(), serverID, mouseIndex)
@@ -246,7 +260,7 @@ func (api *ServerAPI) NewVNCSnapshotRequest() *sacloud.VNCSnapshotRequest {
 }
 
 // GetVNCProxy VNCプロキシ情報取得
-func (api *ServerAPI) GetVNCProxy(serverID int64) (*sacloud.VNCProxyResponse, error) {
+func (api *ServerAPI) GetVNCProxy(serverID sacloud.ID) (*sacloud.VNCProxyResponse, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/vnc/proxy", api.getResourceURL(), serverID)
@@ -260,7 +274,7 @@ func (api *ServerAPI) GetVNCProxy(serverID int64) (*sacloud.VNCProxyResponse, er
 }
 
 // GetVNCSize VNC画面サイズ取得
-func (api *ServerAPI) GetVNCSize(serverID int64) (*sacloud.VNCSizeResponse, error) {
+func (api *ServerAPI) GetVNCSize(serverID sacloud.ID) (*sacloud.VNCSizeResponse, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/vnc/size", api.getResourceURL(), serverID)
@@ -274,7 +288,7 @@ func (api *ServerAPI) GetVNCSize(serverID int64) (*sacloud.VNCSizeResponse, erro
 }
 
 // GetVNCSnapshot VNCスナップショット取得
-func (api *ServerAPI) GetVNCSnapshot(serverID int64, body *sacloud.VNCSnapshotRequest) (*sacloud.VNCSnapshotResponse, error) {
+func (api *ServerAPI) GetVNCSnapshot(serverID sacloud.ID, body *sacloud.VNCSnapshotRequest) (*sacloud.VNCSnapshotResponse, error) {
 	var (
 		method = "GET"
 		uri    = fmt.Sprintf("%s/%d/vnc/snapshot", api.getResourceURL(), serverID)
@@ -288,6 +302,6 @@ func (api *ServerAPI) GetVNCSnapshot(serverID int64, body *sacloud.VNCSnapshotRe
 }
 
 // Monitor アクティビティーモニター(CPU-TIME)取得
-func (api *ServerAPI) Monitor(id int64, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
+func (api *ServerAPI) Monitor(id sacloud.ID, body *sacloud.ResourceMonitorRequest) (*sacloud.MonitorValues, error) {
 	return api.baseAPI.monitor(id, body)
 }
