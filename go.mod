@@ -3,7 +3,7 @@ module github.com/ampproject/amppackager
 go 1.13
 
 require (
-	github.com/WICG/webpackage v0.0.0-20210803201035-2d8c25149e26
+	github.com/WICG/webpackage v0.0.0-20210804035709-802a8cabcdaa
 	github.com/ampproject/amphtml v0.0.0-20210802160724-a648a87e5643
 	github.com/go-acme/lego/v4 v4.4.0
 	github.com/gofrs/flock v0.8.1
