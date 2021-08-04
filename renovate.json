@@ -9,7 +9,10 @@
   ],
   "packageRules": [
     {
-      "matchPackageNames": ["github.com/ampproject/amphtml"],
+      "matchPackageNames": [
+        "github.com/WICG/webpackage",
+        "github.com/ampproject/amphtml"
+      ],
       "extends": ["schedule:weekly"]
     }
   ]
