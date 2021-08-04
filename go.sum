@@ -67,8 +67,8 @@ github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87 h1:xPMsUicZ
 github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87/go.mod h1:iGLljf5n9GjT6kc0HBvyI1nOKnGQbNB66VzSNbK5iks=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/WICG/webpackage v0.0.0-20210803201035-2d8c25149e26 h1:6ijTFV7telq/ZmSS+ifrbvyOUT26lbq8mfACkm8555E=
-github.com/WICG/webpackage v0.0.0-20210803201035-2d8c25149e26/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
+github.com/WICG/webpackage v0.0.0-20210804035709-802a8cabcdaa h1:RZhLbqk0Ooppn8Q1zD+2WGN4ZlrO4MrkcA+2Of/52B8=
+github.com/WICG/webpackage v0.0.0-20210804035709-802a8cabcdaa/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
 github.com/akamai/AkamaiOPEN-edgegrid-golang v1.1.0 h1:NNsy0ugDFZbu6S11NlsR4Kmko9hJ00gv9U2JHbwpf3g=
 github.com/akamai/AkamaiOPEN-edgegrid-golang v1.1.0/go.mod h1:kX6YddBkXqqywAe8c9LyvgTCyFuZCTMF4cRPQhc3Fy8=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
