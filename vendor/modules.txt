@@ -489,7 +489,7 @@ go.opencensus.io/trace/tracestate
 # go.uber.org/ratelimit v0.0.0-20180316092928-c15da0234277
 go.uber.org/ratelimit
 go.uber.org/ratelimit/internal/clock
-# golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
+# golang.org/x/crypto v0.0.0-20210812204632-0ba0e8f03122
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/ocsp
