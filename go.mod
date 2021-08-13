@@ -18,7 +18,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 	golang.org/x/crypto v0.0.0-20210812204632-0ba0e8f03122
-	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
+	golang.org/x/net v0.0.0-20210813154108-3a7c47852f19
 	google.golang.org/grpc v1.40.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
