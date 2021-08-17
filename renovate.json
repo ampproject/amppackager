@@ -1,7 +1,8 @@
 {
   "baseBranches": ["main"],
   "extends": [
-    "config:base"
+    "config:base",
+    "schedule:weekly"
   ],
   "postUpdateOptions": [
     "gomodUpdateImportPaths",
@@ -9,11 +10,8 @@
   ],
   "packageRules": [
     {
-      "matchPackageNames": [
-        "github.com/WICG/webpackage",
-        "github.com/ampproject/amphtml"
-      ],
-      "extends": ["schedule:weekly"]
+      "matchLanguages": ["golang"],
+      "groupName": "golang dependencies"
     }
   ]
 }
