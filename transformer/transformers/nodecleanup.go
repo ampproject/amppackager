@@ -52,7 +52,6 @@ func NodeCleanup(e *Context) error {
 			continue
 
 		case html.ElementNode:
-			// TODO(b/79415817): Removing <noscript> is a temporary fix until we know how to handle them.
 			if n.DataAtom == atom.Noscript {
 				htmlnode.RemoveNode(&n)
 				continue
