@@ -24,9 +24,14 @@ import (
 // AMPBoilerplate removes <style> and <noscript> tags in <head>,
 // keeping only the amp-custom style tag. It then inserts the amp-boilerplate.
 func AMPBoilerplate(e *Context) error {
-        // Remove <style> and <noscript> tags keeping only the amp-runtime and
-        // amp-custom style tag. amp-runtime may be removed later by the
-        // AMPRuntimeCSS transformer.
+	// Remove <style> and <noscript> tags keeping only the amp-runtime and
+	// amp-custom style tag. amp-runtime may be removed later by the
+	// AMPRuntimeCSS transformer.
+	// Note that this also potentially strips:
+	// <noscript><style amp-noscript>...</style></noscript>
+	// Golang's parser does not recognize tags inside of <noscript>, so this is
+	// difficult to fix. However, signed exchanges are only loaded in a scripted
+	// environment anyway, so this is considered working as intended.
 	for n := e.DOM.HeadNode; n != nil && n.DataAtom != atom.Body; n = htmlnode.Next(n) {
 		switch n.DataAtom {
 		case atom.Style:

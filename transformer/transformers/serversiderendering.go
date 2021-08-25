@@ -169,6 +169,11 @@ func canRemoveBoilerplateRecursive(n *html.Node) bool {
 
 // removeBoilerplate removes the AMP boilerplate script (and noscript) tags
 // from the given head node.
+// Note that this also potentially strips:
+// <noscript><style amp-noscript>...</style></noscript>
+// Golang's parser does not recognize tags inside of <noscript>, so this is
+// difficult to fix. However, signed exchanges are only loaded in a scripted
+// environment anyway, so this is considered working as intended.
 func removeBoilerplate(n *html.Node) {
 	if n.DataAtom != atom.Head {
 		return
