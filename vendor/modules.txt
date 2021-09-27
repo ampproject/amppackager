@@ -24,7 +24,7 @@ github.com/Azure/go-autorest/logger
 github.com/Azure/go-autorest/tracing
 # github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87
 github.com/OpenDNS/vegadns2client
-# github.com/WICG/webpackage v0.0.0-20210916022405-725c28cc080c
+# github.com/WICG/webpackage v0.0.0-20210922014758-1ce47da3e2f8
 github.com/WICG/webpackage/go/internal/signingalgorithm
 github.com/WICG/webpackage/go/signedexchange
 github.com/WICG/webpackage/go/signedexchange/cbor
@@ -50,7 +50,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20210920152955-d742ce5ca00d
+# github.com/ampproject/amphtml v0.0.0-20210924212220-7959b22cc068
 github.com/ampproject/amphtml/validator
 # github.com/aws/aws-sdk-go v1.37.27
 github.com/aws/aws-sdk-go/aws
@@ -418,7 +418,7 @@ github.com/prometheus/client_golang/prometheus/testutil
 github.com/prometheus/client_golang/prometheus/testutil/promlint
 # github.com/prometheus/client_model v0.2.0
 github.com/prometheus/client_model/go
-# github.com/prometheus/common v0.30.0
+# github.com/prometheus/common v0.31.0
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/model
@@ -489,14 +489,14 @@ go.opencensus.io/trace/tracestate
 # go.uber.org/ratelimit v0.0.0-20180316092928-c15da0234277
 go.uber.org/ratelimit
 go.uber.org/ratelimit/internal/clock
-# golang.org/x/crypto v0.0.0-20210920023735-84f357641f63
+# golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
-# golang.org/x/net v0.0.0-20210917221730-978cfadd31cf
+# golang.org/x/net v0.0.0-20210927161702-76eb614f963d
 golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -565,7 +565,7 @@ google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
 # google.golang.org/genproto v0.0.0-20200825200019-8632dd797987
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.40.0
+# google.golang.org/grpc v1.41.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -602,6 +602,7 @@ google.golang.org/grpc/internal/status
 google.golang.org/grpc/internal/syscall
 google.golang.org/grpc/internal/transport
 google.golang.org/grpc/internal/transport/networktype
+google.golang.org/grpc/internal/xds/env
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/metadata
 google.golang.org/grpc/peer
