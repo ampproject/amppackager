@@ -30,7 +30,7 @@ The current feature list includes:
 * [x] Custom hostnames
 * [x] DNS Records
 * [x] Firewall (partial)
-* [ ] [Keyless SSL](https://blog.cloudflare.com/keyless-ssl-the-nitty-gritty-technical-details/)
+* [x] [Keyless SSL](https://blog.cloudflare.com/keyless-ssl-the-nitty-gritty-technical-details/)
 * [x] [Load Balancing](https://blog.cloudflare.com/introducing-load-balancing-intelligent-failover-with-cloudflare/)
 * [x] [Logpush Jobs](https://developers.cloudflare.com/logs/logpush/)
 * [ ] Organization Administration
@@ -43,6 +43,7 @@ The current feature list includes:
 * [x] Zone Lockdown and User-Agent Block rules
 * [x] Zones
 * [x] Workers KV
+* [x] Notifications
 
 Pull Requests are welcome, but please open an issue (or comment in an existing
 issue) to discuss any non-trivial changes before submitting code.
@@ -61,6 +62,7 @@ go get github.com/cloudflare/cloudflare-go
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -75,8 +77,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Most API calls require a Context
+	ctx := context.Background()
+
 	// Fetch user details on the account
-	u, err := api.UserDetails()
+	u, err := api.UserDetails(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,7 +95,7 @@ func main() {
 	}
 
 	// Fetch zone details
-	zone, err := api.ZoneDetails(id)
+	zone, err := api.ZoneDetails(ctx, id)
 	if err != nil {
 		log.Fatal(err)
 	}

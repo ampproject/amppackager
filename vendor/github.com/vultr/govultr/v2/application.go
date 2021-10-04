@@ -8,6 +8,7 @@ import (
 )
 
 // ApplicationService is the interface to interact with the Application endpoint on the Vultr API.
+// Link : https://www.vultr.com/api/#tag/application
 type ApplicationService interface {
 	List(ctx context.Context, options *ListOptions) ([]Application, *Meta, error)
 }
@@ -23,6 +24,9 @@ type Application struct {
 	Name       string `json:"name"`
 	ShortName  string `json:"short_name"`
 	DeployName string `json:"deploy_name"`
+	Type       string `json:"type"`
+	Vendor     string `json:"vendor"`
+	ImageID    string `json:"image_id"`
 }
 
 type applicationBase struct {

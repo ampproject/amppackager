@@ -61,7 +61,7 @@ func New(token string) (Token, error) {
 		return Token{}, fmt.Errorf("invalid token '%s' given, token should exist at least of 3 parts", token)
 	}
 
-	jsonBody, err := base64.RawStdEncoding.DecodeString(tokenParts[1])
+	jsonBody, err := base64.RawURLEncoding.DecodeString(tokenParts[1])
 	if err != nil {
 		return Token{}, errors.New("could not decode token, invalid base64")
 	}

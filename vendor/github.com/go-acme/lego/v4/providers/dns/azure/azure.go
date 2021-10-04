@@ -6,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -33,6 +33,7 @@ const (
 	EnvTenantID         = envNamespace + "TENANT_ID"
 	EnvClientID         = envNamespace + "CLIENT_ID"
 	EnvClientSecret     = envNamespace + "CLIENT_SECRET"
+	EnvZoneName         = envNamespace + "ZONE_NAME"
 
 	EnvTTL                = envNamespace + "TTL"
 	EnvPropagationTimeout = envNamespace + "PROPAGATION_TIMEOUT"
@@ -242,6 +243,10 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 // Checks that azure has a zone for this domain name.
 func (d *DNSProvider) getHostedZoneID(ctx context.Context, fqdn string) (string, error) {
+	if zone := env.GetOrFile(EnvZoneName); zone != "" {
+		return zone, nil
+	}
+
 	authZone, err := dns01.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", err
@@ -314,7 +319,7 @@ func getMetadata(config *Config, field string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

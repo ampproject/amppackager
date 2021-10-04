@@ -22,6 +22,11 @@ import (
 const apiURL = "https://api.cloudflare.com/client/v4"
 
 const (
+	originCARootCertEccURL = "https://developers.cloudflare.com/ssl/0d2cd0f374da0fb6dbf53128b60bbbf7/origin_ca_ecc_root.pem"
+	originCARootCertRsaURL = "https://developers.cloudflare.com/ssl/e2b9968022bf23b071d95229b5678452/origin_ca_rsa_root.pem"
+)
+
+const (
 	// AuthKeyEmail specifies that we should authenticate with API key and email address
 	AuthKeyEmail = 1 << iota
 	// AuthUserService specifies that we should authenticate with a User-Service key
@@ -138,28 +143,19 @@ func (api *API) SetAuthType(authType int) {
 // ZoneIDByName retrieves a zone's ID from the name.
 func (api *API) ZoneIDByName(zoneName string) (string, error) {
 	zoneName = normalizeZoneName(zoneName)
-	res, err := api.ListZonesContext(context.Background(), WithZoneFilters(zoneName, "", ""))
+	res, err := api.ListZonesContext(context.Background(), WithZoneFilters(zoneName, api.AccountID, ""))
 	if err != nil {
 		return "", errors.Wrap(err, "ListZonesContext command failed")
 	}
 
-	if len(res.Result) > 1 && api.AccountID == "" {
-		return "", errors.New("ambiguous zone name used without an account ID")
+	switch len(res.Result) {
+	case 0:
+		return "", errors.New("zone could not be found")
+	case 1:
+		return res.Result[0].ID, nil
+	default:
+		return "", errors.New("ambiguous zone name; an account ID might help")
 	}
-
-	for _, zone := range res.Result {
-		if api.AccountID != "" {
-			if zone.Name == zoneName && api.AccountID == zone.Account.ID {
-				return zone.ID, nil
-			}
-		} else {
-			if zone.Name == zoneName {
-				return zone.ID, nil
-			}
-		}
-	}
-
-	return "", errors.New("Zone could not be found")
 }
 
 // makeRequest makes a HTTP request and returns the body as a byte slice,
@@ -221,7 +217,12 @@ func (api *API) makeRequestWithAuthTypeAndHeaders(ctx context.Context, method, u
 			}
 			// useful to do some simple logging here, maybe introduce levels later
 			api.logger.Printf("Sleeping %s before retry attempt number %d for request %s %s", sleepDuration.String(), i, method, uri)
-			time.Sleep(sleepDuration)
+
+			select {
+			case <-time.After(sleepDuration):
+			case <-ctx.Done():
+				return nil, errors.Wrap(ctx.Err(), "operation aborted during backoff")
+			}
 
 		}
 		err = api.rateLimiter.Wait(context.Background())
@@ -446,7 +447,61 @@ func WithZoneFilters(zoneName, accountID, status string) ReqOption {
 // WithPagination configures the pagination for a response.
 func WithPagination(opts PaginationOptions) ReqOption {
 	return func(opt *reqOption) {
-		opt.params.Set("page", strconv.Itoa(opts.Page))
-		opt.params.Set("per_page", strconv.Itoa(opts.PerPage))
+		if opts.Page > 0 {
+			opt.params.Set("page", strconv.Itoa(opts.Page))
+		}
+
+		if opts.PerPage > 0 {
+			opt.params.Set("per_page", strconv.Itoa(opts.PerPage))
+		}
+	}
+}
+
+// checkResultInfo checks whether ResultInfo is reasonable except that it currently
+// ignores the cursor information. perPage, page, and count are the requested #items
+// per page, the requested page number, and the actual length of the Result array.
+//
+// Responses from the actual Cloudflare servers should pass all these checks (or we
+// discover a serious bug in the Cloudflare servers). However, the unit tests can
+// easily violate these constraints and this utility function can help debugging.
+// Correct pagination information is crucial for more advanced List* functions that
+// handle pagination automatically and fetch different pages in parallel.
+//
+// TODO: check cursors as well.
+func checkResultInfo(perPage, page, count int, info *ResultInfo) bool {
+	if info.Cursor != "" || info.Cursors.Before != "" || info.Cursors.After != "" {
+		panic("checkResultInfo could not handle cursors yet.")
+	}
+
+	switch {
+	case info.PerPage != perPage || info.Page != page || info.Count != count:
+		return false
+
+	case info.PerPage <= 0:
+		return false
+
+	case info.Total == 0 && info.TotalPages == 0 && info.Page == 1 && info.Count == 0:
+		return true
+
+	case info.Total <= 0 || info.TotalPages <= 0:
+		return false
+
+	case info.Total > info.PerPage*info.TotalPages || info.Total <= info.PerPage*(info.TotalPages-1):
+		return false
+	}
+
+	switch {
+	case info.Page > info.TotalPages || info.Page <= 0:
+		return false
+
+	case info.Page < info.TotalPages:
+		return info.Count == info.PerPage
+
+	case info.Page == info.TotalPages:
+		return info.Count == info.Total-info.PerPage*(info.TotalPages-1)
+
+	default:
+		// This is actually impossible, but Go compiler does not know trichotomy
+		panic("checkResultInfo: impossible")
 	}
 }

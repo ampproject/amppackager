@@ -14,6 +14,7 @@ import (
 	"time"
 
 	v2 "github.com/exoscale/egoscale/v2"
+	"github.com/exoscale/egoscale/version"
 )
 
 const (
@@ -23,7 +24,7 @@ const (
 
 // UserAgent is the "User-Agent" HTTP request header added to outgoing HTTP requests.
 var UserAgent = fmt.Sprintf("egoscale/%s (%s; %s/%s)",
-	Version,
+	version.Version,
 	runtime.Version(),
 	runtime.GOOS,
 	runtime.GOARCH)

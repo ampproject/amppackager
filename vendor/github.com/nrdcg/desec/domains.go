@@ -1,6 +1,7 @@
 package desec
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -32,13 +33,13 @@ type DomainsService struct {
 
 // Create creating a domain.
 // https://desec.readthedocs.io/en/latest/dns/domains.html#creating-a-domain
-func (s *DomainsService) Create(domainName string) (*Domain, error) {
+func (s *DomainsService) Create(ctx context.Context, domainName string) (*Domain, error) {
 	endpoint, err := s.client.createEndpoint("domains")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, Domain{Name: domainName})
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, Domain{Name: domainName})
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +66,13 @@ func (s *DomainsService) Create(domainName string) (*Domain, error) {
 
 // GetAll listing domains.
 // https://desec.readthedocs.io/en/latest/dns/domains.html#listing-domains
-func (s *DomainsService) GetAll() ([]Domain, error) {
+func (s *DomainsService) GetAll(ctx context.Context) ([]Domain, error) {
 	endpoint, err := s.client.createEndpoint("domains")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodGet, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -98,13 +99,13 @@ func (s *DomainsService) GetAll() ([]Domain, error) {
 
 // Get retrieving a specific domain.
 // https://desec.readthedocs.io/en/latest/dns/domains.html#retrieving-a-specific-domain
-func (s *DomainsService) Get(domainName string) (*Domain, error) {
+func (s *DomainsService) Get(ctx context.Context, domainName string) (*Domain, error) {
 	endpoint, err := s.client.createEndpoint("domains", domainName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodGet, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -131,13 +132,13 @@ func (s *DomainsService) Get(domainName string) (*Domain, error) {
 
 // Delete deleting a domain.
 // https://desec.readthedocs.io/en/latest/dns/domains.html#deleting-a-domain
-func (s *DomainsService) Delete(domainName string) error {
+func (s *DomainsService) Delete(ctx context.Context, domainName string) error {
 	endpoint, err := s.client.createEndpoint("domains", domainName)
 	if err != nil {
 		return fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodDelete, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodDelete, endpoint, nil)
 	if err != nil {
 		return err
 	}

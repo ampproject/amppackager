@@ -1,6 +1,7 @@
 package desec
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -38,13 +39,13 @@ type AccountService struct {
 
 // Login Log in.
 // https://desec.readthedocs.io/en/latest/auth/account.html#log-in
-func (s *AccountService) Login(email, password string) (*Token, error) {
+func (s *AccountService) Login(ctx context.Context, email, password string) (*Token, error) {
 	endpoint, err := s.client.createEndpoint("auth", "login")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, Account{Email: email, Password: password})
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, Account{Email: email, Password: password})
 	if err != nil {
 		return nil, err
 	}
@@ -73,13 +74,13 @@ func (s *AccountService) Login(email, password string) (*Token, error) {
 
 // Logout log out (= delete current token).
 // https://desec.readthedocs.io/en/latest/auth/account.html#log-out
-func (s *AccountService) Logout() error {
+func (s *AccountService) Logout(ctx context.Context) error {
 	endpoint, err := s.client.createEndpoint("auth", "logout")
 	if err != nil {
 		return fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, nil)
 	if err != nil {
 		return err
 	}
@@ -102,13 +103,13 @@ func (s *AccountService) Logout() error {
 
 // ObtainCaptcha Obtain a captcha.
 // https://desec.readthedocs.io/en/latest/auth/account.html#obtain-a-captcha
-func (s *AccountService) ObtainCaptcha() (*Captcha, error) {
+func (s *AccountService) ObtainCaptcha(ctx context.Context) (*Captcha, error) {
 	endpoint, err := s.client.createEndpoint("captcha")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -135,13 +136,13 @@ func (s *AccountService) ObtainCaptcha() (*Captcha, error) {
 
 // Register register account.
 // https://desec.readthedocs.io/en/latest/auth/account.html#register-account
-func (s *AccountService) Register(registration Registration) error {
+func (s *AccountService) Register(ctx context.Context, registration Registration) error {
 	endpoint, err := s.client.createEndpoint("auth")
 	if err != nil {
 		return fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, registration)
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, registration)
 	if err != nil {
 		return err
 	}
@@ -162,13 +163,13 @@ func (s *AccountService) Register(registration Registration) error {
 
 // RetrieveInformation retrieve account information.
 // https://desec.readthedocs.io/en/latest/auth/account.html#retrieve-account-information
-func (s *AccountService) RetrieveInformation() (*Account, error) {
+func (s *AccountService) RetrieveInformation(ctx context.Context) (*Account, error) {
 	endpoint, err := s.client.createEndpoint("auth", "account")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -196,13 +197,13 @@ func (s *AccountService) RetrieveInformation() (*Account, error) {
 // PasswordReset password reset and password change.
 // https://desec.readthedocs.io/en/latest/auth/account.html#password-reset
 // https://desec.readthedocs.io/en/latest/auth/account.html#password-change
-func (s *AccountService) PasswordReset(email string, captcha Captcha) error {
+func (s *AccountService) PasswordReset(ctx context.Context, email string, captcha Captcha) error {
 	endpoint, err := s.client.createEndpoint("auth", "account", "reset-password")
 	if err != nil {
 		return fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, Registration{Email: email, Captcha: &captcha})
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, Registration{Email: email, Captcha: &captcha})
 	if err != nil {
 		return err
 	}
@@ -223,13 +224,13 @@ func (s *AccountService) PasswordReset(email string, captcha Captcha) error {
 
 // ChangeEmail changes email address.
 // https://desec.readthedocs.io/en/latest/auth/account.html#change-email-address
-func (s *AccountService) ChangeEmail(email, password, newEmail string) error {
+func (s *AccountService) ChangeEmail(ctx context.Context, email, password, newEmail string) error {
 	endpoint, err := s.client.createEndpoint("auth", "account", "change-email")
 	if err != nil {
 		return fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, Registration{Email: email, Password: password, NewEmail: newEmail})
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, Registration{Email: email, Password: password, NewEmail: newEmail})
 	if err != nil {
 		return err
 	}
@@ -250,13 +251,13 @@ func (s *AccountService) ChangeEmail(email, password, newEmail string) error {
 
 // Delete deletes account.
 // https://desec.readthedocs.io/en/latest/auth/account.html#delete-account
-func (s *AccountService) Delete(email, password string) error {
+func (s *AccountService) Delete(ctx context.Context, email, password string) error {
 	endpoint, err := s.client.createEndpoint("auth", "account", "delete")
 	if err != nil {
 		return fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, Account{Email: email, Password: password})
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, Account{Email: email, Password: password})
 	if err != nil {
 		return err
 	}

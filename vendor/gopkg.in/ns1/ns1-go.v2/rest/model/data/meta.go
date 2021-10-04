@@ -147,6 +147,10 @@ type Meta struct {
 	// load (e.g., loadavg, connections, etc).
 	// int or FeedPtr.
 	HighWatermark interface{} `json:"high_watermark,omitempty"`
+
+	// subdivisions must follow the ISO-3166-2 code for a country and subdivisions
+	// map[string]interface{} or FeedPtr.
+	Subdivisions interface{} `json:"subdivisions,omitempty"`
 }
 
 // StringMap returns a map[string]interface{} representation of metadata (for use with terraform in nested structures)
@@ -211,7 +215,8 @@ func FormatInterface(i interface{}) string {
 			data, _ := json.Marshal(feedPtr)
 			return string(data)
 		}
-		panic(fmt.Sprintf("expected map to contain 'feed' key to marshal as feedPtr, got: %+v", v))
+		data, _ := json.Marshal(v)
+		return string(data)
 	case FeedPtr:
 		data, _ := json.Marshal(v)
 		return string(data)
@@ -296,6 +301,8 @@ func MetaFromMap(m map[string]interface{}) *Meta {
 				if err := json.Unmarshal([]byte(v.(string)), &pulsars); err == nil {
 					fv.Set(reflect.ValueOf(pulsars))
 				}
+			case "Subdivisions":
+				fv.Set(reflect.ValueOf(v.(map[string]interface{})))
 			default:
 				fv.Set(reflect.ValueOf(ParseType(v.(string))))
 			}
@@ -540,6 +547,7 @@ var validationMap = map[string]metaValidation{
 		})},
 	"LowWatermark":  {kinds(reflect.Int), nil},
 	"HighWatermark": {kinds(reflect.Int), nil},
+	"Subdivisions":  {kinds(reflect.String, reflect.Map), nil},
 }
 
 // validate takes a field name, a reflect value, and metaValidation and validates the given field

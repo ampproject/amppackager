@@ -70,6 +70,9 @@ type Job struct {
 	// in addition to global state notifications.
 	NotifyRegional bool `json:"notify_regional"`
 
+	// If true the notification will be off
+	Mute bool `json:"mute"`
+
 	// If true, a notification is sent when a job returns to an "up" state.
 	NotifyFailback bool `json:"notify_failback"`
 }

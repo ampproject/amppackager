@@ -3,9 +3,11 @@ package cloudflare
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -19,6 +21,8 @@ type ZoneLockdown struct {
 	Configurations []ZoneLockdownConfig `json:"configurations"`
 	Paused         bool                 `json:"paused"`
 	Priority       int                  `json:"priority,omitempty"`
+	CreatedOn      *time.Time           `json:"created_on,omitempty"`
+	ModifiedOn     *time.Time           `json:"modified_on,omitempty"`
 }
 
 // ZoneLockdownConfig represents a Zone Lockdown config, which comprises
@@ -48,7 +52,7 @@ type ZoneLockdownListResponse struct {
 //
 // API reference: https://api.cloudflare.com/#zone-ZoneLockdown-create-a-ZoneLockdown-rule
 func (api *API) CreateZoneLockdown(ctx context.Context, zoneID string, ld ZoneLockdown) (*ZoneLockdownResponse, error) {
-	uri := "/zones/" + zoneID + "/firewall/lockdowns"
+	uri := fmt.Sprintf("/zones/%s/firewall/lockdowns", zoneID)
 	res, err := api.makeRequestContext(ctx, http.MethodPost, uri, ld)
 	if err != nil {
 		return nil, err
@@ -68,7 +72,7 @@ func (api *API) CreateZoneLockdown(ctx context.Context, zoneID string, ld ZoneLo
 //
 // API reference: https://api.cloudflare.com/#zone-ZoneLockdown-update-ZoneLockdown-rule
 func (api *API) UpdateZoneLockdown(ctx context.Context, zoneID string, id string, ld ZoneLockdown) (*ZoneLockdownResponse, error) {
-	uri := "/zones/" + zoneID + "/firewall/lockdowns/" + id
+	uri := fmt.Sprintf("/zones/%s/firewall/lockdowns/%s", zoneID, id)
 	res, err := api.makeRequestContext(ctx, http.MethodPut, uri, ld)
 	if err != nil {
 		return nil, err
@@ -88,7 +92,7 @@ func (api *API) UpdateZoneLockdown(ctx context.Context, zoneID string, id string
 //
 // API reference: https://api.cloudflare.com/#zone-ZoneLockdown-delete-ZoneLockdown-rule
 func (api *API) DeleteZoneLockdown(ctx context.Context, zoneID string, id string) (*ZoneLockdownResponse, error) {
-	uri := "/zones/" + zoneID + "/firewall/lockdowns/" + id
+	uri := fmt.Sprintf("/zones/%s/firewall/lockdowns/%s", zoneID, id)
 	res, err := api.makeRequestContext(ctx, http.MethodDelete, uri, nil)
 	if err != nil {
 		return nil, err
@@ -108,7 +112,7 @@ func (api *API) DeleteZoneLockdown(ctx context.Context, zoneID string, id string
 //
 // API reference: https://api.cloudflare.com/#zone-ZoneLockdown-ZoneLockdown-rule-details
 func (api *API) ZoneLockdown(ctx context.Context, zoneID string, id string) (*ZoneLockdownResponse, error) {
-	uri := "/zones/" + zoneID + "/firewall/lockdowns/" + id
+	uri := fmt.Sprintf("/zones/%s/firewall/lockdowns/%s", zoneID, id)
 	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, err
@@ -135,9 +139,8 @@ func (api *API) ListZoneLockdowns(ctx context.Context, zoneID string, page int) 
 
 	v.Set("page", strconv.Itoa(page))
 	v.Set("per_page", strconv.Itoa(100))
-	query := "?" + v.Encode()
 
-	uri := "/zones/" + zoneID + "/firewall/lockdowns" + query
+	uri := fmt.Sprintf("/zones/%s/firewall/lockdowns?%s", zoneID, v.Encode())
 	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, err

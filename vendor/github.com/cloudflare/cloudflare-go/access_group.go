@@ -161,6 +161,20 @@ type AccessGroupAuthMethod struct {
 	} `json:"auth_method"`
 }
 
+// AccessGroupLoginMethod restricts the application to specific IdP instances.
+type AccessGroupLoginMethod struct {
+	LoginMethod struct {
+		ID string `json:"id"`
+	} `json:"login_method"`
+}
+
+// AccessGroupDevicePosture restricts the application to specific devices
+type AccessGroupDevicePosture struct {
+	DevicePosture struct {
+		ID string `json:"integration_uid"`
+	} `json:"device_posture"`
+}
+
 // AccessGroupListResponse represents the response from the list
 // access group endpoint.
 type AccessGroupListResponse struct {
@@ -208,7 +222,7 @@ func (api *API) accessGroups(ctx context.Context, id string, pageOpts Pagination
 	)
 
 	if len(v) > 0 {
-		uri = uri + "?" + v.Encode()
+		uri = fmt.Sprintf("%s?%s", uri, v.Encode())
 	}
 
 	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)

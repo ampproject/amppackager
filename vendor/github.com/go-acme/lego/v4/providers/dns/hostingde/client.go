@@ -2,11 +2,10 @@ package hostingde
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -57,15 +56,12 @@ func (d *DNSProvider) updateZone(updateRequest ZoneUpdateRequest) (*ZoneUpdateRe
 }
 
 func (d *DNSProvider) getZone(findRequest ZoneConfigsFindRequest) (*ZoneConfig, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-
 	var zoneConfig *ZoneConfig
 
 	operation := func() error {
 		findResponse, err := d.listZoneConfigs(findRequest)
 		if err != nil {
-			cancel()
-			return err
+			return backoff.Permanent(err)
 		}
 
 		if findResponse.Response.Data[0].Status != "active" {
@@ -83,7 +79,7 @@ func (d *DNSProvider) getZone(findRequest ZoneConfigsFindRequest) (*ZoneConfig, 
 	bo.MaxElapsedTime = 100 * bo.InitialInterval
 
 	// retry in case the zone was edited recently and is not yet active
-	err := backoff.Retry(operation, backoff.WithContext(bo, ctx))
+	err := backoff.Retry(operation, bo)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +105,7 @@ func (d *DNSProvider) post(uri string, request, response interface{}) ([]byte, e
 
 	defer resp.Body.Close()
 
-	content, err := ioutil.ReadAll(resp.Body)
+	content, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New(toUnreadableBodyMessage(uri, content))
 	}

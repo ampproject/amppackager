@@ -141,6 +141,19 @@ func NewSRVAnswer(priority, weight, port int, target string) *Answer {
 	}
 }
 
+// NewDSAnswer creates an Answer for DS record.
+func NewDSAnswer(key string, algorithm string, t string, digest string) *Answer {
+	return &Answer{
+		Meta: &data.Meta{},
+		Rdata: []string{
+			key,
+			algorithm,
+			t,
+			digest,
+		},
+	}
+}
+
 // NewCAAAnswer creates an Answer for a CAA record.
 func NewCAAAnswer(flag int, tag, value string) *Answer {
 	return &Answer{

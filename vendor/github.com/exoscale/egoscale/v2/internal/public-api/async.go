@@ -11,12 +11,13 @@ import (
 )
 
 const (
+	// DefaultPollingInterval represents the default polling interval used in Poller.
+	DefaultPollingInterval = 3 * time.Second
+
 	operationStatePending = "pending"
 	operationStateSuccess = "success"
 	operationStateFailure = "failure"
 	operationStateTimeout = "timeout"
-
-	defaultPollingInterval = 3 * time.Second
 )
 
 // PollFunc represents a function invoked periodically in a polling loop. It returns a boolean flag
@@ -35,7 +36,7 @@ type Poller struct {
 // NewPoller returns a Poller instance.
 func NewPoller() *Poller {
 	return &Poller{
-		interval: defaultPollingInterval,
+		interval: DefaultPollingInterval,
 	}
 }
 

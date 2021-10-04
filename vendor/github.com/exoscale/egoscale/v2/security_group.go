@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"strings"
 
 	apiv2 "github.com/exoscale/egoscale/v2/api"
 	papi "github.com/exoscale/egoscale/v2/internal/public-api"
@@ -11,69 +12,81 @@ import (
 
 // SecurityGroupRule represents a Security Group rule.
 type SecurityGroupRule struct {
-	Description     string
-	EndPort         uint16
-	FlowDirection   string
-	ICMPCode        uint8
-	ICMPType        uint8
-	ID              string
+	Description     *string
+	EndPort         *uint16
+	FlowDirection   *string `req-for:"create"`
+	ICMPCode        *int64
+	ICMPType        *int64
+	ID              *string `req-for:"delete"`
 	Network         *net.IPNet
-	Protocol        string
-	SecurityGroupID string
-	StartPort       uint16
+	Protocol        *string `req-for:"create"`
+	SecurityGroupID *string
+	StartPort       *uint16
 }
 
 func securityGroupRuleFromAPI(r *papi.SecurityGroupRule) *SecurityGroupRule {
 	return &SecurityGroupRule{
-		Description:   papi.OptionalString(r.Description),
-		EndPort:       uint16(papi.OptionalInt64(r.EndPort)),
-		FlowDirection: papi.OptionalString(r.FlowDirection),
-		ICMPCode: func() (v uint8) {
-			if r.Icmp != nil {
-				v = uint8(papi.OptionalInt64(r.Icmp.Code))
+		Description: r.Description,
+		EndPort: func() (v *uint16) {
+			if r.EndPort != nil {
+				port := uint16(*r.EndPort)
+				v = &port
 			}
 			return
 		}(),
-		ICMPType: func() (v uint8) {
+		FlowDirection: (*string)(r.FlowDirection),
+		ICMPCode: func() (v *int64) {
 			if r.Icmp != nil {
-				v = uint8(papi.OptionalInt64(r.Icmp.Type))
+				v = r.Icmp.Code
 			}
 			return
 		}(),
-		ID: papi.OptionalString(r.Id),
+		ICMPType: func() (v *int64) {
+			if r.Icmp != nil {
+				v = r.Icmp.Type
+			}
+			return
+		}(),
+		ID: r.Id,
 		Network: func() (v *net.IPNet) {
 			if r.Network != nil {
 				_, v, _ = net.ParseCIDR(*r.Network)
 			}
 			return
 		}(),
-		Protocol: papi.OptionalString(r.Protocol),
-		SecurityGroupID: func() (v string) {
+		Protocol: (*string)(r.Protocol),
+		SecurityGroupID: func() (v *string) {
 			if r.SecurityGroup != nil {
-				v = papi.OptionalString(r.SecurityGroup.Id)
+				v = &r.SecurityGroup.Id
 			}
 			return
 		}(),
-		StartPort: uint16(papi.OptionalInt64(r.StartPort)),
+		StartPort: func() (v *uint16) {
+			if r.StartPort != nil {
+				port := uint16(*r.StartPort)
+				v = &port
+			}
+			return
+		}(),
 	}
 }
 
 // SecurityGroup represents a Security Group.
 type SecurityGroup struct {
-	Description string
-	ID          string
-	Name        string
+	Description *string
+	ID          *string
+	Name        *string `req-for:"create"`
 	Rules       []*SecurityGroupRule
 
 	zone string
 	c    *Client
 }
 
-func securityGroupFromAPI(s *papi.SecurityGroup) *SecurityGroup {
+func securityGroupFromAPI(client *Client, zone string, s *papi.SecurityGroup) *SecurityGroup {
 	return &SecurityGroup{
-		Description: papi.OptionalString(s.Description),
-		ID:          papi.OptionalString(s.Id),
-		Name:        papi.OptionalString(s.Name),
+		Description: s.Description,
+		ID:          s.Id,
+		Name:        s.Name,
 		Rules: func() (rules []*SecurityGroupRule) {
 			if s.Rules != nil {
 				rules = make([]*SecurityGroupRule, 0)
@@ -84,26 +97,34 @@ func securityGroupFromAPI(s *papi.SecurityGroup) *SecurityGroup {
 			}
 			return rules
 		}(),
+
+		c:    client,
+		zone: zone,
 	}
+}
+
+func (s SecurityGroup) get(ctx context.Context, client *Client, zone, id string) (interface{}, error) {
+	return client.GetSecurityGroup(ctx, zone, id)
 }
 
 // AddRule adds a rule to the Security Group.
 func (s *SecurityGroup) AddRule(ctx context.Context, rule *SecurityGroupRule) (*SecurityGroupRule, error) {
+	if err := validateOperationParams(rule, "create"); err != nil {
+		return nil, err
+	}
+
 	var icmp *struct {
 		Code *int64 `json:"code,omitempty"`
 		Type *int64 `json:"type,omitempty"`
 	}
 
-	if rule.Protocol == "icmp" || rule.Protocol == "icmpv6" {
-		icmpCode := int64(rule.ICMPCode)
-		icmpType := int64(rule.ICMPType)
-
+	if strings.HasPrefix(*rule.Protocol, "icmp") {
 		icmp = &struct {
 			Code *int64 `json:"code,omitempty"`
 			Type *int64 `json:"type,omitempty"`
 		}{
-			Code: &icmpCode,
-			Type: &icmpType,
+			Code: rule.ICMPCode,
+			Type: rule.ICMPType,
 		}
 	}
 
@@ -117,19 +138,22 @@ func (s *SecurityGroup) AddRule(ctx context.Context, rule *SecurityGroupRule) (*
 	// ones specified in the input rule parameter.
 	rules := make(map[string]struct{})
 	for _, r := range s.Rules {
-		rules[r.ID] = struct{}{}
+		rules[*r.ID] = struct{}{}
 	}
-
-	startPort := int64(rule.StartPort)
-	endPort := int64(rule.EndPort)
 
 	resp, err := s.c.AddRuleToSecurityGroupWithResponse(
 		apiv2.WithZone(ctx, s.zone),
-		s.ID,
+		*s.ID,
 		papi.AddRuleToSecurityGroupJSONRequestBody{
-			Description:   &rule.Description,
-			EndPort:       &endPort,
-			FlowDirection: rule.FlowDirection,
+			Description: rule.Description,
+			EndPort: func() (v *int64) {
+				if rule.EndPort != nil {
+					port := int64(*rule.EndPort)
+					v = &port
+				}
+				return
+			}(),
+			FlowDirection: papi.AddRuleToSecurityGroupJSONBodyFlowDirection(*rule.FlowDirection),
 			Icmp:          icmp,
 			Network: func() (v *string) {
 				if rule.Network != nil {
@@ -138,14 +162,20 @@ func (s *SecurityGroup) AddRule(ctx context.Context, rule *SecurityGroupRule) (*
 				}
 				return
 			}(),
-			Protocol: &rule.Protocol,
+			Protocol: papi.AddRuleToSecurityGroupJSONBodyProtocol(*rule.Protocol),
 			SecurityGroup: func() (v *papi.SecurityGroupResource) {
-				if rule.SecurityGroupID != "" {
-					v = &papi.SecurityGroupResource{Id: &rule.SecurityGroupID}
+				if rule.SecurityGroupID != nil {
+					v = &papi.SecurityGroupResource{Id: *rule.SecurityGroupID}
 				}
 				return
 			}(),
-			StartPort: &startPort,
+			StartPort: func() (v *int64) {
+				if rule.StartPort != nil {
+					port := int64(*rule.StartPort)
+					v = &port
+				}
+				return
+			}(),
 		})
 	if err != nil {
 		return nil, err
@@ -153,6 +183,7 @@ func (s *SecurityGroup) AddRule(ctx context.Context, rule *SecurityGroupRule) (*
 
 	res, err := papi.NewPoller().
 		WithTimeout(s.c.timeout).
+		WithInterval(s.c.pollInterval).
 		Poll(ctx, s.c.OperationPoller(s.zone, *resp.JSON200.Id))
 	if err != nil {
 		return nil, err
@@ -165,9 +196,9 @@ func (s *SecurityGroup) AddRule(ctx context.Context, rule *SecurityGroupRule) (*
 
 	// Look for an unknown rule: if we find one we hope it's the one we've just created.
 	for _, r := range sgUpdated.Rules {
-		if _, ok := rules[r.ID]; !ok && (r.Protocol == rule.Protocol &&
-			r.StartPort == rule.StartPort &&
-			r.EndPort == rule.EndPort) {
+		if _, ok := rules[*r.ID]; !ok && (*r.Protocol == *rule.Protocol &&
+			*r.StartPort == *rule.StartPort &&
+			*r.EndPort == *rule.EndPort) {
 			return r, nil
 		}
 	}
@@ -177,10 +208,14 @@ func (s *SecurityGroup) AddRule(ctx context.Context, rule *SecurityGroupRule) (*
 
 // DeleteRule deletes the specified rule from the Security Group.
 func (s *SecurityGroup) DeleteRule(ctx context.Context, rule *SecurityGroupRule) error {
+	if err := validateOperationParams(rule, "delete"); err != nil {
+		return err
+	}
+
 	resp, err := s.c.DeleteRuleFromSecurityGroupWithResponse(
 		apiv2.WithZone(ctx, s.zone),
-		s.ID,
-		rule.ID,
+		*s.ID,
+		*rule.ID,
 	)
 	if err != nil {
 		return err
@@ -188,6 +223,7 @@ func (s *SecurityGroup) DeleteRule(ctx context.Context, rule *SecurityGroupRule)
 
 	_, err = papi.NewPoller().
 		WithTimeout(s.c.timeout).
+		WithInterval(s.c.pollInterval).
 		Poll(ctx, s.c.OperationPoller(s.zone, *resp.JSON200.Id))
 	if err != nil {
 		return err
@@ -197,11 +233,18 @@ func (s *SecurityGroup) DeleteRule(ctx context.Context, rule *SecurityGroupRule)
 }
 
 // CreateSecurityGroup creates a Security Group.
-func (c *Client) CreateSecurityGroup(ctx context.Context, zone string,
-	securityGroup *SecurityGroup) (*SecurityGroup, error) {
+func (c *Client) CreateSecurityGroup(
+	ctx context.Context,
+	zone string,
+	securityGroup *SecurityGroup,
+) (*SecurityGroup, error) {
+	if err := validateOperationParams(securityGroup, "create"); err != nil {
+		return nil, err
+	}
+
 	resp, err := c.CreateSecurityGroupWithResponse(ctx, papi.CreateSecurityGroupJSONRequestBody{
-		Description: &securityGroup.Description,
-		Name:        securityGroup.Name,
+		Description: securityGroup.Description,
+		Name:        *securityGroup.Name,
 	})
 	if err != nil {
 		return nil, err
@@ -209,6 +252,7 @@ func (c *Client) CreateSecurityGroup(ctx context.Context, zone string,
 
 	res, err := papi.NewPoller().
 		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
 		Poll(ctx, c.OperationPoller(zone, *resp.JSON200.Id))
 	if err != nil {
 		return nil, err
@@ -228,11 +272,7 @@ func (c *Client) ListSecurityGroups(ctx context.Context, zone string) ([]*Securi
 
 	if resp.JSON200.SecurityGroups != nil {
 		for i := range *resp.JSON200.SecurityGroups {
-			securityGroup := securityGroupFromAPI(&(*resp.JSON200.SecurityGroups)[i])
-			securityGroup.c = c
-			securityGroup.zone = zone
-
-			list = append(list, securityGroup)
+			list = append(list, securityGroupFromAPI(c, zone, &(*resp.JSON200.SecurityGroups)[i]))
 		}
 	}
 
@@ -246,11 +286,23 @@ func (c *Client) GetSecurityGroup(ctx context.Context, zone, id string) (*Securi
 		return nil, err
 	}
 
-	securityGroup := securityGroupFromAPI(resp.JSON200)
-	securityGroup.c = c
-	securityGroup.zone = zone
+	return securityGroupFromAPI(c, zone, resp.JSON200), nil
+}
 
-	return securityGroup, nil
+// FindSecurityGroup attempts to find a Security Group by name or ID in the specified zone.
+func (c *Client) FindSecurityGroup(ctx context.Context, zone, v string) (*SecurityGroup, error) {
+	res, err := c.ListSecurityGroups(ctx, zone)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range res {
+		if *r.ID == v || *r.Name == v {
+			return c.GetSecurityGroup(ctx, zone, *r.ID)
+		}
+	}
+
+	return nil, apiv2.ErrNotFound
 }
 
 // DeleteSecurityGroup deletes the specified Security Group in the specified zone.
@@ -262,6 +314,7 @@ func (c *Client) DeleteSecurityGroup(ctx context.Context, zone, id string) error
 
 	_, err = papi.NewPoller().
 		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
 		Poll(ctx, c.OperationPoller(zone, *resp.JSON200.Id))
 	if err != nil {
 		return err

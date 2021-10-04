@@ -1,6 +1,7 @@
 package desec
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -40,7 +41,7 @@ type RecordsService struct {
 
 // GetAll retrieving all RRsets in a zone.
 // https://desec.readthedocs.io/en/latest/dns/rrsets.html#retrieving-all-rrsets-in-a-zone
-func (s *RecordsService) GetAll(domainName string, filter *RRSetFilter) ([]RRSet, error) {
+func (s *RecordsService) GetAll(ctx context.Context, domainName string, filter *RRSetFilter) ([]RRSet, error) {
 	endpoint, err := s.client.createEndpoint("domains", domainName, "rrsets")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
@@ -53,7 +54,7 @@ func (s *RecordsService) GetAll(domainName string, filter *RRSetFilter) ([]RRSet
 		endpoint.RawQuery = query.Encode()
 	}
 
-	req, err := s.client.newRequest(http.MethodGet, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -80,13 +81,13 @@ func (s *RecordsService) GetAll(domainName string, filter *RRSetFilter) ([]RRSet
 
 // Create creates a new RRSet.
 // https://desec.readthedocs.io/en/latest/dns/rrsets.html#creating-a-tlsa-rrset
-func (s *RecordsService) Create(rrSet RRSet) (*RRSet, error) {
+func (s *RecordsService) Create(ctx context.Context, rrSet RRSet) (*RRSet, error) {
 	endpoint, err := s.client.createEndpoint("domains", rrSet.Domain, "rrsets")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, rrSet)
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, rrSet)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +118,7 @@ func (s *RecordsService) Create(rrSet RRSet) (*RRSet, error) {
 
 // Get gets a RRSet.
 // https://desec.readthedocs.io/en/latest/dns/rrsets.html#retrieving-a-specific-rrset
-func (s *RecordsService) Get(domainName, subName, recordType string) (*RRSet, error) {
+func (s *RecordsService) Get(ctx context.Context, domainName, subName, recordType string) (*RRSet, error) {
 	if subName == "" {
 		subName = ApexZone
 	}
@@ -127,7 +128,7 @@ func (s *RecordsService) Get(domainName, subName, recordType string) (*RRSet, er
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodGet, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +155,7 @@ func (s *RecordsService) Get(domainName, subName, recordType string) (*RRSet, er
 
 // Update updates RRSet (PATCH).
 // https://desec.readthedocs.io/en/latest/dns/rrsets.html#modifying-an-rrset
-func (s *RecordsService) Update(domainName, subName, recordType string, rrSet RRSet) (*RRSet, error) {
+func (s *RecordsService) Update(ctx context.Context, domainName, subName, recordType string, rrSet RRSet) (*RRSet, error) {
 	if subName == "" {
 		subName = ApexZone
 	}
@@ -164,7 +165,7 @@ func (s *RecordsService) Update(domainName, subName, recordType string, rrSet RR
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPatch, endpoint, rrSet)
+	req, err := s.client.newRequest(ctx, http.MethodPatch, endpoint, rrSet)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +197,7 @@ func (s *RecordsService) Update(domainName, subName, recordType string, rrSet RR
 
 // Replace replaces a RRSet (PUT).
 // https://desec.readthedocs.io/en/latest/dns/rrsets.html#modifying-an-rrset
-func (s *RecordsService) Replace(domainName, subName, recordType string, rrSet RRSet) (*RRSet, error) {
+func (s *RecordsService) Replace(ctx context.Context, domainName, subName, recordType string, rrSet RRSet) (*RRSet, error) {
 	if subName == "" {
 		subName = ApexZone
 	}
@@ -206,7 +207,7 @@ func (s *RecordsService) Replace(domainName, subName, recordType string, rrSet R
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPut, endpoint, rrSet)
+	req, err := s.client.newRequest(ctx, http.MethodPut, endpoint, rrSet)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +239,7 @@ func (s *RecordsService) Replace(domainName, subName, recordType string, rrSet R
 
 // Delete deletes a RRset.
 // https://desec.readthedocs.io/en/latest/dns/rrsets.html#deleting-an-rrset
-func (s *RecordsService) Delete(domainName, subName, recordType string) error {
+func (s *RecordsService) Delete(ctx context.Context, domainName, subName, recordType string) error {
 	if subName == "" {
 		subName = ApexZone
 	}
@@ -248,7 +249,7 @@ func (s *RecordsService) Delete(domainName, subName, recordType string) error {
 		return fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodDelete, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodDelete, endpoint, nil)
 	if err != nil {
 		return err
 	}

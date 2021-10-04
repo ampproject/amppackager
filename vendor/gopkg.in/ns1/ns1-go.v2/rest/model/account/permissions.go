@@ -15,11 +15,13 @@ type PermissionsMap struct {
 
 // PermissionsDNS wraps a User's "permissions.dns" attribute
 type PermissionsDNS struct {
-	ViewZones           bool     `json:"view_zones"`
-	ManageZones         bool     `json:"manage_zones"`
-	ZonesAllowByDefault bool     `json:"zones_allow_by_default"`
-	ZonesDeny           []string `json:"zones_deny"`
-	ZonesAllow          []string `json:"zones_allow"`
+	ViewZones           bool                `json:"view_zones"`
+	ManageZones         bool                `json:"manage_zones"`
+	ZonesAllowByDefault bool                `json:"zones_allow_by_default"`
+	ZonesDeny           []string            `json:"zones_deny"`
+	ZonesAllow          []string            `json:"zones_allow"`
+	RecordsAllow        []PermissionsRecord `json:"records_allow"`
+	RecordsDeny         []PermissionsRecord `json:"records_deny"`
 }
 
 // PermissionsData wraps a User's "permissions.data" attribute
@@ -62,10 +64,30 @@ type PermissionsMonitoring struct {
 type PermissionsDHCP struct {
 	ManageDHCP bool `json:"manage_dhcp"`
 	ViewDHCP   bool `json:"view_dhcp"`
+	// The fields below are only relevant in DDI v2.5+
+	TagsAllow *[]AuthTag `json:"tags_allow,omitempty"`
+	TagsDeny  *[]AuthTag `json:"tags_deny,omitempty"`
 }
 
 // PermissionsIPAM wraps a User's "permissions.ipam" attribute for DDI.
 type PermissionsIPAM struct {
 	ManageIPAM bool `json:"manage_ipam"`
 	ViewIPAM   bool `json:"view_ipam"`
+	// The fields below are only relevant in DDI v2.5+
+	TagsAllow *[]AuthTag `json:"tags_allow,omitempty"`
+	TagsDeny  *[]AuthTag `json:"tags_deny,omitempty"`
+}
+
+// AuthTag wraps the tags used in "tags_allow" and "tags_deny" in DDI and IPAM permissions in DDI.
+// Tag Names must start with prefix "auth:"
+type AuthTag struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type PermissionsRecord struct {
+	Domain     string `json:"domain"`
+	Subdomains bool   `json:"include_subdomains"`
+	Zone       string `json:"zone"`
+	RecordType string `json:"type"`
 }

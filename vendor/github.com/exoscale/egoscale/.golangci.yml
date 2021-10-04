@@ -2,8 +2,6 @@ run:
   timeout: 10m
 
 linters-settings:
-  golint:
-    min-confidence: 0.3
   gocyclo:
     min-complexity: 28
   goimports:
@@ -13,16 +11,16 @@ linters:
   enable:
     - deadcode
     - errcheck
+    - exportloopref
     - gocritic
     - gocyclo
     - goimports
-    - golint
     - gosimple
     - govet
     - ineffassign
     - megacheck
     - nakedret
-    - scopelint
+    - revive
     - staticcheck
     - structcheck
     - unused

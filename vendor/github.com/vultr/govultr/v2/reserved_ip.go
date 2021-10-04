@@ -11,6 +11,7 @@ import (
 const ripPath = "/v2/reserved-ips"
 
 // ReservedIPService is the interface to interact with the reserved IP endpoints on the Vultr API
+// Link : https://www.vultr.com/api/#tag/reserved-ip
 type ReservedIPService interface {
 	Create(ctx context.Context, ripCreate *ReservedIPReq) (*ReservedIP, error)
 	Get(ctx context.Context, id string) (*ReservedIP, error)
@@ -146,7 +147,8 @@ func (r *ReservedIPServiceHandler) Convert(ctx context.Context, ripConvert *Rese
 // Attach a reserved IP to an existing subscription
 func (r *ReservedIPServiceHandler) Attach(ctx context.Context, id, instance string) error {
 	uri := fmt.Sprintf("%s/%s/attach", ripPath, id)
-	req, err := r.client.NewRequest(ctx, http.MethodPost, uri, instance)
+	reqBody := RequestBody{"instance_id": instance}
+	req, err := r.client.NewRequest(ctx, http.MethodPost, uri, reqBody)
 	if err != nil {
 		return err
 	}

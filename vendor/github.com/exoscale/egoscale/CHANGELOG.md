@@ -1,6 +1,169 @@
 Changelog
 =========
 
+0.67.0
+------
+
+- feature: v2: add support for SKS Nodepool add-ons
+
+0.66.0
+------
+
+- feature: v2: add `Instance.Reset()` method
+- feature: v2: add `Instance.Scale()` method
+- feature: v2: add `Instance.ResizeDisk()` method
+
+0.65.1
+------
+
+- fix: v2: fix `RegisterSSHKey()` method
+
+0.65.0
+------
+
+- feature: v2: add support for SSH keys management
+
+0.64.1
+------
+
+- tests: v2: add resource API mocks
+
+0.64.0
+------
+
+- change: v2: replace `InstancePool.ManagerID` of type `string` with `InstancePool.Manager` field of type `*InstancePoolManager`.
+
+0.63.0
+------
+
+- feature: v2: add support for Private Networks to SKS Nodepools
+- feature: v2: add new `Client.RegisterTemplate()` method
+- change: v2: change `DatabaseService.UserConfig` type to pointer
+
+0.62.2
+------
+
+- v2: fix a crash in `NetworkLoadBalancer.AddService()` method
+
+0.62.1
+------
+
+- fix: v2: fix required params validation for NLB services
+
+0.62.0
+------
+
+- feature: v2: add support for Private Networks leases
+
+0.61.0
+------
+
+- feature: v2: add `PrivateNetwork.UpdateInstanceIPAddress()` method
+- feature: v2: add `Instance.Reboot()` method
+
+0.60.1
+------
+
+- fix: v2: don't return pointers to empty maps/slices
+
+0.60.0
+------
+
+- change: v2: API resource structs fields are now pointers instead of concrete types
+
+0.59.0
+------
+
+- change: v2: `Database*` structs fields are now pointers
+
+0.58.0
+------
+
+- feature: v2: add labels support for Compute instances
+
+0.57.0
+------
+
+- feature: v2: add support for Database Services
+
+0.56.0
+------
+
+- change: the `AuthorizeSecurityGroupIngress` struct now uses an `int` type for `Icmp(Code|Type)` fields (#499)
+
+0.55.0
+------
+
+- change: the `IngressRule`/`EgressRule` and `v2.SecurityGroupRule` structs now use an `int` type for the ICMP code/type storage (#498)
+
+0.54.0
+------
+
+- change: the `IngressRule`/`EgressRule` and `v2.SecurityGroupRule` structs now use an `int8` type for the ICMP code/type storage (#497)
+
+0.53.1
+------
+
+- fix: v2: only point to non-zero struct fields for optional API resource properties (#496)
+
+0.53.0
+------
+
+- feature: v2: add `Client.FindInstanceType()` method
+
+0.52.0
+------
+
+- feature: v2: make API async polling interval customizable
+- feature: v2: add `Client.Find*()` methods
+- feature: v2: add `Start`/`Stop` methods to `Instance`
+- feature: v2: add labels support for Network Load Balancers
+- fix: v2: fix Security Group parsing from API
+
+0.51.0
+------
+
+- feature: v2: add new `InstanceType` resource
+
+0.50.0
+------
+
+- change: v2: the `Instance.ManagerID` field is replaced with `Instance.Manager` of type `*InstanceManager`
+
+0.49.0
+------
+
+- deprecatation: top-level `Version` constant is replaced by `version.Version`
+- change: v2: new default HTTP client transport setting request `User-Agent` header to `v2.UserAgent`
+- feature: v2: add support for Elastic IP/Private Network/Security Group attachment/detachment to Instances
+- feature: v2: add support for Deploy Targets to SKS Nodepools
+- feature: v2: add support for Instance prefix to SKS Nodepools
+
+0.48.1
+------
+
+- fix: v2: add support for `InstancePool.IPv6Enabled` field resetting
+
+0.48.0
+------
+
+- feature: v2: add support for Instance prefix to Instance Pools
+- feature: v2: add support for Deploy Targets
+- feature: v2: add support for Compute instances management
+- feature: v2: add support for Snapshots management
+- feature: v2: add support for Templates management
+- feature: v2: add getter methods on API resources
+
+0.47.0
+------
+
+- feature: v2: add client property setters (#485)
+
+0.46.1
+------
+
+- fix: v2: make SKSCluster.RotateCCMCredentials() synchronous (#484)
+
 0.46.0
 ------
 

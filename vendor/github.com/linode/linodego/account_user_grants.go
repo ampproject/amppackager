@@ -13,21 +13,22 @@ const (
 )
 
 type GlobalUserGrants struct {
-	AccountAccess        GrantPermissionLevel `json:"account_access"`
-	AddDomains           bool                 `json:"add_domains"`
-	AddImages            bool                 `json:"add_images"`
-	AddLinodes           bool                 `json:"add_linodes"`
-	AddLongview          bool                 `json:"add_longview"`
-	AddNodeBalancers     bool                 `json:"add_nodebalancers"`
-	AddStackScripts      bool                 `json:"add_stackscripts"`
-	AddVolumes           bool                 `json:"add_volumes"`
-	CancelAccount        bool                 `json:"cancel_account"`
-	LongviewSubscription bool                 `json:"longview_subscription"`
+	AccountAccess        *GrantPermissionLevel `json:"account_access"`
+	AddDomains           bool                  `json:"add_domains"`
+	AddFirewalls         bool                  `json:"add_firewalls"`
+	AddImages            bool                  `json:"add_images"`
+	AddLinodes           bool                  `json:"add_linodes"`
+	AddLongview          bool                  `json:"add_longview"`
+	AddNodeBalancers     bool                  `json:"add_nodebalancers"`
+	AddStackScripts      bool                  `json:"add_stackscripts"`
+	AddVolumes           bool                  `json:"add_volumes"`
+	CancelAccount        bool                  `json:"cancel_account"`
+	LongviewSubscription bool                  `json:"longview_subscription"`
 }
 
 type EntityUserGrant struct {
-	ID          int                  `json:"id"`
-	Permissions GrantPermissionLevel `json:"permissions"`
+	ID          int                   `json:"id"`
+	Permissions *GrantPermissionLevel `json:"permissions"`
 }
 
 type GrantedEntity struct {
@@ -38,6 +39,7 @@ type GrantedEntity struct {
 
 type UserGrants struct {
 	Domain       []GrantedEntity `json:"domain"`
+	Firewall     []GrantedEntity `json:"firewall"`
 	Image        []GrantedEntity `json:"image"`
 	Linode       []GrantedEntity `json:"linode"`
 	Longview     []GrantedEntity `json:"longview"`
@@ -50,6 +52,7 @@ type UserGrants struct {
 
 type UserGrantsUpdateOptions struct {
 	Domain       []EntityUserGrant `json:"domain,omitempty"`
+	Firewall     []EntityUserGrant `json:"firewall,omitempty"`
 	Image        []EntityUserGrant `json:"image,omitempty"`
 	Linode       []EntityUserGrant `json:"linode,omitempty"`
 	Longview     []EntityUserGrant `json:"longview,omitempty"`

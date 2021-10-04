@@ -48,11 +48,17 @@ func BindStringToObject(src string, dst interface{}) error {
 	}
 
 	switch t.Kind() {
-	case reflect.Int, reflect.Int32, reflect.Int64:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		var val int64
 		val, err = strconv.ParseInt(src, 10, 64)
 		if err == nil {
 			v.SetInt(val)
+		}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		var val uint64
+		val, err = strconv.ParseUint(src, 10, 64)
+		if err == nil {
+			v.SetUint(val)
 		}
 	case reflect.String:
 		v.SetString(src)
@@ -70,8 +76,12 @@ func BindStringToObject(src string, dst interface{}) error {
 			v.SetBool(val)
 		}
 	case reflect.Struct:
-		switch dstType := dst.(type) {
-		case *time.Time:
+		// if this is not of type Time or of type Date look to see if this is of type Binder.
+		if dstType, ok := dst.(Binder); ok {
+			return dstType.Bind(src)
+		}
+
+		if t.ConvertibleTo(reflect.TypeOf(time.Time{})) {
 			// Don't fail on empty string.
 			if src == "" {
 				return nil
@@ -84,9 +94,20 @@ func BindStringToObject(src string, dst interface{}) error {
 					return fmt.Errorf("error parsing '%s' as RFC3339 or 2006-01-02 time: %s", src, err)
 				}
 			}
-			*dstType = parsedTime
+			// So, assigning this gets a little fun. We have a value to the
+			// dereference destination. We can't do a conversion to
+			// time.Time because the result isn't assignable, so we need to
+			// convert pointers.
+			if t != reflect.TypeOf(time.Time{}) {
+				vPtr := v.Addr()
+				vtPtr := vPtr.Convert(reflect.TypeOf(&time.Time{}))
+				v = reflect.Indirect(vtPtr)
+			}
+			v.Set(reflect.ValueOf(parsedTime))
 			return nil
-		case *types.Date:
+		}
+
+		if t.ConvertibleTo(reflect.TypeOf(types.Date{})) {
 			// Don't fail on empty string.
 			if src == "" {
 				return nil
@@ -95,9 +116,21 @@ func BindStringToObject(src string, dst interface{}) error {
 			if err != nil {
 				return fmt.Errorf("error parsing '%s' as date: %s", src, err)
 			}
-			dstType.Time = parsedTime
+			parsedDate := types.Date{Time: parsedTime}
+
+			// We have to do the same dance here to assign, just like with times
+			// above.
+			if t != reflect.TypeOf(types.Date{}) {
+				vPtr := v.Addr()
+				vtPtr := vPtr.Convert(reflect.TypeOf(&types.Date{}))
+				v = reflect.Indirect(vtPtr)
+			}
+			v.Set(reflect.ValueOf(parsedDate))
 			return nil
 		}
+
+		// We fall through to the error case below if we haven't handled the
+		// destination type above.
 		fallthrough
 	default:
 		// We've got a bunch of types unimplemented, don't fail silently.

@@ -26,7 +26,7 @@ type Certificate struct {
 	AutoRenew           bool     `json:"auto_renew"`
 	CreatedAt           string   `json:"created_at,omitempty"`
 	UpdatedAt           string   `json:"updated_at,omitempty"`
-	ExpiresOn           string   `json:"expires_on,omitempty"`
+	ExpiresAt           string   `json:"expires_at,omitempty"`
 	CertificateRequest  string   `json:"csr,omitempty"`
 }
 
