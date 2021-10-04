@@ -22,7 +22,7 @@ type Request struct {
 	// Parameters is a map of strings (url.Values) that will be used to add
 	// http query strings to the request, like '/domains?tags=123'
 	Parameters url.Values
-	// Body is left as an interface because the Request does not know which
+	// Body is left as an interface because the Request is not coupled to any specific Request.Body struct
 	Body interface{}
 	// TestMode is used when users want to tinker with the api without touching their real data
 	TestMode bool

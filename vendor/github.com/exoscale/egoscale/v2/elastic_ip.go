@@ -11,99 +11,98 @@ import (
 
 // ElasticIPHealthcheck represents an Elastic IP healthcheck.
 type ElasticIPHealthcheck struct {
-	Interval      time.Duration
-	Mode          string
-	Port          uint16
-	StrikesFail   int64
-	StrikesOK     int64
-	TLSSNI        string
-	TLSSkipVerify bool
-	Timeout       time.Duration
-	URI           string
+	Interval      *time.Duration
+	Mode          *string `req-for:"create,update"`
+	Port          *uint16 `req-for:"create,update"`
+	StrikesFail   *int64
+	StrikesOK     *int64
+	TLSSNI        *string
+	TLSSkipVerify *bool
+	Timeout       *time.Duration
+	URI           *string
 }
 
 // ElasticIP represents an Elastic IP.
 type ElasticIP struct {
-	Description string `reset:"description"`
+	Description *string
 	Healthcheck *ElasticIPHealthcheck
-	ID          string
-	IPAddress   net.IP
+	ID          *string `req-for:"update"`
+	IPAddress   *net.IP
 
 	c    *Client
 	zone string
 }
 
-func elasticIPFromAPI(e *papi.ElasticIp) *ElasticIP {
+func elasticIPFromAPI(client *Client, zone string, e *papi.ElasticIp) *ElasticIP {
+	ipAddress := net.ParseIP(*e.Ip)
+
 	return &ElasticIP{
-		Description: papi.OptionalString(e.Description),
+		Description: e.Description,
 		Healthcheck: func() *ElasticIPHealthcheck {
 			if hc := e.Healthcheck; hc != nil {
+				port := uint16(hc.Port)
+				interval := time.Duration(papi.OptionalInt64(hc.Interval)) * time.Second
+				timeout := time.Duration(papi.OptionalInt64(hc.Timeout)) * time.Second
+
 				return &ElasticIPHealthcheck{
-					Interval:      time.Duration(hc.Interval) * time.Second,
-					Mode:          hc.Mode,
-					Port:          uint16(hc.Port),
+					Interval:      &interval,
+					Mode:          (*string)(&hc.Mode),
+					Port:          &port,
 					StrikesFail:   hc.StrikesFail,
 					StrikesOK:     hc.StrikesOk,
-					TLSSNI:        papi.OptionalString(hc.TlsSni),
-					TLSSkipVerify: papi.OptionalBool(hc.TlsSkipVerify),
-					Timeout:       time.Duration(hc.Timeout) * time.Second,
-					URI:           papi.OptionalString(hc.Uri),
+					TLSSNI:        hc.TlsSni,
+					TLSSkipVerify: hc.TlsSkipVerify,
+					Timeout:       &timeout,
+					URI:           hc.Uri,
 				}
 			}
 			return nil
 		}(),
-		ID:        papi.OptionalString(e.Id),
-		IPAddress: net.ParseIP(papi.OptionalString(e.Ip)),
+		ID:        e.Id,
+		IPAddress: &ipAddress,
+
+		c:    client,
+		zone: zone,
 	}
 }
 
-// ResetField resets the specified Elastic IP field to its default value.
-// The value expected for the field parameter is a pointer to the ElasticIP field to reset.
-func (e *ElasticIP) ResetField(ctx context.Context, field interface{}) error {
-	resetField, err := resetFieldName(e, field)
-	if err != nil {
-		return err
-	}
-
-	resp, err := e.c.ResetElasticIpFieldWithResponse(apiv2.WithZone(ctx, e.zone), e.ID, resetField)
-	if err != nil {
-		return err
-	}
-
-	_, err = papi.NewPoller().
-		WithTimeout(e.c.timeout).
-		Poll(ctx, e.c.OperationPoller(e.zone, *resp.JSON200.Id))
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (e ElasticIP) get(ctx context.Context, client *Client, zone, id string) (interface{}, error) {
+	return client.GetElasticIP(ctx, zone, id)
 }
 
 // CreateElasticIP creates an Elastic IP in the specified zone.
 func (c *Client) CreateElasticIP(ctx context.Context, zone string, elasticIP *ElasticIP) (*ElasticIP, error) {
+	if err := validateOperationParams(elasticIP, "create"); err != nil {
+		return nil, err
+	}
+	if elasticIP.Healthcheck != nil {
+		if err := validateOperationParams(elasticIP.Healthcheck, "create"); err != nil {
+			return nil, err
+		}
+	}
+
 	resp, err := c.CreateElasticIpWithResponse(
 		apiv2.WithZone(ctx, zone),
 		papi.CreateElasticIpJSONRequestBody{
-			Description: &elasticIP.Description,
+			Description: elasticIP.Description,
 			Healthcheck: func() *papi.ElasticIpHealthcheck {
 				if hc := elasticIP.Healthcheck; hc != nil {
 					var (
-						port     = int64(hc.Port)
+						port     = int64(*hc.Port)
 						interval = int64(hc.Interval.Seconds())
 						timeout  = int64(hc.Timeout.Seconds())
 					)
 
 					return &papi.ElasticIpHealthcheck{
-						Interval:      interval,
-						Mode:          hc.Mode,
+						Interval:      &interval,
+						Mode:          papi.ElasticIpHealthcheckMode(*hc.Mode),
 						Port:          port,
 						StrikesFail:   hc.StrikesFail,
 						StrikesOk:     hc.StrikesOK,
-						Timeout:       timeout,
-						TlsSkipVerify: &hc.TLSSkipVerify,
-						TlsSni:        &hc.TLSSNI,
-						Uri:           &hc.URI,
+						Timeout:       &timeout,
+						TlsSkipVerify: hc.TLSSkipVerify,
+						TlsSni:        hc.TLSSNI,
+						Uri:           hc.URI,
 					}
 				}
 				return nil
@@ -115,6 +114,7 @@ func (c *Client) CreateElasticIP(ctx context.Context, zone string, elasticIP *El
 
 	res, err := papi.NewPoller().
 		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
 		Poll(ctx, c.OperationPoller(zone, *resp.JSON200.Id))
 	if err != nil {
 		return nil, err
@@ -134,11 +134,7 @@ func (c *Client) ListElasticIPs(ctx context.Context, zone string) ([]*ElasticIP,
 
 	if resp.JSON200.ElasticIps != nil {
 		for i := range *resp.JSON200.ElasticIps {
-			elasticIP := elasticIPFromAPI(&(*resp.JSON200.ElasticIps)[i])
-			elasticIP.c = c
-			elasticIP.zone = zone
-
-			list = append(list, elasticIP)
+			list = append(list, elasticIPFromAPI(c, zone, &(*resp.JSON200.ElasticIps)[i]))
 		}
 	}
 
@@ -152,43 +148,59 @@ func (c *Client) GetElasticIP(ctx context.Context, zone, id string) (*ElasticIP,
 		return nil, err
 	}
 
-	elasticIP := elasticIPFromAPI(resp.JSON200)
-	elasticIP.c = c
-	elasticIP.zone = zone
+	return elasticIPFromAPI(c, zone, resp.JSON200), nil
+}
 
-	return elasticIP, nil
+// FindElasticIP attempts to find an Elastic IP by IP address or ID in the specified zone.
+func (c *Client) FindElasticIP(ctx context.Context, zone, v string) (*ElasticIP, error) {
+	res, err := c.ListElasticIPs(ctx, zone)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range res {
+		if *r.ID == v || r.IPAddress.String() == v {
+			return c.GetElasticIP(ctx, zone, *r.ID)
+		}
+	}
+
+	return nil, apiv2.ErrNotFound
 }
 
 // UpdateElasticIP updates the specified Elastic IP in the specified zone.
 func (c *Client) UpdateElasticIP(ctx context.Context, zone string, elasticIP *ElasticIP) error {
+	if err := validateOperationParams(elasticIP, "update"); err != nil {
+		return err
+	}
+	if elasticIP.Healthcheck != nil {
+		if err := validateOperationParams(elasticIP.Healthcheck, "update"); err != nil {
+			return err
+		}
+	}
+
 	resp, err := c.UpdateElasticIpWithResponse(
 		apiv2.WithZone(ctx, zone),
-		elasticIP.ID,
+		*elasticIP.ID,
 		papi.UpdateElasticIpJSONRequestBody{
-			Description: func() *string {
-				if elasticIP.Description != "" {
-					return &elasticIP.Description
-				}
-				return nil
-			}(),
+			Description: elasticIP.Description,
 			Healthcheck: func() *papi.ElasticIpHealthcheck {
 				if hc := elasticIP.Healthcheck; hc != nil {
 					var (
-						port     = int64(hc.Port)
+						port     = int64(*hc.Port)
 						interval = int64(hc.Interval.Seconds())
 						timeout  = int64(hc.Timeout.Seconds())
 					)
 
 					return &papi.ElasticIpHealthcheck{
-						Interval:      interval,
-						Mode:          hc.Mode,
+						Interval:      &interval,
+						Mode:          papi.ElasticIpHealthcheckMode(*hc.Mode),
 						Port:          port,
 						StrikesFail:   hc.StrikesFail,
 						StrikesOk:     hc.StrikesOK,
-						Timeout:       timeout,
-						TlsSkipVerify: &hc.TLSSkipVerify,
-						TlsSni:        &hc.TLSSNI,
-						Uri:           &hc.URI,
+						Timeout:       &timeout,
+						TlsSkipVerify: hc.TLSSkipVerify,
+						TlsSni:        hc.TLSSNI,
+						Uri:           hc.URI,
 					}
 				}
 				return nil
@@ -200,6 +212,7 @@ func (c *Client) UpdateElasticIP(ctx context.Context, zone string, elasticIP *El
 
 	_, err = papi.NewPoller().
 		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
 		Poll(ctx, c.OperationPoller(zone, *resp.JSON200.Id))
 	if err != nil {
 		return err
@@ -217,6 +230,7 @@ func (c *Client) DeleteElasticIP(ctx context.Context, zone, id string) error {
 
 	_, err = papi.NewPoller().
 		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
 		Poll(ctx, c.OperationPoller(zone, *resp.JSON200.Id))
 	if err != nil {
 		return err

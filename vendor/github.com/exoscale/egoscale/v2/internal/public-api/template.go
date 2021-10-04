@@ -10,21 +10,21 @@ import (
 // only supports RFC 3339 format.
 func (t *Template) UnmarshalJSON(data []byte) error {
 	raw := struct {
-		CreatedAt       *string `json:"created-at,omitempty"`
-		BootMode        *string `json:"boot-mode,omitempty"`
-		Build           *string `json:"build,omitempty"`
-		Checksum        *string `json:"checksum,omitempty"`
-		DefaultUser     *string `json:"default-user,omitempty"`
-		Description     *string `json:"description,omitempty"`
-		Family          *string `json:"family,omitempty"`
-		Id              *string `json:"id,omitempty"` // nolint:golint
-		Name            *string `json:"name,omitempty"`
-		PasswordEnabled *bool   `json:"password-enabled,omitempty"`
-		Size            *int64  `json:"size,omitempty"`
-		SshKeyEnabled   *bool   `json:"ssh-key-enabled,omitempty"` // nolint:golint
-		Url             *string `json:"url,omitempty"`             // nolint:golint
-		Version         *string `json:"version,omitempty"`
-		Visibility      *string `json:"visibility,omitempty"`
+		CreatedAt       *string             `json:"created-at,omitempty"`
+		BootMode        *TemplateBootMode   `json:"boot-mode,omitempty"`
+		Build           *string             `json:"build,omitempty"`
+		Checksum        *string             `json:"checksum,omitempty"`
+		DefaultUser     *string             `json:"default-user,omitempty"`
+		Description     *string             `json:"description,omitempty"`
+		Family          *string             `json:"family,omitempty"`
+		Id              *string             `json:"id,omitempty"` // nolint:revive
+		Name            *string             `json:"name,omitempty"`
+		PasswordEnabled *bool               `json:"password-enabled,omitempty"`
+		Size            *int64              `json:"size,omitempty"`
+		SshKeyEnabled   *bool               `json:"ssh-key-enabled,omitempty"` // nolint:revive
+		Url             *string             `json:"url,omitempty"`             // nolint:revive
+		Version         *string             `json:"version,omitempty"`
+		Visibility      *TemplateVisibility `json:"visibility,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -61,21 +61,21 @@ func (t *Template) UnmarshalJSON(data []byte) error {
 // in the original timestamp (ISO 8601), since time.MarshalJSON() only supports RFC 3339 format.
 func (t *Template) MarshalJSON() ([]byte, error) {
 	raw := struct {
-		CreatedAt       *string `json:"created-at,omitempty"`
-		BootMode        *string `json:"boot-mode,omitempty"`
-		Build           *string `json:"build,omitempty"`
-		Checksum        *string `json:"checksum,omitempty"`
-		DefaultUser     *string `json:"default-user,omitempty"`
-		Description     *string `json:"description,omitempty"`
-		Family          *string `json:"family,omitempty"`
-		Id              *string `json:"id,omitempty"` // nolint:golint
-		Name            *string `json:"name,omitempty"`
-		PasswordEnabled *bool   `json:"password-enabled,omitempty"`
-		Size            *int64  `json:"size,omitempty"`
-		SshKeyEnabled   *bool   `json:"ssh-key-enabled,omitempty"` // nolint:golint
-		Url             *string `json:"url,omitempty"`             // nolint:golint
-		Version         *string `json:"version,omitempty"`
-		Visibility      *string `json:"visibility,omitempty"`
+		CreatedAt       *string             `json:"created-at,omitempty"`
+		BootMode        *TemplateBootMode   `json:"boot-mode,omitempty"`
+		Build           *string             `json:"build,omitempty"`
+		Checksum        *string             `json:"checksum,omitempty"`
+		DefaultUser     *string             `json:"default-user,omitempty"`
+		Description     *string             `json:"description,omitempty"`
+		Family          *string             `json:"family,omitempty"`
+		Id              *string             `json:"id,omitempty"` // nolint:revive
+		Name            *string             `json:"name,omitempty"`
+		PasswordEnabled *bool               `json:"password-enabled,omitempty"`
+		Size            *int64              `json:"size,omitempty"`
+		SshKeyEnabled   *bool               `json:"ssh-key-enabled,omitempty"` // nolint:revive
+		Url             *string             `json:"url,omitempty"`             // nolint:revive
+		Version         *string             `json:"version,omitempty"`
+		Visibility      *TemplateVisibility `json:"visibility,omitempty"`
 	}{}
 
 	if t.CreatedAt != nil {

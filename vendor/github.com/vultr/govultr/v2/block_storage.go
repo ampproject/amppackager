@@ -9,6 +9,7 @@ import (
 )
 
 // BlockStorageService is the interface to interact with Block-Storage endpoint on the Vultr API
+// Link : https://www.vultr.com/api/#tag/block
 type BlockStorageService interface {
 	Create(ctx context.Context, blockReq *BlockStorageCreate) (*BlockStorage, error)
 	Get(ctx context.Context, blockID string) (*BlockStorage, error)
@@ -35,6 +36,7 @@ type BlockStorage struct {
 	DateCreated        string  `json:"date_created"`
 	AttachedToInstance string  `json:"attached_to_instance"`
 	Label              string  `json:"label"`
+	MountID            string  `json:"mount_id"`
 }
 
 // BlockStorageCreate struct is used for creating Block Storage.
@@ -53,12 +55,12 @@ type BlockStorageUpdate struct {
 // BlockStorageAttach struct used to define if a attach should be restart the instance.
 type BlockStorageAttach struct {
 	InstanceID string `json:"instance_id"`
-	Live       bool   `json:"live,omitempty"`
+	Live       *bool  `json:"live,omitempty"`
 }
 
 // BlockStorageDetach struct used to define if a detach should be restart the instance.
 type BlockStorageDetach struct {
-	Live bool `json:"live,omitempty"`
+	Live *bool `json:"live,omitempty"`
 }
 
 type blockStoragesBase struct {

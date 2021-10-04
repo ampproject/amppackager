@@ -11,6 +11,7 @@ import (
 const path = "/v2/users"
 
 // UserService is the interface to interact with the user management endpoints on the Vultr API
+// Link : https://www.vultr.com/api/#tag/users
 type UserService interface {
 	Create(ctx context.Context, userCreate *UserReq) (*User, error)
 	Get(ctx context.Context, userID string) (*User, error)
@@ -31,7 +32,7 @@ type User struct {
 	ID         string   `json:"id"`
 	Name       string   `json:"name"`
 	Email      string   `json:"email"`
-	APIEnabled bool     `json:"api_enabled"`
+	APIEnabled *bool    `json:"api_enabled"`
 	APIKey     string   `json:"api_key,omitempty"`
 	ACL        []string `json:"acls,omitempty"`
 }
@@ -40,7 +41,7 @@ type User struct {
 type UserReq struct {
 	Email      string   `json:"email,omitempty"`
 	Name       string   `json:"name,omitempty"`
-	APIEnabled bool     `json:"api_enabled,omitempty"`
+	APIEnabled *bool    `json:"api_enabled,omitempty"`
 	ACL        []string `json:"acls,omitempty"`
 	Password   string   `json:"password,omitempty"`
 }
@@ -112,6 +113,9 @@ func (u *UserServiceHandler) Delete(ctx context.Context, userID string) error {
 // List will list all the users associated with your Vultr account
 func (u *UserServiceHandler) List(ctx context.Context, options *ListOptions) ([]User, *Meta, error) {
 	req, err := u.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	newValues, err := query.Values(options)
 	if err != nil {

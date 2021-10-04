@@ -11,7 +11,7 @@ import (
 const instancePath = "/v2/instances"
 
 // InstanceService is the interface to interact with the instance endpoints on the Vultr API
-// Link: https://www.vultr.com/api/v2/#tag/instances
+// Link: https://www.vultr.com/api/#tag/instances
 type InstanceService interface {
 	Create(ctx context.Context, instanceReq *InstanceCreateReq) (*Instance, error)
 	Get(ctx context.Context, instanceID string) (*Instance, error)
@@ -33,7 +33,7 @@ type InstanceService interface {
 	GetBandwidth(ctx context.Context, instanceID string) (*Bandwidth, error)
 	GetNeighbors(ctx context.Context, instanceID string) (*Neighbors, error)
 
-	ListPrivateNetworks(ctx context.Context, instanceID string) ([]PrivateNetwork, *Meta, error)
+	ListPrivateNetworks(ctx context.Context, instanceID string, options *ListOptions) ([]PrivateNetwork, *Meta, error)
 	AttachPrivateNetwork(ctx context.Context, instanceID, networkID string) error
 	DetachPrivateNetwork(ctx context.Context, instanceID, networkID string) error
 
@@ -44,7 +44,7 @@ type InstanceService interface {
 	GetBackupSchedule(ctx context.Context, instanceID string) (*BackupSchedule, error)
 	SetBackupSchedule(ctx context.Context, instanceID string, backup *BackupScheduleReq) error
 
-	CreateIPv4(ctx context.Context, instanceID string, reboot bool) (*IPv4, error)
+	CreateIPv4(ctx context.Context, instanceID string, reboot *bool) (*IPv4, error)
 	ListIPv4(ctx context.Context, instanceID string, option *ListOptions) ([]IPv4, *Meta, error)
 	DeleteIPv4(ctx context.Context, instanceID, ip string) error
 	ListIPv6(ctx context.Context, instanceID string, option *ListOptions) ([]IPv6, *Meta, error)
@@ -93,6 +93,7 @@ type Instance struct {
 	Tag              string   `json:"tag"`
 	OsID             int      `json:"os_id"`
 	AppID            int      `json:"app_id"`
+	ImageID          string   `json:"image_id"`
 	FirewallGroupID  string   `json:"firewall_group_id"`
 	Features         []string `json:"features"`
 }
@@ -151,7 +152,7 @@ type backupScheduleBase struct {
 
 // BackupSchedule information for a given instance.
 type BackupSchedule struct {
-	Enabled             bool   `json:"enabled,omitempty"`
+	Enabled             *bool  `json:"enabled,omitempty"`
 	Type                string `json:"type,omitempty"`
 	NextScheduleTimeUTC string `json:"next_scheduled_time_utc,omitempty"`
 	Hour                int    `json:"hour,omitempty"`
@@ -162,8 +163,8 @@ type BackupSchedule struct {
 // BackupScheduleReq struct used to create a backup schedule for an instance.
 type BackupScheduleReq struct {
 	Type string `json:"type"`
-	Hour int    `json:"hour,omitempty"`
-	Dow  int    `json:"dow,omitempty"`
+	Hour *int   `json:"hour,omitempty"`
+	Dow  *int   `json:"dow,omitempty"`
 	Dom  int    `json:"dom,omitempty"`
 }
 
@@ -214,20 +215,21 @@ type InstanceCreateReq struct {
 	OsID                 int      `json:"os_id,omitempty"`
 	ISOID                string   `json:"iso_id,omitempty"`
 	AppID                int      `json:"app_id,omitempty"`
+	ImageID              string   `json:"image_id,omitempty"`
 	FirewallGroupID      string   `json:"firewall_group_id,omitempty"`
 	Hostname             string   `json:"hostname,omitempty"`
 	IPXEChainURL         string   `json:"ipxe_chain_url,omitempty"`
 	ScriptID             string   `json:"script_id,omitempty"`
 	SnapshotID           string   `json:"snapshot_id,omitempty"`
-	EnableIPv6           bool     `json:"enable_ipv6,omitempty"`
-	EnablePrivateNetwork bool     `json:"enable_private_network,omitempty"`
+	EnableIPv6           *bool    `json:"enable_ipv6,omitempty"`
+	EnablePrivateNetwork *bool    `json:"enable_private_network,omitempty"`
 	AttachPrivateNetwork []string `json:"attach_private_network,omitempty"`
 	SSHKeys              []string `json:"sshkey_id,omitempty"`
 	Backups              string   `json:"backups,omitempty"`
-	DDOSProtection       bool     `json:"ddos_protection,omitempty"`
+	DDOSProtection       *bool    `json:"ddos_protection,omitempty"`
 	UserData             string   `json:"user_data,omitempty"`
 	ReservedIPv4         string   `json:"reserved_ipv4,omitempty"`
-	ActivationEmail      bool     `json:"activation_email,omitempty"`
+	ActivationEmail      *bool    `json:"activation_email,omitempty"`
 }
 
 // InstanceUpdateReq struct used to update an instance.
@@ -237,8 +239,9 @@ type InstanceUpdateReq struct {
 	Tag                  string   `json:"tag,omitempty"`
 	OsID                 int      `json:"os_id,omitempty"`
 	AppID                int      `json:"app_id,omitempty"`
-	EnableIPv6           bool     `json:"enable_ipv6,omitempty"`
-	EnablePrivateNetwork bool     `json:"enable_private_network,omitempty"`
+	ImageID              string   `json:"image_id,omitempty"`
+	EnableIPv6           *bool    `json:"enable_ipv6,omitempty"`
+	EnablePrivateNetwork *bool    `json:"enable_private_network,omitempty"`
 	AttachPrivateNetwork []string `json:"attach_private_network,omitempty"`
 	DetachPrivateNetwork []string `json:"detach_private_network,omitempty"`
 	Backups              string   `json:"backups,omitempty"`
@@ -459,12 +462,19 @@ func (i *InstanceServiceHandler) GetNeighbors(ctx context.Context, instanceID st
 }
 
 // ListPrivateNetworks currently attached to an instance.
-func (i *InstanceServiceHandler) ListPrivateNetworks(ctx context.Context, instanceID string) ([]PrivateNetwork, *Meta, error) {
+func (i *InstanceServiceHandler) ListPrivateNetworks(ctx context.Context, instanceID string, options *ListOptions) ([]PrivateNetwork, *Meta, error) {
 	uri := fmt.Sprintf("%s/%s/private-networks", instancePath, instanceID)
 	req, err := i.client.NewRequest(ctx, http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	newValues, err := query.Values(options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.URL.RawQuery = newValues.Encode()
 
 	networks := new(privateNetworksBase)
 	if err = i.client.DoWithContext(ctx, req, networks); err != nil {
@@ -489,7 +499,7 @@ func (i *InstanceServiceHandler) AttachPrivateNetwork(ctx context.Context, insta
 
 // DetachPrivateNetwork from an instance.
 func (i *InstanceServiceHandler) DetachPrivateNetwork(ctx context.Context, instanceID, networkID string) error {
-	uri := fmt.Sprintf("%s/%s/private-network/detach", instancePath, instanceID)
+	uri := fmt.Sprintf("%s/%s/private-networks/detach", instancePath, instanceID)
 	body := RequestBody{"network_id": networkID}
 
 	req, err := i.client.NewRequest(ctx, http.MethodPost, uri, body)
@@ -569,7 +579,7 @@ func (i *InstanceServiceHandler) SetBackupSchedule(ctx context.Context, instance
 }
 
 // CreateIPv4 an additional IPv4 address for given instance.
-func (i *InstanceServiceHandler) CreateIPv4(ctx context.Context, instanceID string, reboot bool) (*IPv4, error) {
+func (i *InstanceServiceHandler) CreateIPv4(ctx context.Context, instanceID string, reboot *bool) (*IPv4, error) {
 	uri := fmt.Sprintf("%s/%s/ipv4", instancePath, instanceID)
 
 	body := RequestBody{"reboot": reboot}

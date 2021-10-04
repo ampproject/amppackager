@@ -32,13 +32,9 @@ const (
 	APISecondsPerPoll = 3
 	// Maximum wait time for retries
 	APIRetryMaxWaitTime = time.Duration(30) * time.Second
-	// DefaultUserAgent is the default User-Agent sent in HTTP request headers
-	DefaultUserAgent = "linodego https://github.com/linode/linodego"
 )
 
-var (
-	envDebug = false
-)
+var envDebug = false
 
 // Client is a wrapper around the Resty client
 type Client struct {
@@ -214,7 +210,6 @@ func (c *Client) SetRetryCount(count int) *Client {
 // Affects all WaitFor* functions and retries.
 func (c *Client) SetPollDelay(delay time.Duration) *Client {
 	c.millisecondsPerPoll = delay
-	c.resty.SetRetryWaitTime(delay * time.Millisecond)
 	return c
 }
 
@@ -267,6 +262,7 @@ func NewClient(hc *http.Client) (client Client) {
 	}
 
 	client.
+		SetRetryWaitTime((1000 * APISecondsPerPoll) * time.Millisecond).
 		SetPollDelay(1000 * APISecondsPerPoll).
 		SetRetries().
 		SetDebug(envDebug)
@@ -393,7 +389,7 @@ func copyBool(bPtr *bool) *bool {
 		return nil
 	}
 
-	var t = *bPtr
+	t := *bPtr
 
 	return &t
 }
@@ -403,7 +399,7 @@ func copyInt(iPtr *int) *int {
 		return nil
 	}
 
-	var t = *iPtr
+	t := *iPtr
 
 	return &t
 }
@@ -413,7 +409,7 @@ func copyString(sPtr *string) *string {
 		return nil
 	}
 
-	var t = *sPtr
+	t := *sPtr
 
 	return &t
 }
@@ -423,7 +419,7 @@ func copyTime(tPtr *time.Time) *time.Time {
 		return nil
 	}
 
-	var t = *tPtr
+	t := *tPtr
 
 	return &t
 }

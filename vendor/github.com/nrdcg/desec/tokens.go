@@ -1,6 +1,7 @@
 package desec
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -23,13 +24,13 @@ type TokensService struct {
 
 // GetAll retrieving all current tokens.
 // https://desec.readthedocs.io/en/latest/auth/tokens.html#retrieving-all-current-tokens
-func (s *TokensService) GetAll() ([]Token, error) {
+func (s *TokensService) GetAll(ctx context.Context) ([]Token, error) {
 	endpoint, err := s.client.createEndpoint("auth", "tokens")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodGet, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -56,13 +57,13 @@ func (s *TokensService) GetAll() ([]Token, error) {
 
 // Create creates additional tokens.
 // https://desec.readthedocs.io/en/latest/auth/tokens.html#create-additional-tokens
-func (s *TokensService) Create(name string) (*Token, error) {
+func (s *TokensService) Create(ctx context.Context, name string) (*Token, error) {
 	endpoint, err := s.client.createEndpoint("auth", "tokens")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, endpoint, Token{Name: name})
+	req, err := s.client.newRequest(ctx, http.MethodPost, endpoint, Token{Name: name})
 	if err != nil {
 		return nil, err
 	}
@@ -89,13 +90,13 @@ func (s *TokensService) Create(name string) (*Token, error) {
 
 // Delete deletes tokens.
 // https://desec.readthedocs.io/en/latest/auth/tokens.html#delete-tokens
-func (s *TokensService) Delete(tokenID string) error {
+func (s *TokensService) Delete(ctx context.Context, tokenID string) error {
 	endpoint, err := s.client.createEndpoint("auth", "tokens", tokenID)
 	if err != nil {
 		return fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
-	req, err := s.client.newRequest(http.MethodDelete, endpoint, nil)
+	req, err := s.client.newRequest(ctx, http.MethodDelete, endpoint, nil)
 	if err != nil {
 		return err
 	}

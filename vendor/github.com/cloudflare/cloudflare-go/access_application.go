@@ -12,6 +12,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AccessApplicationType represents the application type.
+type AccessApplicationType string
+
+// These constants represent all valid application types.
+const (
+	SelfHosted AccessApplicationType = "self_hosted"
+	SSH        AccessApplicationType = "ssh"
+	VNC        AccessApplicationType = "vnc"
+	File       AccessApplicationType = "file"
+)
+
 // AccessApplication represents an Access application.
 type AccessApplication struct {
 	ID                     string                        `json:"id,omitempty"`
@@ -20,6 +31,7 @@ type AccessApplication struct {
 	AUD                    string                        `json:"aud,omitempty"`
 	Name                   string                        `json:"name"`
 	Domain                 string                        `json:"domain"`
+	Type                   AccessApplicationType         `json:"type,omitempty"`
 	SessionDuration        string                        `json:"session_duration,omitempty"`
 	AutoRedirectToIdentity bool                          `json:"auto_redirect_to_identity,omitempty"`
 	EnableBindingCookie    bool                          `json:"enable_binding_cookie,omitempty"`
@@ -84,7 +96,7 @@ func (api *API) accessApplications(ctx context.Context, id string, pageOpts Pagi
 
 	uri := fmt.Sprintf("/%s/%s/access/apps", routeRoot, id)
 	if len(v) > 0 {
-		uri = uri + "?" + v.Encode()
+		uri = fmt.Sprintf("%s?%s", uri, v.Encode())
 	}
 
 	res, err := api.makeRequestContext(ctx, http.MethodGet, uri, nil)

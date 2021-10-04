@@ -6,8 +6,11 @@ import (
 )
 
 const (
+	// EndpointURL represents the default API Endpoint URL.
 	EndpointURL = "https://api.exoscale.com/"
-	Prefix      = "v2.alpha"
+
+	// Prefix represents the current API prefix.
+	Prefix = "v2.alpha"
 )
 
 const defaultReqEndpointEnv = "api"

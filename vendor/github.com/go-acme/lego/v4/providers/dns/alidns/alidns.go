@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/alidns"
@@ -22,9 +23,11 @@ const defaultRegionID = "cn-hangzhou"
 const (
 	envNamespace = "ALICLOUD_"
 
-	EnvAccessKey = envNamespace + "ACCESS_KEY"
-	EnvSecretKey = envNamespace + "SECRET_KEY"
-	EnvRegionID  = envNamespace + "REGION_ID"
+	EnvRAMRole       = envNamespace + "RAM_ROLE"
+	EnvAccessKey     = envNamespace + "ACCESS_KEY"
+	EnvSecretKey     = envNamespace + "SECRET_KEY"
+	EnvSecurityToken = envNamespace + "SECURITY_TOKEN"
+	EnvRegionID      = envNamespace + "REGION_ID"
 
 	EnvTTL                = envNamespace + "TTL"
 	EnvPropagationTimeout = envNamespace + "PROPAGATION_TIMEOUT"
@@ -34,8 +37,10 @@ const (
 
 // Config is used to configure the creation of the DNSProvider.
 type Config struct {
+	RAMRole            string
 	APIKey             string
 	SecretKey          string
+	SecurityToken      string
 	RegionID           string
 	PropagationTimeout time.Duration
 	PollingInterval    time.Duration
@@ -60,18 +65,27 @@ type DNSProvider struct {
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for Alibaba Cloud DNS.
-// Credentials must be passed in the environment variables:
-// ALICLOUD_ACCESS_KEY and ALICLOUD_SECRET_KEY.
+// - If you're using the instance RAM role, the RAM role environment variable must be passed in: ALICLOUD_RAM_ROLE.
+// - Other than that, credentials must be passed in the environment variables:
+// ALICLOUD_ACCESS_KEY, ALICLOUD_SECRET_KEY, and optionally ALICLOUD_SECURITY_TOKEN.
 func NewDNSProvider() (*DNSProvider, error) {
-	values, err := env.Get(EnvAccessKey, EnvSecretKey)
+	config := NewDefaultConfig()
+	config.RegionID = env.GetOrFile(EnvRegionID)
+
+	values, err := env.Get(EnvRAMRole)
+	if err == nil {
+		config.RAMRole = values[EnvRAMRole]
+		return NewDNSProviderConfig(config)
+	}
+
+	values, err = env.Get(EnvAccessKey, EnvSecretKey)
 	if err != nil {
 		return nil, fmt.Errorf("alicloud: %w", err)
 	}
 
-	config := NewDefaultConfig()
 	config.APIKey = values[EnvAccessKey]
 	config.SecretKey = values[EnvSecretKey]
-	config.RegionID = env.GetOrFile(EnvRegionID)
+	config.SecurityToken = env.GetOrFile(EnvSecurityToken)
 
 	return NewDNSProviderConfig(config)
 }
@@ -82,16 +96,23 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("alicloud: the configuration of the DNS provider is nil")
 	}
 
-	if config.APIKey == "" || config.SecretKey == "" {
-		return nil, fmt.Errorf("alicloud: credentials missing")
-	}
-
 	if config.RegionID == "" {
 		config.RegionID = defaultRegionID
 	}
 
+	var credential auth.Credential
+	switch {
+	case config.RAMRole != "":
+		credential = credentials.NewEcsRamRoleCredential(config.RAMRole)
+	case config.APIKey != "" && config.SecretKey != "" && config.SecurityToken != "":
+		credential = credentials.NewStsTokenCredential(config.APIKey, config.SecretKey, config.SecurityToken)
+	case config.APIKey != "" && config.SecretKey != "":
+		credential = credentials.NewAccessKeyCredential(config.APIKey, config.SecretKey)
+	default:
+		return nil, fmt.Errorf("alicloud: ram role or credentials missing")
+	}
+
 	conf := sdk.NewConfig().WithTimeout(config.HTTPTimeout)
-	credential := credentials.NewAccessKeyCredential(config.APIKey, config.SecretKey)
 
 	client, err := alidns.NewClientWithOptions(config.RegionID, conf, credential)
 	if err != nil {

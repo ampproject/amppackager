@@ -1,4 +1,7 @@
 package egoscale
 
+import "github.com/exoscale/egoscale/version"
+
 // Version of the library
-const Version = "0.46.0"
+// Deprecated: use the github.com/exoscale/egoscale/version package.
+const Version = version.Version

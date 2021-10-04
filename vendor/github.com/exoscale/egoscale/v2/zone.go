@@ -16,7 +16,7 @@ func (c *Client) ListZones(ctx context.Context) ([]string, error) {
 	if resp.JSON200.Zones != nil {
 		for i := range *resp.JSON200.Zones {
 			zone := &(*resp.JSON200.Zones)[i]
-			list = append(list, *zone.Name)
+			list = append(list, string(*zone.Name))
 		}
 	}
 
