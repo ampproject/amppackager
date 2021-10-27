@@ -42,6 +42,8 @@ const (
 	// LinkGoogleFont is a Google Font stylesheet.
 	LinkGoogleFont = "<link href=https://fonts.googleapis.com/css?family=Roboto rel=stylesheet>"
 
+	LinkAmpStoryFont = "<link href=https://cdn.ampproject.org/v0/amp-story-1.0.css rel=stylesheet>"
+
 	// LinkGoogleFontEarlyAccess is a Google Font Early Access stylesheet.
 	LinkGoogleFontEarlyAccess = "<link href=https://fonts.googleapis.com/earlyaccess/hannari.css>"
 
@@ -133,7 +135,7 @@ const (
 	ScriptAMP4AdsRuntime = "<script async src=https://cdn.ampproject.org/amp4ads-v0.js></script>"
 
 	// ScriptAMPStory is the script for amp-story.
-	ScriptAMPStory = "<script async custom-element=amp-story src=https://cdn.ampproject.org/v0/amp-story-0.1.js></script>"
+	ScriptAMPStory = "<script async custom-element=amp-story src=https://cdn.ampproject.org/v0/amp-story-1.0.js></script>"
 
 	// StyleAMP4AdsBoilerplate is the script for amp4ads boilerplate.
 	StyleAMP4AdsBoilerplate = "<style amp4ads-boilerplate>body{visibility;hidden}</style>"
@@ -149,6 +151,8 @@ const (
 
 	// StyleAMPRuntime is an injected tag from server-side rendering.
 	StyleAMPRuntime = "<style amp-runtime></style>"
+
+	StyleAmpStory = "<style amp-extension=amp-story></style>"
 
 	// Title is a title tag for an AMP document.
 	Title = "<title>Hello AMP</title>"

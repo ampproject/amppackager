@@ -29,6 +29,7 @@ type headNodes struct {
 	linkResourceHint              []*html.Node
 	linkStylesheetBeforeAMPCustom []*html.Node
 	linkStylesheetRuntimeCSS      *html.Node
+	linkStylesheetAmpStoryCSS     *html.Node
 	metaCharset                   *html.Node
 	metaOther                     []*html.Node
 	noscript                      *html.Node
@@ -40,23 +41,28 @@ type headNodes struct {
 	styleAMPBoilerplate           *html.Node
 	styleAMPCustom                *html.Node
 	styleAMPRuntime               *html.Node
+	styleAMPStory                 *html.Node
 }
 
 // ReorderHead reorders the children of <head>. Specifically, it
 // orders the <head> like so:
 // (0) <meta charset> tag
 // (1) <style amp-runtime> (inserted by ampruntimecss.go)
-// (2) remaining <meta> tags (those other than <meta charset>)
-// (3) AMP runtime <script> tag(s)
-// (4) AMP viewer runtime .js <script> tag
-// (5) <script> tags that are render delaying
-// (6) <script> tags for remaining extensions
-// (7) <link> tag for favicons
-// (8) <link> tag for resource hints
-// (9) <link rel=stylesheet> tags before <style amp-custom>
-// (10) <style amp-custom>
-// (11) any other tags allowed in <head>
-// (12) AMP boilerplate (first style amp-boilerplate, then noscript)
+// (2) <style amp-extension=amp-story> OR <link rel=stylesheet
+// href=https://cdn.ampproject.org/v0/amp-story-1.0.css> (inserted by
+// AmpStoryCss). Only one of these will be inserted
+// by this transformer.
+// (3) remaining <meta> tags (those other than <meta charset>)
+// (4) AMP runtime <script> tag(s)
+// (5) AMP viewer runtime .js <script> tag
+// (6) <script> tags that are render delaying
+// (7) <script> tags for remaining extensions
+// (8) <link> tag for favicons
+// (9) <link> tag for resource hints
+// (10) <link rel=stylesheet> tags before <style amp-custom>
+// (11) <style amp-custom>
+// (12) any other tags allowed in <head>
+// (13) AMP boilerplate (first style amp-boilerplate, then noscript)
 func ReorderHead(e *Context) error {
 	hn := new(headNodes)
 
@@ -96,6 +102,12 @@ func ReorderHead(e *Context) error {
 	}
 	if hn.styleAMPRuntime != nil {
 		e.DOM.HeadNode.AppendChild(hn.styleAMPRuntime)
+	}
+	if hn.linkStylesheetAmpStoryCSS != nil {
+		e.DOM.HeadNode.AppendChild(hn.linkStylesheetAmpStoryCSS)
+	}
+	if hn.styleAMPStory != nil {
+		e.DOM.HeadNode.AppendChild(hn.styleAMPStory)
 	}
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.metaOther...)
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.scriptAMPRuntime...)
@@ -138,6 +150,14 @@ func registerLink(n *html.Node, hn *headNodes) {
 				hn.linkStylesheetRuntimeCSS = n
 				return
 			}
+			// The AmpStoryCss inserts a stylesheet for the amp-story-1.0 CSS. It must remain early in the head immediately before <style amp-custom>.
+			if v, ok := htmlnode.GetAttributeVal(n, "", "href"); ok &&
+				strings.HasPrefix(v, amphtml.AMPCacheRootURL) &&
+				strings.HasSuffix(v, "/amp-story-1.0.css") {
+				hn.linkStylesheetAmpStoryCSS = n
+				return
+			}
+
 			if hn.styleAMPCustom == nil {
 				hn.linkStylesheetBeforeAMPCustom = append(hn.linkStylesheetBeforeAMPCustom, n)
 				return
@@ -189,6 +209,11 @@ func registerStyle(n *html.Node, hn *headNodes) {
 	}
 	if htmlnode.HasAttribute(n, "", amphtml.AMPRuntime) {
 		hn.styleAMPRuntime = n
+		return
+	}
+	if v, ok := htmlnode.GetAttributeVal(n, "", "amp-extension"); ok &&
+		v == "amp-story" {
+		hn.styleAMPStory = n
 		return
 	}
 	hn.other = append(hn.other, n)
