@@ -37,36 +37,43 @@ func TestReorderHead(t *testing.T) {
 				tt.MetaViewport, tt.StyleAMPCustom, tt.LinkCanonical,
 				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
 				tt.ScriptAMPMustache, tt.ScriptAMPMraid,
+				tt.StyleAmpStory, tt.LinkAmpStoryFont,
 				"</head><body></body></html>"),
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
 				// (1) <style amp-runtime> (inserted by ampruntimecss.go)
 				tt.StyleAMPRuntime,
-				// (2) remaining <meta> tags (those other than <meta charset>)
+				// (2) <style amp-extension=amp-story> OR <link rel=stylesheet
+				// amp-extension=amp-story
+				// href=https://cdn.ampproject.org/v0/amp-story-1.0.css> (inserted by
+				// ExternalAmpStoryCssTransformer). Only one of these will be inserted
+				// by this transformer.
+				tt.LinkAmpStoryFont, tt.StyleAmpStory,
+				// (3) remaining <meta> tags (those other than <meta charset>)
 				tt.MetaViewport,
-				// (3) AMP runtime .js <script> tag
+				// (4) AMP runtime .js <script> tag
 				tt.ScriptAMPRuntime,
-				// (4) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
+				// (5) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
 				tt.ScriptAMPViewerRuntime,
-				// (5) <script> tags that are render delaying
+				// (6) <script> tags that are render delaying
 				tt.ScriptAMPExperiment,
-				// (6) <script> tags for remaining extensions
+				// (7) <script> tags for remaining extensions
 				tt.ScriptAMPAudio,
 				tt.ScriptAMPMraid,
 				tt.ScriptAMPMustache,
-				// (7) <link> tag for favicons
+				// (8) <link> tag for favicons
 				tt.LinkFavicon,
-				// (8) <link> tag for resource hints
+				// (9) <link> tag for resource hints
 				tt.LinkGoogleFontPreconnect,
-				// (9) <link rel=stylesheet> tags before <style amp-custom>
+				// (10) <link rel=stylesheet> tags before <style amp-custom>
 				tt.LinkGoogleFont,
-				// (10) <style amp-custom>
+				// (11) <style amp-custom>
 				tt.StyleAMPCustom,
-				// (11) any other tags allowed in <head>
+				// (12) any other tags allowed in <head>
 				tt.Title,
 				tt.LinkCanonical,
-				// (12) amp boilerplate (first style amp-boilerplate, then noscript)
+				// (13) amp boilerplate (first style amp-boilerplate, then noscript)
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
 		},
@@ -83,36 +90,43 @@ func TestReorderHead(t *testing.T) {
 				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
 				tt.ScriptAMPMustacheNomodule, tt.ScriptAMPMustacheModule,
 				tt.ScriptAMPMraidNomodule, tt.ScriptAMPMraidModule,
+				tt.StyleAmpStory, tt.LinkAmpStoryFont,
 				"</head><body></body></html>"),
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
 				// (1) <style amp-runtime> (inserted by ampruntimecss.go)
 				tt.StyleAMPRuntime,
-				// (2) remaining <meta> tags (those other than <meta charset>)
+				// (2) <style amp-extension=amp-story> OR <link rel=stylesheet
+				// amp-extension=amp-story
+				// href=https://cdn.ampproject.org/v0/amp-story-1.0.css> (inserted by
+				// ExternalAmpStoryCssTransformer). Only one of these will be inserted
+				// by this transformer.
+				tt.LinkAmpStoryFont, tt.StyleAmpStory,
+				// (3) remaining <meta> tags (those other than <meta charset>)
 				tt.MetaViewport,
-				// (3) AMP runtime module/nomodule <script> tags
+				// (4) AMP runtime module/nomodule <script> tags
 				tt.ScriptAMPRuntimeModule, tt.ScriptAMPRuntimeNomodule,
-				// (4) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
+				// (5) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
 				tt.ScriptAMPViewerRuntime,
-				// (5) <script> tags that are render delaying
+				// (6) <script> tags that are render delaying
 				tt.ScriptAMPExperimentNomodule, tt.ScriptAMPExperimentModule,
-				// (6) <script> tags for remaining extensions
+				// (7) <script> tags for remaining extensions
 				tt.ScriptAMPAudioNomodule, tt.ScriptAMPAudioModule,
 				tt.ScriptAMPMraidNomodule, tt.ScriptAMPMraidModule,
 				tt.ScriptAMPMustacheNomodule, tt.ScriptAMPMustacheModule,
-				// (7) <link> tag for favicons
+				// (8) <link> tag for favicons
 				tt.LinkFavicon,
-				// (8) <link> tag for resource hints
+				// (9) <link> tag for resource hints
 				tt.LinkGoogleFontPreconnect,
-				// (9) <link rel=stylesheet> tags before <style amp-custom>
+				// (10) <link rel=stylesheet> tags before <style amp-custom>
 				tt.LinkGoogleFont,
-				// (10) <style amp-custom>
+				// (11) <style amp-custom>
 				tt.StyleAMPCustom,
-				// (11) any other tags allowed in <head>
+				// (12) any other tags allowed in <head>
 				tt.Title,
 				tt.LinkCanonical,
-				// (12) amp boilerplate (first style amp-boilerplate, then noscript)
+				// (13) amp boilerplate (first style amp-boilerplate, then noscript)
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
 		},
