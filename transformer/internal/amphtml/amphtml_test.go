@@ -354,6 +354,56 @@ func TestAMPExtensionScriptDefinition(t *testing.T) {
 	}
 }
 
+func TestAMPStoryDvhPolyfillScriptDefinition(t *testing.T) {
+	tcs := []struct {
+		desc     string
+		n        *html.Node
+		expected bool
+	}{
+		{
+			"amp-img false",
+			&html.Node{Type: html.ElementNode,
+				Data: "amp-img"},
+			false,
+		},
+		{
+			"amp runtime false",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script, Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "src", Val: "https://cdn.ampproject.org/v0.js"}}},
+			false,
+		},
+		{
+			"amp viewer script false",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "async"},
+					{Key: "src",
+						Val: "https://cdn.ampproject.org/v0/amp-viewer-integration-4.2.js"}}},
+			false,
+		},
+		{
+			"amp-story-dvh-polyfill script true",
+			&html.Node{Type: html.ElementNode,
+				Data:     "script",
+				DataAtom: atom.Script,
+				Attr: []html.Attribute{
+					{Key: "amp-story-dvh-polyfill"},
+				}},
+			true,
+		},
+	}
+	for _, tc := range tcs {
+		if ok := IsAmpStoryDvhPolyfillScript(tc.n); ok != tc.expected {
+			t.Errorf("%s: IsAmpStoryDvhPolyfillScript()=%t want=%t", tc.desc, ok, tc.expected)
+		}
+	}
+}
+
 func TestNewDOM(t *testing.T) {
 	tcs := []struct {
 		desc     string

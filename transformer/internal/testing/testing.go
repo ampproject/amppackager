@@ -137,6 +137,8 @@ const (
 	// ScriptAMPStory is the script for amp-story.
 	ScriptAMPStory = "<script async custom-element=amp-story src=https://cdn.ampproject.org/v0/amp-story-1.0.js></script>"
 
+	ScriptAmpStoryDvhPolyfill = "<script amp-story-dvh-polyfill></script>"
+
 	// StyleAMP4AdsBoilerplate is the script for amp4ads boilerplate.
 	StyleAMP4AdsBoilerplate = "<style amp4ads-boilerplate>body{visibility;hidden}</style>"
 

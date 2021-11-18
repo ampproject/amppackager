@@ -29,7 +29,7 @@ func TestReorderHead(t *testing.T) {
 		{
 			Desc: "Reorders head children for AMP document",
 			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
-				tt.Title, tt.StyleAMPBoilerplate,
+				tt.Title, tt.StyleAMPBoilerplate, tt.ScriptAmpStoryDvhPolyfill,
 				tt.ScriptAMPExperiment, tt.ScriptAMPAudio,
 				tt.NoscriptAMPBoilerplate, tt.StyleAMPRuntime,
 				tt.ScriptAMPRuntime, tt.LinkGoogleFont,
@@ -54,33 +54,35 @@ func TestReorderHead(t *testing.T) {
 				tt.MetaViewport,
 				// (4) AMP runtime .js <script> tag
 				tt.ScriptAMPRuntime,
-				// (5) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
+				// (5) <script amp-story-dvh-polyfill> inline script tag
+				tt.ScriptAmpStoryDvhPolyfill,
+				// (6) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
 				tt.ScriptAMPViewerRuntime,
-				// (6) <script> tags that are render delaying
+				// (7) <script> tags that are render delaying
 				tt.ScriptAMPExperiment,
-				// (7) <script> tags for remaining extensions
+				// (8) <script> tags for remaining extensions
 				tt.ScriptAMPAudio,
 				tt.ScriptAMPMraid,
 				tt.ScriptAMPMustache,
-				// (8) <link> tag for favicons
+				// (9) <link> tag for favicons
 				tt.LinkFavicon,
-				// (9) <link> tag for resource hints
+				// (10) <link> tag for resource hints
 				tt.LinkGoogleFontPreconnect,
-				// (10) <link rel=stylesheet> tags before <style amp-custom>
+				// (11) <link rel=stylesheet> tags before <style amp-custom>
 				tt.LinkGoogleFont,
-				// (11) <style amp-custom>
+				// (12) <style amp-custom>
 				tt.StyleAMPCustom,
-				// (12) any other tags allowed in <head>
+				// (13) any other tags allowed in <head>
 				tt.Title,
 				tt.LinkCanonical,
-				// (13) amp boilerplate (first style amp-boilerplate, then noscript)
+				// (14) amp boilerplate (first style amp-boilerplate, then noscript)
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
 		},
 		{
 			Desc: "Reorders head children for module/nomodule AMP document",
 			Input: tt.Concat(tt.Doctype, "<html ⚡><head>",
-				tt.Title, tt.StyleAMPBoilerplate,
+				tt.Title, tt.StyleAMPBoilerplate, tt.ScriptAmpStoryDvhPolyfill,
 				tt.ScriptAMPExperimentNomodule, tt.ScriptAMPAudioNomodule,
 				tt.ScriptAMPExperimentModule, tt.ScriptAMPAudioModule,
 				tt.NoscriptAMPBoilerplate, tt.StyleAMPRuntime,
@@ -107,26 +109,28 @@ func TestReorderHead(t *testing.T) {
 				tt.MetaViewport,
 				// (4) AMP runtime module/nomodule <script> tags
 				tt.ScriptAMPRuntimeModule, tt.ScriptAMPRuntimeNomodule,
-				// (5) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
+				// (5) <script amp-story-dvh-polyfill> inline script tag
+				tt.ScriptAmpStoryDvhPolyfill,
+				// (6) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
 				tt.ScriptAMPViewerRuntime,
-				// (6) <script> tags that are render delaying
+				// (7) <script> tags that are render delaying
 				tt.ScriptAMPExperimentNomodule, tt.ScriptAMPExperimentModule,
-				// (7) <script> tags for remaining extensions
+				// (8) <script> tags for remaining extensions
 				tt.ScriptAMPAudioNomodule, tt.ScriptAMPAudioModule,
 				tt.ScriptAMPMraidNomodule, tt.ScriptAMPMraidModule,
 				tt.ScriptAMPMustacheNomodule, tt.ScriptAMPMustacheModule,
-				// (8) <link> tag for favicons
+				// (9) <link> tag for favicons
 				tt.LinkFavicon,
-				// (9) <link> tag for resource hints
+				// (10) <link> tag for resource hints
 				tt.LinkGoogleFontPreconnect,
-				// (10) <link rel=stylesheet> tags before <style amp-custom>
+				// (11) <link rel=stylesheet> tags before <style amp-custom>
 				tt.LinkGoogleFont,
-				// (11) <style amp-custom>
+				// (12) <style amp-custom>
 				tt.StyleAMPCustom,
-				// (12) any other tags allowed in <head>
+				// (13) any other tags allowed in <head>
 				tt.Title,
 				tt.LinkCanonical,
-				// (13) amp boilerplate (first style amp-boilerplate, then noscript)
+				// (14) amp boilerplate (first style amp-boilerplate, then noscript)
 				tt.StyleAMPBoilerplate, tt.NoscriptAMPBoilerplate,
 				"</head><body></body></html>"),
 		},

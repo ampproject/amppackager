@@ -38,6 +38,7 @@ type headNodes struct {
 	scriptAMPViewer               *html.Node
 	scriptNonRenderDelaying       []*html.Node
 	scriptRenderDelaying          []*html.Node
+	scriptAmpStoryDvhPolyfill     *html.Node
 	styleAMPBoilerplate           *html.Node
 	styleAMPCustom                *html.Node
 	styleAMPRuntime               *html.Node
@@ -54,15 +55,17 @@ type headNodes struct {
 // by this transformer.
 // (3) remaining <meta> tags (those other than <meta charset>)
 // (4) AMP runtime <script> tag(s)
-// (5) AMP viewer runtime .js <script> tag
-// (6) <script> tags that are render delaying
-// (7) <script> tags for remaining extensions
-// (8) <link> tag for favicons
-// (9) <link> tag for resource hints
-// (10) <link rel=stylesheet> tags before <style amp-custom>
-// (11) <style amp-custom>
-// (12) any other tags allowed in <head>
-// (13) AMP boilerplate (first style amp-boilerplate, then noscript)
+// (5) <script amp-story-dvh-polyfill> inline script tag (see
+// AmpStoryCssTransformer)
+// (6) AMP viewer runtime .js <script> tag
+// (7) <script> tags that are render delaying
+// (8) <script> tags for remaining extensions
+// (9) <link> tag for favicons
+// (10) <link> tag for resource hints
+// (11) <link rel=stylesheet> tags before <style amp-custom>
+// (12) <style amp-custom>
+// (13) any other tags allowed in <head>
+// (14) AMP boilerplate (first style amp-boilerplate, then noscript)
 func ReorderHead(e *Context) error {
 	hn := new(headNodes)
 
@@ -111,6 +114,9 @@ func ReorderHead(e *Context) error {
 	}
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.metaOther...)
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.scriptAMPRuntime...)
+	if hn.scriptAmpStoryDvhPolyfill != nil {
+		e.DOM.HeadNode.AppendChild(hn.scriptAmpStoryDvhPolyfill)
+	}
 	if hn.scriptAMPViewer != nil {
 		e.DOM.HeadNode.AppendChild(hn.scriptAMPViewer)
 	}
@@ -176,7 +182,7 @@ func registerMeta(n *html.Node, hn *headNodes) {
 	hn.metaOther = append(hn.metaOther, n)
 }
 
-// registerScript registers <script> tags to different variables depending on the attributes on the <script> tag. These are the (1) AMP Runtime script, (2) the render delaying AMP Custom Element scripts, (3) the non-render delaying AMP Custom Element scripts and (4) all other <script> tags.
+// registerScript registers <script> tags to different variables depending on the attributes on the <script> tag. These are the (1) AMP Runtime script, (2) the render delaying AMP Custom Element scripts, (3) the non-render delaying AMP Custom Element scripts, (4) amp-story-dvh-polyfill script, and (5) all other <script> tags.
 func registerScript(n *html.Node, hn *headNodes) {
 	if amphtml.IsScriptAMPRuntime(n) {
 		hn.scriptAMPRuntime = append(hn.scriptAMPRuntime, n)
@@ -192,6 +198,10 @@ func registerScript(n *html.Node, hn *headNodes) {
 			return
 		}
 		hn.scriptNonRenderDelaying = append(hn.scriptNonRenderDelaying, n)
+		return
+	}
+	if amphtml.IsAmpStoryDvhPolyfillScript(n) {
+		hn.scriptAmpStoryDvhPolyfill = n
 		return
 	}
 	hn.other = append(hn.other, n)
