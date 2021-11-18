@@ -93,6 +93,7 @@ func AMPExtensionScriptDefinition(n *html.Node) (string, bool) {
 	return "", false
 }
 
+
 // AMPExtensionName returns the name of the extension this node represents.  For most extensions this is the value of the "custom-element" attribute.  Returns ok=false if this isn't an extension.
 func AMPExtensionName(n *html.Node) (string, bool) {
 	if n.DataAtom != atom.Script {
@@ -160,6 +161,14 @@ func IsScriptRenderDelaying(n *html.Node) bool {
 			v == AMPStory)
 	}
 	return false
+}
+
+// IsAmpStoryDvhPolyfillScript returns true if the node has an attribute 'amp-story-dvh-polyfill'
+func IsAmpStoryDvhPolyfillScript(n *html.Node) bool {
+	if n.DataAtom != atom.Script {
+		return false
+	}
+	return htmlnode.HasAttribute(n, "", "amp-story-dvh-polyfill")
 }
 
 // DOM encapsulates the various HTML nodes a transformer may need access to.
