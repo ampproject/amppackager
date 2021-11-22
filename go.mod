@@ -3,8 +3,8 @@ module github.com/ampproject/amppackager
 go 1.13
 
 require (
-	github.com/WICG/webpackage v0.0.0-20211108071143-6b3608003c95
-	github.com/ampproject/amphtml v0.0.0-20211113041155-cfa4a272a265
+	github.com/WICG/webpackage v0.0.0-20211116052848-ab932ef5fb0b
+	github.com/ampproject/amphtml v0.0.0-20211119232030-22d6da19b9e0
 	github.com/go-acme/lego/v4 v4.5.3
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
@@ -17,8 +17,8 @@ require (
 	github.com/prometheus/common v0.32.1
 	github.com/stretchr/testify v1.7.0
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
-	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
-	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
+	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4
 	google.golang.org/grpc v1.42.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
