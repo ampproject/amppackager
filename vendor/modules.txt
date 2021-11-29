@@ -26,7 +26,7 @@ github.com/Azure/go-autorest/logger
 github.com/Azure/go-autorest/tracing
 # github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87
 github.com/OpenDNS/vegadns2client
-# github.com/WICG/webpackage v0.0.0-20211116052848-ab932ef5fb0b
+# github.com/WICG/webpackage v0.0.0-20211124031331-1645f3d7345d
 github.com/WICG/webpackage/go/internal/signingalgorithm
 github.com/WICG/webpackage/go/signedexchange
 github.com/WICG/webpackage/go/signedexchange/cbor
@@ -52,7 +52,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20211119232030-22d6da19b9e0
+# github.com/ampproject/amphtml v0.0.0-20211124213004-b78e8781ff39
 github.com/ampproject/amphtml/validator
 # github.com/aws/aws-sdk-go v1.39.0
 github.com/aws/aws-sdk-go/aws
@@ -523,7 +523,7 @@ golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
-# golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4
+# golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9
 golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
