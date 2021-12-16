@@ -17,10 +17,11 @@ OCSPCache = '/renewer/amppkg-ocsp'
 [ACMEConfig]
   [ACMEConfig.Production]
     DiscoURL = "$(ACME_DIRECTORY_URL)"
-    EABKid = "$(ACME_EAB_KID)"
-    EABHmac = "$(ACME_EAB_HMAC)"
+    #EABKid = "$(ACME_EAB_KID)"
+    #EABHmac = "$(ACME_EAB_HMAC)"
     EmailAddress = "$(ACME_EMAIL_ADDRESS)"
     HttpChallengePort = 5002
     HttpWebRootDir = '/renewer/www'
     TlsChallengePort = 5003
-    DnsProvider = "gcloud"
+    # Uncomment if you need wildcard domains in your certs
+    #DnsProvider = "gcloud"
