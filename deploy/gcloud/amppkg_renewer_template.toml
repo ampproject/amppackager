@@ -1,6 +1,6 @@
 # IMPORTANT NOTE: in the event that cert renewal fails and requires user intervention on the user's CA account,
 # amppackager will continue to request new certificates in the background which will result in multiple orders
-# possibliy queueing up in the user's CA account. Make sure to clear all those orders as you it may result in
+# possibly queueing up in the user's CA account. Make sure to clear all those orders as it may result in
 # multiple certificate charges. It's also important that you make sure you are notified (by email) when such events
 # occur so that you can resolve appropriately.
 
