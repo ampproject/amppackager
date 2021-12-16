@@ -1,3 +1,9 @@
+# IMPORTANT NOTE: in the event that cert renewal fails and requires user intervention on the user's CA account,
+# amppackager will continue to request new certificates in the background which will result in multiple orders
+# possibliy queueing up in the user's CA account. Make sure to clear all those orders as you it may result in
+# multiple certificate charges. It's also important that you make sure you are notified (by email) when such events
+# occur so that you can resolve appropriately.
+
 CertFile = '/renewer/$(AMP_PACKAGER_CERT_FILENAME)'
 NewCertFile = '/renewer/new.cert'
 CSRFile = '/renewer/$(AMP_PACKAGER_CSR_FILENAME)'
@@ -11,9 +17,10 @@ OCSPCache = '/renewer/amppkg-ocsp'
 [ACMEConfig]
   [ACMEConfig.Production]
     DiscoURL = "$(ACME_DIRECTORY_URL)"
+    EABKid = "$(ACME_EAB_KID)"
+    EABHmac = "$(ACME_EAB_HMAC)"
     EmailAddress = "$(ACME_EMAIL_ADDRESS)"
     HttpChallengePort = 5002
     HttpWebRootDir = '/renewer/www'
     TlsChallengePort = 5003
-    # Uncomment if you need wildcard domains in your certs
-    # DnsProvider = "gcloud"
+    DnsProvider = "gcloud"
