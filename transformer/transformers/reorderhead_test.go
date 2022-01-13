@@ -42,20 +42,20 @@ func TestReorderHead(t *testing.T) {
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
-				// (1) <style amp-runtime> (inserted by ampruntimecss.go)
+				// (1) <script amp-story-dvh-polyfill> inline script tag
+				tt.ScriptAmpStoryDvhPolyfill,
+				// (2) <style amp-runtime> (inserted by ampruntimecss.go)
 				tt.StyleAMPRuntime,
-				// (2) <style amp-extension=amp-story> OR <link rel=stylesheet
+				// (3) <style amp-extension=amp-story> OR <link rel=stylesheet
 				// amp-extension=amp-story
 				// href=https://cdn.ampproject.org/v0/amp-story-1.0.css> (inserted by
 				// ExternalAmpStoryCssTransformer). Only one of these will be inserted
 				// by this transformer.
 				tt.LinkAmpStoryFont, tt.StyleAmpStory,
-				// (3) remaining <meta> tags (those other than <meta charset>)
+				// (4) remaining <meta> tags (those other than <meta charset>)
 				tt.MetaViewport,
-				// (4) AMP runtime .js <script> tag
+				// (5) AMP runtime .js <script> tag
 				tt.ScriptAMPRuntime,
-				// (5) <script amp-story-dvh-polyfill> inline script tag
-				tt.ScriptAmpStoryDvhPolyfill,
 				// (6) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
 				tt.ScriptAMPViewerRuntime,
 				// (7) <script> tags that are render delaying
@@ -97,20 +97,20 @@ func TestReorderHead(t *testing.T) {
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
 				tt.MetaCharset,
-				// (1) <style amp-runtime> (inserted by ampruntimecss.go)
+				// (1) <script amp-story-dvh-polyfill> inline script tag
+				tt.ScriptAmpStoryDvhPolyfill,
+				// (2) <style amp-runtime> (inserted by ampruntimecss.go)
 				tt.StyleAMPRuntime,
-				// (2) <style amp-extension=amp-story> OR <link rel=stylesheet
+				// (3) <style amp-extension=amp-story> OR <link rel=stylesheet
 				// amp-extension=amp-story
 				// href=https://cdn.ampproject.org/v0/amp-story-1.0.css> (inserted by
 				// ExternalAmpStoryCssTransformer). Only one of these will be inserted
 				// by this transformer.
 				tt.LinkAmpStoryFont, tt.StyleAmpStory,
-				// (3) remaining <meta> tags (those other than <meta charset>)
+				// (4) remaining <meta> tags (those other than <meta charset>)
 				tt.MetaViewport,
-				// (4) AMP runtime module/nomodule <script> tags
+				// (5) AMP runtime module/nomodule <script> tags
 				tt.ScriptAMPRuntimeModule, tt.ScriptAMPRuntimeNomodule,
-				// (5) <script amp-story-dvh-polyfill> inline script tag
-				tt.ScriptAmpStoryDvhPolyfill,
 				// (6) AMP viewer runtime .js <script> tag (inserted by AmpViewerScript)
 				tt.ScriptAMPViewerRuntime,
 				// (7) <script> tags that are render delaying
