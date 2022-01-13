@@ -48,15 +48,15 @@ type headNodes struct {
 // ReorderHead reorders the children of <head>. Specifically, it
 // orders the <head> like so:
 // (0) <meta charset> tag
-// (1) <style amp-runtime> (inserted by ampruntimecss.go)
-// (2) <style amp-extension=amp-story> OR <link rel=stylesheet
+// (1) <script amp-story-dvh-polyfill> inline script tag (see
+// AmpStoryCssTransformer)
+// (2) <style amp-runtime> (inserted by ampruntimecss.go)
+// (3) <style amp-extension=amp-story> OR <link rel=stylesheet
 // href=https://cdn.ampproject.org/v0/amp-story-1.0.css> (inserted by
 // AmpStoryCss). Only one of these will be inserted
 // by this transformer.
-// (3) remaining <meta> tags (those other than <meta charset>)
-// (4) AMP runtime <script> tag(s)
-// (5) <script amp-story-dvh-polyfill> inline script tag (see
-// AmpStoryCssTransformer)
+// (4) remaining <meta> tags (those other than <meta charset>)
+// (5) AMP runtime <script> tag(s)
 // (6) AMP viewer runtime .js <script> tag
 // (7) <script> tags that are render delaying
 // (8) <script> tags for remaining extensions
@@ -100,6 +100,11 @@ func ReorderHead(e *Context) error {
 	if hn.metaCharset != nil {
 		e.DOM.HeadNode.AppendChild(hn.metaCharset)
 	}
+	// We want the dvh polyfill to be before the amp-story styles to prevent
+	// triggering an increase to CLS score.
+	if hn.scriptAmpStoryDvhPolyfill != nil {
+		e.DOM.HeadNode.AppendChild(hn.scriptAmpStoryDvhPolyfill)
+	}
 	if hn.linkStylesheetRuntimeCSS != nil {
 		e.DOM.HeadNode.AppendChild(hn.linkStylesheetRuntimeCSS)
 	}
@@ -114,9 +119,6 @@ func ReorderHead(e *Context) error {
 	}
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.metaOther...)
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.scriptAMPRuntime...)
-	if hn.scriptAmpStoryDvhPolyfill != nil {
-		e.DOM.HeadNode.AppendChild(hn.scriptAmpStoryDvhPolyfill)
-	}
 	if hn.scriptAMPViewer != nil {
 		e.DOM.HeadNode.AppendChild(hn.scriptAMPViewer)
 	}
