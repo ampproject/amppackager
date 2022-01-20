@@ -63,6 +63,7 @@ type nodeMap map[string]*html.Node
 //  * <amp-img/amp-anim/img src>
 //  * <amp-img/amp-anim/img srcset>
 //  * <image href> / <image xlink:href> which are SVG-specific images.
+//  * <input src>
 //  * <link rel=icon href>
 //  * <link rel=preload as=image href>
 //  * <link rel=preload imagesrcset>
@@ -146,6 +147,9 @@ func URLRewrite(e *Context) error {
 
 		case "amp-video", "video":
 			ctx.parseSimpleImageAttr(n, "", "poster")
+
+		case "input":
+			ctx.parseSimpleImageAttr(n, "", "src")
 
 		case "image":
 			// For b/78468289, rewrite the 'href' or `xlink:href` attribute on an
