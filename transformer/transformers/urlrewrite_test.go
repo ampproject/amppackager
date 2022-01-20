@@ -239,6 +239,17 @@ func TestURLRewrite_svgUse(t *testing.T) {
 	runURLRewriteTestcases(t, tcs)
 }
 
+func TestURLRewrite_input_src(t *testing.T) {
+	tcs := []urlRewriteTestCase{
+		{
+			desc:     "simple src",
+			input:    `<input src=https://leak.com>`,
+			expected: `<input src="https://leak-com.cdn.ampproject.org/i/s/leak.com"/>`,
+		},
+	}
+	runURLRewriteTestcases(t, tcs)
+}
+
 func TestURLRewrite_ampStory(t *testing.T) {
 	tcs := []urlRewriteTestCase{
 		{
