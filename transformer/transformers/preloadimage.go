@@ -27,9 +27,10 @@ const maxHeroImages int = 2
 // A map which translates <amp-img> attributes (keys) to <link rel=preload> attributes (values).
 // Any HeroImage which has a <amp-img> node will also inherit these attribute values.
 var preloadAttributes = map[string]string{
-	"sizes":          "imagesizes",
 	"crossorigin":    "crossorigin",
+	"importance":     "importance",
 	"referrerpolicy": "referrerpolicy",
+	"sizes":          "imagesizes",
 }
 
 // HeroImage represents the necessary data to inject a <link ref=preload> and optional <img> tag.
@@ -108,6 +109,7 @@ func buildImg(ampImg *html.Node) *html.Node {
 		"alt",
 		"attribution",
 		"crossorigin",
+		"importance",
 		"object-fit",
 		"object-position",
 		"referrerpolicy",
