@@ -75,8 +75,7 @@ Ea8/B6hPatJ0ES8q/HO3X8IVQwVs1n3aAr0im0/T+Xc=
 `
 
 func TestNewFetcher(t *testing.T) {
-	_, apiURL, tearDown := tester.SetupFakeAPI()
-	defer tearDown()
+	_, apiURL := tester.SetupFakeAPI(t)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
@@ -98,8 +97,7 @@ func TestNewFetcher(t *testing.T) {
 }
 
 func TestFetchCertSuccess(t *testing.T) {
-	mux, apiURL, tearDown := tester.SetupFakeAPI()
-	defer tearDown()
+	mux, apiURL := tester.SetupFakeAPI(t)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
@@ -131,8 +129,7 @@ func TestFetchCertSuccess(t *testing.T) {
 }
 
 func TestFetchCertFail(t *testing.T) {
-	mux, apiURL, tearDown := tester.SetupFakeAPI()
-	defer tearDown()
+	mux, apiURL := tester.SetupFakeAPI(t)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
