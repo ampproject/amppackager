@@ -116,12 +116,27 @@ func (c *Client) RecordSetsListAll(zoneID string, filter ListFilter) ([]RecordSe
 	}
 }
 
+// RecordSetsGlobal retrieves the list of record sets with the GlobalListFilter criteria passed, across all zones. It
+// respects the GlobalListFilter.MaxItems value and returns no more records than requested. The result is the set of
+// records plus the "nextID" if available. This can be used as the GlobalListFilter.StartFrom value to handle
+// pagination manually
+func (c *Client) RecordSetsGlobal(filter GlobalListFilter) ([]RecordSet, string, error) {
+	if filter.MaxItems > RecordSetLimit {
+		return nil, "", fmt.Errorf("MaxItems must be between 1 and %d", RecordSetLimit)
+	}
+	resp, err := c.recordSetsGlobalList(filter)
+	if err != nil {
+		return nil, "", err
+	}
+	return resp.RecordSets, resp.NextID, nil
+}
+
 // RecordSetsGlobalListAll retrieves the complete list of record sets with the
 // GlobalListFilter criteria passed, across all zones.
 // It handles paging through results on the user's behalf.
 func (c *Client) RecordSetsGlobalListAll(filter GlobalListFilter) ([]RecordSet, error) {
-	if filter.MaxItems > 100 {
-		return nil, fmt.Errorf("MaxItems must be between 1 and 100")
+	if filter.MaxItems > RecordSetLimit {
+		return nil, fmt.Errorf("MaxItems must be between 1 and %d", RecordSetLimit)
 	}
 
 	rss := []RecordSet{}

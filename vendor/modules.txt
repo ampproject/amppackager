@@ -2,6 +2,7 @@
 cloud.google.com/go/compute/metadata
 # github.com/Azure/azure-sdk-for-go v32.4.0+incompatible
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-09-01/dns
+github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest v14.2.0+incompatible
 github.com/Azure/go-autorest
@@ -52,7 +53,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20220114200658-96bebbc98d1f
+# github.com/ampproject/amphtml v0.0.0-20220131171154-07cb943d06ae
 github.com/ampproject/amphtml/validator
 # github.com/aws/aws-sdk-go v1.39.0
 github.com/aws/aws-sdk-go/aws
@@ -106,7 +107,7 @@ github.com/boombuler/barcode/qr
 github.com/boombuler/barcode/utils
 # github.com/cenkalti/backoff/v4 v4.1.1
 github.com/cenkalti/backoff/v4
-# github.com/cespare/xxhash/v2 v2.1.1
+# github.com/cespare/xxhash/v2 v2.1.2
 github.com/cespare/xxhash/v2
 # github.com/cloudflare/cloudflare-go v0.20.0
 github.com/cloudflare/cloudflare-go
@@ -131,7 +132,7 @@ github.com/exoscale/egoscale/version
 github.com/fatih/structs
 # github.com/form3tech-oss/jwt-go v3.2.2+incompatible
 github.com/form3tech-oss/jwt-go
-# github.com/go-acme/lego/v4 v4.5.3
+# github.com/go-acme/lego/v4 v4.6.0
 github.com/go-acme/lego/v4/acme
 github.com/go-acme/lego/v4/acme/api
 github.com/go-acme/lego/v4/acme/api/internal/nonces
@@ -202,6 +203,7 @@ github.com/go-acme/lego/v4/providers/dns/gcore
 github.com/go-acme/lego/v4/providers/dns/gcore/internal
 github.com/go-acme/lego/v4/providers/dns/glesys
 github.com/go-acme/lego/v4/providers/dns/godaddy
+github.com/go-acme/lego/v4/providers/dns/godaddy/internal
 github.com/go-acme/lego/v4/providers/dns/hetzner
 github.com/go-acme/lego/v4/providers/dns/hetzner/internal
 github.com/go-acme/lego/v4/providers/dns/hostingde
@@ -262,6 +264,8 @@ github.com/go-acme/lego/v4/providers/dns/regru/internal
 github.com/go-acme/lego/v4/providers/dns/rfc2136
 github.com/go-acme/lego/v4/providers/dns/rimuhosting
 github.com/go-acme/lego/v4/providers/dns/route53
+github.com/go-acme/lego/v4/providers/dns/safedns
+github.com/go-acme/lego/v4/providers/dns/safedns/internal
 github.com/go-acme/lego/v4/providers/dns/sakuracloud
 github.com/go-acme/lego/v4/providers/dns/scaleway
 github.com/go-acme/lego/v4/providers/dns/selectel
@@ -272,6 +276,7 @@ github.com/go-acme/lego/v4/providers/dns/simply/internal
 github.com/go-acme/lego/v4/providers/dns/sonic
 github.com/go-acme/lego/v4/providers/dns/sonic/internal
 github.com/go-acme/lego/v4/providers/dns/stackpath
+github.com/go-acme/lego/v4/providers/dns/tencentcloud
 github.com/go-acme/lego/v4/providers/dns/transip
 github.com/go-acme/lego/v4/providers/dns/vegadns
 github.com/go-acme/lego/v4/providers/dns/versio
@@ -302,7 +307,7 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/go-cmp v0.5.6
+# github.com/google/go-cmp v0.5.7
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/cmpopts
 github.com/google/go-cmp/cmp/internal/diff
@@ -345,7 +350,7 @@ github.com/infobloxopen/infoblox-go-client
 github.com/jarcoal/httpmock
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
-# github.com/json-iterator/go v1.1.11
+# github.com/json-iterator/go v1.1.12
 github.com/json-iterator/go
 # github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213
 github.com/k0kubun/go-ansi
@@ -390,7 +395,7 @@ github.com/mitchellh/go-homedir
 github.com/mitchellh/mapstructure
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
-# github.com/modern-go/reflect2 v1.0.1
+# github.com/modern-go/reflect2 v1.0.2
 github.com/modern-go/reflect2
 # github.com/namedotcom/go v0.0.0-20180403034216-08470befbe04
 github.com/namedotcom/go/namecom
@@ -428,7 +433,7 @@ github.com/pquerna/cachecontrol/cacheobject
 github.com/pquerna/otp
 github.com/pquerna/otp/hotp
 github.com/pquerna/otp/totp
-# github.com/prometheus/client_golang v1.11.0
+# github.com/prometheus/client_golang v1.12.1
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promauto
@@ -442,7 +447,7 @@ github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/model
 github.com/prometheus/common/version
-# github.com/prometheus/procfs v0.6.0
+# github.com/prometheus/procfs v0.7.3
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
@@ -483,6 +488,14 @@ github.com/stretchr/testify/assert
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
+# github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.287
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/http
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/regions
+# github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.287
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323
 # github.com/transip/gotransip/v6 v6.6.1
 github.com/transip/gotransip/v6
 github.com/transip/gotransip/v6/authenticator
@@ -492,7 +505,7 @@ github.com/transip/gotransip/v6/repository
 github.com/transip/gotransip/v6/rest
 # github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 github.com/twifkak/crypto/ocsp
-# github.com/vinyldns/go-vinyldns v0.0.0-20200917153823-148a5f6b8f14
+# github.com/vinyldns/go-vinyldns v0.9.16
 github.com/vinyldns/go-vinyldns/vinyldns
 # github.com/vultr/govultr/v2 v2.7.1
 github.com/vultr/govultr/v2
@@ -516,14 +529,14 @@ go.opencensus.io/trace/tracestate
 # go.uber.org/ratelimit v0.0.0-20180316092928-c15da0234277
 go.uber.org/ratelimit
 go.uber.org/ratelimit/internal/clock
-# golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce
+# golang.org/x/crypto v0.0.0-20220128200615-198e4374d7ed
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
-# golang.org/x/net v0.0.0-20220114011407-0dd24b26b47d
+# golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -549,11 +562,11 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
+# golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.6
+# golang.org/x/text v0.3.7
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
 golang.org/x/text/encoding/internal
@@ -592,7 +605,7 @@ google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
 # google.golang.org/genproto v0.0.0-20200825200019-8632dd797987
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.43.0
+# google.golang.org/grpc v1.44.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
