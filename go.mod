@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/WICG/webpackage v0.0.0-20211216043408-ae41efe1dbc4
-	github.com/ampproject/amphtml v0.0.0-20220131171154-07cb943d06ae
+	github.com/ampproject/amphtml v0.0.0-20220207000323-ab769cddd5d8
 	github.com/go-acme/lego/v4 v4.6.0
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
@@ -17,7 +17,7 @@ require (
 	github.com/prometheus/common v0.32.1
 	github.com/stretchr/testify v1.7.0
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
-	golang.org/x/crypto v0.0.0-20220128200615-198e4374d7ed
+	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	google.golang.org/grpc v1.44.0
 	gopkg.in/square/go-jose.v2 v2.6.0
