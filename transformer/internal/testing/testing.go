@@ -59,6 +59,9 @@ const (
 	// LinkGoogleFontPreconnect is a preconnect for Google Fonts.
 	LinkGoogleFontPreconnect = "<link crossorigin=\"\" href=https://fonts.gstatic.com/ rel=\"dns-prefetch preconnect\">"
 
+	// MetaAuthor is an example of the "other" meta tags.
+	MetaAuthor = "<meta content=JohnDoe name=author>"
+
 	// MetaCharset is a required tag for an AMP document.
 	MetaCharset = "<meta charset=utf-8>"
 

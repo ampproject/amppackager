@@ -31,6 +31,7 @@ type headNodes struct {
 	linkStylesheetRuntimeCSS      *html.Node
 	linkStylesheetAmpStoryCSS     *html.Node
 	metaCharset                   *html.Node
+	metaViewport                  *html.Node
 	metaOther                     []*html.Node
 	noscript                      *html.Node
 	other                         []*html.Node
@@ -99,6 +100,13 @@ func ReorderHead(e *Context) error {
 	// Append children of <head> in specific order.
 	if hn.metaCharset != nil {
 		e.DOM.HeadNode.AppendChild(hn.metaCharset)
+	}
+	// We want the `<meta name=viewport>` to be before the dvh polyfill
+	// because the `<meta name=viewport>` can trigger a change on the innerHeight
+	// of the document on iOS which doesn't cause a resize event. This can cause
+	// the calculation in the dvh polyfill script to be incorrect.
+	if hn.metaViewport != nil {
+		e.DOM.HeadNode.AppendChild(hn.metaViewport)
 	}
 	// We want the dvh polyfill to be before the amp-story styles to prevent
 	// triggering an increase to CLS score.
@@ -179,6 +187,11 @@ func registerLink(n *html.Node, hn *headNodes) {
 func registerMeta(n *html.Node, hn *headNodes) {
 	if htmlnode.HasAttribute(n, "", "charset") {
 		hn.metaCharset = n
+		return
+	}
+	if v, ok := htmlnode.GetAttributeVal(n, "", "name"); ok &&
+		v == "viewport" {
+		hn.metaViewport = n
 		return
 	}
 	hn.metaOther = append(hn.metaOther, n)
