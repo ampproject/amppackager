@@ -37,7 +37,7 @@ func TestReorderHead(t *testing.T) {
 				tt.MetaViewport, tt.StyleAMPCustom, tt.LinkCanonical,
 				tt.LinkFavicon, tt.ScriptAMPViewerRuntime, tt.MetaAuthor,
 				tt.ScriptAMPMustache, tt.ScriptAMPMraid,
-				tt.StyleAmpStory, tt.LinkAmpStoryFont,
+				tt.LinkAmpStoryFont,
 				"</head><body></body></html>"),
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
@@ -48,12 +48,9 @@ func TestReorderHead(t *testing.T) {
 				tt.ScriptAmpStoryDvhPolyfill,
 				// (3) <style amp-runtime> (inserted by ampruntimecss.go)
 				tt.StyleAMPRuntime,
-				// (4) <style amp-extension=amp-story> OR <link rel=stylesheet
-				// amp-extension=amp-story
-				// href=https://cdn.ampproject.org/v0/amp-story-1.0.css> (inserted by
-				// ExternalAmpStoryCssTransformer). Only one of these will be inserted
-				// by this transformer.
-				tt.LinkAmpStoryFont, tt.StyleAmpStory,
+				// (4) <link rel=stylesheet amp-extension=amp-story
+				// href=https://cdn.ampproject.org/v0/amp-story-1.0.css>
+				tt.LinkAmpStoryFont,
 				// (5) remaining <meta> tags (those other than <meta charset>, <meta name=viewport>)
 				tt.MetaAuthor,
 				// (6) AMP runtime .js <script> tag
@@ -94,7 +91,7 @@ func TestReorderHead(t *testing.T) {
 				tt.LinkFavicon, tt.ScriptAMPViewerRuntime,
 				tt.ScriptAMPMustacheNomodule, tt.ScriptAMPMustacheModule,
 				tt.ScriptAMPMraidNomodule, tt.ScriptAMPMraidModule,
-				tt.StyleAmpStory, tt.LinkAmpStoryFont, tt.MetaAuthor,
+				tt.LinkAmpStoryFont, tt.MetaAuthor,
 				"</head><body></body></html>"),
 			Expected: tt.Concat(tt.Doctype, "<html ⚡><head>",
 				// (0) <meta charset> tag
@@ -105,12 +102,9 @@ func TestReorderHead(t *testing.T) {
 				tt.ScriptAmpStoryDvhPolyfill,
 				// (3) <style amp-runtime> (inserted by ampruntimecss.go)
 				tt.StyleAMPRuntime,
-				// (4) <style amp-extension=amp-story> OR <link rel=stylesheet
-				// amp-extension=amp-story
-				// href=https://cdn.ampproject.org/v0/amp-story-1.0.css> (inserted by
-				// ExternalAmpStoryCssTransformer). Only one of these will be inserted
-				// by this transformer.
-				tt.LinkAmpStoryFont, tt.StyleAmpStory,
+				// (4) <link rel=stylesheet amp-extension=amp-story
+				// href=https://cdn.ampproject.org/v0/amp-story-1.0.css>
+				tt.LinkAmpStoryFont,
 				// (5) remaining <meta> tags (those other than <meta charset>, <meta
 				// name=viewport>)
 				tt.MetaAuthor,

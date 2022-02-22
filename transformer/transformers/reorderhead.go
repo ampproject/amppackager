@@ -43,7 +43,6 @@ type headNodes struct {
 	styleAMPBoilerplate           *html.Node
 	styleAMPCustom                *html.Node
 	styleAMPRuntime               *html.Node
-	styleAMPStory                 *html.Node
 }
 
 // ReorderHead reorders the children of <head>. Specifically, it
@@ -121,9 +120,6 @@ func ReorderHead(e *Context) error {
 	}
 	if hn.linkStylesheetAmpStoryCSS != nil {
 		e.DOM.HeadNode.AppendChild(hn.linkStylesheetAmpStoryCSS)
-	}
-	if hn.styleAMPStory != nil {
-		e.DOM.HeadNode.AppendChild(hn.styleAMPStory)
 	}
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.metaOther...)
 	htmlnode.AppendChildren(e.DOM.HeadNode, hn.scriptAMPRuntime...)
@@ -234,11 +230,6 @@ func registerStyle(n *html.Node, hn *headNodes) {
 	}
 	if htmlnode.HasAttribute(n, "", amphtml.AMPRuntime) {
 		hn.styleAMPRuntime = n
-		return
-	}
-	if v, ok := htmlnode.GetAttributeVal(n, "", "amp-extension"); ok &&
-		v == "amp-story" {
-		hn.styleAMPStory = n
 		return
 	}
 	hn.other = append(hn.other, n)
