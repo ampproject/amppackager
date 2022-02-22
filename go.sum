@@ -66,8 +66,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87 h1:xPMsUicZ3iosVPSIP7bW5EcGUzjiiMl1OYTe14y/R24=
 github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87/go.mod h1:iGLljf5n9GjT6kc0HBvyI1nOKnGQbNB66VzSNbK5iks=
-github.com/WICG/webpackage v0.0.0-20211216043408-ae41efe1dbc4 h1:57vBmm5XgBZ5ZnUBFxRL29fdAJ1ipfvwraCMANwL/20=
-github.com/WICG/webpackage v0.0.0-20211216043408-ae41efe1dbc4/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
+github.com/WICG/webpackage v0.0.0-20220222034327-4795a9c10e50 h1:CVLB1Ky6Y+2hg8r0AVGqzR5T0Z4Gb2jjm0oqQ8tvdbY=
+github.com/WICG/webpackage v0.0.0-20220222034327-4795a9c10e50/go.mod h1:RmCSqjSsrBtTrYiO+OKMBfMgztnTnFXVSapi/mNB7IA=
 github.com/akamai/AkamaiOPEN-edgegrid-golang v1.1.1 h1:bLzehmpyCwQiqCE1Qe9Ny6fbFqs7hPlmo9vKv2orUxs=
 github.com/akamai/AkamaiOPEN-edgegrid-golang v1.1.1/go.mod h1:kX6YddBkXqqywAe8c9LyvgTCyFuZCTMF4cRPQhc3Fy8=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
@@ -77,8 +77,8 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d/go.mod h1:rBZYJk541a8SKzHPHnH3zbiI+7dagKZ0cgpgrD7Fyho=
 github.com/aliyun/alibaba-cloud-sdk-go v1.61.1183 h1:dkj8/dxOQ4L1XpwCzRLqukvUBbxuNdz3FeyvHFnRjmo=
 github.com/aliyun/alibaba-cloud-sdk-go v1.61.1183/go.mod h1:pUKYbK5JQ+1Dfxk80P0qxGqe5dkxDoabbZS7zOcouyA=
-github.com/ampproject/amphtml v0.0.0-20220211233944-fdb1fec60b22 h1:qRzZYva5vi0yS+Fv2iev9Y1cfm+Pgl6rXHw6z7kfsoM=
-github.com/ampproject/amphtml v0.0.0-20220211233944-fdb1fec60b22/go.mod h1:VdGPUI5OhDH1JDFyOSvCz3x2Ap3YmdLvJ0QboKqoc1c=
+github.com/ampproject/amphtml v0.0.0-20220219000327-160dcd9c93d3 h1:Ku5TSzytrPuYHE3l1+Bcb6EHZQ2K37zw26iBS3mV6Sc=
+github.com/ampproject/amphtml v0.0.0-20220219000327-160dcd9c93d3/go.mod h1:VdGPUI5OhDH1JDFyOSvCz3x2Ap3YmdLvJ0QboKqoc1c=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
@@ -612,8 +612,8 @@ golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad/go.mod h1:jdWPYTVW3xRLrWP
 golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83/go.mod h1:jdWPYTVW3xRLrWPugEBEK3UY2ZEsg3UU495nc5E+M+I=
 golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a/go.mod h1:P+XmwS30IXTQdn5tA2iutPOUgjI07+tq3H3K9MVA1s8=
 golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
-golang.org/x/crypto v0.0.0-20220213190939-1e6e3497d506 h1:EuGTJDfeg/PGZJp3gq1K+14eSLFTsrj1eg8KQuiUyKg=
-golang.org/x/crypto v0.0.0-20220213190939-1e6e3497d506/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
+golang.org/x/crypto v0.0.0-20220214200702-86341886e292 h1:f+lwQ+GtmgoY+A2YaQxlSOnDjXcQ7ZRLWOHbC6HtRqE=
+golang.org/x/crypto v0.0.0-20220214200702-86341886e292/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
