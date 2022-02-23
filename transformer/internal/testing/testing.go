@@ -157,8 +157,6 @@ const (
 	// StyleAMPRuntime is an injected tag from server-side rendering.
 	StyleAMPRuntime = "<style amp-runtime></style>"
 
-	StyleAmpStory = "<style amp-extension=amp-story></style>"
-
 	// Title is a title tag for an AMP document.
 	Title = "<title>Hello AMP</title>"
 )
