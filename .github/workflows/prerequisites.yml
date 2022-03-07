@@ -13,7 +13,7 @@ jobs:
       run: go get golang.org/x/tools/cmd/goimports
 
     - name: Checkout the repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
 # Comment this out for now until amppackager passes goimports.
 # https://github.com/ampproject/amppackager/issues/506
@@ -32,7 +32,7 @@ jobs:
         go-version: '1.17'
 
     - name: Checkout the repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Diagnose the code with go vet
       # TODO(banaag): Turn on composite checking when
@@ -48,7 +48,7 @@ jobs:
         go-version: '1.17'
 
     - name: Checkout the repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Run the tests
       run: make test
