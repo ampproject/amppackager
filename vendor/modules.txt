@@ -53,7 +53,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20220502064913-2a8db3a13267
+# github.com/ampproject/amphtml v0.0.0-20220505201245-3658b8bf865c
 github.com/ampproject/amphtml/validator
 # github.com/aws/aws-sdk-go v1.39.0
 github.com/aws/aws-sdk-go/aws
@@ -530,7 +530,7 @@ go.opencensus.io/trace/tracestate
 # go.uber.org/ratelimit v0.0.0-20180316092928-c15da0234277
 go.uber.org/ratelimit
 go.uber.org/ratelimit/internal/clock
-# golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f
+# golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
