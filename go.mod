@@ -10,6 +10,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.8
 	github.com/kylelemons/godebug v1.1.0
+	github.com/miekg/dns v1.1.47 // indirect
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.1.0
@@ -22,3 +23,5 @@ require (
 	google.golang.org/grpc v1.47.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
+
+replace github.com/WICG/webpackage v0.0.0-20220603070345-e4e2fab6b72c => github.com/WICG/webpackage v0.0.0-20220530033255-ba99f6be9166
