@@ -53,7 +53,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20220608230108-32e83d3790f3
+# github.com/ampproject/amphtml v0.0.0-20220610163742-89e43e107472
 github.com/ampproject/amphtml/validator
 # github.com/aws/aws-sdk-go v1.39.0
 github.com/aws/aws-sdk-go/aws

@@ -4,13 +4,12 @@ go 1.13
 
 require (
 	github.com/WICG/webpackage v0.0.0-20220603070345-e4e2fab6b72c
-	github.com/ampproject/amphtml v0.0.0-20220608230108-32e83d3790f3
+	github.com/ampproject/amphtml v0.0.0-20220610163742-89e43e107472
 	github.com/go-acme/lego/v4 v4.7.0
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.8
 	github.com/kylelemons/godebug v1.1.0
-	github.com/miekg/dns v1.1.47 // indirect
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.1.0
