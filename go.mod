@@ -3,8 +3,8 @@ module github.com/ampproject/amppackager
 go 1.13
 
 require (
-	github.com/WICG/webpackage v0.0.0-20220603070345-e4e2fab6b72c
-	github.com/ampproject/amphtml v0.0.0-20220610163742-89e43e107472
+	github.com/WICG/webpackage 40128674f59f
+	github.com/ampproject/amphtml f8fbcf58e78e
 	github.com/go-acme/lego/v4 v4.7.0
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
