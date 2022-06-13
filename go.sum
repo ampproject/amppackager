@@ -77,8 +77,8 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d/go.mod h1:rBZYJk541a8SKzHPHnH3zbiI+7dagKZ0cgpgrD7Fyho=
 github.com/aliyun/alibaba-cloud-sdk-go v1.61.1183 h1:dkj8/dxOQ4L1XpwCzRLqukvUBbxuNdz3FeyvHFnRjmo=
 github.com/aliyun/alibaba-cloud-sdk-go v1.61.1183/go.mod h1:pUKYbK5JQ+1Dfxk80P0qxGqe5dkxDoabbZS7zOcouyA=
-github.com/ampproject/amphtml v0.0.0-20220610163742-89e43e107472 h1:P97sTmuytilPcuUvBmS/0oREBEeGkFOP0h95a97AbE0=
-github.com/ampproject/amphtml v0.0.0-20220610163742-89e43e107472/go.mod h1:VdGPUI5OhDH1JDFyOSvCz3x2Ap3YmdLvJ0QboKqoc1c=
+github.com/ampproject/amphtml v0.0.0-20220613145038-f8fbcf58e78e h1:tJOfVvByLGRrO82wf1NX/CyM37ogn7th6Vppncz5ajs=
+github.com/ampproject/amphtml v0.0.0-20220613145038-f8fbcf58e78e/go.mod h1:VdGPUI5OhDH1JDFyOSvCz3x2Ap3YmdLvJ0QboKqoc1c=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
