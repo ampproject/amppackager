@@ -33,7 +33,7 @@ var (
 
 	stringType = reflect.TypeOf("")
 
-	timeType  = reflect.TypeOf(time.Time{})
+	timeType = reflect.TypeOf(time.Time{})
 	bytesType = reflect.TypeOf([]byte{})
 )
 
