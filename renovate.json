@@ -12,6 +12,8 @@
     {
       "matchLanguages": ["golang"],
       "groupName": "golang dependencies"
+      "matchPackagePatterns": ["webpackage"],
+      "enabled": false
     }
   ]
 }
