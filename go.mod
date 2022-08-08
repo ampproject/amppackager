@@ -1,10 +1,10 @@
 module github.com/ampproject/amppackager
 
-go 1.18
+go 1.19
 
 require (
-	github.com/WICG/webpackage v0.0.0-20220713083609-a422fce5be9e
-	github.com/ampproject/amphtml v0.0.0-20220729180726-ecf87bf05e3f
+	github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed
+	github.com/ampproject/amphtml v0.0.0-20220805191258-5f50e49dee34
 	github.com/go-acme/lego/v4 v4.8.0
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
@@ -13,12 +13,12 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.1.0
-	github.com/prometheus/client_golang v1.12.2
+	github.com/prometheus/client_golang v1.13.0
 	github.com/prometheus/common v0.37.0
 	github.com/stretchr/testify v1.8.0
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
-	golang.org/x/net v0.0.0-20220728211354-c7608f3a8462
+	golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48
 	google.golang.org/grpc v1.48.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
@@ -99,7 +99,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/otp v1.3.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/procfs v0.7.3 // indirect
+	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/sacloud/libsacloud v1.36.2 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.7.0.20210127161313-bd30bebeac4f // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
@@ -125,11 +125,11 @@ require (
 	google.golang.org/api v0.30.0 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20200825200019-8632dd797987 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/ns1/ns1-go.v2 v2.6.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/WICG/webpackage v0.0.0-20220713083609-a422fce5be9e => github.com/WICG/webpackage v0.0.0-20220530033255-ba99f6be9166
+replace github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed => github.com/WICG/webpackage v0.0.0-20220530033255-ba99f6be9166

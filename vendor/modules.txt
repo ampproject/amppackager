@@ -40,7 +40,7 @@ github.com/Azure/go-autorest/tracing
 # github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87
 ## explicit
 github.com/OpenDNS/vegadns2client
-# github.com/WICG/webpackage v0.0.0-20220713083609-a422fce5be9e => github.com/WICG/webpackage v0.0.0-20220530033255-ba99f6be9166
+# github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed => github.com/WICG/webpackage v0.0.0-20220530033255-ba99f6be9166
 ## explicit
 github.com/WICG/webpackage/go/internal/signingalgorithm
 github.com/WICG/webpackage/go/signedexchange
@@ -69,7 +69,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20220729180726-ecf87bf05e3f
+# github.com/ampproject/amphtml v0.0.0-20220805191258-5f50e49dee34
 ## explicit
 github.com/ampproject/amphtml/validator
 # github.com/aws/aws-sdk-go v1.39.0
@@ -537,8 +537,8 @@ github.com/pquerna/cachecontrol/cacheobject
 github.com/pquerna/otp
 github.com/pquerna/otp/hotp
 github.com/pquerna/otp/totp
-# github.com/prometheus/client_golang v1.12.2
-## explicit; go 1.13
+# github.com/prometheus/client_golang v1.13.0
+## explicit; go 1.17
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promauto
@@ -554,8 +554,8 @@ github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/model
 github.com/prometheus/common/version
-# github.com/prometheus/procfs v0.7.3
-## explicit; go 1.13
+# github.com/prometheus/procfs v0.8.0
+## explicit; go 1.17
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
@@ -664,7 +664,7 @@ golang.org/x/crypto/pkcs12/internal/rc2
 # golang.org/x/mod v0.4.2
 ## explicit; go 1.12
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20220728211354-c7608f3a8462
+# golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48
 ## explicit; go 1.17
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -806,8 +806,8 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.27.1
-## explicit; go 1.9
+# google.golang.org/protobuf v1.28.1
+## explicit; go 1.11
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
