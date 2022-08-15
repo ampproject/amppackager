@@ -69,7 +69,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20220808165047-beb9a33429ef
+# github.com/ampproject/amphtml v0.0.0-20220812170850-c9c6de085436
 ## explicit
 github.com/ampproject/amphtml/validator
 # github.com/aws/aws-sdk-go v1.39.0
@@ -664,7 +664,7 @@ golang.org/x/crypto/pkcs12/internal/rc2
 # golang.org/x/mod v0.4.2
 ## explicit; go 1.12
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48
+# golang.org/x/net v0.0.0-20220812174116-3211cb980234
 ## explicit; go 1.17
 golang.org/x/net/bpf
 golang.org/x/net/context
