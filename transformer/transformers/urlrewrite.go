@@ -60,21 +60,21 @@ type nodeMap map[string]*html.Node
 
 // URLRewrite rewrites links to point to the AMP Cache and adds DNS preconnects to the <head>
 // Affected links:
-//  * <amp-img/amp-anim/img src>
-//  * <amp-img/amp-anim/img srcset>
-//  * <image href> / <image xlink:href> which are SVG-specific images.
-//  * <input src>
-//  * <link rel=icon href>
-//  * <link rel=preload as=image href>
-//  * <link rel=preload imagesrcset>
-//  * <amp-story-page-attachment cta-image>
-//  * <amp-story-page-attachemnt cta-image-2>
-//  * <amp-story-page-outlink cta-image>
-//  * <amp-video poster>
-//  * <use xlink:href>
-//  * a background image given in the <style amp-custom> tag / style attribute
-//  * any fonts given in the <style amp-custom> tag / style attribute
-//  * background attributes.
+//   - <amp-img/amp-anim/img src>
+//   - <amp-img/amp-anim/img srcset>
+//   - <image href> / <image xlink:href> which are SVG-specific images.
+//   - <input src>
+//   - <link rel=icon href>
+//   - <link rel=preload as=image href>
+//   - <link rel=preload imagesrcset>
+//   - <amp-story-page-attachment cta-image>
+//   - <amp-story-page-attachemnt cta-image-2>
+//   - <amp-story-page-outlink cta-image>
+//   - <amp-video poster>
+//   - <use xlink:href>
+//   - a background image given in the <style amp-custom> tag / style attribute
+//   - any fonts given in the <style amp-custom> tag / style attribute
+//   - background attributes.
 func URLRewrite(e *Context) error {
 	var ctx urlRewriteContext
 
@@ -139,11 +139,11 @@ func URLRewrite(e *Context) error {
 			}
 
 		case "amp-story-page-attachment":
-			ctx.parseSimpleImageAttr(n, "", "cta-image")
-			ctx.parseSimpleImageAttr(n, "", "cta-image-2")
+			ctx.parseCtaImageAttr(n, "", "cta-image")
+			ctx.parseCtaImageAttr(n, "", "cta-image-2")
 
 		case "amp-story-outlink":
-			ctx.parseSimpleImageAttr(n, "", "cta-image")
+			ctx.parseCtaImageAttr(n, "", "cta-image")
 
 		case "amp-video", "video":
 			ctx.parseSimpleImageAttr(n, "", "poster")
@@ -296,6 +296,16 @@ func (ctx *urlRewriteContext) parseSimpleImageAttr(n *html.Node, namespace, attr
 		nc := elementNodeContext{n, namespace, attrName, []amphtml.SubresourceOffset{amphtml.SubresourceOffset{
 			SubType: amphtml.ImageType, Start: 0, End: len(v)}}}
 		*ctx = append(*ctx, &nc)
+	}
+}
+
+// parseCtaImageAttr parses the specified attribute value, and causes parseSimpleImageAttr to be
+// called as long as the value is not the string "none".
+// This is common in AMP-story related components with attributes "cta-image"
+// and "cta-image-2".
+func (ctx *urlRewriteContext) parseCtaImageAttr(n *html.Node, namespace, attrName string) {
+	if v, ok := htmlnode.GetAttributeVal(n, namespace, attrName); ok && v != "none" {
+		ctx.parseSimpleImageAttr(n, namespace, attrName)
 	}
 }
 

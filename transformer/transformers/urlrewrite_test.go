@@ -267,6 +267,21 @@ func TestURLRewrite_ampStory(t *testing.T) {
 			input:    `<amp-story-outlink cta-image=https://www.example.com/foo.png></amp-story-page-attachment>`,
 			expected: `<amp-story-outlink cta-image="https://www-example-com.cdn.ampproject.org/i/s/www.example.com/foo.png"></amp-story-outlink>`,
 		},
+		{
+			desc:     "amp-story-page-attachment cta-image",
+			input:    `<amp-story-page-attachment cta-image=none></amp-story-page-attachment>`,
+			expected: `<amp-story-page-attachment cta-image="none"></amp-story-page-attachment>`,
+		},
+		{
+			desc:     "amp-story-page-attachment cta-image-2",
+			input:    `<amp-story-page-attachment cta-image-2=none>`,
+			expected: `<amp-story-page-attachment cta-image-2="none"></amp-story-page-attachment>`,
+		},
+		{
+			desc:     "amp-story-outlink cta-image",
+			input:    `<amp-story-outlink cta-image=none></amp-story-page-attachment>`,
+			expected: `<amp-story-outlink cta-image="none"></amp-story-outlink>`,
+		},
 	}
 	runURLRewriteTestcases(t, tcs)
 }

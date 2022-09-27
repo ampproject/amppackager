@@ -43,38 +43,37 @@ var /* const */ imgTagAttrs = []string{"longdesc"}
 // * leading and trailing whitespace are trimmed.
 //
 // * The following attributes may be rewritten:
-//   * Any tag with attribute:
-//     * background
-//     * href
-//     * poster
-//     * src
-//   * Any <amp-install-serviceworker> with attribute:
-//     * data-iframe-src
-//     * data-no-service-worker-fallback-shell-url
-//   * Any <amp-story> tag with attribute:
-//     * background-audio
-//     * bookend-config-src
-//     * poster-landscape-src
-//     * poster-square-src
-//     * publisher-logo-src
-//   * Any <amp-story-page> tag with attribute:
-//     * background-audio
-//   * Any <amp-story-page-attachment> tag with attribute:
-//     * cta-image
-//     * cta-image-2
-//   * Any <amp-story-page-outlink> tag with attribute:
-//     * cta-image
-//   * Any <form> tag with attribute:
-//     * action
-//     * action-xhr
-//   * Any <img> tag with attribute:
-//     * longdesc
-//   * Any <link> tag with attribute:
-//     * imagesrcset
+//   - Any tag with attribute:
+//   - background
+//   - href
+//   - poster
+//   - src
+//   - Any <amp-install-serviceworker> with attribute:
+//   - data-iframe-src
+//   - data-no-service-worker-fallback-shell-url
+//   - Any <amp-story> tag with attribute:
+//   - background-audio
+//   - bookend-config-src
+//   - poster-landscape-src
+//   - poster-square-src
+//   - publisher-logo-src
+//   - Any <amp-story-page> tag with attribute:
+//   - background-audio
+//   - Any <amp-story-page-attachment> tag with attribute:
+//   - cta-image
+//   - cta-image-2
+//   - Any <amp-story-page-outlink> tag with attribute:
+//   - cta-image
+//   - Any <form> tag with attribute:
+//   - action
+//   - action-xhr
+//   - Any <img> tag with attribute:
+//   - longdesc
+//   - Any <link> tag with attribute:
+//   - imagesrcset
 //
 // URLs in stylesheets and srcsets are handled by the ExternalUrlRewrite
 // transformer.
-//
 func AbsoluteURL(e *Context) error {
 	documentURL := e.DocumentURL.String()
 
@@ -107,10 +106,10 @@ func AbsoluteURL(e *Context) error {
 				rewriteAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryPageTagAttrs)
 			case "amp-story-page-attachment":
 				// Make attributes with URLs portable on <amp-story-page-attachment> tag.
-				rewriteAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryPageAttachmentTagAttrs)
+				rewriteCtaImageAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryPageAttachmentTagAttrs)
 			case "amp-story-page-outlink":
 				// Make attributes with URLs portable on <amp-story-page-outlink> tag.
-				rewriteAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryPageOutlinkTagAttrs)
+				rewriteCtaImageAbsoluteURLs(n, documentURL, e.BaseURL, ampStoryPageOutlinkTagAttrs)
 			}
 		}
 
@@ -164,7 +163,7 @@ func AbsoluteURL(e *Context) error {
 		// Tags with xlink:href attribute.
 		if href, ok := htmlnode.FindAttribute(n, "xlink", "href"); ok {
 			htmlnode.SetAttribute(n, "xlink", "href",
-			  amphtml.ToAbsoluteURL(documentURL, e.BaseURL, href.Val))
+				amphtml.ToAbsoluteURL(documentURL, e.BaseURL, href.Val))
 		}
 		if srcset, ok := htmlnode.FindAttribute(n, "", "srcset"); ok {
 			htmlnode.SetAttribute(n, "", "srcset", rewriteSrcsetURLs(documentURL, e.BaseURL, srcset.Val))
@@ -184,6 +183,19 @@ func rewriteAbsoluteURLs(n *html.Node, documentURL string, baseURL *url.URL,
 	tagAttrs []string) {
 	for _, attr := range tagAttrs {
 		if v, ok := htmlnode.GetAttributeVal(n, "", attr); ok {
+			htmlnode.SetAttribute(n, "", attr,
+				amphtml.ToAbsoluteURL(documentURL, baseURL, v))
+		}
+	}
+}
+
+// rewriteAbsoluteURLs rewrites AMP-story-related "cta-image" URLs to be absolute for the base URL
+// provided.
+// This varies from rewriteAbsoluteURLs in that it preserves the value "none".
+func rewriteCtaImageAbsoluteURLs(n *html.Node, documentURL string, baseURL *url.URL,
+	tagAttrs []string) {
+	for _, attr := range tagAttrs {
+		if v, ok := htmlnode.GetAttributeVal(n, "", attr); ok && v != "none" {
 			htmlnode.SetAttribute(n, "", attr,
 				amphtml.ToAbsoluteURL(documentURL, baseURL, v))
 		}

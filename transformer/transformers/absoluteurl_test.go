@@ -255,6 +255,12 @@ func TestSpecificTagsAreAbsoluted(t *testing.T) {
     </amp-story-page-attachment>
     <amp-story-page-outlink layout=nodisplay cta-image=/foo>
     </amp-story-page-outlink>
+		<amp-story-page-attachment layout="nodisplay"
+			 cta-image=none
+			 cta-image-2=none>
+		</amp-story-page-attachment>
+		<amp-story-page-outlink layout="nodisplay" cta-image=none>
+		</amp-story-page-outlink>
     <form action=/foo></form>
     <form action-xhr=/foo></form>
     <svg><image xlink:href=/foo><image></svg>
@@ -286,5 +292,10 @@ func TestSpecificTagsAreAbsoluted(t *testing.T) {
 		strings.Contains(seen.String(), "\"/foo") ||
 		strings.Contains(seen.String(), "'/foo") {
 		t.Errorf("Relative URL found: %s", seen.String())
+	}
+
+	if strings.Contains(seen.String(), "/none") {
+		t.Errorf("\"none\" should be preserved but was transformed to an absolute URL: %s",
+			seen.String())
 	}
 }
