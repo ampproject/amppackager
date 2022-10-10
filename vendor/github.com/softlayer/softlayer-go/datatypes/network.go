@@ -863,31 +863,6 @@ type Network_Bandwidth_Version1_Allotment_Type struct {
 	ShortDescription *string `json:"shortDescription,omitempty" xmlrpc:"shortDescription,omitempty"`
 }
 
-// [DEPRECATED] The SoftLayer_Network_Bandwidth_Version1_Host type contains general information used to the route a server to its pod.
-type Network_Bandwidth_Version1_Host struct {
-	Entity
-
-	// Pod ID for this host device.
-	PodId *int `json:"podId,omitempty" xmlrpc:"podId,omitempty"`
-}
-
-// [DEPRECATED] All bandwidth tracking is maintained through the switch that the bandwidth is used through.  All bandwidth is stored in a "pod" repository.  An interface links the hardware switch with the pod repository identification number. This is only relevant to bandwidth data.  It is not common to use this.
-type Network_Bandwidth_Version1_Interface struct {
-	Entity
-
-	// [DEPRECATED] The host for an interface. This is not to be confused with SoftLayer Hardware
-	Host *Network_Bandwidth_Version1_Host `json:"host,omitempty" xmlrpc:"host,omitempty"`
-
-	// A interface's host.  The host stores the pod number for the bandwidth data.
-	HostId *int `json:"hostId,omitempty" xmlrpc:"hostId,omitempty"`
-
-	// [DEPRECATED] The switch for an interface.
-	NetworkComponent *Network_Component `json:"networkComponent,omitempty" xmlrpc:"networkComponent,omitempty"`
-
-	// The network component for this interface.
-	NetworkComponentId *int `json:"networkComponentId,omitempty" xmlrpc:"networkComponentId,omitempty"`
-}
-
 // The SoftLayer_Network_Bandwidth_Version1_Usage data type contains general information relating to a single bandwidth usage record.
 type Network_Bandwidth_Version1_Usage struct {
 	Entity
@@ -1084,9 +1059,6 @@ type Network_Component struct {
 	// A network component's internal identifier.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
-	// [DEPRECATED] A hardware switch's interface to the bandwidth pod.
-	Interface *Network_Bandwidth_Version1_Interface `json:"interface,omitempty" xmlrpc:"interface,omitempty"`
-
 	// A count of the records of all IP addresses bound to a network component.
 	IpAddressBindingCount *uint `json:"ipAddressBindingCount,omitempty" xmlrpc:"ipAddressBindingCount,omitempty"`
 
@@ -1190,6 +1162,7 @@ type Network_Component struct {
 	Status *string `json:"status,omitempty" xmlrpc:"status,omitempty"`
 
 	// Whether a network component's primary ip address is from a storage network subnet or not. [Deprecated]
+	// Deprecated: This function has been marked as deprecated.
 	StorageNetworkFlag *bool `json:"storageNetworkFlag,omitempty" xmlrpc:"storageNetworkFlag,omitempty"`
 
 	// A count of a network component's subnets. A subnet is a group of IP addresses
@@ -1259,7 +1232,7 @@ type Network_Component_Firewall struct {
 	// The currently running rule set of this network component firewall.
 	Rules []Network_Component_Firewall_Rule `json:"rules,omitempty" xmlrpc:"rules,omitempty"`
 
-	// Current status of the network component firewall.
+	// Current status of the network component firewall. Status "no_edit" means this host is not protected by a hardware firewall. Status "allow_edit" means this host is protected by a hardware firewall and processing firewall rules. Status "bypass" means this host is provisioned behind a hardware firewall, but bypassing the firewall rules.
 	Status *string `json:"status,omitempty" xmlrpc:"status,omitempty"`
 
 	// A count of the additional subnets linked to this network component firewall.
@@ -1345,6 +1318,9 @@ type Network_Component_Group struct {
 
 	// no documentation yet
 	GroupTypeId *int `json:"groupTypeId,omitempty" xmlrpc:"groupTypeId,omitempty"`
+
+	// A succinct label describing the members of this grouping.
+	MembersDescription *string `json:"membersDescription,omitempty" xmlrpc:"membersDescription,omitempty"`
 
 	// A count of a network component group's associated network components.
 	NetworkComponentCount *uint `json:"networkComponentCount,omitempty" xmlrpc:"networkComponentCount,omitempty"`
@@ -1835,11 +1811,23 @@ type Network_Gateway_Member struct {
 	// A gateway member's internal identifier.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
+	// A count of the gateway licenses for this member.
+	LicenseCount *uint `json:"licenseCount,omitempty" xmlrpc:"licenseCount,omitempty"`
+
+	// The gateway licenses for this member.
+	Licenses []Network_Gateway_Member_Licenses `json:"licenses,omitempty" xmlrpc:"licenses,omitempty"`
+
 	// The gateway this member belongs to.
 	NetworkGateway *Network_Gateway `json:"networkGateway,omitempty" xmlrpc:"networkGateway,omitempty"`
 
 	// The internal identifier of the gateway this member belongs to.
 	NetworkGatewayId *int `json:"networkGatewayId,omitempty" xmlrpc:"networkGatewayId,omitempty"`
+
+	// A count of the gateway passwords for this member.
+	PasswordCount *uint `json:"passwordCount,omitempty" xmlrpc:"passwordCount,omitempty"`
+
+	// The gateway passwords for this member.
+	Passwords []Network_Gateway_Member_Passwords `json:"passwords,omitempty" xmlrpc:"passwords,omitempty"`
 
 	// The priority for this gateway member. This is set internally and cannot be provided on create.
 	Priority *int `json:"priority,omitempty" xmlrpc:"priority,omitempty"`
@@ -1860,6 +1848,9 @@ type Network_Gateway_Member_Attribute struct {
 
 	// The previous vSRX version of the gateway software
 	LastvSRXVersion *string `json:"lastvSRXVersion,omitempty" xmlrpc:"lastvSRXVersion,omitempty"`
+
+	// Timestamp for the expiration date of the license key
+	LicenseExpirationDate *Time `json:"licenseExpirationDate,omitempty" xmlrpc:"licenseExpirationDate,omitempty"`
 
 	// no documentation yet
 	LicenseKey *string `json:"licenseKey,omitempty" xmlrpc:"licenseKey,omitempty"`
@@ -1887,6 +1878,43 @@ type Network_Gateway_Member_Attribute struct {
 
 	// The vSRX version of the gateway software
 	VSRXVersion *string `json:"vSRXVersion,omitempty" xmlrpc:"vSRXVersion,omitempty"`
+
+	// Precheck Warning code for Version / License Unsupported for member.
+	WarningCode *int `json:"warningCode,omitempty" xmlrpc:"warningCode,omitempty"`
+}
+
+// no documentation yet
+type Network_Gateway_Member_Licenses struct {
+	Entity
+
+	// no documentation yet
+	ExpirationDate *Time `json:"expirationDate,omitempty" xmlrpc:"expirationDate,omitempty"`
+
+	// The gateway member has these licenses.
+	GatewayMember *Network_Gateway_Member `json:"gatewayMember,omitempty" xmlrpc:"gatewayMember,omitempty"`
+
+	// no documentation yet
+	LicenseKey *string `json:"licenseKey,omitempty" xmlrpc:"licenseKey,omitempty"`
+}
+
+// no documentation yet
+type Network_Gateway_Member_Passwords struct {
+	Entity
+
+	// The gateway member has these password.
+	GatewayMember *Network_Gateway_Member `json:"gatewayMember,omitempty" xmlrpc:"gatewayMember,omitempty"`
+
+	// A gateway member passlw internal identifier.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// The gateway member if for this record.
+	MemberId *int `json:"memberId,omitempty" xmlrpc:"memberId,omitempty"`
+
+	// Password of the user name.
+	Password *string `json:"password,omitempty" xmlrpc:"password,omitempty"`
+
+	// Username associated with the gateway.
+	Username *string `json:"username,omitempty" xmlrpc:"username,omitempty"`
 }
 
 // no documentation yet
@@ -3361,6 +3389,7 @@ type Network_Protection_Address struct {
 	PrimaryRouter *Hardware_Router `json:"primaryRouter,omitempty" xmlrpc:"primaryRouter,omitempty"`
 
 	// DEPRECATED
+	// Deprecated: This function has been marked as deprecated.
 	ServiceProvider *Service_Provider `json:"serviceProvider,omitempty" xmlrpc:"serviceProvider,omitempty"`
 
 	// no documentation yet
@@ -3783,6 +3812,12 @@ type Network_Storage struct {
 	// The currently active transactions on a network storage volume.
 	ActiveTransactions []Provisioning_Version1_Transaction `json:"activeTransactions,omitempty" xmlrpc:"activeTransactions,omitempty"`
 
+	// no documentation yet
+	AllowDisasterRecoveryFailback *string `json:"allowDisasterRecoveryFailback,omitempty" xmlrpc:"allowDisasterRecoveryFailback,omitempty"`
+
+	// no documentation yet
+	AllowDisasterRecoveryFailover *string `json:"allowDisasterRecoveryFailover,omitempty" xmlrpc:"allowDisasterRecoveryFailover,omitempty"`
+
 	// The SoftLayer_Hardware objects which are allowed access to this storage volume.
 	AllowedHardware []Hardware `json:"allowedHardware,omitempty" xmlrpc:"allowedHardware,omitempty"`
 
@@ -3876,8 +3911,14 @@ type Network_Storage struct {
 	// Determines whether the volume is allowed to failback
 	FailbackNotAllowed *string `json:"failbackNotAllowed,omitempty" xmlrpc:"failbackNotAllowed,omitempty"`
 
+	// Determines whether the volume is allowed to failover
+	FailoverNotAllowed *string `json:"failoverNotAllowed,omitempty" xmlrpc:"failoverNotAllowed,omitempty"`
+
 	// Retrieves the NFS Network Mount Address Name for a given File Storage Volume.
 	FileNetworkMountAddress *string `json:"fileNetworkMountAddress,omitempty" xmlrpc:"fileNetworkMountAddress,omitempty"`
+
+	// no documentation yet
+	FixReplicationCurrentStatus *string `json:"fixReplicationCurrentStatus,omitempty" xmlrpc:"fixReplicationCurrentStatus,omitempty"`
 
 	// The unique identification number of the guest associated with a Storage volume.
 	GuestId *int `json:"guestId,omitempty" xmlrpc:"guestId,omitempty"`
@@ -3906,11 +3947,20 @@ type Network_Storage struct {
 	// The maximum number of IOPs selected for this volume.
 	Iops *string `json:"iops,omitempty" xmlrpc:"iops,omitempty"`
 
+	// Determines whether network storage volume has an active convert dependent clone to Independent transaction.
+	IsConvertToIndependentTransactionInProgress *bool `json:"isConvertToIndependentTransactionInProgress,omitempty" xmlrpc:"isConvertToIndependentTransactionInProgress,omitempty"`
+
 	// Determines whether dependent volume provision is completed on background.
 	IsDependentDuplicateProvisionCompleted *bool `json:"isDependentDuplicateProvisionCompleted,omitempty" xmlrpc:"isDependentDuplicateProvisionCompleted,omitempty"`
 
 	// no documentation yet
 	IsInDedicatedServiceResource *bool `json:"isInDedicatedServiceResource,omitempty" xmlrpc:"isInDedicatedServiceResource,omitempty"`
+
+	// no documentation yet
+	IsMagneticStorage *string `json:"isMagneticStorage,omitempty" xmlrpc:"isMagneticStorage,omitempty"`
+
+	// Determines whether network storage volume has an active provision transaction.
+	IsProvisionInProgress *bool `json:"isProvisionInProgress,omitempty" xmlrpc:"isProvisionInProgress,omitempty"`
 
 	// Determines whether a volume is ready to order snapshot space, or, if snapshot space is already available, to assign a snapshot schedule, or to take a manual snapshot.
 	IsReadyForSnapshot *bool `json:"isReadyForSnapshot,omitempty" xmlrpc:"isReadyForSnapshot,omitempty"`
@@ -3923,6 +3973,9 @@ type Network_Storage struct {
 
 	// Relationship between a container volume and iSCSI LUNs.
 	IscsiLuns []Network_Storage `json:"iscsiLuns,omitempty" xmlrpc:"iscsiLuns,omitempty"`
+
+	// The network storage volumes configured to be replicants of this volume.
+	IscsiReplicatingVolume *Network_Storage `json:"iscsiReplicatingVolume,omitempty" xmlrpc:"iscsiReplicatingVolume,omitempty"`
 
 	// A count of returns the target IP addresses of an iSCSI volume.
 	IscsiTargetIpAddressCount *uint `json:"iscsiTargetIpAddressCount,omitempty" xmlrpc:"iscsiTargetIpAddressCount,omitempty"`
@@ -3941,6 +3994,9 @@ type Network_Storage struct {
 
 	// A network storage volume's metric tracking object. This object records all periodic polled data available to this volume.
 	MetricTrackingObject *Metric_Tracking_Object `json:"metricTrackingObject,omitempty" xmlrpc:"metricTrackingObject,omitempty"`
+
+	// Retrieves the NFS Network Mount Path for a given File Storage Volume.
+	MountPath *string `json:"mountPath,omitempty" xmlrpc:"mountPath,omitempty"`
 
 	// Whether or not a network storage volume may be mounted.
 	MountableFlag *string `json:"mountableFlag,omitempty" xmlrpc:"mountableFlag,omitempty"`
@@ -4064,6 +4120,9 @@ type Network_Storage struct {
 
 	// The percentage of used snapshot space after which to delete automated snapshots.
 	SnapshotDeletionThresholdPercentage *string `json:"snapshotDeletionThresholdPercentage,omitempty" xmlrpc:"snapshotDeletionThresholdPercentage,omitempty"`
+
+	// Whether or not a network storage volume may be mounted.
+	SnapshotNotificationStatus *string `json:"snapshotNotificationStatus,omitempty" xmlrpc:"snapshotNotificationStatus,omitempty"`
 
 	// The snapshot size in bytes.
 	SnapshotSizeBytes *string `json:"snapshotSizeBytes,omitempty" xmlrpc:"snapshotSizeBytes,omitempty"`
@@ -5163,41 +5222,51 @@ type Network_Storage_Type struct {
 	Volumes []Network_Storage `json:"volumes,omitempty" xmlrpc:"volumes,omitempty"`
 }
 
-// The SoftLayer_Network_Subnet data type contains general information relating to a single SoftLayer subnet. Personal information in this type such as names, addresses, and phone numbers are assigned to the account only and not to users belonging to the account.
+// A subnet represents a continguous range of IP addresses. The range is represented by the networkIdentifer and cidr/netmask properties. The version of a subnet, whether IPv4 or IPv6, is represented by the version property.
+//
+// When routed, a subnet is associated to a VLAN on your account, which defines its scope on the network. Depending on a subnet's route type, IP addresses may be reserved for network and internal functions, the most common of which is the allocation of network, gateway and broadcast IP addresses.
+//
+// An unrouted subnet is not active on the network and may generally be routed within the datacenter in which it resides.
+//
+// [Subnetwork at Wikipedia](http://en.wikipedia.org/wiki/Subnetwork)
+//
+// [RFC950:Internet Standard Subnetting Procedure](http://datatracker.ietf.org/doc/html/rfc950)
 type Network_Subnet struct {
 	Entity
 
 	// no documentation yet
 	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
 
-	// If present, the active registration for this subnet.
+	// The active regional internet registration for this subnet.
 	ActiveRegistration *Network_Subnet_Registration `json:"activeRegistration,omitempty" xmlrpc:"activeRegistration,omitempty"`
 
 	// DEPRECATED
+	// Deprecated: This function has been marked as deprecated.
 	ActiveSwipTransaction *Network_Subnet_Swip_Transaction `json:"activeSwipTransaction,omitempty" xmlrpc:"activeSwipTransaction,omitempty"`
 
-	// The billing item for a subnet.
+	// DEPRECATED
+	// Deprecated: This function has been marked as deprecated.
 	ActiveTransaction *Provisioning_Version1_Transaction `json:"activeTransaction,omitempty" xmlrpc:"activeTransaction,omitempty"`
 
-	// Identifier which distinguishes what classification of addresses the subnet represents.
+	// The classifier of IP addresses this subnet represents, generally PUBLIC or PRIVATE. This does not necessarily correlate with the network on which the subnet is used.
 	AddressSpace *string `json:"addressSpace,omitempty" xmlrpc:"addressSpace,omitempty"`
 
-	// The SoftLayer_Network_Storage_Allowed_Host information to connect this Subnet to Network Storage supporting access control lists.
+	// The link from this subnet to network storage devices supporting access control lists.
 	AllowedHost *Network_Storage_Allowed_Host `json:"allowedHost,omitempty" xmlrpc:"allowedHost,omitempty"`
 
-	// The SoftLayer_Network_Storage objects that this SoftLayer_Hardware has access to.
+	// The network storage devices this subnet has been granted access to.
 	AllowedNetworkStorage []Network_Storage `json:"allowedNetworkStorage,omitempty" xmlrpc:"allowedNetworkStorage,omitempty"`
 
-	// A count of the SoftLayer_Network_Storage objects that this SoftLayer_Hardware has access to.
+	// A count of the network storage devices this subnet has been granted access to.
 	AllowedNetworkStorageCount *uint `json:"allowedNetworkStorageCount,omitempty" xmlrpc:"allowedNetworkStorageCount,omitempty"`
 
-	// A count of the SoftLayer_Network_Storage objects whose Replica that this SoftLayer_Hardware has access to.
+	// A count of the network storage device replicas this subnet has been granted access to.
 	AllowedNetworkStorageReplicaCount *uint `json:"allowedNetworkStorageReplicaCount,omitempty" xmlrpc:"allowedNetworkStorageReplicaCount,omitempty"`
 
-	// The SoftLayer_Network_Storage objects whose Replica that this SoftLayer_Hardware has access to.
+	// The network storage device replicas this subnet has been granted access to.
 	AllowedNetworkStorageReplicas []Network_Storage `json:"allowedNetworkStorageReplicas,omitempty" xmlrpc:"allowedNetworkStorageReplicas,omitempty"`
 
-	// The billing item for a subnet.
+	// The active billing item for this subnet.
 	BillingItem *Billing_Item `json:"billingItem,omitempty" xmlrpc:"billingItem,omitempty"`
 
 	// A count of
@@ -5206,79 +5275,82 @@ type Network_Subnet struct {
 	// no documentation yet
 	BoundDescendants []Network_Subnet `json:"boundDescendants,omitempty" xmlrpc:"boundDescendants,omitempty"`
 
-	// A count of
+	// A count of the list of network routers that this subnet is directly associated with, defining where this subnet may be routed on the network.
 	BoundRouterCount *uint `json:"boundRouterCount,omitempty" xmlrpc:"boundRouterCount,omitempty"`
 
-	// Whether or not this subnet is associated with a router. Subnets that are not associated with a router cannot be routed.
+	// Indicates whether this subnet is associated to a network router and is routable on the network.
 	BoundRouterFlag *bool `json:"boundRouterFlag,omitempty" xmlrpc:"boundRouterFlag,omitempty"`
 
-	// no documentation yet
+	// The list of network routers that this subnet is directly associated with, defining where this subnet may be routed on the network.
 	BoundRouters []Hardware `json:"boundRouters,omitempty" xmlrpc:"boundRouters,omitempty"`
 
-	// The last IP address in a subnet is the subnet's broadcast address. This is an IP address that will broadcast network requests to the entire subnet and may not be assigned to a network interface.
+	// The IP address of this subnet reserved for use as a broadcast address and which is unavailable for other use. Network traffic targeting this IP address will be broadcast to the entire subnet.
 	BroadcastAddress *string `json:"broadcastAddress,omitempty" xmlrpc:"broadcastAddress,omitempty"`
 
-	// no documentation yet
+	// The immediate descendants of this subnet.
 	Children []Network_Subnet `json:"children,omitempty" xmlrpc:"children,omitempty"`
 
-	// A count of
+	// A count of the immediate descendants of this subnet.
 	ChildrenCount *uint `json:"childrenCount,omitempty" xmlrpc:"childrenCount,omitempty"`
 
-	// A subnet's Classless Inter-Domain Routing prefix. This is a number between 0 and 32 signifying the number of bits in a subnet's netmask. These bits separate a subnet's network address from it's host addresses. It performs the same function as the ''netmask'' property, but is represented as an integer.
+	// The Classless Inter-Domain Routing prefix of this subnet, which specifies the range of spanned IP addresses.
+	//
+	// [Classless_Inter-Domain_Routing at Wikipedia](http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
 	Cidr *int `json:"cidr,omitempty" xmlrpc:"cidr,omitempty"`
 
-	// The data center this subnet may be routed within.
+	// The datacenter this subnet is primarily associated with.
 	Datacenter *Location_Datacenter `json:"datacenter,omitempty" xmlrpc:"datacenter,omitempty"`
 
-	// A count of
+	// A count of the descendants of this subnet, including all parents and children.
 	DescendantCount *uint `json:"descendantCount,omitempty" xmlrpc:"descendantCount,omitempty"`
 
-	// no documentation yet
+	// The descendants of this subnet, including all parents and children.
 	Descendants []Network_Subnet `json:"descendants,omitempty" xmlrpc:"descendants,omitempty"`
 
-	// no documentation yet
+	// [DEPRECATED] The description of this subnet.
+	// Deprecated: This function has been marked as deprecated.
 	DisplayLabel *string `json:"displayLabel,omitempty" xmlrpc:"displayLabel,omitempty"`
 
-	// A static routed ip address
+	// The IP address target of this statically routed subnet.
 	EndPointIpAddress *Network_Subnet_IpAddress `json:"endPointIpAddress,omitempty" xmlrpc:"endPointIpAddress,omitempty"`
 
-	// A subnet's gateway address. This is an IP address that belongs to the router on the subnet and may not be assigned to a network interface.
+	// The IP address of this subnet reserved for use on the router as a gateway address and which is unavailable for other use.
 	Gateway *string `json:"gateway,omitempty" xmlrpc:"gateway,omitempty"`
 
 	// no documentation yet
 	GlobalIpRecord *Network_Subnet_IpAddress_Global `json:"globalIpRecord,omitempty" xmlrpc:"globalIpRecord,omitempty"`
 
-	// The hardware using IP addresses on this subnet.
+	// The Bare Metal devices which have been assigned a primary IP address from this subnet.
 	Hardware []Hardware `json:"hardware,omitempty" xmlrpc:"hardware,omitempty"`
 
-	// A count of the hardware using IP addresses on this subnet.
+	// A count of the Bare Metal devices which have been assigned a primary IP address from this subnet.
 	HardwareCount *uint `json:"hardwareCount,omitempty" xmlrpc:"hardwareCount,omitempty"`
 
-	// A subnet's internal identifier.
+	// The unique identifier of this subnet.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
-	// A count of all the ip addresses associated with a subnet.
+	// A count of the IP address records belonging to this subnet.
 	IpAddressCount *uint `json:"ipAddressCount,omitempty" xmlrpc:"ipAddressCount,omitempty"`
 
-	// All the ip addresses associated with a subnet.
+	// The IP address records belonging to this subnet.
 	IpAddresses []Network_Subnet_IpAddress `json:"ipAddresses,omitempty" xmlrpc:"ipAddresses,omitempty"`
 
-	// no documentation yet
+	// Indicates whether this subnet is owned by the assigned account.
 	IsCustomerOwned *bool `json:"isCustomerOwned,omitempty" xmlrpc:"isCustomerOwned,omitempty"`
 
-	// no documentation yet
+	// Indicates whether the route type of this subnet may be altered.
 	IsCustomerRoutable *bool `json:"isCustomerRoutable,omitempty" xmlrpc:"isCustomerRoutable,omitempty"`
 
-	// The last time this subnet was last modified
+	// The time this subnet was last modified
 	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
 
-	// A bitmask in dotted-quad format that is used to separate a subnet's network address from it's host addresses. This performs the same function as the ''cidr'' property, but is expressed in a string format.
+	// The bitmask in dotted-quad format for this subnet, which specifies the range of spanned IP addresses.
 	Netmask *string `json:"netmask,omitempty" xmlrpc:"netmask,omitempty"`
 
-	// The upstream network component firewall.
+	// The hardware firewall associated to this subnet via access control list.
 	NetworkComponentFirewall *Network_Component_Firewall `json:"networkComponentFirewall,omitempty" xmlrpc:"networkComponentFirewall,omitempty"`
 
-	// A subnet's network identifier. This is the first IP address of a subnet and may not be assigned to a network interface.
+	// The first IP address of this subnet.
 	NetworkIdentifier *string `json:"networkIdentifier,omitempty" xmlrpc:"networkIdentifier,omitempty"`
 
 	// A count of
@@ -5287,22 +5359,22 @@ type Network_Subnet struct {
 	// no documentation yet
 	NetworkProtectionAddresses []Network_Protection_Address `json:"networkProtectionAddresses,omitempty" xmlrpc:"networkProtectionAddresses,omitempty"`
 
-	// A count of iPSec network tunnels that have access to a private subnet.
+	// A count of the IPSec VPN tunnels associated to this subnet.
 	NetworkTunnelContextCount *uint `json:"networkTunnelContextCount,omitempty" xmlrpc:"networkTunnelContextCount,omitempty"`
 
-	// IPSec network tunnels that have access to a private subnet.
+	// The IPSec VPN tunnels associated to this subnet.
 	NetworkTunnelContexts []Network_Tunnel_Module_Context `json:"networkTunnelContexts,omitempty" xmlrpc:"networkTunnelContexts,omitempty"`
 
-	// The VLAN object that a subnet is associated with.
+	// The VLAN this subnet is associated with.
 	NetworkVlan *Network_Vlan `json:"networkVlan,omitempty" xmlrpc:"networkVlan,omitempty"`
 
-	// A subnet's associated VLAN's internal identifier.
+	// The identifier of the VLAN associated to this subnet.
 	NetworkVlanId *int `json:"networkVlanId,omitempty" xmlrpc:"networkVlanId,omitempty"`
 
-	// This is the note field.
+	// The customer description of this subnet.
 	Note *string `json:"note,omitempty" xmlrpc:"note,omitempty"`
 
-	// The pod in which this subnet resides.
+	// The pod in which this subnet is currently routed.
 	PodName *string `json:"podName,omitempty" xmlrpc:"podName,omitempty"`
 
 	// A count of
@@ -5311,34 +5383,35 @@ type Network_Subnet struct {
 	// no documentation yet
 	ProtectedIpAddresses []Network_Subnet_IpAddress `json:"protectedIpAddresses,omitempty" xmlrpc:"protectedIpAddresses,omitempty"`
 
-	// no documentation yet
+	// The RIR which is authoritative over the network in which this subnet resides.
 	RegionalInternetRegistry *Network_Regional_Internet_Registry `json:"regionalInternetRegistry,omitempty" xmlrpc:"regionalInternetRegistry,omitempty"`
 
-	// A count of all registrations that have been created for this subnet.
+	// A count of the regional internet registrations that have been created for this subnet.
 	RegistrationCount *uint `json:"registrationCount,omitempty" xmlrpc:"registrationCount,omitempty"`
 
-	// All registrations that have been created for this subnet.
+	// The regional internet registrations that have been created for this subnet.
 	Registrations []Network_Subnet_Registration `json:"registrations,omitempty" xmlrpc:"registrations,omitempty"`
 
 	// The reverse DNS domain associated with this subnet.
 	ReverseDomain *Dns_Domain `json:"reverseDomain,omitempty" xmlrpc:"reverseDomain,omitempty"`
 
-	// An identifier of the role the subnet is within. Roles dictate how a subnet may be used.
+	// The role identifier that this subnet is participating in. Roles dictate how a subnet may be used.
 	RoleKeyName *string `json:"roleKeyName,omitempty" xmlrpc:"roleKeyName,omitempty"`
 
 	// The name of the role the subnet is within. Roles dictate how a subnet may be used.
 	RoleName *string `json:"roleName,omitempty" xmlrpc:"roleName,omitempty"`
 
-	// The identifier for the type of route then subnet is currently configured for.
+	// The product and route classifier for this routed subnet, with the following values: PRIMARY, SECONDARY, STATIC_TO_IP, GLOBAL_IP, IPSEC_STATIC_NAT.
 	RoutingTypeKeyName *string `json:"routingTypeKeyName,omitempty" xmlrpc:"routingTypeKeyName,omitempty"`
 
-	// The name for the type of route then subnet is currently configured for.
+	// The description of the product and route classifier for this routed subnet, with the following values: Primary, Portable, Static, Global, IPSec Static NAT.
 	RoutingTypeName *string `json:"routingTypeName,omitempty" xmlrpc:"routingTypeName,omitempty"`
 
-	// Used to sort subnets and group subnets of similar type together for use on customer facing portals.
+	// [DEPRECATED] Used to sort subnets and group subnets of similar type together for use on customer facing portals.
+	// Deprecated: This function has been marked as deprecated.
 	SortOrder *string `json:"sortOrder,omitempty" xmlrpc:"sortOrder,omitempty"`
 
-	// A subnet type can be any of the following:
+	// The product and route classifier for this routed subnet, with the following values:
 	// * PRIMARY
 	// * ADDITIONAL_PRIMARY
 	// * SECONDARY_ON_VLAN
@@ -5347,22 +5420,42 @@ type Network_Subnet struct {
 	// * SUBNET_ON_VLAN
 	// * STATIC_IP_ROUTED_6
 	// * GLOBAL_IP
-	// A "PRIMARY" subnet is the primary network bound to a VLAN within the softlayer network. An "ADDITIONAL_PRIMARY" subnet is bound to a network VLAN to augment the pool of available primary IP addresses that may be assigned to a server. A "SECONDARY_ON_VLAN" subnet is a secondary portable subnet whose IP addresses are managed by the end user. "STATIC_IP_ROUTED" subnets are subnets that are statically routed to a single endpoint IP address. A "PRIMARY_6" subnet is the primary IPv6 network bound to a VLAN. A "SUBNET_ON_VLAN" subnet is the secondary portable IPv6 subnet whose IP addresses are managed by the end user. A "STATIC_IP_ROUTED_6" subnet is statically routed to a single IPv6 endpoint IP address. A "GLOBAL_IP" subnet is a subnet that is routable to a single endpoint IP address. The "GLOBAL_IP" type is used for both IPv4 and IPv6 subnets.
+	// * IPSEC_STATIC_NAT
+	//
+	//
+	// "PRIMARY" refers to the principal IPv4 network from which primary IP addresses are assigned to devices.
+	//
+	// "ADDITIONAL_PRIMARY" refers to extra IPv4 networks from which primary IP addresses are assigned to devices.
+	//
+	// "SECONDARY_ON_VLAN" refers to a secondary IPv4 subnet routed as portable.
+	//
+	// "STATIC_IP_ROUTED" refers to a secondary IPv4 subnet routed as static to a single endpoint IPv4 address.
+	//
+	// "PRIMARY_6" refers to the IPv6 network from which primary IPv6 addresses are assigned to devices.
+	//
+	// "SUBNET_ON_VLAN" refers to a secondary IPv6 subnet routed as portable.
+	//
+	// "STATIC_IP_ROUTED_6" refers to a secondary IPv6 subnet routed as static to a single endpoint IPv6 address.
+	//
+	// "GLOBAL_IP" refers to a global IPv4/IPv6 address routed as static to a single endpoint IP address.
+	//
+	// "IPSEC_STATIC_NAT" refers to the networks associated to your IPSec VPN tunnels for NAT purposes.
 	SubnetType *string `json:"subnetType,omitempty" xmlrpc:"subnetType,omitempty"`
 
 	// DEPRECATED
+	// Deprecated: This function has been marked as deprecated.
 	SwipTransaction []Network_Subnet_Swip_Transaction `json:"swipTransaction,omitempty" xmlrpc:"swipTransaction,omitempty"`
 
 	// A count of dEPRECATED
 	SwipTransactionCount *uint `json:"swipTransactionCount,omitempty" xmlrpc:"swipTransactionCount,omitempty"`
 
-	// A count of references to all tags for this subnet.
+	// A count of the tags associated to this subnet.
 	TagReferenceCount *uint `json:"tagReferenceCount,omitempty" xmlrpc:"tagReferenceCount,omitempty"`
 
-	// References to all tags for this subnet.
+	// The tags associated to this subnet.
 	TagReferences []Tag_Reference `json:"tagReferences,omitempty" xmlrpc:"tagReferences,omitempty"`
 
-	// The number of IP addresses contained within this subnet.
+	// The number of IP addresses in this subnet.
 	TotalIpAddresses *Float64 `json:"totalIpAddresses,omitempty" xmlrpc:"totalIpAddresses,omitempty"`
 
 	// A count of
@@ -5374,16 +5467,16 @@ type Network_Subnet struct {
 	// The number of IP addresses that can be addressed within this subnet. For IPv4 subnets with a CIDR value of at most 30, a discount of 3 is taken from the total number of IP addresses for the subnet's unusable network, gateway and broadcast IP addresses. For IPv6 subnets with a CIDR value of at most 126, a discount of 2 is taken for the subnet's network and gateway IP addresses.
 	UsableIpAddressCount *Float64 `json:"usableIpAddressCount,omitempty" xmlrpc:"usableIpAddressCount,omitempty"`
 
-	// Provides the total number of utilized IP addresses on this subnet. The primary consumer of IP addresses are compute resources, which can consume more than one address. This value is only supported for primary subnet types.
+	// The total number of utilized IP addresses on this subnet. The primary consumer of IP addresses are compute resources, which can consume more than one address. This value is only supported for primary subnets.
 	UtilizedIpAddressCount *uint `json:"utilizedIpAddressCount,omitempty" xmlrpc:"utilizedIpAddressCount,omitempty"`
 
-	// This is the Internet Protocol version. Current values may be either 4 or 6.
+	// The Internet Protocol version of this subnet, either 4 or 6.
 	Version *int `json:"version,omitempty" xmlrpc:"version,omitempty"`
 
-	// A count of the Virtual Servers using IP addresses on this subnet.
+	// A count of the Virtual Server devices which have been assigned a primary IP address from this subnet.
 	VirtualGuestCount *uint `json:"virtualGuestCount,omitempty" xmlrpc:"virtualGuestCount,omitempty"`
 
-	// The Virtual Servers using IP addresses on this subnet.
+	// The Virtual Server devices which have been assigned a primary IP address from this subnet.
 	VirtualGuests []Virtual_Guest `json:"virtualGuests,omitempty" xmlrpc:"virtualGuests,omitempty"`
 }
 
@@ -5552,7 +5645,8 @@ type Network_Subnet_IpAddress_Global struct {
 	// no documentation yet
 	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
 
-	// The active transaction associated with this Global IP.
+	// DEPRECATED
+	// Deprecated: This function has been marked as deprecated.
 	ActiveTransaction *Provisioning_Version1_Transaction `json:"activeTransaction,omitempty" xmlrpc:"activeTransaction,omitempty"`
 
 	// The billing item for this Global IP.
@@ -5728,6 +5822,7 @@ type Network_Subnet_Registration_Event_Type struct {
 	Entity
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
 
 	// Unique numeric ID of the event type object
@@ -5737,6 +5832,7 @@ type Network_Subnet_Registration_Event_Type struct {
 	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
 
 	// Human-readable name of the event type
@@ -5755,6 +5851,7 @@ type Network_Subnet_Registration_Status struct {
 	Entity
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
 
 	// Unique numeric ID of the status object
@@ -5764,6 +5861,7 @@ type Network_Subnet_Registration_Status struct {
 	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
 
 	// Human-readable name of the status
@@ -5868,7 +5966,8 @@ type Network_Tunnel_Module_Context struct {
 	// A network tunnel's account identifier.
 	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
 
-	// The transaction that is currently applying configurations for the network tunnel.
+	// DEPRECATED
+	// Deprecated: This function has been marked as deprecated.
 	ActiveTransaction *Provisioning_Version1_Transaction `json:"activeTransaction,omitempty" xmlrpc:"activeTransaction,omitempty"`
 
 	// A count of a network tunnel's address translations.
@@ -5969,10 +6068,11 @@ type Network_Tunnel_Module_Context struct {
 	// Subnets used for a network tunnel's address translations.
 	StaticRouteSubnets []Network_Subnet `json:"staticRouteSubnets,omitempty" xmlrpc:"staticRouteSubnets,omitempty"`
 
-	// The transaction history for this network tunnel.
+	// DEPRECATED
+	// Deprecated: This function has been marked as deprecated.
 	TransactionHistory []Provisioning_Version1_Transaction `json:"transactionHistory,omitempty" xmlrpc:"transactionHistory,omitempty"`
 
-	// A count of the transaction history for this network tunnel.
+	// A count of dEPRECATED
 	TransactionHistoryCount *uint `json:"transactionHistoryCount,omitempty" xmlrpc:"transactionHistoryCount,omitempty"`
 }
 
@@ -6042,7 +6142,8 @@ type Network_Vlan struct {
 	// A flag indicating that a network vlan is on a Hardware Firewall (Dedicated).
 	DedicatedFirewallFlag *int `json:"dedicatedFirewallFlag,omitempty" xmlrpc:"dedicatedFirewallFlag,omitempty"`
 
-	// The extension router that a VLAN is associated with.
+	// [DEPRECATED] The extension router that a VLAN is associated with.
+	// Deprecated: This function has been marked as deprecated.
 	ExtensionRouter *Hardware_Router `json:"extensionRouter,omitempty" xmlrpc:"extensionRouter,omitempty"`
 
 	// A count of a firewalled Vlan's network components.
@@ -6068,6 +6169,9 @@ type Network_Vlan struct {
 
 	// The currently running rule set of a firewalled VLAN.
 	FirewallRules []Network_Vlan_Firewall_Rule `json:"firewallRules,omitempty" xmlrpc:"firewallRules,omitempty"`
+
+	// A human readable, unique identifier for a VLAN.
+	FullyQualifiedName *string `json:"fullyQualifiedName,omitempty" xmlrpc:"fullyQualifiedName,omitempty"`
 
 	// A count of the networking components that are connected to a VLAN.
 	GuestNetworkComponentCount *uint `json:"guestNetworkComponentCount,omitempty" xmlrpc:"guestNetworkComponentCount,omitempty"`
@@ -6110,6 +6214,9 @@ type Network_Vlan struct {
 
 	// The networking components that are connected to a VLAN.
 	NetworkComponents []Network_Component `json:"networkComponents,omitempty" xmlrpc:"networkComponents,omitempty"`
+
+	// The viable trunking targets of this VLAN. Viable targets include accessible components of assigned hardware in the same pod and network as this VLAN, which are not already natively attached nor trunked.
+	NetworkComponentsTrunkable []Network_Component `json:"networkComponentsTrunkable,omitempty" xmlrpc:"networkComponentsTrunkable,omitempty"`
 
 	// Identifier to denote whether a VLAN is used for public or private connectivity.
 	NetworkSpace *string `json:"networkSpace,omitempty" xmlrpc:"networkSpace,omitempty"`

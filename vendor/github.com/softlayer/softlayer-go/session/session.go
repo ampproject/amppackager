@@ -41,9 +41,8 @@ func init() {
 	Logger = log.New(os.Stderr, "", log.LstdFlags)
 }
 
-// DefaultEndpoint is the default endpoint for API calls, when no override
-// is provided.
-const DefaultEndpoint = "https://api.softlayer.com/rest/v3"
+// DefaultEndpoint is the default endpoint for API calls, when no override is provided.
+const DefaultEndpoint = "https://api.softlayer.com/rest/v3.1"
 
 var retryableErrorCodes = []string{"SoftLayer_Exception_WebService_RateLimitExceeded"}
 

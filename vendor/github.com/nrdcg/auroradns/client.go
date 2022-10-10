@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 )
@@ -17,26 +16,30 @@ const (
 )
 
 // ErrorResponse A representation of an API error message.
-type ErrorResponse struct {
+// Deprecated: use ResponseError instead.
+type ErrorResponse = ResponseError
+
+// ResponseError A representation of an API error message.
+type ResponseError struct {
 	ErrorCode string `json:"error"`
 	Message   string `json:"errormsg"`
 }
 
-func (e *ErrorResponse) Error() string {
+func (e *ResponseError) Error() string {
 	return fmt.Sprintf("%s - %s", e.ErrorCode, e.Message)
 }
 
-// Option Type of a client option
+// Option Type of a client option.
 type Option func(*Client) error
 
-// Client The API client
+// Client The API client.
 type Client struct {
 	baseURL    *url.URL
 	UserAgent  string
 	httpClient *http.Client
 }
 
-// NewClient Creates a new client
+// NewClient Creates a new client.
 func NewClient(httpClient *http.Client, opts ...Option) (*Client, error) {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
@@ -94,13 +97,13 @@ func (c *Client) do(req *http.Request, v interface{}) (*http.Response, error) {
 		return resp, nil
 	}
 
-	raw, err := ioutil.ReadAll(resp.Body)
+	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return resp, fmt.Errorf("failed to read body: %w", err)
 	}
 
 	if err = json.Unmarshal(raw, v); err != nil {
-		return resp, fmt.Errorf("unmarshaling %T error: %v: %s", err, v, string(raw))
+		return resp, fmt.Errorf("unmarshaling %T error: %w: %s", v, err, string(raw))
 	}
 
 	return resp, nil
@@ -111,9 +114,9 @@ func checkResponse(resp *http.Response) error {
 		return nil
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err == nil && data != nil {
-		errorResponse := new(ErrorResponse)
+		errorResponse := new(ResponseError)
 		err = json.Unmarshal(data, errorResponse)
 		if err != nil {
 			return fmt.Errorf("unmarshaling ErrorResponse error: %w: %s", err, string(data))
@@ -125,10 +128,10 @@ func checkResponse(resp *http.Response) error {
 	return fmt.Errorf("status code: %d %s", resp.StatusCode, resp.Status)
 }
 
-// WithBaseURL Allows to define a custom base URL
+// WithBaseURL Allows to define a custom base URL.
 func WithBaseURL(rawBaseURL string) func(*Client) error {
 	return func(client *Client) error {
-		if len(rawBaseURL) == 0 {
+		if rawBaseURL == "" {
 			return nil
 		}
 

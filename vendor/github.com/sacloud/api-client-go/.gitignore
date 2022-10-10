@@ -1,0 +1,8 @@
+.env
+.mailmap
+key.gpg
+
+bin/
+dist/
+vendor/
+work/

@@ -555,6 +555,11 @@ type Software_Component_Security_SafeNet struct {
 	Software_Component_Security
 }
 
+// This object specifies a specific type of Software Component:  An Trellix instance. Trellix installations have specific properties and methods such as SoftLayer_Software_Component_Trellix::updateTrellixPolicy. Defaults are initiated by this object.
+type Software_Component_Trellix struct {
+	Software_Component
+}
+
 // This class holds a description for a specific installation of a Software Component.
 //
 // SoftLayer_Software_Licenses tie a Software Component (A specific installation on a piece of hardware) to it's description.

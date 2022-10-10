@@ -150,6 +150,13 @@ func (r Account) DisableEuSupport() (err error) {
 	return
 }
 
+// Disables the VPN_CONFIG_REQUIRES_VPN_MANAGE attribute on the account. If the attribute does not exist for the account, it will be created and set to false.
+func (r Account) DisableVpnConfigRequiresVpnManageAttribute() (err error) {
+	var resp datatypes.Void
+	err = r.Session.DoRequest("SoftLayer_Account", "disableVpnConfigRequiresVpnManageAttribute", nil, &r.Options, &resp)
+	return
+}
+
 // This method will edit the account's information. Pass in a SoftLayer_Account template with the fields to be modified. Certain changes to the account will automatically create a ticket for manual review. This will be returned with the SoftLayer_Container_Account_Update_Response.<br> <br> The following fields are editable:<br> <br> <ul> <li>companyName</li> <li>firstName</li> <li>lastName</li> <li>address1</li> <li>address2</li> <li>city</li> <li>state</li> <li>country</li> <li>postalCode</li> <li>email</li> <li>officePhone</li> <li>alternatePhone</li> <li>faxPhone</li> <li>abuseEmails.email</li> <li>billingInfo.vatId</li> </ul>
 func (r Account) EditAccount(modifiedAccountInformation *datatypes.Account) (resp datatypes.Container_Account_Update_Response, err error) {
 	params := []interface{}{
@@ -167,6 +174,13 @@ func (r Account) EditAccount(modifiedAccountInformation *datatypes.Account) (res
 func (r Account) EnableEuSupport() (err error) {
 	var resp datatypes.Void
 	err = r.Session.DoRequest("SoftLayer_Account", "enableEuSupport", nil, &r.Options, &resp)
+	return
+}
+
+// Enables the VPN_CONFIG_REQUIRES_VPN_MANAGE attribute on the account. If the attribute does not exist for the account, it will be created and set to true.
+func (r Account) EnableVpnConfigRequiresVpnManageAttribute() (err error) {
+	var resp datatypes.Void
+	err = r.Session.DoRequest("SoftLayer_Account", "enableVpnConfigRequiresVpnManageAttribute", nil, &r.Options, &resp)
 	return
 }
 
@@ -287,6 +301,7 @@ func (r Account) GetActiveNotificationSubscribers() (resp []datatypes.Notificati
 }
 
 // This is deprecated and will not return any results.
+// Deprecated: This function has been marked as deprecated.
 func (r Account) GetActiveOutletPackages() (resp []datatypes.Product_Package, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getActiveOutletPackages", nil, &r.Options, &resp)
 	return
@@ -303,6 +318,7 @@ func (r Account) GetActivePackages() (resp []datatypes.Product_Package, err erro
 // <strong>This method is deprecated and should not be used in production code.</strong>
 //
 // This method will return the [[SoftLayer_Product_Package]] objects from which you can order a bare metal server, virtual server, service (such as CDN or Object Storage) or other software filtered by an attribute type associated with the package. Once you have the package you want to order from, you may query one of various endpoints from that package to get specific information about its products and pricing. See [[SoftLayer_Product_Package/getCategories|getCategories]] or [[SoftLayer_Product_Package/getItems|getItems]] for more information.
+// Deprecated: This function has been marked as deprecated.
 func (r Account) GetActivePackagesByAttribute(attributeKeyName *string) (resp []datatypes.Product_Package, err error) {
 	params := []interface{}{
 		attributeKeyName,
@@ -312,6 +328,7 @@ func (r Account) GetActivePackagesByAttribute(attributeKeyName *string) (resp []
 }
 
 // [DEPRECATED] This method pulls all the active private hosted cloud packages. This will give you a basic description of the packages that are currently active and from which you can order private hosted cloud configurations.
+// Deprecated: This function has been marked as deprecated.
 func (r Account) GetActivePrivateHostedCloudPackages() (resp []datatypes.Product_Package, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getActivePrivateHostedCloudPackages", nil, &r.Options, &resp)
 	return
@@ -598,6 +615,7 @@ func (r Account) GetClosedTickets() (resp []datatypes.Ticket, err error) {
 }
 
 // This method returns a SoftLayer_Container_Account_Graph_Outputs containing a base64 string PNG image. The optional parameter, detailedGraph, can be passed to get a more detailed graph.
+// Deprecated: This function has been marked as deprecated.
 func (r Account) GetCurrentBackupStatisticsGraph(detailedGraph *bool) (resp datatypes.Container_Account_Graph_Outputs, err error) {
 	params := []interface{}{
 		detailedGraph,
@@ -607,6 +625,7 @@ func (r Account) GetCurrentBackupStatisticsGraph(detailedGraph *bool) (resp data
 }
 
 // no documentation yet
+// Deprecated: This function has been marked as deprecated.
 func (r Account) GetCurrentTicketStatisticsGraph(detailedGraph *bool) (resp datatypes.Container_Account_Graph_Outputs, err error) {
 	params := []interface{}{
 		detailedGraph,
@@ -678,7 +697,8 @@ func (r Account) GetDiskUsageMetricDataFromMetricTrackingObjectSystemByDate(star
 	return
 }
 
-// Returns a disk usage image based on disk usage specified by the input parameters.
+// [DEPRECATED] JpGraph has been removed, so this method is no longer functional.
+// Deprecated: This function has been marked as deprecated.
 func (r Account) GetDiskUsageMetricImageByDate(startDateTime *datatypes.Time, endDateTime *datatypes.Time) (resp datatypes.Container_Account_Graph_Outputs, err error) {
 	params := []interface{}{
 		startDateTime,
@@ -775,6 +795,7 @@ func (r Account) GetFlexibleCreditEnrollments() (resp []datatypes.FlexibleCredit
 // [DEPRECATED] Please use SoftLayer_Account::getFlexibleCreditProgramsInfo.
 //
 // This method will return a [[SoftLayer_Container_Account_Discount_Program]] object containing the Flexible Credit Program information for this account. To be considered an active participant, the account must have an enrollment record with a monthly credit amount set and the current date must be within the range defined by the enrollment and graduation date. The forNextBillCycle parameter can be set to true to return a SoftLayer_Container_Account_Discount_Program object with information with relation to the next bill cycle. The forNextBillCycle parameter defaults to false. Please note that all discount amount entries are reported as pre-tax amounts and the legacy tax fields in the [[SoftLayer_Container_Account_Discount_Program]] are deprecated.
+// Deprecated: This function has been marked as deprecated.
 func (r Account) GetFlexibleCreditProgramInfo(forNextBillCycle *bool) (resp datatypes.Container_Account_Discount_Program, err error) {
 	params := []interface{}{
 		forNextBillCycle,
@@ -941,6 +962,7 @@ func (r Account) GetHistoricalBackupGraph(startDate *datatypes.Time, endDate *da
 }
 
 // [DEPRECATED] This method will return a SoftLayer_Container_Account_Graph_Outputs object containing a base64 string PNG image of a line graph of bandwidth statistics given the start and end dates. The start and end dates should be valid ISO 8601 date formatted strings.
+// Deprecated: This function has been marked as deprecated.
 func (r Account) GetHistoricalBandwidthGraph(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Container_Account_Graph_Outputs, err error) {
 	params := []interface{}{
 		startDate,
@@ -2078,6 +2100,12 @@ func (r Account) GetVpcVirtualGuests() (resp []datatypes.Virtual_Guest, err erro
 	return
 }
 
+// Retrieve
+func (r Account) GetVpnConfigRequiresVPNManageFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account", "getVpnConfigRequiresVPNManageFlag", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve a list of an account's hardware's Windows Update status. This list includes which servers have available updates, which servers require rebooting due to updates, which servers have failed retrieving updates, and which servers have failed to communicate with the SoftLayer private Windows Software Update Services server.
 func (r Account) GetWindowsUpdateStatus() (resp []datatypes.Container_Utility_Microsoft_Windows_UpdateServices_Status, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getWindowsUpdateStatus", nil, &r.Options, &resp)
@@ -2218,6 +2246,7 @@ func (r Account) SyncCurrentUserPopulationWithPaas() (err error) {
 }
 
 // [DEPRECATED] This method has been deprecated and will simply return false.
+// Deprecated: This function has been marked as deprecated.
 func (r Account) UpdateVpnUsersForResource(objectId *int, objectType *string) (resp bool, err error) {
 	params := []interface{}{
 		objectId,
@@ -2227,7 +2256,7 @@ func (r Account) UpdateVpnUsersForResource(objectId *int, objectType *string) (r
 	return
 }
 
-// This method will validate the following account fields. Included are the allowed characters for each field.<br> <strong>Company Name (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parenthesis, exclamation point. (Note: may not contain an email address)<br> <strong>First Name (required):</strong> alphabet, space, period, dash, comma, apostrophe.<br> <strong>Last Name (required):</strong> alphabet, space, period, dash, comma, apostrophe.<br> <strong>Email (required):</strong> Validates e-mail addresses against the syntax in RFC 822.<br> <strong>Address 1 (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parentheses. (Note: may not contain an email address)<br> <strong>Address 2 (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parentheses. (Note: may not contain an email address)<br> <strong>City (required):</strong> alphabet, numbers, space, period, dash, apostrophe, forward slash, comma.<br> <strong>State (required):</strong> Required if country is US, Brazil, Canada or India. Must be valid Alpha-2 ISO 3166-1 state code for that country.<br> <strong>Postal Code (required):</strong> alphabet, numbers, dash, space.<br> <strong>Country (required):</strong> alphabet, numbers. Must be valid Alpha-2 ISO 3166-1 country code.<br> <strong>Office Phone (required):</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign.<br> <strong>Alternate Phone:</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign.<br> <strong>Fax Phone:</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign.<br>
+// This method will validate the following account fields. Included are the allowed characters for each field.<br> <strong>Company Name (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parenthesis, exclamation point. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>First Name (required):</strong> alphabet, space, period, dash, comma, apostrophe. Maximum length: 30 characters.<br> <strong>Last Name (required):</strong> alphabet, space, period, dash, comma, apostrophe. Maximum length: 30 characters.<br> <strong>Email (required):</strong> Validates e-mail addresses against the syntax in RFC 822.<br> <strong>Address 1 (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parentheses. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>Address 2:</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parentheses. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>City (required):</strong> alphabet, numbers, space, period, dash, apostrophe, forward slash, comma, parenthesis. Maximum length: 100 characters.<br> <strong>State (required):</strong> Required if country is US, Brazil, Canada or India. Must be valid Alpha-2 ISO 3166-1 state code for that country.<br> <strong>Postal Code (required):</strong> alphabet, numbers, dash, space. Maximum length: 50 characters.<br> <strong>Country (required):</strong> alphabet, numbers. Must be valid Alpha-2 ISO 3166-1 country code.<br> <strong>Office Phone (required):</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 100 characters.<br> <strong>Alternate Phone:</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 100 characters.<br> <strong>Fax Phone:</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 20 characters.<br>
 func (r Account) Validate(account *datatypes.Account) (resp []string, err error) {
 	params := []interface{}{
 		account,
@@ -3051,6 +3080,7 @@ func (r Account_Historical_Report) GetAccountHostUptimeGraphData(startDate *stri
 }
 
 // no documentation yet
+// Deprecated: This function has been marked as deprecated.
 func (r Account_Historical_Report) GetAccountHostUptimeSummary(startDateTime *string, endDateTime *string, accountId *int) (resp datatypes.Container_Account_Historical_Summary, err error) {
 	params := []interface{}{
 		startDateTime,
@@ -3073,6 +3103,7 @@ func (r Account_Historical_Report) GetAccountUrlUptimeGraphData(startDate *strin
 }
 
 // no documentation yet
+// Deprecated: This function has been marked as deprecated.
 func (r Account_Historical_Report) GetAccountUrlUptimeSummary(startDateTime *string, endDateTime *string, accountId *int) (resp datatypes.Container_Account_Historical_Summary, err error) {
 	params := []interface{}{
 		startDateTime,
@@ -3084,6 +3115,7 @@ func (r Account_Historical_Report) GetAccountUrlUptimeSummary(startDateTime *str
 }
 
 // no documentation yet
+// Deprecated: This function has been marked as deprecated.
 func (r Account_Historical_Report) GetHostUptimeDetail(configurationValueId *int, startDateTime *string, endDateTime *string) (resp datatypes.Container_Account_Historical_Summary_Detail, err error) {
 	params := []interface{}{
 		configurationValueId,
@@ -3106,6 +3138,7 @@ func (r Account_Historical_Report) GetHostUptimeGraphData(configurationValueId *
 }
 
 // no documentation yet
+// Deprecated: This function has been marked as deprecated.
 func (r Account_Historical_Report) GetUrlUptimeDetail(configurationValueId *int, startDateTime *string, endDateTime *string) (resp datatypes.Container_Account_Historical_Summary_Detail, err error) {
 	params := []interface{}{
 		configurationValueId,

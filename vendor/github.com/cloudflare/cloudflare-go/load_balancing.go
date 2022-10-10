@@ -6,25 +6,24 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // LoadBalancerPool represents a load balancer pool's properties.
 type LoadBalancerPool struct {
-	ID                string                    `json:"id,omitempty"`
-	CreatedOn         *time.Time                `json:"created_on,omitempty"`
-	ModifiedOn        *time.Time                `json:"modified_on,omitempty"`
-	Description       string                    `json:"description"`
-	Name              string                    `json:"name"`
-	Enabled           bool                      `json:"enabled"`
-	MinimumOrigins    int                       `json:"minimum_origins,omitempty"`
-	Monitor           string                    `json:"monitor,omitempty"`
-	Origins           []LoadBalancerOrigin      `json:"origins"`
-	NotificationEmail string                    `json:"notification_email,omitempty"`
-	Latitude          *float32                  `json:"latitude,omitempty"`
-	Longitude         *float32                  `json:"longitude,omitempty"`
-	LoadShedding      *LoadBalancerLoadShedding `json:"load_shedding,omitempty"`
+	ID                string                      `json:"id,omitempty"`
+	CreatedOn         *time.Time                  `json:"created_on,omitempty"`
+	ModifiedOn        *time.Time                  `json:"modified_on,omitempty"`
+	Description       string                      `json:"description"`
+	Name              string                      `json:"name"`
+	Enabled           bool                        `json:"enabled"`
+	MinimumOrigins    int                         `json:"minimum_origins,omitempty"`
+	Monitor           string                      `json:"monitor,omitempty"`
+	Origins           []LoadBalancerOrigin        `json:"origins"`
+	NotificationEmail string                      `json:"notification_email,omitempty"`
+	Latitude          *float32                    `json:"latitude,omitempty"`
+	Longitude         *float32                    `json:"longitude,omitempty"`
+	LoadShedding      *LoadBalancerLoadShedding   `json:"load_shedding,omitempty"`
+	OriginSteering    *LoadBalancerOriginSteering `json:"origin_steering,omitempty"`
 
 	// CheckRegions defines the geographic region(s) from where to run health-checks from - e.g. "WNAM", "WEU", "SAF", "SAM".
 	// Providing a null/empty value means "all regions", which may not be available to all plan types.
@@ -38,6 +37,12 @@ type LoadBalancerOrigin struct {
 	Enabled bool                `json:"enabled"`
 	Weight  float64             `json:"weight"`
 	Header  map[string][]string `json:"header"`
+}
+
+// LoadBalancerOriginSteering controls origin selection for new sessions and traffic without session affinity.
+type LoadBalancerOriginSteering struct {
+	// Policy defaults to "random" (weighted) when empty or unspecified.
+	Policy string `json:"policy,omitempty"`
 }
 
 // LoadBalancerMonitor represents a load balancer monitor's properties.
@@ -73,24 +78,26 @@ type LoadBalancer struct {
 	DefaultPools              []string                   `json:"default_pools"`
 	RegionPools               map[string][]string        `json:"region_pools"`
 	PopPools                  map[string][]string        `json:"pop_pools"`
+	CountryPools              map[string][]string        `json:"country_pools"`
 	Proxied                   bool                       `json:"proxied"`
 	Enabled                   *bool                      `json:"enabled,omitempty"`
 	Persistence               string                     `json:"session_affinity,omitempty"`
 	PersistenceTTL            int                        `json:"session_affinity_ttl,omitempty"`
 	SessionAffinityAttributes *SessionAffinityAttributes `json:"session_affinity_attributes,omitempty"`
 	Rules                     []*LoadBalancerRule        `json:"rules,omitempty"`
+	RandomSteering            *RandomSteering            `json:"random_steering,omitempty"`
 
 	// SteeringPolicy controls pool selection logic.
 	// "off" select pools in DefaultPools order
-	// "geo" select pools based on RegionPools/PopPools
+	// "geo" select pools based on RegionPools/PopPools/CountryPools
 	// "dynamic_latency" select pools based on RTT (requires health checks)
 	// "random" selects pools in a random order
 	// "proximity" select pools based on 'distance' from request
-	// "" maps to "geo" if RegionPools or PopPools have entries otherwise "off"
+	// "" maps to "geo" if RegionPools or PopPools or CountryPools have entries otherwise "off"
 	SteeringPolicy string `json:"steering_policy,omitempty"`
 }
 
-// LoadBalancerLoadShedding contains the settings for controlling load shedding
+// LoadBalancerLoadShedding contains the settings for controlling load shedding.
 type LoadBalancerLoadShedding struct {
 	DefaultPercent float32 `json:"default_percent,omitempty"`
 	DefaultPolicy  string  `json:"default_policy,omitempty"`
@@ -101,23 +108,26 @@ type LoadBalancerLoadShedding struct {
 // LoadBalancerRule represents a single rule entry for a Load Balancer. Each rules
 // is run one after the other in priority order. Disabled rules are skipped.
 type LoadBalancerRule struct {
-	// Name is required but is only used for human readability
-	Name string `json:"name"`
-	// Priority controls the order of rule execution the lowest value will be invoked first
-	Priority int  `json:"priority"`
-	Disabled bool `json:"disabled"`
-
-	Condition string                    `json:"condition"`
 	Overrides LoadBalancerRuleOverrides `json:"overrides"`
 
-	// Terminates flag this rule as 'terminating'. No further rules will
-	// be executed after this one.
-	Terminates bool `json:"terminates,omitempty"`
+	// Name is required but is only used for human readability
+	Name string `json:"name"`
+
+	Condition string `json:"condition"`
+
+	// Priority controls the order of rule execution the lowest value will be invoked first
+	Priority int `json:"priority"`
 
 	// FixedResponse if set and the condition is true we will not run
 	// routing logic but rather directly respond with the provided fields.
 	// FixedResponse implies terminates.
 	FixedResponse *LoadBalancerFixedResponseData `json:"fixed_response,omitempty"`
+
+	Disabled bool `json:"disabled"`
+
+	// Terminates flag this rule as 'terminating'. No further rules will
+	// be executed after this one.
+	Terminates bool `json:"terminates,omitempty"`
 }
 
 // LoadBalancerFixedResponseData contains all the data needed to generate
@@ -149,20 +159,32 @@ type LoadBalancerRuleOverrides struct {
 	DefaultPools []string            `json:"default_pools,omitempty"`
 	PoPPools     map[string][]string `json:"pop_pools,omitempty"`
 	RegionPools  map[string][]string `json:"region_pools,omitempty"`
+	CountryPools map[string][]string `json:"country_pools,omitempty"`
+
+	RandomSteering *RandomSteering `json:"random_steering,omitempty"`
+}
+
+// RandomSteering represents fields used to set pool weights on a load balancer
+// with "random" steering policy.
+type RandomSteering struct {
+	DefaultWeight float64            `json:"default_weight,omitempty"`
+	PoolWeights   map[string]float64 `json:"pool_weights,omitempty"`
 }
 
 // LoadBalancerRuleOverridesSessionAffinityAttrs mimics SessionAffinityAttributes without the
 // DrainDuration field as that field can not be overwritten via rules.
 type LoadBalancerRuleOverridesSessionAffinityAttrs struct {
-	SameSite string `json:"samesite,omitempty"`
-	Secure   string `json:"secure,omitempty"`
+	SameSite             string `json:"samesite,omitempty"`
+	Secure               string `json:"secure,omitempty"`
+	ZeroDowntimeFailover string `json:"zero_downtime_failover,omitempty"`
 }
 
 // SessionAffinityAttributes represents the fields used to set attributes in a load balancer session affinity cookie.
 type SessionAffinityAttributes struct {
-	SameSite      string `json:"samesite,omitempty"`
-	Secure        string `json:"secure,omitempty"`
-	DrainDuration int    `json:"drain_duration,omitempty"`
+	SameSite             string `json:"samesite,omitempty"`
+	Secure               string `json:"secure,omitempty"`
+	DrainDuration        int    `json:"drain_duration,omitempty"`
+	ZeroDowntimeFailover string `json:"zero_downtime_failover,omitempty"`
 }
 
 // LoadBalancerOriginHealth represents the health of the origin.
@@ -241,7 +263,7 @@ func (api *API) CreateLoadBalancerPool(ctx context.Context, pool LoadBalancerPoo
 	}
 	var r loadBalancerPoolResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancerPool{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancerPool{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -257,7 +279,7 @@ func (api *API) ListLoadBalancerPools(ctx context.Context) ([]LoadBalancerPool, 
 	}
 	var r loadBalancerPoolListResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return nil, errors.Wrap(err, errUnmarshalError)
+		return nil, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -273,7 +295,7 @@ func (api *API) LoadBalancerPoolDetails(ctx context.Context, poolID string) (Loa
 	}
 	var r loadBalancerPoolResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancerPool{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancerPool{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -300,7 +322,7 @@ func (api *API) ModifyLoadBalancerPool(ctx context.Context, pool LoadBalancerPoo
 	}
 	var r loadBalancerPoolResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancerPool{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancerPool{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -316,7 +338,7 @@ func (api *API) CreateLoadBalancerMonitor(ctx context.Context, monitor LoadBalan
 	}
 	var r loadBalancerMonitorResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancerMonitor{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancerMonitor{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -332,7 +354,7 @@ func (api *API) ListLoadBalancerMonitors(ctx context.Context) ([]LoadBalancerMon
 	}
 	var r loadBalancerMonitorListResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return nil, errors.Wrap(err, errUnmarshalError)
+		return nil, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -348,7 +370,7 @@ func (api *API) LoadBalancerMonitorDetails(ctx context.Context, monitorID string
 	}
 	var r loadBalancerMonitorResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancerMonitor{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancerMonitor{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -375,7 +397,7 @@ func (api *API) ModifyLoadBalancerMonitor(ctx context.Context, monitor LoadBalan
 	}
 	var r loadBalancerMonitorResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancerMonitor{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancerMonitor{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -391,7 +413,7 @@ func (api *API) CreateLoadBalancer(ctx context.Context, zoneID string, lb LoadBa
 	}
 	var r loadBalancerResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancer{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancer{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -407,7 +429,7 @@ func (api *API) ListLoadBalancers(ctx context.Context, zoneID string) ([]LoadBal
 	}
 	var r loadBalancerListResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return nil, errors.Wrap(err, errUnmarshalError)
+		return nil, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -423,7 +445,7 @@ func (api *API) LoadBalancerDetails(ctx context.Context, zoneID, lbID string) (L
 	}
 	var r loadBalancerResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancer{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancer{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -450,7 +472,7 @@ func (api *API) ModifyLoadBalancer(ctx context.Context, zoneID string, lb LoadBa
 	}
 	var r loadBalancerResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancer{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancer{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }
@@ -466,7 +488,7 @@ func (api *API) PoolHealthDetails(ctx context.Context, poolID string) (LoadBalan
 	}
 	var r loadBalancerPoolHealthResponse
 	if err := json.Unmarshal(res, &r); err != nil {
-		return LoadBalancerPoolHealth{}, errors.Wrap(err, errUnmarshalError)
+		return LoadBalancerPoolHealth{}, fmt.Errorf("%s: %w", errUnmarshalError, err)
 	}
 	return r.Result, nil
 }

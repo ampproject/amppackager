@@ -81,9 +81,6 @@ type Location struct {
 	// no documentation yet
 	NetworkConfigurationAttribute *Hardware_Attribute `json:"networkConfigurationAttribute,omitempty" xmlrpc:"networkConfigurationAttribute,omitempty"`
 
-	// The total number of users online using SoftLayer's PPTP VPN service for a location.
-	OnlinePptpVpnUserCount *int `json:"onlinePptpVpnUserCount,omitempty" xmlrpc:"onlinePptpVpnUserCount,omitempty"`
-
 	// The total number of users online using SoftLayer's SSL VPN service for a location.
 	OnlineSslVpnUserCount *int `json:"onlineSslVpnUserCount,omitempty" xmlrpc:"onlineSslVpnUserCount,omitempty"`
 

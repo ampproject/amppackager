@@ -43,7 +43,7 @@ type CertificateBundle struct {
 // CertificatePurchase represents a Certificate Purchase in DNSimple.
 type CertificatePurchase struct {
 	ID            int64  `json:"id,omitempty"`
-	CertificateID int64  `json:"new_certificate_id,omitempty"`
+	CertificateID int64  `json:"certificate_id,omitempty"`
 	State         string `json:"state,omitempty"`
 	AutoRenew     bool   `json:"auto_renew,omitempty"`
 	CreatedAt     string `json:"created_at,omitempty"`

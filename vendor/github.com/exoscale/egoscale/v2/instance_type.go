@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	apiv2 "github.com/exoscale/egoscale/v2/api"
-	papi "github.com/exoscale/egoscale/v2/internal/public-api"
+	"github.com/exoscale/egoscale/v2/oapi"
 )
 
 // InstanceType represents a Compute instance type.
@@ -19,20 +19,7 @@ type InstanceType struct {
 	Size       *string
 }
 
-// ToAPIMock returns the low-level representation of the resource. This is intended for testing purposes.
-func (t InstanceType) ToAPIMock() interface{} {
-	return papi.InstanceType{
-		Authorized: t.Authorized,
-		Cpus:       t.CPUs,
-		Family:     (*papi.InstanceTypeFamily)(t.Family),
-		Gpus:       t.GPUs,
-		Id:         t.ID,
-		Memory:     t.Memory,
-		Size:       (*papi.InstanceTypeSize)(t.Size),
-	}
-}
-
-func instanceTypeFromAPI(t *papi.InstanceType) *InstanceType {
+func instanceTypeFromAPI(t *oapi.InstanceType) *InstanceType {
 	return &InstanceType{
 		Authorized: t.Authorized,
 		CPUs:       t.Cpus,
@@ -44,7 +31,7 @@ func instanceTypeFromAPI(t *papi.InstanceType) *InstanceType {
 	}
 }
 
-// ListInstanceTypes returns the list of existing Instance types in the specified zone.
+// ListInstanceTypes returns the list of existing Instance types.
 func (c *Client) ListInstanceTypes(ctx context.Context, zone string) ([]*InstanceType, error) {
 	list := make([]*InstanceType, 0)
 
@@ -62,7 +49,7 @@ func (c *Client) ListInstanceTypes(ctx context.Context, zone string) ([]*Instanc
 	return list, nil
 }
 
-// GetInstanceType returns the Instance type corresponding to the specified ID in the specified zone.
+// GetInstanceType returns the Instance type corresponding to the specified ID.
 func (c *Client) GetInstanceType(ctx context.Context, zone, id string) (*InstanceType, error) {
 	resp, err := c.GetInstanceTypeWithResponse(apiv2.WithZone(ctx, zone), id)
 	if err != nil {
@@ -72,13 +59,13 @@ func (c *Client) GetInstanceType(ctx context.Context, zone, id string) (*Instanc
 	return instanceTypeFromAPI(resp.JSON200), nil
 }
 
-// FindInstanceType attempts to find an Instance type by family+size or ID in the specified zone.
+// FindInstanceType attempts to find an Instance type by family+size or ID.
 // To search by family+size, the expected format for v is "[FAMILY.]SIZE" (e.g. "large", "gpu.medium"),
 // with family defaulting to "standard" if not specified.
-func (c *Client) FindInstanceType(ctx context.Context, zone, v string) (*InstanceType, error) {
+func (c *Client) FindInstanceType(ctx context.Context, zone, x string) (*InstanceType, error) {
 	var typeFamily, typeSize string
 
-	parts := strings.SplitN(v, ".", 2)
+	parts := strings.SplitN(x, ".", 2)
 	if l := len(parts); l > 0 {
 		if l == 1 {
 			typeFamily, typeSize = "standard", strings.ToLower(parts[0])
@@ -93,7 +80,7 @@ func (c *Client) FindInstanceType(ctx context.Context, zone, v string) (*Instanc
 	}
 
 	for _, r := range res {
-		if *r.ID == v || (*r.Family == typeFamily && *r.Size == typeSize) {
+		if *r.ID == x || (*r.Family == typeFamily && *r.Size == typeSize) {
 			return c.GetInstanceType(ctx, zone, *r.ID)
 		}
 	}

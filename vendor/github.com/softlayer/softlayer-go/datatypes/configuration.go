@@ -144,7 +144,7 @@ type Configuration_Storage_Group_Order struct {
 	Controller *int `json:"controller,omitempty" xmlrpc:"controller,omitempty"`
 
 	// no documentation yet
-	HardDrives []int `json:"hardDrives,omitempty" xmlrpc:"hardDrives,omitempty"`
+	HardDrives []string `json:"hardDrives,omitempty" xmlrpc:"hardDrives,omitempty"`
 
 	// no documentation yet
 	HotSpareDrives []int `json:"hotSpareDrives,omitempty" xmlrpc:"hotSpareDrives,omitempty"`

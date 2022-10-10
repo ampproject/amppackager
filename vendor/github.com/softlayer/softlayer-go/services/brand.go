@@ -208,6 +208,7 @@ func (r Brand) GetAllOwnedAccounts() (resp []datatypes.Account, err error) {
 }
 
 // (DEPRECATED) Use [[SoftLayer_Ticket_Subject::getAllObjects]] method.
+// Deprecated: This function has been marked as deprecated.
 func (r Brand) GetAllTicketSubjects(account *datatypes.Account) (resp []datatypes.Ticket_Subject, err error) {
 	params := []interface{}{
 		account,
@@ -219,6 +220,34 @@ func (r Brand) GetAllTicketSubjects(account *datatypes.Account) (resp []datatype
 // Retrieve This flag indicates if creation of accounts is allowed.
 func (r Brand) GetAllowAccountCreationFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Brand", "getAllowAccountCreationFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Returns snapshots of billing items recorded periodically given an account ID owned by the brand those billing items belong to. Retrieving billing item snapshots is more performant than retrieving billing items directly and performs less relational joins improving retrieval efficiency. The downside is, they are not real time, and do not share relational parity with the original billing item.
+func (r Brand) GetBillingItemSnapshots() (resp []datatypes.Billing_Item_Chronicle, err error) {
+	err = r.Session.DoRequest("SoftLayer_Brand", "getBillingItemSnapshots", nil, &r.Options, &resp)
+	return
+}
+
+// This service returns the snapshots of billing items recorded periodically given an account ID. The provided account ID must be owned by the brand that calls this service. In this context, it can be interpreted that the billing items snapshots belong to both the account and that accounts brand. Retrieving billing item snapshots is more performant than retrieving billing items directly and performs less relational joins improving retrieval efficiency.
+//
+// The downside is, they are not real time, and do not share relational parity with the original billing item.
+func (r Brand) GetBillingItemSnapshotsForSingleOwnedAccount(accountId *int) (resp []datatypes.Billing_Item_Chronicle, err error) {
+	params := []interface{}{
+		accountId,
+	}
+	err = r.Session.DoRequest("SoftLayer_Brand", "getBillingItemSnapshotsForSingleOwnedAccount", params, &r.Options, &resp)
+	return
+}
+
+// This service returns the snapshots of billing items recorded periodically given an account ID owned by the brand those billing items belong to. Retrieving billing item snapshots is more performant than retrieving billing items directly and performs less relational joins improving retrieval efficiency.
+//
+// The downside is, they are not real time, and do not share relational parity with the original billing item.
+func (r Brand) GetBillingItemSnapshotsWithExternalAccountId(externalAccountId *string) (resp []datatypes.Billing_Item_Chronicle, err error) {
+	params := []interface{}{
+		externalAccountId,
+	}
+	err = r.Session.DoRequest("SoftLayer_Brand", "getBillingItemSnapshotsWithExternalAccountId", params, &r.Options, &resp)
 	return
 }
 
@@ -376,6 +405,17 @@ func (r Brand) ReactivateAccount(accountId *int) (err error) {
 		accountId,
 	}
 	err = r.Session.DoRequest("SoftLayer_Brand", "reactivateAccount", params, &r.Options, &resp)
+	return
+}
+
+// When this service is called given an IBM Cloud infrastructure account ID owned by the calling brand, the process is started to refresh the billing item snapshots belonging to that account. This refresh is async and can take an undetermined amount of time. Even if this endpoint returns an OK, it doesn't guarantee that refresh did not fail or encounter issues.
+//
+//
+func (r Brand) RefreshBillingItemSnapshot(accountId *int) (resp bool, err error) {
+	params := []interface{}{
+		accountId,
+	}
+	err = r.Session.DoRequest("SoftLayer_Brand", "refreshBillingItemSnapshot", params, &r.Options, &resp)
 	return
 }
 

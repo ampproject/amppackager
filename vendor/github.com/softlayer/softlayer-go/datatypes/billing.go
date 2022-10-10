@@ -153,7 +153,8 @@ type Billing_Info struct {
 	// The total recurring fee amount for servers that are in the spare pool status.
 	SparePoolAmount *int `json:"sparePoolAmount,omitempty" xmlrpc:"sparePoolAmount,omitempty"`
 
-	// no documentation yet
+	// This property has been deprecated.
+	// Deprecated: This function has been marked as deprecated.
 	TaxCertificateId *string `json:"taxCertificateId,omitempty" xmlrpc:"taxCertificateId,omitempty"`
 
 	// no documentation yet
@@ -653,12 +654,6 @@ type Billing_Invoice_Receivable_Payment struct {
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
 
 	// no documentation yet
-	CreditCardLastFourDigits *int `json:"creditCardLastFourDigits,omitempty" xmlrpc:"creditCardLastFourDigits,omitempty"`
-
-	// no documentation yet
-	CreditCardRequestId *string `json:"creditCardRequestId,omitempty" xmlrpc:"creditCardRequestId,omitempty"`
-
-	// no documentation yet
 	CreditCardTransaction *Billing_Payment_Card_Transaction `json:"creditCardTransaction,omitempty" xmlrpc:"creditCardTransaction,omitempty"`
 
 	// no documentation yet
@@ -854,16 +849,10 @@ type Billing_Item struct {
 	// A count of a billing item's recurring child items that have once been billed and are scheduled to be billed in the future.
 	BillableChildrenCount *uint `json:"billableChildrenCount,omitempty" xmlrpc:"billableChildrenCount,omitempty"`
 
-	// A count of a Billing Item's bundled billing items
-	BundleItemCount *uint `json:"bundleItemCount,omitempty" xmlrpc:"bundleItemCount,omitempty"`
-
-	// A Billing Item's bundled billing items
-	BundleItems []Product_Item_Bundles `json:"bundleItems,omitempty" xmlrpc:"bundleItems,omitempty"`
-
-	// A count of a Billing Item's bundled billing items'
+	// A count of a Billing Item's bundled billing items.
 	BundledItemCount *uint `json:"bundledItemCount,omitempty" xmlrpc:"bundledItemCount,omitempty"`
 
-	// A Billing Item's bundled billing items'
+	// A Billing Item's bundled billing items.
 	BundledItems []Billing_Item `json:"bundledItems,omitempty" xmlrpc:"bundledItems,omitempty"`
 
 	// A Billing Item's active child billing items.
@@ -1238,6 +1227,110 @@ type Billing_Item_Cancellation_Request_Status struct {
 
 	// The status name
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+}
+
+// no documentation yet
+type Billing_Item_Chronicle struct {
+	Entity
+
+	// no documentation yet
+	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
+
+	// no documentation yet
+	AssociatedBillingItemId *int `json:"associatedBillingItemId,omitempty" xmlrpc:"associatedBillingItemId,omitempty"`
+
+	// A Billing Item's associated child billing items. This includes "floating" items that are not necessarily child billing items of this billing item.
+	AssociatedChildren []Billing_Item_Chronicle `json:"associatedChildren,omitempty" xmlrpc:"associatedChildren,omitempty"`
+
+	// no documentation yet
+	AssociatedChildrenCount *int `json:"associatedChildrenCount,omitempty" xmlrpc:"associatedChildrenCount,omitempty"`
+
+	// no documentation yet
+	CancellationDate *Time `json:"cancellationDate,omitempty" xmlrpc:"cancellationDate,omitempty"`
+
+	// no documentation yet
+	CategoryCode *string `json:"categoryCode,omitempty" xmlrpc:"categoryCode,omitempty"`
+
+	// no documentation yet
+	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
+
+	// no documentation yet
+	CurrentHourlyCharge *Float64 `json:"currentHourlyCharge,omitempty" xmlrpc:"currentHourlyCharge,omitempty"`
+
+	// no documentation yet
+	CycleStartDate *Time `json:"cycleStartDate,omitempty" xmlrpc:"cycleStartDate,omitempty"`
+
+	// no documentation yet
+	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
+
+	// no documentation yet
+	DomainName *string `json:"domainName,omitempty" xmlrpc:"domainName,omitempty"`
+
+	// no documentation yet
+	ExternalAccountId *string `json:"externalAccountId,omitempty" xmlrpc:"externalAccountId,omitempty"`
+
+	// no documentation yet
+	HostName *string `json:"hostName,omitempty" xmlrpc:"hostName,omitempty"`
+
+	// no documentation yet
+	HourlyFlag *bool `json:"hourlyFlag,omitempty" xmlrpc:"hourlyFlag,omitempty"`
+
+	// no documentation yet
+	HourlyRecurringFee *Float64 `json:"hourlyRecurringFee,omitempty" xmlrpc:"hourlyRecurringFee,omitempty"`
+
+	// no documentation yet
+	HoursUsed *int `json:"hoursUsed,omitempty" xmlrpc:"hoursUsed,omitempty"`
+
+	// The id for the chronicle record will match one to one the id for the corresponding billing item.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// no documentation yet
+	ItemId *int `json:"itemId,omitempty" xmlrpc:"itemId,omitempty"`
+
+	// no documentation yet
+	LaborFee *Float64 `json:"laborFee,omitempty" xmlrpc:"laborFee,omitempty"`
+
+	// no documentation yet
+	LastBillDate *Time `json:"lastBillDate,omitempty" xmlrpc:"lastBillDate,omitempty"`
+
+	// no documentation yet
+	Location *Location `json:"location,omitempty" xmlrpc:"location,omitempty"`
+
+	// no documentation yet
+	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
+
+	// no documentation yet
+	NextBillDate *Time `json:"nextBillDate,omitempty" xmlrpc:"nextBillDate,omitempty"`
+
+	// no documentation yet
+	OneTimeFee *Float64 `json:"oneTimeFee,omitempty" xmlrpc:"oneTimeFee,omitempty"`
+
+	// no documentation yet
+	ParentId *int `json:"parentId,omitempty" xmlrpc:"parentId,omitempty"`
+
+	// The entry in the product catalog that the underlying billing item is based on.
+	Product *Product_Item `json:"product,omitempty" xmlrpc:"product,omitempty"`
+
+	// no documentation yet
+	RecurringFee *Float64 `json:"recurringFee,omitempty" xmlrpc:"recurringFee,omitempty"`
+
+	// no documentation yet
+	RecurringMonths *int `json:"recurringMonths,omitempty" xmlrpc:"recurringMonths,omitempty"`
+
+	// no documentation yet
+	ResourceTableId *int `json:"resourceTableId,omitempty" xmlrpc:"resourceTableId,omitempty"`
+
+	// no documentation yet
+	ResourceTableName *string `json:"resourceTableName,omitempty" xmlrpc:"resourceTableName,omitempty"`
+
+	// no documentation yet
+	SetupFee *Float64 `json:"setupFee,omitempty" xmlrpc:"setupFee,omitempty"`
+
+	// no documentation yet
+	TopLevelProductGroupName *string `json:"topLevelProductGroupName,omitempty" xmlrpc:"topLevelProductGroupName,omitempty"`
+
+	// no documentation yet
+	UsageChargeFlag *bool `json:"usageChargeFlag,omitempty" xmlrpc:"usageChargeFlag,omitempty"`
 }
 
 // The SoftLayer_Billing_Item_Ctc_Account data type contains general information relating to a single SoftLayer billing item for a CTC client account creation
@@ -1885,7 +1978,7 @@ type Billing_Order_Cart struct {
 	Billing_Order_Quote
 }
 
-// Every individual item that a SoftLayer customer is billed for is recorded in the SoftLayer_Billing_Item data type. Billing items range from server chassis to hard drives to control panels, bandwidth quota upgrades and port upgrade charges. Softlayer [[SoftLayer_Billing_Invoice|invoices]] are generated from the cost of a customer's billing items. Billing items are copied from the product catalog as they're ordered by customers to create a reference between an account and the billable items they own.
+// Every individual item that a SoftLayer customer is billed for is recorded in the SoftLayer_Billing_Item data type. Billing items range from server chassis to hard drives to control panels, bandwidth quota upgrades and port upgrade charges. SoftLayer [[SoftLayer_Billing_Invoice|invoices]] are generated from the cost of a customer's billing items. Billing items are copied from the product catalog as they're ordered by customers to create a reference between an account and the billable items they own.
 //
 // Billing items exist in a tree relationship. Items are associated with each other by parent/child relationships. Component items such as CPU's, RAM, and software each have a parent billing item for the server chassis they're associated with. Billing Items with a null parent item do not have an associated parent item.
 type Billing_Order_Item struct {

@@ -159,12 +159,6 @@ func (r Location) GetObject() (resp datatypes.Location, err error) {
 	return
 }
 
-// Retrieve The total number of users online using SoftLayer's PPTP VPN service for a location.
-func (r Location) GetOnlinePptpVpnUserCount() (resp int, err error) {
-	err = r.Session.DoRequest("SoftLayer_Location", "getOnlinePptpVpnUserCount", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve The total number of users online using SoftLayer's SSL VPN service for a location.
 func (r Location) GetOnlineSslVpnUserCount() (resp int, err error) {
 	err = r.Session.DoRequest("SoftLayer_Location", "getOnlineSslVpnUserCount", nil, &r.Options, &resp)
@@ -388,12 +382,6 @@ func (r Location_Datacenter) GetNetworkConfigurationAttribute() (resp datatypes.
 // no documentation yet
 func (r Location_Datacenter) GetObject() (resp datatypes.Location_Datacenter, err error) {
 	err = r.Session.DoRequest("SoftLayer_Location_Datacenter", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The total number of users online using SoftLayer's PPTP VPN service for a location.
-func (r Location_Datacenter) GetOnlinePptpVpnUserCount() (resp int, err error) {
-	err = r.Session.DoRequest("SoftLayer_Location_Datacenter", "getOnlinePptpVpnUserCount", nil, &r.Options, &resp)
 	return
 }
 

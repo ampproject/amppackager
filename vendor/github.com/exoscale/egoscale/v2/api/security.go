@@ -56,7 +56,7 @@ func (s *SecurityProviderExoscale) signRequest(req *http.Request, expiration tim
 	)
 
 	// Request method/URL path
-	sigParts = append(sigParts, fmt.Sprintf("%s %s", req.Method, req.URL.Path))
+	sigParts = append(sigParts, fmt.Sprintf("%s %s", req.Method, req.URL.EscapedPath()))
 	headerParts = append(headerParts, "EXO2-HMAC-SHA256 credential="+s.apiKey)
 
 	// Request body if present

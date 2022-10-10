@@ -4,7 +4,7 @@ import (
 	"context"
 
 	apiv2 "github.com/exoscale/egoscale/v2/api"
-	papi "github.com/exoscale/egoscale/v2/internal/public-api"
+	"github.com/exoscale/egoscale/v2/oapi"
 )
 
 // InstancePoolManager represents an Instance Pool manager.
@@ -20,7 +20,7 @@ type InstancePool struct {
 	Description          *string
 	DiskSize             *int64 `req-for:"create"`
 	ElasticIPIDs         *[]string
-	ID                   *string `req-for:"update"`
+	ID                   *string `req-for:"update,delete"`
 	IPv6Enabled          *bool
 	InstanceIDs          *[]string
 	InstancePrefix       *string
@@ -35,12 +35,10 @@ type InstancePool struct {
 	State                *string
 	TemplateID           *string `req-for:"create"`
 	UserData             *string
-
-	c    *Client
-	zone string
+	Zone                 *string
 }
 
-func instancePoolFromAPI(i *papi.InstancePool) *InstancePool {
+func instancePoolFromAPI(i *oapi.InstancePool, zone string) *InstancePool {
 	return &InstancePool{
 		AntiAffinityGroupIDs: func() (v *[]string) {
 			if i.AntiAffinityGroups != nil && len(*i.AntiAffinityGroups) > 0 {
@@ -130,100 +128,11 @@ func instancePoolFromAPI(i *papi.InstancePool) *InstancePool {
 		State:      (*string)(i.State),
 		TemplateID: i.Template.Id,
 		UserData:   i.UserData,
+		Zone:       &zone,
 	}
 }
 
-// AntiAffinityGroups returns the list of Anti-Affinity Groups applied to the members of the Instance Pool.
-func (i *InstancePool) AntiAffinityGroups(ctx context.Context) ([]*AntiAffinityGroup, error) {
-	if i.AntiAffinityGroupIDs != nil {
-		res, err := i.c.fetchFromIDs(ctx, i.zone, *i.AntiAffinityGroupIDs, new(AntiAffinityGroup))
-		return res.([]*AntiAffinityGroup), err
-	}
-	return nil, nil
-}
-
-// ElasticIPs returns the list of Elastic IPs attached to the members of the Instance Pool.
-func (i *InstancePool) ElasticIPs(ctx context.Context) ([]*ElasticIP, error) {
-	if i.ElasticIPIDs != nil {
-		res, err := i.c.fetchFromIDs(ctx, i.zone, *i.ElasticIPIDs, new(ElasticIP))
-		return res.([]*ElasticIP), err
-	}
-	return nil, nil
-}
-
-// Instances returns the list of Compute instances member of the Instance Pool.
-func (i *InstancePool) Instances(ctx context.Context) ([]*Instance, error) {
-	if i.InstanceIDs != nil {
-		res, err := i.c.fetchFromIDs(ctx, i.zone, *i.InstanceIDs, new(Instance))
-		return res.([]*Instance), err
-	}
-	return nil, nil
-}
-
-// PrivateNetworks returns the list of Private Networks attached to the members of the Instance Pool.
-func (i *InstancePool) PrivateNetworks(ctx context.Context) ([]*PrivateNetwork, error) {
-	if i.PrivateNetworkIDs != nil {
-		res, err := i.c.fetchFromIDs(ctx, i.zone, *i.PrivateNetworkIDs, new(PrivateNetwork))
-		return res.([]*PrivateNetwork), err
-	}
-	return nil, nil
-}
-
-// SecurityGroups returns the list of Security Groups attached to the members of the Instance Pool.
-func (i *InstancePool) SecurityGroups(ctx context.Context) ([]*SecurityGroup, error) {
-	if i.SecurityGroupIDs != nil {
-		res, err := i.c.fetchFromIDs(ctx, i.zone, *i.SecurityGroupIDs, new(SecurityGroup))
-		return res.([]*SecurityGroup), err
-	}
-	return nil, nil
-}
-
-// Scale scales the Instance Pool to the specified number of instances.
-func (i *InstancePool) Scale(ctx context.Context, instances int64) error {
-	resp, err := i.c.ScaleInstancePoolWithResponse(
-		apiv2.WithZone(ctx, i.zone),
-		*i.ID,
-		papi.ScaleInstancePoolJSONRequestBody{Size: instances},
-	)
-	if err != nil {
-		return err
-	}
-
-	_, err = papi.NewPoller().
-		WithTimeout(i.c.timeout).
-		WithInterval(i.c.pollInterval).
-		Poll(ctx, i.c.OperationPoller(i.zone, *resp.JSON200.Id))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// EvictMembers evicts the specified members (identified by their Compute instance ID) from the
-// Instance Pool.
-func (i *InstancePool) EvictMembers(ctx context.Context, members []string) error {
-	resp, err := i.c.EvictInstancePoolMembersWithResponse(
-		apiv2.WithZone(ctx, i.zone),
-		*i.ID,
-		papi.EvictInstancePoolMembersJSONRequestBody{Instances: &members},
-	)
-	if err != nil {
-		return err
-	}
-
-	_, err = papi.NewPoller().
-		WithTimeout(i.c.timeout).
-		WithInterval(i.c.pollInterval).
-		Poll(ctx, i.c.OperationPoller(i.zone, *resp.JSON200.Id))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// CreateInstancePool creates an Instance Pool in the specified zone.
+// CreateInstancePool creates an Instance Pool.
 func (c *Client) CreateInstancePool(
 	ctx context.Context,
 	zone string,
@@ -235,95 +144,181 @@ func (c *Client) CreateInstancePool(
 
 	resp, err := c.CreateInstancePoolWithResponse(
 		apiv2.WithZone(ctx, zone),
-		papi.CreateInstancePoolJSONRequestBody{
-			AntiAffinityGroups: func() (v *[]papi.AntiAffinityGroup) {
+		oapi.CreateInstancePoolJSONRequestBody{
+			AntiAffinityGroups: func() (v *[]oapi.AntiAffinityGroup) {
 				if instancePool.AntiAffinityGroupIDs != nil {
-					ids := make([]papi.AntiAffinityGroup, len(*instancePool.AntiAffinityGroupIDs))
+					ids := make([]oapi.AntiAffinityGroup, len(*instancePool.AntiAffinityGroupIDs))
 					for i, item := range *instancePool.AntiAffinityGroupIDs {
 						item := item
-						ids[i] = papi.AntiAffinityGroup{Id: &item}
+						ids[i] = oapi.AntiAffinityGroup{Id: &item}
 					}
 					v = &ids
 				}
 				return
 			}(),
-			DeployTarget: func() (v *papi.DeployTarget) {
+			DeployTarget: func() (v *oapi.DeployTarget) {
 				if instancePool.DeployTargetID != nil {
-					v = &papi.DeployTarget{Id: instancePool.DeployTargetID}
+					v = &oapi.DeployTarget{Id: instancePool.DeployTargetID}
 				}
 				return
 			}(),
 			Description: instancePool.Description,
 			DiskSize:    *instancePool.DiskSize,
-			ElasticIps: func() (v *[]papi.ElasticIp) {
+			ElasticIps: func() (v *[]oapi.ElasticIp) {
 				if instancePool.ElasticIPIDs != nil {
-					ids := make([]papi.ElasticIp, len(*instancePool.ElasticIPIDs))
+					ids := make([]oapi.ElasticIp, len(*instancePool.ElasticIPIDs))
 					for i, item := range *instancePool.ElasticIPIDs {
 						item := item
-						ids[i] = papi.ElasticIp{Id: &item}
+						ids[i] = oapi.ElasticIp{Id: &item}
 					}
 					v = &ids
 				}
 				return
 			}(),
 			InstancePrefix: instancePool.InstancePrefix,
-			InstanceType:   papi.InstanceType{Id: instancePool.InstanceTypeID},
+			InstanceType:   oapi.InstanceType{Id: instancePool.InstanceTypeID},
 			Ipv6Enabled:    instancePool.IPv6Enabled,
-			Labels: func() (v *papi.Labels) {
+			Labels: func() (v *oapi.Labels) {
 				if instancePool.Labels != nil {
-					v = &papi.Labels{AdditionalProperties: *instancePool.Labels}
+					v = &oapi.Labels{AdditionalProperties: *instancePool.Labels}
 				}
 				return
 			}(),
 			Name: *instancePool.Name,
-			PrivateNetworks: func() (v *[]papi.PrivateNetwork) {
+			PrivateNetworks: func() (v *[]oapi.PrivateNetwork) {
 				if instancePool.PrivateNetworkIDs != nil {
-					ids := make([]papi.PrivateNetwork, len(*instancePool.PrivateNetworkIDs))
+					ids := make([]oapi.PrivateNetwork, len(*instancePool.PrivateNetworkIDs))
 					for i, item := range *instancePool.PrivateNetworkIDs {
 						item := item
-						ids[i] = papi.PrivateNetwork{Id: &item}
+						ids[i] = oapi.PrivateNetwork{Id: &item}
 					}
 					v = &ids
 				}
 				return
 			}(),
-			SecurityGroups: func() (v *[]papi.SecurityGroup) {
+			SecurityGroups: func() (v *[]oapi.SecurityGroup) {
 				if instancePool.SecurityGroupIDs != nil {
-					ids := make([]papi.SecurityGroup, len(*instancePool.SecurityGroupIDs))
+					ids := make([]oapi.SecurityGroup, len(*instancePool.SecurityGroupIDs))
 					for i, item := range *instancePool.SecurityGroupIDs {
 						item := item
-						ids[i] = papi.SecurityGroup{Id: &item}
+						ids[i] = oapi.SecurityGroup{Id: &item}
 					}
 					v = &ids
 				}
 				return
 			}(),
 			Size: *instancePool.Size,
-			SshKey: func() (v *papi.SshKey) {
+			SshKey: func() (v *oapi.SshKey) {
 				if instancePool.SSHKey != nil {
-					v = &papi.SshKey{Name: instancePool.SSHKey}
+					v = &oapi.SshKey{Name: instancePool.SSHKey}
 				}
 				return
 			}(),
-			Template: papi.Template{Id: instancePool.TemplateID},
+			Template: oapi.Template{Id: instancePool.TemplateID},
 			UserData: instancePool.UserData,
 		})
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := papi.NewPoller().
+	res, err := oapi.NewPoller().
 		WithTimeout(c.timeout).
 		WithInterval(c.pollInterval).
-		Poll(ctx, c.OperationPoller(zone, *resp.JSON200.Id))
+		Poll(ctx, oapi.OperationPoller(c, zone, *resp.JSON200.Id))
 	if err != nil {
 		return nil, err
 	}
 
-	return c.GetInstancePool(ctx, zone, *res.(*papi.Reference).Id)
+	instancePoolID := *res.(*struct {
+		Command *string `json:"command,omitempty"`
+		Id      *string `json:"id,omitempty"` // revive:disable-line
+		Link    *string `json:"link,omitempty"`
+	}).Id
+
+	return c.GetInstancePool(ctx, zone, instancePoolID)
 }
 
-// ListInstancePools returns the list of existing Instance Pools in the specified zone.
+// DeleteInstancePool deletes an Instance Pool.
+func (c *Client) DeleteInstancePool(ctx context.Context, zone string, instancePool *InstancePool) error {
+	if err := validateOperationParams(instancePool, "delete"); err != nil {
+		return err
+	}
+
+	resp, err := c.DeleteInstancePoolWithResponse(apiv2.WithZone(ctx, zone), *instancePool.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = oapi.NewPoller().
+		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
+		Poll(ctx, oapi.OperationPoller(c, zone, *resp.JSON200.Id))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// EvictInstancePoolMembers evicts the specified members (identified by their Compute instance ID) from the
+// Instance Pool corresponding to the specified ID.
+func (c *Client) EvictInstancePoolMembers(
+	ctx context.Context,
+	zone string,
+	instancePool *InstancePool,
+	members []string,
+) error {
+	if err := validateOperationParams(instancePool, "update"); err != nil {
+		return err
+	}
+
+	resp, err := c.EvictInstancePoolMembersWithResponse(
+		apiv2.WithZone(ctx, zone),
+		*instancePool.ID,
+		oapi.EvictInstancePoolMembersJSONRequestBody{Instances: &members},
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = oapi.NewPoller().
+		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
+		Poll(ctx, oapi.OperationPoller(c, zone, *resp.JSON200.Id))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// FindInstancePool attempts to find an Instance Pool by name or ID.
+func (c *Client) FindInstancePool(ctx context.Context, zone, x string) (*InstancePool, error) {
+	res, err := c.ListInstancePools(ctx, zone)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range res {
+		if *r.ID == x || *r.Name == x {
+			return c.GetInstancePool(ctx, zone, *r.ID)
+		}
+	}
+
+	return nil, apiv2.ErrNotFound
+}
+
+// GetInstancePool returns the Instance Pool corresponding to the specified ID.
+func (c *Client) GetInstancePool(ctx context.Context, zone, id string) (*InstancePool, error) {
+	resp, err := c.GetInstancePoolWithResponse(apiv2.WithZone(ctx, zone), id)
+	if err != nil {
+		return nil, err
+	}
+
+	return instancePoolFromAPI(resp.JSON200, zone), nil
+}
+
+// ListInstancePools returns the list of existing Instance Pools.
 func (c *Client) ListInstancePools(ctx context.Context, zone string) ([]*InstancePool, error) {
 	list := make([]*InstancePool, 0)
 
@@ -334,48 +329,40 @@ func (c *Client) ListInstancePools(ctx context.Context, zone string) ([]*Instanc
 
 	if resp.JSON200.InstancePools != nil {
 		for i := range *resp.JSON200.InstancePools {
-			instancePool := instancePoolFromAPI(&(*resp.JSON200.InstancePools)[i])
-			instancePool.c = c
-			instancePool.zone = zone
-
-			list = append(list, instancePool)
+			list = append(list, instancePoolFromAPI(&(*resp.JSON200.InstancePools)[i], zone))
 		}
 	}
 
 	return list, nil
 }
 
-// GetInstancePool returns the Instance Pool corresponding to the specified ID in the specified zone.
-func (c *Client) GetInstancePool(ctx context.Context, zone, id string) (*InstancePool, error) {
-	resp, err := c.GetInstancePoolWithResponse(apiv2.WithZone(ctx, zone), id)
-	if err != nil {
-		return nil, err
+// ScaleInstancePool scales an Instance Pool.
+func (c *Client) ScaleInstancePool(ctx context.Context, zone string, instancePool *InstancePool, size int64) error {
+	if err := validateOperationParams(instancePool, "update"); err != nil {
+		return err
 	}
 
-	instancePool := instancePoolFromAPI(resp.JSON200)
-	instancePool.c = c
-	instancePool.zone = zone
+	resp, err := c.ScaleInstancePoolWithResponse(
+		apiv2.WithZone(ctx, zone),
+		*instancePool.ID,
+		oapi.ScaleInstancePoolJSONRequestBody{Size: size},
+	)
+	if err != nil {
+		return err
+	}
 
-	return instancePool, nil
+	_, err = oapi.NewPoller().
+		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
+		Poll(ctx, oapi.OperationPoller(c, zone, *resp.JSON200.Id))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// FindInstancePool attempts to find an Instance Pool by name or ID in the specified zone.
-func (c *Client) FindInstancePool(ctx context.Context, zone, v string) (*InstancePool, error) {
-	res, err := c.ListInstancePools(ctx, zone)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, r := range res {
-		if *r.ID == v || *r.Name == v {
-			return c.GetInstancePool(ctx, zone, *r.ID)
-		}
-	}
-
-	return nil, apiv2.ErrNotFound
-}
-
-// UpdateInstancePool updates the specified Instance Pool in the specified zone.
+// UpdateInstancePool updates an Instance Pool.
 func (c *Client) UpdateInstancePool(ctx context.Context, zone string, instancePool *InstancePool) error {
 	if err := validateOperationParams(instancePool, "update"); err != nil {
 		return err
@@ -384,96 +371,96 @@ func (c *Client) UpdateInstancePool(ctx context.Context, zone string, instancePo
 	resp, err := c.UpdateInstancePoolWithResponse(
 		apiv2.WithZone(ctx, zone),
 		*instancePool.ID,
-		papi.UpdateInstancePoolJSONRequestBody{
-			AntiAffinityGroups: func() (v *[]papi.AntiAffinityGroup) {
+		oapi.UpdateInstancePoolJSONRequestBody{
+			AntiAffinityGroups: func() (v *[]oapi.AntiAffinityGroup) {
 				if instancePool.AntiAffinityGroupIDs != nil {
-					ids := make([]papi.AntiAffinityGroup, len(*instancePool.AntiAffinityGroupIDs))
+					ids := make([]oapi.AntiAffinityGroup, len(*instancePool.AntiAffinityGroupIDs))
 					for i, item := range *instancePool.AntiAffinityGroupIDs {
 						item := item
-						ids[i] = papi.AntiAffinityGroup{Id: &item}
+						ids[i] = oapi.AntiAffinityGroup{Id: &item}
 					}
 					v = &ids
 				}
 				return
 			}(),
-			DeployTarget: func() (v *papi.DeployTarget) {
+			DeployTarget: func() (v *oapi.DeployTarget) {
 				if instancePool.DeployTargetID != nil {
-					v = &papi.DeployTarget{Id: instancePool.DeployTargetID}
+					v = &oapi.DeployTarget{Id: instancePool.DeployTargetID}
 				}
 				return
 			}(),
-			Description: instancePool.Description,
+			Description: oapi.NilableString(instancePool.Description),
 			DiskSize:    instancePool.DiskSize,
-			ElasticIps: func() (v *[]papi.ElasticIp) {
+			ElasticIps: func() (v *[]oapi.ElasticIp) {
 				if instancePool.ElasticIPIDs != nil {
-					ids := make([]papi.ElasticIp, len(*instancePool.ElasticIPIDs))
+					ids := make([]oapi.ElasticIp, len(*instancePool.ElasticIPIDs))
 					for i, item := range *instancePool.ElasticIPIDs {
 						item := item
-						ids[i] = papi.ElasticIp{Id: &item}
+						ids[i] = oapi.ElasticIp{Id: &item}
 					}
 					v = &ids
 				}
 				return
 			}(),
 			InstancePrefix: instancePool.InstancePrefix,
-			InstanceType: func() (v *papi.InstanceType) {
+			InstanceType: func() (v *oapi.InstanceType) {
 				if instancePool.InstanceTypeID != nil {
-					v = &papi.InstanceType{Id: instancePool.InstanceTypeID}
+					v = &oapi.InstanceType{Id: instancePool.InstanceTypeID}
 				}
 				return
 			}(),
 			Ipv6Enabled: instancePool.IPv6Enabled,
-			Labels: func() (v *papi.Labels) {
+			Labels: func() (v *oapi.Labels) {
 				if instancePool.Labels != nil {
-					v = &papi.Labels{AdditionalProperties: *instancePool.Labels}
+					v = &oapi.Labels{AdditionalProperties: *instancePool.Labels}
 				}
 				return
 			}(),
 			Name: instancePool.Name,
-			PrivateNetworks: func() (v *[]papi.PrivateNetwork) {
+			PrivateNetworks: func() (v *[]oapi.PrivateNetwork) {
 				if instancePool.PrivateNetworkIDs != nil {
-					ids := make([]papi.PrivateNetwork, len(*instancePool.PrivateNetworkIDs))
+					ids := make([]oapi.PrivateNetwork, len(*instancePool.PrivateNetworkIDs))
 					for i, item := range *instancePool.PrivateNetworkIDs {
 						item := item
-						ids[i] = papi.PrivateNetwork{Id: &item}
+						ids[i] = oapi.PrivateNetwork{Id: &item}
 					}
 					v = &ids
 				}
 				return
 			}(),
-			SecurityGroups: func() (v *[]papi.SecurityGroup) {
+			SecurityGroups: func() (v *[]oapi.SecurityGroup) {
 				if instancePool.SecurityGroupIDs != nil {
-					ids := make([]papi.SecurityGroup, len(*instancePool.SecurityGroupIDs))
+					ids := make([]oapi.SecurityGroup, len(*instancePool.SecurityGroupIDs))
 					for i, item := range *instancePool.SecurityGroupIDs {
 						item := item
-						ids[i] = papi.SecurityGroup{Id: &item}
+						ids[i] = oapi.SecurityGroup{Id: &item}
 					}
 					v = &ids
 				}
 				return
 			}(),
-			SshKey: func() (v *papi.SshKey) {
+			SshKey: func() (v *oapi.SshKey) {
 				if instancePool.SSHKey != nil {
-					v = &papi.SshKey{Name: instancePool.SSHKey}
+					v = &oapi.SshKey{Name: instancePool.SSHKey}
 				}
 				return
 			}(),
-			Template: func() (v *papi.Template) {
+			Template: func() (v *oapi.Template) {
 				if instancePool.TemplateID != nil {
-					v = &papi.Template{Id: instancePool.TemplateID}
+					v = &oapi.Template{Id: instancePool.TemplateID}
 				}
 				return
 			}(),
-			UserData: instancePool.UserData,
+			UserData: oapi.NilableString(instancePool.UserData),
 		})
 	if err != nil {
 		return err
 	}
 
-	_, err = papi.NewPoller().
+	_, err = oapi.NewPoller().
 		WithTimeout(c.timeout).
 		WithInterval(c.pollInterval).
-		Poll(ctx, c.OperationPoller(zone, *resp.JSON200.Id))
+		Poll(ctx, oapi.OperationPoller(c, zone, *resp.JSON200.Id))
 	if err != nil {
 		return err
 	}
@@ -481,20 +468,24 @@ func (c *Client) UpdateInstancePool(ctx context.Context, zone string, instancePo
 	return nil
 }
 
-// DeleteInstancePool deletes the specified Instance Pool in the specified zone.
-func (c *Client) DeleteInstancePool(ctx context.Context, zone, id string) error {
-	resp, err := c.DeleteInstancePoolWithResponse(apiv2.WithZone(ctx, zone), id)
-	if err != nil {
-		return err
-	}
-
-	_, err = papi.NewPoller().
+func (c *Client) WaitInstancePoolConverged(ctx context.Context, zone string, instancePoolID string) error {
+	_, err := oapi.NewPoller().
 		WithTimeout(c.timeout).
 		WithInterval(c.pollInterval).
-		Poll(ctx, c.OperationPoller(zone, *resp.JSON200.Id))
-	if err != nil {
-		return err
-	}
+		Poll(ctx, instancePoolPoller(c, zone, instancePoolID))
+	return err
+}
 
-	return nil
+func instancePoolPoller(client oapi.ClientWithResponsesInterface, zone string, id string) oapi.PollFunc {
+	return func(ctx context.Context) (bool, interface{}, error) {
+		resp, err := client.GetInstancePoolWithResponse(apiv2.WithZone(ctx, zone), id)
+		if err != nil {
+			return true, nil, err
+		}
+
+		if *resp.JSON200.Size != int64(len(*resp.JSON200.Instances)) {
+			return false, nil, nil
+		}
+		return true, nil, nil
+	}
 }

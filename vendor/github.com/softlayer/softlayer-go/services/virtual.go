@@ -491,6 +491,7 @@ func (r Virtual_Guest) CreateArchiveTemplate(groupName *string, blockDevices []d
 }
 
 // Create a transaction to archive a computing instance's block devices
+// Deprecated: This function has been marked as deprecated.
 func (r Virtual_Guest) CreateArchiveTransaction(groupName *string, blockDevices []datatypes.Virtual_Guest_Block_Device, note *string) (resp datatypes.Provisioning_Version1_Transaction, err error) {
 	params := []interface{}{
 		groupName,
@@ -1150,9 +1151,21 @@ func (r Virtual_Guest) GetBootOrder() (resp string, err error) {
 	return
 }
 
+// Retrieve A virtual guest's browser access logs.
+func (r Virtual_Guest) GetBrowserConsoleAccessLogs() (resp []datatypes.Virtual_BrowserConsoleAccessLog, err error) {
+	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getBrowserConsoleAccessLogs", nil, &r.Options, &resp)
+	return
+}
+
 // Gets the console access logs for a computing instance
 func (r Virtual_Guest) GetConsoleAccessLog() (resp []datatypes.Network_Logging_Syslog, err error) {
 	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getConsoleAccessLog", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A container for a guest's console data
+func (r Virtual_Guest) GetConsoleData() (resp datatypes.Container_Virtual_ConsoleData, err error) {
+	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getConsoleData", nil, &r.Options, &resp)
 	return
 }
 
@@ -1276,6 +1289,12 @@ func (r Virtual_Guest) GetDedicatedHost() (resp datatypes.Virtual_DedicatedHost,
 	return
 }
 
+// Retrieve The device status of this virtual guest.
+func (r Virtual_Guest) GetDeviceStatus() (resp datatypes.Device_Status, err error) {
+	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getDeviceStatus", nil, &r.Options, &resp)
+	return
+}
+
 // Return a drive retention SoftLayer_Item_Price object for a guest.
 func (r Virtual_Guest) GetDriveRetentionItemPrice() (resp datatypes.Product_Item_Price, err error) {
 	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getDriveRetentionItemPrice", nil, &r.Options, &resp)
@@ -1339,6 +1358,12 @@ func (r Virtual_Guest) GetGpuType() (resp string, err error) {
 // Retrieve
 func (r Virtual_Guest) GetGuestBootParameter() (resp datatypes.Virtual_Guest_Boot_Parameter, err error) {
 	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getGuestBootParameter", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The object's function.
+func (r Virtual_Guest) GetHardwareFunctionDescription() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getHardwareFunctionDescription", nil, &r.Options, &resp)
 	return
 }
 

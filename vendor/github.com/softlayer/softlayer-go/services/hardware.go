@@ -502,6 +502,12 @@ func (r Hardware) GetAttributes() (resp []datatypes.Hardware_Attribute, err erro
 	return
 }
 
+// Retrieves a list of available term prices to this hardware. Currently, price terms are only available for increasing term length to monthly billed servers.
+func (r Hardware) GetAvailableBillingTermChangePrices() (resp []datatypes.Product_Item_Price, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware", "getAvailableBillingTermChangePrices", nil, &r.Options, &resp)
+	return
+}
+
 // This method retrieves a list of SoftLayer_Network_Storage volumes that can be authorized to this SoftLayer_Hardware.
 func (r Hardware) GetAvailableNetworkStorages(nasType *string) (resp []datatypes.Network_Storage, err error) {
 	params := []interface{}{
@@ -781,6 +787,12 @@ func (r Hardware) GetFrontendRouters() (resp []datatypes.Hardware, err error) {
 	return
 }
 
+// Retrieve Information regarding the future billing item for a server.
+func (r Hardware) GetFutureBillingItem() (resp datatypes.Billing_Item_Hardware, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware", "getFutureBillingItem", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve A hardware's universally unique identifier.
 func (r Hardware) GetGlobalIdentifier() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getGlobalIdentifier", nil, &r.Options, &resp)
@@ -808,6 +820,12 @@ func (r Hardware) GetHardwareFunction() (resp datatypes.Hardware_Function, err e
 // Retrieve A hardware's function.
 func (r Hardware) GetHardwareFunctionDescription() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getHardwareFunctionDescription", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A hardware's power/transaction state.
+func (r Hardware) GetHardwareState() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware", "getHardwareState", nil, &r.Options, &resp)
 	return
 }
 
@@ -860,6 +878,12 @@ func (r Hardware) GetInboundBandwidthUsage() (resp datatypes.Float64, err error)
 // Retrieve The total public inbound bandwidth for this hardware for the current billing cycle.
 func (r Hardware) GetInboundPublicBandwidthUsage() (resp datatypes.Float64, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getInboundPublicBandwidthUsage", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Whether or not this hardware object is eligible to change to term billing.
+func (r Hardware) GetIsBillingTermChangeAvailableFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware", "getIsBillingTermChangeAvailableFlag", nil, &r.Options, &resp)
 	return
 }
 
@@ -1491,6 +1515,12 @@ func (r Hardware) RebootHard() (resp bool, err error) {
 //
 func (r Hardware) RebootSoft() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "rebootSoft", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Hardware) RefreshDeviceStatus() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware", "refreshDeviceStatus", nil, &r.Options, &resp)
 	return
 }
 
@@ -2477,6 +2507,12 @@ func (r Hardware_Router) GetAttributes() (resp []datatypes.Hardware_Attribute, e
 	return
 }
 
+// Retrieves a list of available term prices to this hardware. Currently, price terms are only available for increasing term length to monthly billed servers.
+func (r Hardware_Router) GetAvailableBillingTermChangePrices() (resp []datatypes.Product_Item_Price, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getAvailableBillingTermChangePrices", nil, &r.Options, &resp)
+	return
+}
+
 // This method retrieves a list of SoftLayer_Network_Storage volumes that can be authorized to this SoftLayer_Hardware.
 func (r Hardware_Router) GetAvailableNetworkStorages(nasType *string) (resp []datatypes.Network_Storage, err error) {
 	params := []interface{}{
@@ -2762,6 +2798,12 @@ func (r Hardware_Router) GetFrontendRouters() (resp []datatypes.Hardware, err er
 	return
 }
 
+// Retrieve Information regarding the future billing item for a server.
+func (r Hardware_Router) GetFutureBillingItem() (resp datatypes.Billing_Item_Hardware, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getFutureBillingItem", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve A hardware's universally unique identifier.
 func (r Hardware_Router) GetGlobalIdentifier() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getGlobalIdentifier", nil, &r.Options, &resp)
@@ -2789,6 +2831,12 @@ func (r Hardware_Router) GetHardwareFunction() (resp datatypes.Hardware_Function
 // Retrieve A hardware's function.
 func (r Hardware_Router) GetHardwareFunctionDescription() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getHardwareFunctionDescription", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A hardware's power/transaction state.
+func (r Hardware_Router) GetHardwareState() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getHardwareState", nil, &r.Options, &resp)
 	return
 }
 
@@ -2841,6 +2889,12 @@ func (r Hardware_Router) GetInboundBandwidthUsage() (resp datatypes.Float64, err
 // Retrieve The total public inbound bandwidth for this hardware for the current billing cycle.
 func (r Hardware_Router) GetInboundPublicBandwidthUsage() (resp datatypes.Float64, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getInboundPublicBandwidthUsage", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Whether or not this hardware object is eligible to change to term billing.
+func (r Hardware_Router) GetIsBillingTermChangeAvailableFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getIsBillingTermChangeAvailableFlag", nil, &r.Options, &resp)
 	return
 }
 
@@ -3487,6 +3541,12 @@ func (r Hardware_Router) RebootSoft() (resp bool, err error) {
 	return
 }
 
+// no documentation yet
+func (r Hardware_Router) RefreshDeviceStatus() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "refreshDeviceStatus", nil, &r.Options, &resp)
+	return
+}
+
 // This method is used to remove access to s SoftLayer_Network_Storage volumes that supports host- or network-level access control.
 func (r Hardware_Router) RemoveAccessToNetworkStorage(networkStorageTemplateObject *datatypes.Network_Storage) (resp bool, err error) {
 	params := []interface{}{
@@ -4115,6 +4175,12 @@ func (r Hardware_SecurityModule) GetAttributes() (resp []datatypes.Hardware_Attr
 	return
 }
 
+// Retrieves a list of available term prices to this hardware. Currently, price terms are only available for increasing term length to monthly billed servers.
+func (r Hardware_SecurityModule) GetAvailableBillingTermChangePrices() (resp []datatypes.Product_Item_Price, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getAvailableBillingTermChangePrices", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve An object that stores the maximum level for the monitoring query types and response types.
 func (r Hardware_SecurityModule) GetAvailableMonitoring() (resp []datatypes.Network_Monitor_Version1_Query_Host_Stratum, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getAvailableMonitoring", nil, &r.Options, &resp)
@@ -4161,6 +4227,7 @@ func (r Hardware_SecurityModule) GetBackendBandwidthUsage(startDate *datatypes.T
 }
 
 // Use this method to return an array of private bandwidth utilization records between a given date range.
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_SecurityModule) GetBackendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
 	params := []interface{}{
 		startDate,
@@ -4531,6 +4598,7 @@ func (r Hardware_SecurityModule) GetFrontendBandwidthUsage(startDate *datatypes.
 }
 
 // Use this method to return an array of public bandwidth utilization records between a given date range.
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_SecurityModule) GetFrontendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
 	params := []interface{}{
 		startDate,
@@ -4572,6 +4640,12 @@ func (r Hardware_SecurityModule) GetFrontendRouters() (resp []datatypes.Hardware
 	return
 }
 
+// Retrieve Information regarding the future billing item for a server.
+func (r Hardware_SecurityModule) GetFutureBillingItem() (resp datatypes.Billing_Item_Hardware, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getFutureBillingItem", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve A hardware's universally unique identifier.
 func (r Hardware_SecurityModule) GetGlobalIdentifier() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getGlobalIdentifier", nil, &r.Options, &resp)
@@ -4608,6 +4682,12 @@ func (r Hardware_SecurityModule) GetHardwareFunction() (resp datatypes.Hardware_
 // Retrieve A hardware's function.
 func (r Hardware_SecurityModule) GetHardwareFunctionDescription() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getHardwareFunctionDescription", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A hardware's power/transaction state.
+func (r Hardware_SecurityModule) GetHardwareState() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getHardwareState", nil, &r.Options, &resp)
 	return
 }
 
@@ -4672,6 +4752,12 @@ func (r Hardware_SecurityModule) GetInboundPrivateBandwidthUsage() (resp datatyp
 // Retrieve The total public inbound bandwidth for this hardware for the current billing cycle.
 func (r Hardware_SecurityModule) GetInboundPublicBandwidthUsage() (resp datatypes.Float64, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getInboundPublicBandwidthUsage", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Whether or not this hardware object is eligible to change to term billing.
+func (r Hardware_SecurityModule) GetIsBillingTermChangeAvailableFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getIsBillingTermChangeAvailableFlag", nil, &r.Options, &resp)
 	return
 }
 
@@ -5046,6 +5132,12 @@ func (r Hardware_SecurityModule) GetPrimaryNetworkComponent() (resp datatypes.Ne
 	return
 }
 
+// Retrieve A collection of backendNetwork components
+func (r Hardware_SecurityModule) GetPrivateBackendNetworkComponents() (resp []datatypes.Network_Component, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getPrivateBackendNetworkComponents", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve a graph of a server's private network bandwidth usage over the specified timeframe. If no timeframe is specified then getPublicBandwidthGraphImage retrieves the last 24 hours of public bandwidth usage. getPrivateBandwidthGraphImage returns a PNG image measuring 827 pixels by 293 pixels.
 func (r Hardware_SecurityModule) GetPrivateBandwidthData(startTime *int, endTime *int) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
 	params := []interface{}{
@@ -5099,6 +5191,7 @@ func (r Hardware_SecurityModule) GetPrivateVlan() (resp datatypes.Network_Vlan, 
 //
 // *** DEPRECATED ***
 // Retrieve a backend network VLAN by searching for an IP address
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_SecurityModule) GetPrivateVlanByIpAddress(ipAddress *string) (resp datatypes.Network_Vlan, err error) {
 	params := []interface{}{
 		ipAddress,
@@ -5694,6 +5787,12 @@ func (r Hardware_SecurityModule) RebootHard() (resp bool, err error) {
 // Reboot the server by issuing a reset command to the server's remote management card.  This is a graceful reboot. The servers will allow all process to shutdown gracefully before rebooting.  If a reboot command has been issued successfully in the past 20 minutes, another remote management command (rebootSoft, rebootHard, powerOn, powerOff and powerCycle) will not be allowed.  This is to avoid any type of server failures.
 func (r Hardware_SecurityModule) RebootSoft() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "rebootSoft", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Hardware_SecurityModule) RefreshDeviceStatus() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "refreshDeviceStatus", nil, &r.Options, &resp)
 	return
 }
 
@@ -6485,6 +6584,12 @@ func (r Hardware_SecurityModule750) GetAttributes() (resp []datatypes.Hardware_A
 	return
 }
 
+// Retrieves a list of available term prices to this hardware. Currently, price terms are only available for increasing term length to monthly billed servers.
+func (r Hardware_SecurityModule750) GetAvailableBillingTermChangePrices() (resp []datatypes.Product_Item_Price, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getAvailableBillingTermChangePrices", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve An object that stores the maximum level for the monitoring query types and response types.
 func (r Hardware_SecurityModule750) GetAvailableMonitoring() (resp []datatypes.Network_Monitor_Version1_Query_Host_Stratum, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getAvailableMonitoring", nil, &r.Options, &resp)
@@ -6531,6 +6636,7 @@ func (r Hardware_SecurityModule750) GetBackendBandwidthUsage(startDate *datatype
 }
 
 // Use this method to return an array of private bandwidth utilization records between a given date range.
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_SecurityModule750) GetBackendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
 	params := []interface{}{
 		startDate,
@@ -6901,6 +7007,7 @@ func (r Hardware_SecurityModule750) GetFrontendBandwidthUsage(startDate *datatyp
 }
 
 // Use this method to return an array of public bandwidth utilization records between a given date range.
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_SecurityModule750) GetFrontendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
 	params := []interface{}{
 		startDate,
@@ -6942,6 +7049,12 @@ func (r Hardware_SecurityModule750) GetFrontendRouters() (resp []datatypes.Hardw
 	return
 }
 
+// Retrieve Information regarding the future billing item for a server.
+func (r Hardware_SecurityModule750) GetFutureBillingItem() (resp datatypes.Billing_Item_Hardware, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getFutureBillingItem", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve A hardware's universally unique identifier.
 func (r Hardware_SecurityModule750) GetGlobalIdentifier() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getGlobalIdentifier", nil, &r.Options, &resp)
@@ -6978,6 +7091,12 @@ func (r Hardware_SecurityModule750) GetHardwareFunction() (resp datatypes.Hardwa
 // Retrieve A hardware's function.
 func (r Hardware_SecurityModule750) GetHardwareFunctionDescription() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getHardwareFunctionDescription", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A hardware's power/transaction state.
+func (r Hardware_SecurityModule750) GetHardwareState() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getHardwareState", nil, &r.Options, &resp)
 	return
 }
 
@@ -7042,6 +7161,12 @@ func (r Hardware_SecurityModule750) GetInboundPrivateBandwidthUsage() (resp data
 // Retrieve The total public inbound bandwidth for this hardware for the current billing cycle.
 func (r Hardware_SecurityModule750) GetInboundPublicBandwidthUsage() (resp datatypes.Float64, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getInboundPublicBandwidthUsage", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Whether or not this hardware object is eligible to change to term billing.
+func (r Hardware_SecurityModule750) GetIsBillingTermChangeAvailableFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getIsBillingTermChangeAvailableFlag", nil, &r.Options, &resp)
 	return
 }
 
@@ -7416,6 +7541,12 @@ func (r Hardware_SecurityModule750) GetPrimaryNetworkComponent() (resp datatypes
 	return
 }
 
+// Retrieve A collection of backendNetwork components
+func (r Hardware_SecurityModule750) GetPrivateBackendNetworkComponents() (resp []datatypes.Network_Component, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getPrivateBackendNetworkComponents", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve a graph of a server's private network bandwidth usage over the specified timeframe. If no timeframe is specified then getPublicBandwidthGraphImage retrieves the last 24 hours of public bandwidth usage. getPrivateBandwidthGraphImage returns a PNG image measuring 827 pixels by 293 pixels.
 func (r Hardware_SecurityModule750) GetPrivateBandwidthData(startTime *int, endTime *int) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
 	params := []interface{}{
@@ -7469,6 +7600,7 @@ func (r Hardware_SecurityModule750) GetPrivateVlan() (resp datatypes.Network_Vla
 //
 // *** DEPRECATED ***
 // Retrieve a backend network VLAN by searching for an IP address
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_SecurityModule750) GetPrivateVlanByIpAddress(ipAddress *string) (resp datatypes.Network_Vlan, err error) {
 	params := []interface{}{
 		ipAddress,
@@ -8064,6 +8196,12 @@ func (r Hardware_SecurityModule750) RebootHard() (resp bool, err error) {
 // Reboot the server by issuing a reset command to the server's remote management card.  This is a graceful reboot. The servers will allow all process to shutdown gracefully before rebooting.  If a reboot command has been issued successfully in the past 20 minutes, another remote management command (rebootSoft, rebootHard, powerOn, powerOff and powerCycle) will not be allowed.  This is to avoid any type of server failures.
 func (r Hardware_SecurityModule750) RebootSoft() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "rebootSoft", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Hardware_SecurityModule750) RefreshDeviceStatus() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "refreshDeviceStatus", nil, &r.Options, &resp)
 	return
 }
 
@@ -8855,6 +8993,12 @@ func (r Hardware_Server) GetAttributes() (resp []datatypes.Hardware_Attribute, e
 	return
 }
 
+// Retrieves a list of available term prices to this hardware. Currently, price terms are only available for increasing term length to monthly billed servers.
+func (r Hardware_Server) GetAvailableBillingTermChangePrices() (resp []datatypes.Product_Item_Price, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getAvailableBillingTermChangePrices", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve An object that stores the maximum level for the monitoring query types and response types.
 func (r Hardware_Server) GetAvailableMonitoring() (resp []datatypes.Network_Monitor_Version1_Query_Host_Stratum, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getAvailableMonitoring", nil, &r.Options, &resp)
@@ -8901,6 +9045,7 @@ func (r Hardware_Server) GetBackendBandwidthUsage(startDate *datatypes.Time, end
 }
 
 // Use this method to return an array of private bandwidth utilization records between a given date range.
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_Server) GetBackendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
 	params := []interface{}{
 		startDate,
@@ -9271,6 +9416,7 @@ func (r Hardware_Server) GetFrontendBandwidthUsage(startDate *datatypes.Time, en
 }
 
 // Use this method to return an array of public bandwidth utilization records between a given date range.
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_Server) GetFrontendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
 	params := []interface{}{
 		startDate,
@@ -9312,6 +9458,12 @@ func (r Hardware_Server) GetFrontendRouters() (resp []datatypes.Hardware, err er
 	return
 }
 
+// Retrieve Information regarding the future billing item for a server.
+func (r Hardware_Server) GetFutureBillingItem() (resp datatypes.Billing_Item_Hardware, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getFutureBillingItem", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve A hardware's universally unique identifier.
 func (r Hardware_Server) GetGlobalIdentifier() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getGlobalIdentifier", nil, &r.Options, &resp)
@@ -9348,6 +9500,12 @@ func (r Hardware_Server) GetHardwareFunction() (resp datatypes.Hardware_Function
 // Retrieve A hardware's function.
 func (r Hardware_Server) GetHardwareFunctionDescription() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getHardwareFunctionDescription", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A hardware's power/transaction state.
+func (r Hardware_Server) GetHardwareState() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getHardwareState", nil, &r.Options, &resp)
 	return
 }
 
@@ -9412,6 +9570,12 @@ func (r Hardware_Server) GetInboundPrivateBandwidthUsage() (resp datatypes.Float
 // Retrieve The total public inbound bandwidth for this hardware for the current billing cycle.
 func (r Hardware_Server) GetInboundPublicBandwidthUsage() (resp datatypes.Float64, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getInboundPublicBandwidthUsage", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Whether or not this hardware object is eligible to change to term billing.
+func (r Hardware_Server) GetIsBillingTermChangeAvailableFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getIsBillingTermChangeAvailableFlag", nil, &r.Options, &resp)
 	return
 }
 
@@ -9786,6 +9950,12 @@ func (r Hardware_Server) GetPrimaryNetworkComponent() (resp datatypes.Network_Co
 	return
 }
 
+// Retrieve A collection of backendNetwork components
+func (r Hardware_Server) GetPrivateBackendNetworkComponents() (resp []datatypes.Network_Component, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getPrivateBackendNetworkComponents", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve a graph of a server's private network bandwidth usage over the specified timeframe. If no timeframe is specified then getPublicBandwidthGraphImage retrieves the last 24 hours of public bandwidth usage. getPrivateBandwidthGraphImage returns a PNG image measuring 827 pixels by 293 pixels.
 func (r Hardware_Server) GetPrivateBandwidthData(startTime *int, endTime *int) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
 	params := []interface{}{
@@ -9839,6 +10009,7 @@ func (r Hardware_Server) GetPrivateVlan() (resp datatypes.Network_Vlan, err erro
 //
 // *** DEPRECATED ***
 // Retrieve a backend network VLAN by searching for an IP address
+// Deprecated: This function has been marked as deprecated.
 func (r Hardware_Server) GetPrivateVlanByIpAddress(ipAddress *string) (resp datatypes.Network_Vlan, err error) {
 	params := []interface{}{
 		ipAddress,
@@ -10434,6 +10605,12 @@ func (r Hardware_Server) RebootHard() (resp bool, err error) {
 // Reboot the server by issuing a reset command to the server's remote management card.  This is a graceful reboot. The servers will allow all process to shutdown gracefully before rebooting.  If a reboot command has been issued successfully in the past 20 minutes, another remote management command (rebootSoft, rebootHard, powerOn, powerOff and powerCycle) will not be allowed.  This is to avoid any type of server failures.
 func (r Hardware_Server) RebootSoft() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "rebootSoft", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Hardware_Server) RefreshDeviceStatus() (resp datatypes.Hardware_State, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "refreshDeviceStatus", nil, &r.Options, &resp)
 	return
 }
 

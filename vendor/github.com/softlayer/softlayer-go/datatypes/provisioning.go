@@ -199,6 +199,9 @@ type Provisioning_Version1_Transaction struct {
 	// The date a transaction was last modified.
 	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
 
+	// A transactions current state in the order process.
+	OrderTracking *Provisioning_Version1_Transaction_OrderTracking `json:"orderTracking,omitempty" xmlrpc:"orderTracking,omitempty"`
+
 	// A count of
 	PendingTransactionCount *uint `json:"pendingTransactionCount,omitempty" xmlrpc:"pendingTransactionCount,omitempty"`
 
@@ -273,6 +276,46 @@ type Provisioning_Version1_Transaction_History struct {
 
 	// The transaction status ID associated with a transaction history.
 	TransactionStatusId *int `json:"transactionStatusId,omitempty" xmlrpc:"transactionStatusId,omitempty"`
+}
+
+// no documentation yet
+type Provisioning_Version1_Transaction_OrderTracking struct {
+	Entity
+
+	// A id for tracking order.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// Invoice ID
+	InvoiceId *int `json:"invoiceId,omitempty" xmlrpc:"invoiceId,omitempty"`
+
+	// The order state id.
+	OrderStateId *int `json:"orderStateId,omitempty" xmlrpc:"orderStateId,omitempty"`
+
+	// no documentation yet
+	OrderTrackingState *Provisioning_Version1_Transaction_OrderTrackingState `json:"orderTrackingState,omitempty" xmlrpc:"orderTrackingState,omitempty"`
+
+	// no documentation yet
+	Transaction *Provisioning_Version1_Transaction `json:"transaction,omitempty" xmlrpc:"transaction,omitempty"`
+
+	// The transaction id of the order.
+	TransactionId *int `json:"transactionId,omitempty" xmlrpc:"transactionId,omitempty"`
+}
+
+// no documentation yet
+type Provisioning_Version1_Transaction_OrderTrackingState struct {
+	Entity
+
+	// The order tracking state description.
+	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
+
+	// A id for tracking order.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// The order tracking state keyname.
+	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
+
+	// The transaction name of the order.
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 }
 
 // The SoftLayer_Provisioning_Version1_Transaction_Status data type contains general information relating to a single SoftLayer hardware transaction status.

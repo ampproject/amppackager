@@ -38,6 +38,12 @@ type Brand struct {
 	// This flag indicates if creation of accounts is allowed.
 	AllowAccountCreationFlag *bool `json:"allowAccountCreationFlag,omitempty" xmlrpc:"allowAccountCreationFlag,omitempty"`
 
+	// A count of returns snapshots of billing items recorded periodically given an account ID owned by the brand those billing items belong to. Retrieving billing item snapshots is more performant than retrieving billing items directly and performs less relational joins improving retrieval efficiency. The downside is, they are not real time, and do not share relational parity with the original billing item.
+	BillingItemSnapshotCount *uint `json:"billingItemSnapshotCount,omitempty" xmlrpc:"billingItemSnapshotCount,omitempty"`
+
+	// Returns snapshots of billing items recorded periodically given an account ID owned by the brand those billing items belong to. Retrieving billing item snapshots is more performant than retrieving billing items directly and performs less relational joins improving retrieval efficiency. The downside is, they are not real time, and do not share relational parity with the original billing item.
+	BillingItemSnapshots []Billing_Item_Chronicle `json:"billingItemSnapshots,omitempty" xmlrpc:"billingItemSnapshots,omitempty"`
+
 	// Business Partner details for the brand. Country Enterprise Code, Channel, Segment, Reseller Level.
 	BusinessPartner *Brand_Business_Partner `json:"businessPartner,omitempty" xmlrpc:"businessPartner,omitempty"`
 

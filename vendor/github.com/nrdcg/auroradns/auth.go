@@ -4,32 +4,32 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 )
 
-// TokenTransport HTTP transport for API authentication
+// TokenTransport HTTP transport for API authentication.
 type TokenTransport struct {
-	userID string
-	key    string
+	apiKey string
+	secret string
 
 	// Transport is the underlying HTTP transport to use when making requests.
 	// It will default to http.DefaultTransport if nil.
 	Transport http.RoundTripper
 }
 
-// NewTokenTransport Creates a  new TokenTransport
-func NewTokenTransport(userID, key string) (*TokenTransport, error) {
-	if userID == "" || key == "" {
-		return nil, fmt.Errorf("credentials missing")
+// NewTokenTransport Creates a  new TokenTransport.
+func NewTokenTransport(apiKey, secret string) (*TokenTransport, error) {
+	if apiKey == "" || secret == "" {
+		return nil, errors.New("credentials missing")
 	}
 
-	return &TokenTransport{userID: userID, key: key}, nil
+	return &TokenTransport{apiKey: apiKey, secret: secret}, nil
 }
 
-// RoundTrip executes a single HTTP transaction
+// RoundTrip executes a single HTTP transaction.
 func (t *TokenTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	enrichedReq := &http.Request{}
 	*enrichedReq = *req
@@ -39,13 +39,13 @@ func (t *TokenTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		enrichedReq.Header[k] = append([]string(nil), s...)
 	}
 
-	if t.userID != "" && t.key != "" {
+	if t.apiKey != "" && t.secret != "" {
 		timestamp := time.Now().UTC()
 
 		fmtTime := timestamp.Format("20060102T150405Z")
 		enrichedReq.Header.Set("X-AuroraDNS-Date", fmtTime)
 
-		token, err := newToken(t.userID, t.key, req.Method, req.URL.Path, timestamp)
+		token, err := newToken(t.apiKey, t.secret, req.Method, req.URL.Path, timestamp)
 		if err == nil {
 			enrichedReq.Header.Set("Authorization", fmt.Sprintf("AuroraDNSv1 %s", token))
 		}
@@ -54,7 +54,7 @@ func (t *TokenTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.transport().RoundTrip(enrichedReq)
 }
 
-// Wrap Wrap a HTTP client Transport with the TokenTransport
+// Wrap Wraps an HTTP client Transport with the TokenTransport.
 func (t *TokenTransport) Wrap(client *http.Client) *http.Client {
 	backup := client.Transport
 	t.Transport = backup
@@ -63,7 +63,7 @@ func (t *TokenTransport) Wrap(client *http.Client) *http.Client {
 	return client
 }
 
-// Client Creates a new HTTP client
+// Client Creates a new HTTP client.
 func (t *TokenTransport) Client() *http.Client {
 	return &http.Client{
 		Transport: t,
@@ -79,12 +79,12 @@ func (t *TokenTransport) transport() http.RoundTripper {
 	return http.DefaultTransport
 }
 
-// newToken generates a token for accessing a specific method of the API
-func newToken(userID string, key string, method string, action string, timestamp time.Time) (string, error) {
+// newToken generates a token for accessing a specific method of the API.
+func newToken(apiKey, secret, method, action string, timestamp time.Time) (string, error) {
 	fmtTime := timestamp.Format("20060102T150405Z")
-	message := strings.Join([]string{method, action, fmtTime}, "")
+	message := method + action + fmtTime
 
-	signatureHmac := hmac.New(sha256.New, []byte(key))
+	signatureHmac := hmac.New(sha256.New, []byte(secret))
 	_, err := signatureHmac.Write([]byte(message))
 	if err != nil {
 		return "", err
@@ -92,9 +92,9 @@ func newToken(userID string, key string, method string, action string, timestamp
 
 	signature := base64.StdEncoding.EncodeToString(signatureHmac.Sum(nil))
 
-	userIDAndSignature := fmt.Sprintf("%s:%s", userID, signature)
+	apiKeyAndSignature := fmt.Sprintf("%s:%s", apiKey, signature)
 
-	token := base64.StdEncoding.EncodeToString([]byte(userIDAndSignature))
+	token := base64.StdEncoding.EncodeToString([]byte(apiKeyAndSignature))
 
 	return token, nil
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/go-acme/lego/v4/providers/dns/bindman"
 	"github.com/go-acme/lego/v4/providers/dns/bluecat"
 	"github.com/go-acme/lego/v4/providers/dns/checkdomain"
+	"github.com/go-acme/lego/v4/providers/dns/civo"
 	"github.com/go-acme/lego/v4/providers/dns/clouddns"
 	"github.com/go-acme/lego/v4/providers/dns/cloudflare"
 	"github.com/go-acme/lego/v4/providers/dns/cloudns"
@@ -103,10 +104,12 @@ import (
 	"github.com/go-acme/lego/v4/providers/dns/vercel"
 	"github.com/go-acme/lego/v4/providers/dns/versio"
 	"github.com/go-acme/lego/v4/providers/dns/vinyldns"
+	"github.com/go-acme/lego/v4/providers/dns/vkcloud"
 	"github.com/go-acme/lego/v4/providers/dns/vscale"
 	"github.com/go-acme/lego/v4/providers/dns/vultr"
 	"github.com/go-acme/lego/v4/providers/dns/wedos"
 	"github.com/go-acme/lego/v4/providers/dns/yandex"
+	"github.com/go-acme/lego/v4/providers/dns/yandexcloud"
 	"github.com/go-acme/lego/v4/providers/dns/zoneee"
 	"github.com/go-acme/lego/v4/providers/dns/zonomi"
 )
@@ -134,6 +137,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return bluecat.NewDNSProvider()
 	case "checkdomain":
 		return checkdomain.NewDNSProvider()
+	case "civo":
+		return civo.NewDNSProvider()
 	case "clouddns":
 		return clouddns.NewDNSProvider()
 	case "cloudflare":
@@ -312,6 +317,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return versio.NewDNSProvider()
 	case "vinyldns":
 		return vinyldns.NewDNSProvider()
+	case "vkcloud":
+		return vkcloud.NewDNSProvider()
 	case "vultr":
 		return vultr.NewDNSProvider()
 	case "vscale":
@@ -320,6 +327,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return wedos.NewDNSProvider()
 	case "yandex":
 		return yandex.NewDNSProvider()
+	case "yandexcloud":
+		return yandexcloud.NewDNSProvider()
 	case "zoneee":
 		return zoneee.NewDNSProvider()
 	case "zonomi":

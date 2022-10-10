@@ -213,7 +213,7 @@ type Notification_Occurrence_Resource struct {
 	NotificationOccurrenceEventId *int `json:"notificationOccurrenceEventId,omitempty" xmlrpc:"notificationOccurrenceEventId,omitempty"`
 
 	// The physical resource.
-	Resource *Entity `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
+	Resource interface{} `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
 
 	// <<< EOT The unique identifier for the [[SoftLayer_Account]] associated with
 	ResourceAccountId *int `json:"resourceAccountId,omitempty" xmlrpc:"resourceAccountId,omitempty"`

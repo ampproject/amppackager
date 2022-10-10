@@ -318,5 +318,21 @@ func findResponseError(code int, resp []byte) error {
 		}
 		return e
 	}
+	// Edge case error detection
+	if len(resp) == 0 {
+		return sl.Error{
+			StatusCode: code,
+			Exception:  "SoftLayer_Exception_Public",
+			Message:    "Empty Response",
+		}
+	}
+	errorString := `{"error":"Internal Error","code":"SoftLayer_Exception_Public"}`
+	if errorString == string(resp) {
+		return sl.Error{
+			StatusCode: code,
+			Exception:  "SoftLayer_Exception_Public",
+			Message:    "Internal Error",
+		}
+	}
 	return nil
 }
