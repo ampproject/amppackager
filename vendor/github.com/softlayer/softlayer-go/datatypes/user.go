@@ -204,6 +204,7 @@ type User_Customer struct {
 	FirstName *string `json:"firstName,omitempty" xmlrpc:"firstName,omitempty"`
 
 	// A user's password for the SoftLayer forums, hashed for auto-login capability from the SoftLayer customer portal
+	// Deprecated: This function has been marked as deprecated.
 	ForumPasswordHash *string `json:"forumPasswordHash,omitempty" xmlrpc:"forumPasswordHash,omitempty"`
 
 	// A portal user's accessible hardware. These permissions control which hardware a user has access to in the SoftLayer customer portal.
@@ -227,7 +228,7 @@ type User_Customer struct {
 	// Whether or not a portal user has access to all hardware on their account.
 	HasFullHardwareAccessFlag *bool `json:"hasFullHardwareAccessFlag,omitempty" xmlrpc:"hasFullHardwareAccessFlag,omitempty"`
 
-	// Whether or not a portal user has access to all hardware on their account.
+	// Whether or not a portal user has access to all virtual guests on their account.
 	HasFullVirtualGuestAccessFlag *bool `json:"hasFullVirtualGuestAccessFlag,omitempty" xmlrpc:"hasFullVirtualGuestAccessFlag,omitempty"`
 
 	// no documentation yet
@@ -236,7 +237,7 @@ type User_Customer struct {
 	// The IAMid (realm-identifier) of the user being created by PaaS
 	IamId *string `json:"iamId,omitempty" xmlrpc:"iamId,omitempty"`
 
-	// no documentation yet
+	// Specifically relating the Customer instance to an IBMid. A Customer instance may or may not have an IBMid link.
 	IbmIdLink *User_Customer_Link `json:"ibmIdLink,omitempty" xmlrpc:"ibmIdLink,omitempty"`
 
 	// A portal user's ICQ UIN.
@@ -254,10 +255,10 @@ type User_Customer struct {
 	// A portal user's last name.
 	LastName *string `json:"lastName,omitempty" xmlrpc:"lastName,omitempty"`
 
-	// A count of
+	// A count of contains the definition of the layout profile.
 	LayoutProfileCount *uint `json:"layoutProfileCount,omitempty" xmlrpc:"layoutProfileCount,omitempty"`
 
-	// no documentation yet
+	// Contains the definition of the layout profile.
 	LayoutProfiles []Layout_Profile `json:"layoutProfiles,omitempty" xmlrpc:"layoutProfiles,omitempty"`
 
 	// The linked account integration mode
@@ -342,12 +343,13 @@ type User_Customer struct {
 	PostalCode *string `json:"postalCode,omitempty" xmlrpc:"postalCode,omitempty"`
 
 	// Whether a portal user may connect to the SoftLayer private network via PPTP VPN or not.
+	// Deprecated: This function has been marked as deprecated.
 	PptpVpnAllowedFlag *bool `json:"pptpVpnAllowedFlag,omitempty" xmlrpc:"pptpVpnAllowedFlag,omitempty"`
 
-	// A count of
+	// A count of data type contains a single user preference to a specific preference type.
 	PreferenceCount *uint `json:"preferenceCount,omitempty" xmlrpc:"preferenceCount,omitempty"`
 
-	// no documentation yet
+	// Data type contains a single user preference to a specific preference type.
 	Preferences []User_Preference `json:"preferences,omitempty" xmlrpc:"preferences,omitempty"`
 
 	// no documentation yet
@@ -358,9 +360,6 @@ type User_Customer struct {
 
 	// no documentation yet
 	Roles []User_Permission_Role `json:"roles,omitempty" xmlrpc:"roles,omitempty"`
-
-	// [DEPRECATED]
-	SalesforceUserLink *User_Customer_Link `json:"salesforceUserLink,omitempty" xmlrpc:"salesforceUserLink,omitempty"`
 
 	// no documentation yet
 	SavedId *string `json:"savedId,omitempty" xmlrpc:"savedId,omitempty"`
@@ -437,10 +436,10 @@ type User_Customer struct {
 	// A user's unsuccessful attempts to log into the SoftLayer customer portal.
 	UnsuccessfulLogins []User_Customer_Access_Authentication `json:"unsuccessfulLogins,omitempty" xmlrpc:"unsuccessfulLogins,omitempty"`
 
-	// A count of
+	// A count of user customer link with IBMid and IAMid.
 	UserLinkCount *uint `json:"userLinkCount,omitempty" xmlrpc:"userLinkCount,omitempty"`
 
-	// no documentation yet
+	// User customer link with IBMid and IAMid.
 	UserLinks []User_Customer_Link `json:"userLinks,omitempty" xmlrpc:"userLinks,omitempty"`
 
 	// A portal user's status, which controls overall access to the SoftLayer customer portal and VPN access to the private network.
@@ -498,6 +497,13 @@ type User_Customer_Access_Authentication struct {
 
 	// The username used when attempting to log into the SoftLayer customer portal
 	Username *string `json:"username,omitempty" xmlrpc:"username,omitempty"`
+}
+
+// SoftLayer_User_Customer_Access_Authentication_TokenValidation is for logging token validations from IAM, as something distinct from a traditional "login".  A single login to IBM Cloud/IAM as perceived by the end user, may result in many token validation calls to IMS.
+//
+// This is a very shallow subclass of SoftLayer_User_Customer_Access_Authentication
+type User_Customer_Access_Authentication_TokenValidation struct {
+	User_Customer_Access_Authentication
 }
 
 // The SoftLayer_User_Customer_AdditionalEmail data type contains the additional email for use in ticket update notifications.
@@ -698,6 +704,7 @@ type User_Customer_Link struct {
 	DestinationUserAlphanumericId *string `json:"destinationUserAlphanumericId,omitempty" xmlrpc:"destinationUserAlphanumericId,omitempty"`
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	DestinationUserId *int `json:"destinationUserId,omitempty" xmlrpc:"destinationUserId,omitempty"`
 
 	// no documentation yet
@@ -723,6 +730,11 @@ type User_Customer_Link struct {
 
 	// no documentation yet
 	UserId *int `json:"userId,omitempty" xmlrpc:"userId,omitempty"`
+}
+
+// no documentation yet
+type User_Customer_Link_TrustedProfile struct {
+	User_Customer_Link
 }
 
 // no documentation yet
@@ -893,6 +905,11 @@ type User_Customer_Notification_Virtual_Guest struct {
 // no documentation yet
 type User_Customer_OpenIdConnect struct {
 	User_Customer
+}
+
+// no documentation yet
+type User_Customer_OpenIdConnect_TrustedProfile struct {
+	User_Customer_OpenIdConnect
 }
 
 // no documentation yet
@@ -1134,9 +1151,6 @@ type User_Employee struct {
 	// no documentation yet
 	MetricTrackingObject *Metric_Tracking_Object `json:"metricTrackingObject,omitempty" xmlrpc:"metricTrackingObject,omitempty"`
 
-	// no documentation yet
-	OfficePhone *string `json:"officePhone,omitempty" xmlrpc:"officePhone,omitempty"`
-
 	// A count of
 	SecurityLevelCount *uint `json:"securityLevelCount,omitempty" xmlrpc:"securityLevelCount,omitempty"`
 
@@ -1155,7 +1169,7 @@ type User_Employee struct {
 	// no documentation yet
 	TicketAttachmentReferences []Ticket_Attachment `json:"ticketAttachmentReferences,omitempty" xmlrpc:"ticketAttachmentReferences,omitempty"`
 
-	// A representation of a SoftLayer employee's username. In all cases this should simply state "Employee".
+	// A representation of a SoftLayer employee's username.
 	Username *string `json:"username,omitempty" xmlrpc:"username,omitempty"`
 }
 
@@ -1275,6 +1289,7 @@ type User_Permission_Action struct {
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	Key *string `json:"key,omitempty" xmlrpc:"key,omitempty"`
 
 	// no documentation yet

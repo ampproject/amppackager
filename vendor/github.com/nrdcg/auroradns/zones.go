@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// Zone a DNS zone
+// Zone a DNS zone.
 type Zone struct {
 	ID   string `json:"id,omitempty"`
 	Name string `json:"name"`

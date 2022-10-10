@@ -48,6 +48,233 @@ type Workload_Citrix_Client_Response_ResourceLocations struct {
 }
 
 // no documentation yet
+type Workload_Citrix_Deployment struct {
+	Entity
+
+	// The [[SoftLayer_Account]] to which the deployment belongs.
+	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
+
+	// The account ID to which the deployment belongs.
+	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
+
+	// Topology used for the Citrix Virtual Apps And  Desktop deployment.
+	ActiveDirectoryTopology *string `json:"activeDirectoryTopology,omitempty" xmlrpc:"activeDirectoryTopology,omitempty"`
+
+	// The date when this record was created.
+	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
+
+	// DataCenter of the deployment.
+	DataCenter *string `json:"dataCenter,omitempty" xmlrpc:"dataCenter,omitempty"`
+
+	// It is the unique identifier for the deployment.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// The date when this record was last modified.
+	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
+
+	// Name of the deployment.
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+
+	// A count of it contains a collection of items under the CVAD deployment.
+	ResourceCount *uint `json:"resourceCount,omitempty" xmlrpc:"resourceCount,omitempty"`
+
+	// It contains a collection of items under the CVAD deployment.
+	Resources []Workload_Citrix_Deployment_Resource `json:"resources,omitempty" xmlrpc:"resources,omitempty"`
+
+	// Current Status of the CVAD deployment.
+	Status *Workload_Citrix_Deployment_Status `json:"status,omitempty" xmlrpc:"status,omitempty"`
+
+	// The [[SoftLayer_Workload_Citrix_Deployment_Status]] of the deployment.
+	StatusId *int `json:"statusId,omitempty" xmlrpc:"statusId,omitempty"`
+
+	// It shows if the deployment is for Citrix Hypervisor or VMware.
+	Type *Workload_Citrix_Deployment_Type `json:"type,omitempty" xmlrpc:"type,omitempty"`
+
+	// The [[SoftLayer_Workload_Citrix_Deployment_Type]] of the deployment.
+	TypeId *int `json:"typeId,omitempty" xmlrpc:"typeId,omitempty"`
+
+	// It is the [[SoftLayer_User_Customer]] who placed the order for CVAD.
+	User *User_Customer `json:"user,omitempty" xmlrpc:"user,omitempty"`
+
+	// The identifier for the customer who placed the CVAD order.
+	UserRecordId *int `json:"userRecordId,omitempty" xmlrpc:"userRecordId,omitempty"`
+
+	// It is the VLAN resource for the CVAD deployment.
+	Vlan *Network_Vlan `json:"vlan,omitempty" xmlrpc:"vlan,omitempty"`
+
+	// VLAN ID of the deployment.
+	VlanId *int `json:"vlanId,omitempty" xmlrpc:"vlanId,omitempty"`
+
+	// It is an internal identifier for the VMware solution. It gets set if the CVAD order is for VMware.
+	VmwareOrderId *string `json:"vmwareOrderId,omitempty" xmlrpc:"vmwareOrderId,omitempty"`
+}
+
+// The SoftLayer_Workload_Citrix_Deployment_Resource type contains the information of the resource such as the Deployment ID, resource's Billing Item ID, Order ID and Role of the resource in the CVAD deployment.
+type Workload_Citrix_Deployment_Resource struct {
+	Entity
+
+	// no documentation yet
+	BillingItem *Billing_Item `json:"billingItem,omitempty" xmlrpc:"billingItem,omitempty"`
+
+	// Billing item ID of the resource
+	BillingItemId *int `json:"billingItemId,omitempty" xmlrpc:"billingItemId,omitempty"`
+
+	// The point in time at which the resource was ordered.
+	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
+
+	// no documentation yet
+	Deployment *Workload_Citrix_Deployment `json:"deployment,omitempty" xmlrpc:"deployment,omitempty"`
+
+	// CVAD Deployment ID of the resource
+	DeploymentId *int `json:"deploymentId,omitempty" xmlrpc:"deploymentId,omitempty"`
+
+	// Unique Identifier of the CVAD Deployment Resource
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// The last time when the resource was modified.
+	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
+
+	// no documentation yet
+	Order *Billing_Order `json:"order,omitempty" xmlrpc:"order,omitempty"`
+
+	// Billing Order ID of the resource
+	OrderId *int `json:"orderId,omitempty" xmlrpc:"orderId,omitempty"`
+
+	// This flag indicates that whether the CVAD APIs have control over this resource. This resource can be cancelled using CVAD cancellation APIs only if this flag is true.
+	OrderedByCvad *bool `json:"orderedByCvad,omitempty" xmlrpc:"orderedByCvad,omitempty"`
+
+	// no documentation yet
+	Role *Workload_Citrix_Deployment_Resource_Role `json:"role,omitempty" xmlrpc:"role,omitempty"`
+
+	// Role of the resource within the CVAD deployment. For example, a VSI can have different roles such as Proxy Server or DHCP Server.
+	RoleId *int `json:"roleId,omitempty" xmlrpc:"roleId,omitempty"`
+}
+
+// The SoftLayer_Workload_Citrix_Deployment_Resource_Response constructs a response object for [[SoftLayer_Workload_Citrix_Deployment_Resource_Response]] for the CVAD resource.
+type Workload_Citrix_Deployment_Resource_Response struct {
+	Entity
+
+	// Represents the hardware resource of the CVAD deployment.
+	Hardware *Hardware `json:"hardware,omitempty" xmlrpc:"hardware,omitempty"`
+
+	// It is a flag for internal usage that represents if the underlying resource is ordered by another system of the same infrastructure provider.
+	IsDeploymentOwned *bool `json:"isDeploymentOwned,omitempty" xmlrpc:"isDeploymentOwned,omitempty"`
+
+	// It represents the role of a VSI resource in the CVAD deployment, e.g., a proxy server, DHCP server, cloud connector.
+	Role *Workload_Citrix_Deployment_Resource_Role `json:"role,omitempty" xmlrpc:"role,omitempty"`
+
+	// Storage resource for the CVAD deployment.
+	Storage *Network_Storage `json:"storage,omitempty" xmlrpc:"storage,omitempty"`
+
+	// Represents the subnet resource of the CVAD deployment.
+	Subnet *Network_Subnet `json:"subnet,omitempty" xmlrpc:"subnet,omitempty"`
+
+	// It contains the category of the item which is set for the current response.
+	Type *string `json:"type,omitempty" xmlrpc:"type,omitempty"`
+
+	// VSI resource for the CVAD deployment.
+	VirtualGuest *Virtual_Guest `json:"virtualGuest,omitempty" xmlrpc:"virtualGuest,omitempty"`
+
+	// Represents the VLAN resource of the CVAD deployment.
+	Vlan *Network_Vlan `json:"vlan,omitempty" xmlrpc:"vlan,omitempty"`
+}
+
+// SoftLayer_Workload_Citrix_Deployment_Resource_Role contains the role and its description of any resource of Citrix Virtual Apps & Desktops deployment.
+type Workload_Citrix_Deployment_Resource_Role struct {
+	Entity
+
+	// Description of the resource role
+	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
+
+	// ID of the role
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// Unique keyName of the role
+	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
+
+	// Name of the role
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+}
+
+// The SoftLayer_Workload_Citrix_Deployment_Response constructs a response object for the [[SoftLayer_Workload_Citrix_Deployment]] that includes all resources, i.e., [[SoftLayer_Workload_Citrix_Deployment_Resource]].
+type Workload_Citrix_Deployment_Response struct {
+	Entity
+
+	// The account ID to which the deployment belongs.
+	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
+
+	// Topology used for the CVAD deployment
+	ActiveDirectoryTopology *string `json:"activeDirectoryTopology,omitempty" xmlrpc:"activeDirectoryTopology,omitempty"`
+
+	// The date when this deployment was created.
+	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
+
+	// Location name of the deployment.
+	DataCenter *string `json:"dataCenter,omitempty" xmlrpc:"dataCenter,omitempty"`
+
+	// ID of the CVAD deployment.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// The date when this deployment was modified.
+	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
+
+	// Name of the deployment.
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+
+	// It is a collection of objects representing deployment resources such as VLAN, subnet, bare metal, proxy, DHCP, cloud connectors.
+	Resources []Workload_Citrix_Deployment_Resource_Response `json:"resources,omitempty" xmlrpc:"resources,omitempty"`
+
+	// Status of the deployment.
+	Status *Workload_Citrix_Deployment_Status `json:"status,omitempty" xmlrpc:"status,omitempty"`
+
+	// Represents if the deployment is for Citrix Hypervisor or VMware
+	Type *Workload_Citrix_Deployment_Type `json:"type,omitempty" xmlrpc:"type,omitempty"`
+
+	// The identifier for the customer who placed the CVAD order.
+	UserRecordId *int `json:"userRecordId,omitempty" xmlrpc:"userRecordId,omitempty"`
+
+	// VLAN ID of the deployment.
+	VlanId *int `json:"vlanId,omitempty" xmlrpc:"vlanId,omitempty"`
+
+	// It is an internal identifier for the VMware solution. It gets set if the CVAD order is for VMware.
+	VmwareOrderId *string `json:"vmwareOrderId,omitempty" xmlrpc:"vmwareOrderId,omitempty"`
+}
+
+// The SoftLayer_Workload_Citrix_Deployment_Status shows the status of Citrix Virtual Apps and Desktop deployment. The deployment can be in one of the following statuses at a given point in time: - PROVISIONING: The resources are being provisioned for the deployment. - ACTIVE: All the resources for the deployment are ready. - CANCELLING: Resources of the deployment are being cancelled. - CANCELLED: All the resources of the deployment are cancelled.
+type Workload_Citrix_Deployment_Status struct {
+	Entity
+
+	// The description of the deployment status.
+	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
+
+	// The ID of the deployment status.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// The keyName of the deployment status.
+	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
+
+	// The title of the deployment status.
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+}
+
+// no documentation yet
+type Workload_Citrix_Deployment_Type struct {
+	Entity
+
+	// Description of the deployment type.
+	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
+
+	// The identifer of the deployment type.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// KeyName of the deployment type.
+	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
+
+	// Name of the deployment type.
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+}
+
+// no documentation yet
 type Workload_Citrix_Request struct {
 	Entity
 
@@ -180,8 +407,11 @@ type Workload_Citrix_Workspace_Order_VMwareContainer struct {
 	// The bare metal shared nfs storage (optional)
 	SharedStorage []Workload_Citrix_Workspace_Order_SharedStorage `json:"sharedStorage,omitempty" xmlrpc:"sharedStorage,omitempty"`
 
-	// The subdomain for the ordered hosts (e.g. corp)
+	// The subdomain for the ordered hosts (e.g. corp).
 	Subdomain *string `json:"subdomain,omitempty" xmlrpc:"subdomain,omitempty"`
+
+	// The vSphere version. Valid values are: "6.7" and "7.0"
+	VSphereVersion *string `json:"vSphereVersion,omitempty" xmlrpc:"vSphereVersion,omitempty"`
 
 	// The bare metal vsan cache disks (optional)
 	VsanCacheDisks []string `json:"vsanCacheDisks,omitempty" xmlrpc:"vsanCacheDisks,omitempty"`

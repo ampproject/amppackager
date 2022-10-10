@@ -17,6 +17,7 @@
 package datatypes
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -99,6 +100,61 @@ func SetComplexType(v interface{}) error {
 	complexTypeField := orderDataValue.FieldByName("ComplexType")
 	complexType := "SoftLayer_" + orderDataType
 	complexTypeField.Set(reflect.ValueOf(&complexType))
+
+	return nil
+}
+
+// Used for detecting the search result before the real unmarshalling can begin
+type Result_Detector struct {
+	// An array of terms that were matched in the resource object.
+	MatchedTerms []string `json:"matchedTerms,omitempty" xmlrpc:"matchedTerms,omitempty"`
+	// The score ratio of the result for relevance to the search criteria.
+	RelevanceScore *Float64 `json:"relevanceScore,omitempty" xmlrpc:"relevanceScore,omitempty"`
+	// A search results resource object that matched search criteria.
+	Resource interface{} `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
+	// The type of the resource object that matched search criteria.
+	ResourceType *string `json:"resourceType,omitempty" xmlrpc:"resourceType,omitempty"`
+}
+
+func (result *Container_Search_Result) UnmarshalJSON(data []byte) error {
+	var detector Result_Detector
+	err := json.Unmarshal(data, &detector)
+	if err != nil {
+		return err
+	}
+	if !strings.HasPrefix(*detector.ResourceType, "SoftLayer_") {
+		return fmt.Errorf("Resource is not a SoftLayer_ Type, but instead is %v", *detector.ResourceType)
+	}
+
+	var theType interface{}
+	switch *detector.ResourceType {
+	case "SoftLayer_Virtual_Guest":
+		theType = new(Virtual_Guest)
+		// theType = reflect.New(reflect.TypeOf(Virtual_Guest{})).Interface().(*Virtual_Guest)
+	case "SoftLayer_Event_Log":
+		theType = new(Event_Log)
+	case "SoftLayer_Virtual_DedicatedHost":
+		theType = new(Virtual_DedicatedHost)
+	case "SoftLayer_Hardware":
+		theType = new(Hardware)
+	case "SoftLayer_Network_Application_Delivery_Controller":
+		theType = new(Network_Application_Delivery_Controller)
+	case "SoftLayer_Network_Subnet_IpAddress":
+		theType = new(Network_Subnet_IpAddress)
+	case "SoftLayer_Network_Vlan":
+		theType = new(Network_Vlan)
+	case "SoftLayer_Network_Vlan_Firewall":
+		theType = new(Network_Vlan_Firewall)
+	case "SoftLayer_Ticket":
+		theType = new(Ticket)
+	}
+	detector.Resource = theType
+	err = json.Unmarshal(data, &detector)
+
+	result.MatchedTerms = detector.MatchedTerms
+	result.RelevanceScore = detector.RelevanceScore
+	result.Resource = detector.Resource
+	result.ResourceType = detector.ResourceType
 
 	return nil
 }

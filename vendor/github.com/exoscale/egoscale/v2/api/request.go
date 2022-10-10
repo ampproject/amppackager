@@ -10,7 +10,7 @@ const (
 	EndpointURL = "https://api.exoscale.com/"
 
 	// Prefix represents the current API prefix.
-	Prefix = "v2.alpha"
+	Prefix = "v2"
 )
 
 const defaultReqEndpointEnv = "api"

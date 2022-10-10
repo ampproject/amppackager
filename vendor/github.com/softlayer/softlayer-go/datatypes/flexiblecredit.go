@@ -64,6 +64,9 @@ type FlexibleCredit_Enrollment struct {
 	// Indicates signing of Flexible Credit agreement (independent from MSA)
 	AgreementCompleteFlag *int `json:"agreementCompleteFlag,omitempty" xmlrpc:"agreementCompleteFlag,omitempty"`
 
+	// How much lifetime credit from this enrollment is available for use by the customer, refreshed every 5 minutes.
+	ApproximateAvailableLifetimeCredit *Float64 `json:"approximateAvailableLifetimeCredit,omitempty" xmlrpc:"approximateAvailableLifetimeCredit,omitempty"`
+
 	// Brief description of the company
 	CompanyDescription *string `json:"companyDescription,omitempty" xmlrpc:"companyDescription,omitempty"`
 
@@ -107,4 +110,7 @@ type FlexibleCredit_Program struct {
 
 	// Name of the Flexible Credit Program.
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+
+	// no documentation yet
+	PlatformPromotionCode *string `json:"platformPromotionCode,omitempty" xmlrpc:"platformPromotionCode,omitempty"`
 }

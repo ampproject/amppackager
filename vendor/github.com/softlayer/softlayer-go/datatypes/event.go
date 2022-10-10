@@ -52,7 +52,7 @@ type Event_Log struct {
 	OpenIdConnectUserName *string `json:"openIdConnectUserName,omitempty" xmlrpc:"openIdConnectUserName,omitempty"`
 
 	// A resource object that is associated with the event
-	Resource *Entity `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
+	Resource interface{} `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
 
 	// A unique trace id. Multiple event can be grouped by a trace id.
 	TraceId *string `json:"traceId,omitempty" xmlrpc:"traceId,omitempty"`

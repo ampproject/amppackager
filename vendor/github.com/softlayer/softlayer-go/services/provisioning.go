@@ -441,7 +441,7 @@ func (r Provisioning_Maintenance_Window) AddCustomerUpgradeWindow(customerUpgrad
 	return
 }
 
-// getMaintenanceClassifications() returns an object of maintenance classifications
+// Returns all the maintenance classifications.
 func (r Provisioning_Maintenance_Window) GetMaintenanceClassifications() (resp []datatypes.Provisioning_Maintenance_Classification, err error) {
 	err = r.Session.DoRequest("SoftLayer_Provisioning_Maintenance_Window", "getMaintenanceClassifications", nil, &r.Options, &resp)
 	return
@@ -456,8 +456,8 @@ func (r Provisioning_Maintenance_Window) GetMaintenanceStartEndTime(ticketId *in
 	return
 }
 
-// getMaintenceWindowForTicket() returns a specific maintenance window
-func (r Provisioning_Maintenance_Window) GetMaintenanceWindowForTicket(maintenanceWindowId *int) (resp []datatypes.Provisioning_Maintenance_Window, err error) {
+// Returns a specific maintenance window.
+func (r Provisioning_Maintenance_Window) GetMaintenanceWindowForTicket(maintenanceWindowId *int) (resp datatypes.Provisioning_Maintenance_Window, err error) {
 	params := []interface{}{
 		maintenanceWindowId,
 	}
@@ -487,6 +487,7 @@ func (r Provisioning_Maintenance_Window) GetMaintenanceWindows(beginDate *dataty
 }
 
 // (DEPRECATED) Use [[SoftLayer_Provisioning_Maintenance_Window::getMaintenanceWindows|getMaintenanceWindows]] method.
+// Deprecated: This function has been marked as deprecated.
 func (r Provisioning_Maintenance_Window) GetMaintenceWindows(beginDate *datatypes.Time, endDate *datatypes.Time, locationId *int, slotsNeeded *int) (resp []datatypes.Provisioning_Maintenance_Window, err error) {
 	params := []interface{}{
 		beginDate,
@@ -495,17 +496,6 @@ func (r Provisioning_Maintenance_Window) GetMaintenceWindows(beginDate *datatype
 		slotsNeeded,
 	}
 	err = r.Session.DoRequest("SoftLayer_Provisioning_Maintenance_Window", "getMaintenceWindows", params, &r.Options, &resp)
-	return
-}
-
-// getMaintenceWindowForTicket() returns a boolean
-func (r Provisioning_Maintenance_Window) UpdateCustomerUpgradeWindow(maintenanceStartTime *datatypes.Time, newMaintenanceWindowId *int, ticketId *int) (resp bool, err error) {
-	params := []interface{}{
-		maintenanceStartTime,
-		newMaintenanceWindowId,
-		ticketId,
-	}
-	err = r.Session.DoRequest("SoftLayer_Provisioning_Maintenance_Window", "updateCustomerUpgradeWindow", params, &r.Options, &resp)
 	return
 }
 
@@ -560,5 +550,115 @@ func (r Provisioning_Version1_Transaction_Group) GetAllObjects() (resp []datatyp
 // getObject retrieves the SoftLayer_Provisioning_Version1_Transaction_Group object whose ID number corresponds to the ID number of the init parameter passed to the SoftLayer_Provisioning_Version1_Transaction_Group service.
 func (r Provisioning_Version1_Transaction_Group) GetObject() (resp datatypes.Provisioning_Version1_Transaction_Group, err error) {
 	err = r.Session.DoRequest("SoftLayer_Provisioning_Version1_Transaction_Group", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+type Provisioning_Version1_Transaction_OrderTracking struct {
+	Session *session.Session
+	Options sl.Options
+}
+
+// GetProvisioningVersion1TransactionOrderTrackingService returns an instance of the Provisioning_Version1_Transaction_OrderTracking SoftLayer service
+func GetProvisioningVersion1TransactionOrderTrackingService(sess *session.Session) Provisioning_Version1_Transaction_OrderTracking {
+	return Provisioning_Version1_Transaction_OrderTracking{Session: sess}
+}
+
+func (r Provisioning_Version1_Transaction_OrderTracking) Id(id int) Provisioning_Version1_Transaction_OrderTracking {
+	r.Options.Id = &id
+	return r
+}
+
+func (r Provisioning_Version1_Transaction_OrderTracking) Mask(mask string) Provisioning_Version1_Transaction_OrderTracking {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r Provisioning_Version1_Transaction_OrderTracking) Filter(filter string) Provisioning_Version1_Transaction_OrderTracking {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r Provisioning_Version1_Transaction_OrderTracking) Limit(limit int) Provisioning_Version1_Transaction_OrderTracking {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r Provisioning_Version1_Transaction_OrderTracking) Offset(offset int) Provisioning_Version1_Transaction_OrderTracking {
+	r.Options.Offset = &offset
+	return r
+}
+
+// Retrieve Invoice ID
+func (r Provisioning_Version1_Transaction_OrderTracking) GetInvoiceId() (resp int, err error) {
+	err = r.Session.DoRequest("SoftLayer_Provisioning_Version1_Transaction_OrderTracking", "getInvoiceId", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Provisioning_Version1_Transaction_OrderTracking) GetObject() (resp datatypes.Provisioning_Version1_Transaction_OrderTracking, err error) {
+	err = r.Session.DoRequest("SoftLayer_Provisioning_Version1_Transaction_OrderTracking", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Provisioning_Version1_Transaction_OrderTracking) GetOrderTrackingState() (resp datatypes.Provisioning_Version1_Transaction_OrderTrackingState, err error) {
+	err = r.Session.DoRequest("SoftLayer_Provisioning_Version1_Transaction_OrderTracking", "getOrderTrackingState", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Provisioning_Version1_Transaction_OrderTracking) GetTransaction() (resp datatypes.Provisioning_Version1_Transaction, err error) {
+	err = r.Session.DoRequest("SoftLayer_Provisioning_Version1_Transaction_OrderTracking", "getTransaction", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+type Provisioning_Version1_Transaction_OrderTrackingState struct {
+	Session *session.Session
+	Options sl.Options
+}
+
+// GetProvisioningVersion1TransactionOrderTrackingStateService returns an instance of the Provisioning_Version1_Transaction_OrderTrackingState SoftLayer service
+func GetProvisioningVersion1TransactionOrderTrackingStateService(sess *session.Session) Provisioning_Version1_Transaction_OrderTrackingState {
+	return Provisioning_Version1_Transaction_OrderTrackingState{Session: sess}
+}
+
+func (r Provisioning_Version1_Transaction_OrderTrackingState) Id(id int) Provisioning_Version1_Transaction_OrderTrackingState {
+	r.Options.Id = &id
+	return r
+}
+
+func (r Provisioning_Version1_Transaction_OrderTrackingState) Mask(mask string) Provisioning_Version1_Transaction_OrderTrackingState {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r Provisioning_Version1_Transaction_OrderTrackingState) Filter(filter string) Provisioning_Version1_Transaction_OrderTrackingState {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r Provisioning_Version1_Transaction_OrderTrackingState) Limit(limit int) Provisioning_Version1_Transaction_OrderTrackingState {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r Provisioning_Version1_Transaction_OrderTrackingState) Offset(offset int) Provisioning_Version1_Transaction_OrderTrackingState {
+	r.Options.Offset = &offset
+	return r
+}
+
+// no documentation yet
+func (r Provisioning_Version1_Transaction_OrderTrackingState) GetObject() (resp datatypes.Provisioning_Version1_Transaction_OrderTrackingState, err error) {
+	err = r.Session.DoRequest("SoftLayer_Provisioning_Version1_Transaction_OrderTrackingState", "getObject", nil, &r.Options, &resp)
 	return
 }

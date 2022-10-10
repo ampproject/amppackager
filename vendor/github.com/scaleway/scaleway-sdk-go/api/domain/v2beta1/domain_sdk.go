@@ -444,10 +444,6 @@ const (
 	DomainStatusXfering = DomainStatus("xfering")
 	// DomainStatusXferError is [insert doc].
 	DomainStatusXferError = DomainStatus("xfer_error")
-	// DomainStatusRestoring is [insert doc].
-	DomainStatusRestoring = DomainStatus("restoring")
-	// DomainStatusRestoreError is [insert doc].
-	DomainStatusRestoreError = DomainStatus("restore_error")
 	// DomainStatusExpired is [insert doc].
 	DomainStatusExpired = DomainStatus("expired")
 	// DomainStatusExpiring is [insert doc].
@@ -619,6 +615,38 @@ func (enum *ListDomainsRequestOrderBy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type ListRenewableDomainsRequestOrderBy string
+
+const (
+	// ListRenewableDomainsRequestOrderByDomainAsc is [insert doc].
+	ListRenewableDomainsRequestOrderByDomainAsc = ListRenewableDomainsRequestOrderBy("domain_asc")
+	// ListRenewableDomainsRequestOrderByDomainDesc is [insert doc].
+	ListRenewableDomainsRequestOrderByDomainDesc = ListRenewableDomainsRequestOrderBy("domain_desc")
+)
+
+func (enum ListRenewableDomainsRequestOrderBy) String() string {
+	if enum == "" {
+		// return default value if empty
+		return "domain_asc"
+	}
+	return string(enum)
+}
+
+func (enum ListRenewableDomainsRequestOrderBy) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%s"`, enum)), nil
+}
+
+func (enum *ListRenewableDomainsRequestOrderBy) UnmarshalJSON(data []byte) error {
+	tmp := ""
+
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	*enum = ListRenewableDomainsRequestOrderBy(ListRenewableDomainsRequestOrderBy(tmp).String())
+	return nil
+}
+
 type RawFormat string
 
 const (
@@ -658,6 +686,8 @@ const (
 	RecordHTTPServiceConfigStrategyRandom = RecordHTTPServiceConfigStrategy("random")
 	// RecordHTTPServiceConfigStrategyHashed is [insert doc].
 	RecordHTTPServiceConfigStrategyHashed = RecordHTTPServiceConfigStrategy("hashed")
+	// RecordHTTPServiceConfigStrategyAll is [insert doc].
+	RecordHTTPServiceConfigStrategyAll = RecordHTTPServiceConfigStrategy("all")
 )
 
 func (enum RecordHTTPServiceConfigStrategy) String() string {
@@ -710,6 +740,20 @@ const (
 	RecordTypeCAA = RecordType("CAA")
 	// RecordTypeALIAS is [insert doc].
 	RecordTypeALIAS = RecordType("ALIAS")
+	// RecordTypeLOC is [insert doc].
+	RecordTypeLOC = RecordType("LOC")
+	// RecordTypeSSHFP is [insert doc].
+	RecordTypeSSHFP = RecordType("SSHFP")
+	// RecordTypeHINFO is [insert doc].
+	RecordTypeHINFO = RecordType("HINFO")
+	// RecordTypeRP is [insert doc].
+	RecordTypeRP = RecordType("RP")
+	// RecordTypeURI is [insert doc].
+	RecordTypeURI = RecordType("URI")
+	// RecordTypeDS is [insert doc].
+	RecordTypeDS = RecordType("DS")
+	// RecordTypeNAPTR is [insert doc].
+	RecordTypeNAPTR = RecordType("NAPTR")
 )
 
 func (enum RecordType) String() string {
@@ -732,6 +776,42 @@ func (enum *RecordType) UnmarshalJSON(data []byte) error {
 	}
 
 	*enum = RecordType(RecordType(tmp).String())
+	return nil
+}
+
+type RenewableDomainStatus string
+
+const (
+	// RenewableDomainStatusUnknown is [insert doc].
+	RenewableDomainStatusUnknown = RenewableDomainStatus("unknown")
+	// RenewableDomainStatusRenewable is [insert doc].
+	RenewableDomainStatusRenewable = RenewableDomainStatus("renewable")
+	// RenewableDomainStatusLateReneweable is [insert doc].
+	RenewableDomainStatusLateReneweable = RenewableDomainStatus("late_reneweable")
+	// RenewableDomainStatusNotRenewable is [insert doc].
+	RenewableDomainStatusNotRenewable = RenewableDomainStatus("not_renewable")
+)
+
+func (enum RenewableDomainStatus) String() string {
+	if enum == "" {
+		// return default value if empty
+		return "unknown"
+	}
+	return string(enum)
+}
+
+func (enum RenewableDomainStatus) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%s"`, enum)), nil
+}
+
+func (enum *RenewableDomainStatus) UnmarshalJSON(data []byte) error {
+	tmp := ""
+
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	*enum = RenewableDomainStatus(RenewableDomainStatus(tmp).String())
 	return nil
 }
 
@@ -824,8 +904,6 @@ const (
 	TaskTypeCreateExternalDomain = TaskType("create_external_domain")
 	// TaskTypeRenewDomain is [insert doc].
 	TaskTypeRenewDomain = TaskType("renew_domain")
-	// TaskTypeRestoreDomain is [insert doc].
-	TaskTypeRestoreDomain = TaskType("restore_domain")
 	// TaskTypeTransferDomain is [insert doc].
 	TaskTypeTransferDomain = TaskType("transfer_domain")
 	// TaskTypeTradeDomain is [insert doc].
@@ -879,6 +957,14 @@ func (enum *TaskType) UnmarshalJSON(data []byte) error {
 
 	*enum = TaskType(TaskType(tmp).String())
 	return nil
+}
+
+type AvailableDomain struct {
+	Domain string `json:"domain"`
+
+	Available bool `json:"available"`
+
+	Tld *Tld `json:"tld"`
 }
 
 // ClearDNSZoneRecordsResponse: clear dns zone records response
@@ -942,6 +1028,8 @@ type Contact struct {
 	//
 	// Default value: email_status_unknown
 	EmailStatus ContactEmailStatus `json:"email_status"`
+
+	State string `json:"state"`
 }
 
 type ContactExtensionEU struct {
@@ -1180,6 +1268,8 @@ type DomainSummary struct {
 
 	// Precisely one of ExternalDomainRegistrationStatus, TransferRegistrationStatus must be set.
 	TransferRegistrationStatus *DomainRegistrationStatusTransfer `json:"transfer_registration_status,omitempty"`
+
+	OrganizationID string `json:"organization_id"`
 }
 
 // GetDNSZoneTsigKeyResponse: get dns zone tsig key response
@@ -1210,6 +1300,24 @@ type ImportProviderDNSZoneResponse struct {
 	Records []*Record `json:"records"`
 }
 
+type ImportRawDNSZoneRequestAXFRSource struct {
+	NameServer string `json:"name_server"`
+
+	TsigKey *ImportRawDNSZoneRequestTsigKey `json:"tsig_key"`
+}
+
+type ImportRawDNSZoneRequestBindSource struct {
+	Content string `json:"content"`
+}
+
+type ImportRawDNSZoneRequestTsigKey struct {
+	Name string `json:"name"`
+
+	Key string `json:"key"`
+
+	Algorithm string `json:"algorithm"`
+}
+
 // ImportRawDNSZoneResponse: import raw dns zone response
 type ImportRawDNSZoneResponse struct {
 	Records []*Record `json:"records"`
@@ -1224,30 +1332,39 @@ type ListContactsResponse struct {
 
 // ListDNSZoneNameserversResponse: list dns zone nameservers response
 type ListDNSZoneNameserversResponse struct {
+	// Ns: the returned DNS zone nameservers
 	Ns []*Nameserver `json:"ns"`
 }
 
 // ListDNSZoneRecordsResponse: list dns zone records response
 type ListDNSZoneRecordsResponse struct {
+	// TotalCount: the total number of DNS zone records
 	TotalCount uint32 `json:"total_count"`
-
+	// Records: the paginated returned DNS zone records
 	Records []*Record `json:"records"`
 }
 
 // ListDNSZoneVersionRecordsResponse: list dns zone version records response
 type ListDNSZoneVersionRecordsResponse struct {
+	// TotalCount: the total number of DNS zones versions records
+	TotalCount uint32 `json:"total_count"`
+
 	Records []*Record `json:"records"`
 }
 
 // ListDNSZoneVersionsResponse: list dns zone versions response
 type ListDNSZoneVersionsResponse struct {
+	// TotalCount: the total number of DNS zones versions
+	TotalCount uint32 `json:"total_count"`
+
 	Versions []*DNSZoneVersion `json:"versions"`
 }
 
 // ListDNSZonesResponse: list dns zones response
 type ListDNSZonesResponse struct {
+	// TotalCount: the total number of DNS zones
 	TotalCount uint32 `json:"total_count"`
-
+	// DNSZones: the paginated returned DNS zones
 	DNSZones []*DNSZone `json:"dns_zones"`
 }
 
@@ -1256,6 +1373,13 @@ type ListDomainsResponse struct {
 	TotalCount uint32 `json:"total_count"`
 
 	Domains []*DomainSummary `json:"domains"`
+}
+
+// ListRenewableDomainsResponse: list renewable domains response
+type ListRenewableDomainsResponse struct {
+	TotalCount uint32 `json:"total_count"`
+
+	Domains []*RenewableDomain `json:"domains"`
 }
 
 // ListSSLCertificatesResponse: list ssl certificates response
@@ -1329,6 +1453,20 @@ type NewContact struct {
 	ExtensionEu *ContactExtensionEU `json:"extension_eu"`
 
 	WhoisOptIn bool `json:"whois_opt_in"`
+
+	State *string `json:"state"`
+}
+
+type OrderResponse struct {
+	Domains []string `json:"domains"`
+
+	OrganizationID string `json:"organization_id"`
+
+	ProjectID string `json:"project_id"`
+
+	TaskID string `json:"task_id"`
+
+	CreatedAt *time.Time `json:"created_at"`
 }
 
 type Record struct {
@@ -1465,6 +1603,7 @@ type RecordWeightedConfigWeightedIP struct {
 
 // RefreshDNSZoneResponse: refresh dns zone response
 type RefreshDNSZoneResponse struct {
+	// DNSZones: the returned DNS zones
 	DNSZones []*DNSZone `json:"dns_zones"`
 }
 
@@ -1478,6 +1617,22 @@ type RegisterExternalDomainResponse struct {
 	CreatedAt *time.Time `json:"created_at"`
 
 	ProjectID string `json:"project_id"`
+}
+
+type RenewableDomain struct {
+	Domain string `json:"domain"`
+
+	ProjectID string `json:"project_id"`
+
+	OrganizationID string `json:"organization_id"`
+	// Status:
+	//
+	// Default value: unknown
+	Status RenewableDomainStatus `json:"status"`
+
+	RenewableDurationInYears *int32 `json:"renewable_duration_in_years"`
+
+	ExpiredAt *time.Time `json:"expired_at"`
 }
 
 // RestoreDNSZoneVersionResponse: restore dns zone version response
@@ -1500,6 +1655,12 @@ type SSLCertificate struct {
 	CreatedAt *time.Time `json:"created_at"`
 
 	ExpiredAt *time.Time `json:"expired_at"`
+}
+
+// SearchAvailableDomainsResponse: search available domains response
+type SearchAvailableDomainsResponse struct {
+	// AvailableDomains: array of available domains
+	AvailableDomains []*AvailableDomain `json:"available_domains"`
 }
 
 type Task struct {
@@ -1526,6 +1687,28 @@ type Task struct {
 	Message *string `json:"message"`
 }
 
+type Tld struct {
+	Name string `json:"name"`
+
+	DnssecSupport bool `json:"dnssec_support"`
+
+	DurationInYearsMin uint32 `json:"duration_in_years_min"`
+
+	DurationInYearsMax uint32 `json:"duration_in_years_max"`
+
+	IdnSupport bool `json:"idn_support"`
+
+	Offers map[string]*TldOffer `json:"offers"`
+}
+
+type TldOffer struct {
+	Action string `json:"action"`
+
+	OperationPath string `json:"operation_path"`
+
+	Price *scw.Money `json:"price"`
+}
+
 type UpdateContactRequestQuestion struct {
 	Question *string `json:"question"`
 
@@ -1534,32 +1717,35 @@ type UpdateContactRequestQuestion struct {
 
 // UpdateDNSZoneNameserversResponse: update dns zone nameservers response
 type UpdateDNSZoneNameserversResponse struct {
+	// Ns: the returned DNS zone nameservers
 	Ns []*Nameserver `json:"ns"`
 }
 
 // UpdateDNSZoneRecordsResponse: update dns zone records response
 type UpdateDNSZoneRecordsResponse struct {
+	// Records: the returned DNS zone records
 	Records []*Record `json:"records"`
 }
 
 // Service API
 
 type ListDNSZonesRequest struct {
-	Page *int32 `json:"-"`
-
-	PageSize *uint32 `json:"-"`
-	// OrderBy:
+	// OrganizationID: the organization ID on which to filter the returned DNS zones
+	OrganizationID *string `json:"-"`
+	// ProjectID: the project ID on which to filter the returned DNS zones
+	ProjectID *string `json:"-"`
+	// OrderBy: the sort order of the returned DNS zones
 	//
 	// Default value: domain_asc
 	OrderBy ListDNSZonesRequestOrderBy `json:"-"`
-
+	// Page: the page number for the returned DNS zones
+	Page *int32 `json:"-"`
+	// PageSize: the maximum number of DNS zones per page
+	PageSize *uint32 `json:"-"`
+	// Domain: the domain on which to filter the returned DNS zones
 	Domain string `json:"-"`
-
+	// DNSZone: the DNS zone on which to filter the returned DNS zones
 	DNSZone string `json:"-"`
-
-	ProjectID *string `json:"-"`
-
-	OrganizationID *string `json:"-"`
 }
 
 // ListDNSZones: list DNS zones
@@ -1576,13 +1762,13 @@ func (s *API) ListDNSZones(req *ListDNSZonesRequest, opts ...scw.RequestOption) 
 	}
 
 	query := url.Values{}
+	parameter.AddToQuery(query, "organization_id", req.OrganizationID)
+	parameter.AddToQuery(query, "project_id", req.ProjectID)
+	parameter.AddToQuery(query, "order_by", req.OrderBy)
 	parameter.AddToQuery(query, "page", req.Page)
 	parameter.AddToQuery(query, "page_size", req.PageSize)
-	parameter.AddToQuery(query, "order_by", req.OrderBy)
 	parameter.AddToQuery(query, "domain", req.Domain)
 	parameter.AddToQuery(query, "dns_zone", req.DNSZone)
-	parameter.AddToQuery(query, "project_id", req.ProjectID)
-	parameter.AddToQuery(query, "organization_id", req.OrganizationID)
 
 	scwReq := &scw.ScalewayRequest{
 		Method:  "GET",
@@ -1600,30 +1786,12 @@ func (s *API) ListDNSZones(req *ListDNSZonesRequest, opts ...scw.RequestOption) 
 	return &resp, nil
 }
 
-// UnsafeGetTotalCount should not be used
-// Internal usage only
-func (r *ListDNSZonesResponse) UnsafeGetTotalCount() uint32 {
-	return r.TotalCount
-}
-
-// UnsafeAppend should not be used
-// Internal usage only
-func (r *ListDNSZonesResponse) UnsafeAppend(res interface{}) (uint32, error) {
-	results, ok := res.(*ListDNSZonesResponse)
-	if !ok {
-		return 0, errors.New("%T type cannot be appended to type %T", res, r)
-	}
-
-	r.DNSZones = append(r.DNSZones, results.DNSZones...)
-	r.TotalCount += uint32(len(results.DNSZones))
-	return uint32(len(results.DNSZones)), nil
-}
-
 type CreateDNSZoneRequest struct {
+	// Domain: the domain of the DNS zone to create
 	Domain string `json:"domain"`
-
+	// Subdomain: the subdomain of the DNS zone to create
 	Subdomain string `json:"subdomain"`
-
+	// ProjectID: the project ID where the DNS zone will be created
 	ProjectID string `json:"project_id"`
 }
 
@@ -1659,10 +1827,11 @@ func (s *API) CreateDNSZone(req *CreateDNSZoneRequest, opts ...scw.RequestOption
 }
 
 type UpdateDNSZoneRequest struct {
+	// DNSZone: the DNS zone to update
 	DNSZone string `json:"-"`
-
+	// NewDNSZone: the new DNS zone
 	NewDNSZone *string `json:"new_dns_zone"`
-
+	// ProjectID: the project ID of the new DNS zone
 	ProjectID string `json:"project_id"`
 }
 
@@ -1702,12 +1871,13 @@ func (s *API) UpdateDNSZone(req *UpdateDNSZoneRequest, opts ...scw.RequestOption
 }
 
 type CloneDNSZoneRequest struct {
+	// DNSZone: the DNS zone to clone
 	DNSZone string `json:"-"`
-
+	// DestDNSZone: the destinaton DNS zone
 	DestDNSZone string `json:"dest_dns_zone"`
-
+	// Overwrite: whether or not the destination DNS zone will be overwritten
 	Overwrite bool `json:"overwrite"`
-
+	// ProjectID: the project ID of the destination DNS zone
 	ProjectID *string `json:"project_id"`
 }
 
@@ -1742,8 +1912,9 @@ func (s *API) CloneDNSZone(req *CloneDNSZoneRequest, opts ...scw.RequestOption) 
 }
 
 type DeleteDNSZoneRequest struct {
+	// DNSZone: the DNS zone to delete
 	DNSZone string `json:"-"`
-
+	// ProjectID: the project ID of the DNS zone to delete
 	ProjectID string `json:"-"`
 }
 
@@ -1782,23 +1953,24 @@ func (s *API) DeleteDNSZone(req *DeleteDNSZoneRequest, opts ...scw.RequestOption
 }
 
 type ListDNSZoneRecordsRequest struct {
+	// DNSZone: the DNS zone on which to filter the returned DNS zone records
 	DNSZone string `json:"-"`
-
-	Page *int32 `json:"-"`
-
-	PageSize *uint32 `json:"-"`
-	// OrderBy:
+	// ProjectID: the project ID on which to filter the returned DNS zone records
+	ProjectID *string `json:"-"`
+	// OrderBy: the sort order of the returned DNS zone records
 	//
 	// Default value: name_asc
 	OrderBy ListDNSZoneRecordsRequestOrderBy `json:"-"`
-
+	// Page: the page number for the returned DNS zone records
+	Page *int32 `json:"-"`
+	// PageSize: the maximum number of DNS zone records per page
+	PageSize *uint32 `json:"-"`
+	// Name: the name on which to filter the returned DNS zone records
 	Name string `json:"-"`
-	// Type:
+	// Type: the record type on which to filter the returned DNS zone records
 	//
 	// Default value: unknown
 	Type RecordType `json:"-"`
-
-	ProjectID *string `json:"-"`
 }
 
 // ListDNSZoneRecords: list DNS zone records
@@ -1815,12 +1987,12 @@ func (s *API) ListDNSZoneRecords(req *ListDNSZoneRecordsRequest, opts ...scw.Req
 	}
 
 	query := url.Values{}
+	parameter.AddToQuery(query, "project_id", req.ProjectID)
+	parameter.AddToQuery(query, "order_by", req.OrderBy)
 	parameter.AddToQuery(query, "page", req.Page)
 	parameter.AddToQuery(query, "page_size", req.PageSize)
-	parameter.AddToQuery(query, "order_by", req.OrderBy)
 	parameter.AddToQuery(query, "name", req.Name)
 	parameter.AddToQuery(query, "type", req.Type)
-	parameter.AddToQuery(query, "project_id", req.ProjectID)
 
 	if fmt.Sprint(req.DNSZone) == "" {
 		return nil, errors.New("field DNSZone cannot be empty in request")
@@ -1842,31 +2014,17 @@ func (s *API) ListDNSZoneRecords(req *ListDNSZoneRecordsRequest, opts ...scw.Req
 	return &resp, nil
 }
 
-// UnsafeGetTotalCount should not be used
-// Internal usage only
-func (r *ListDNSZoneRecordsResponse) UnsafeGetTotalCount() uint32 {
-	return r.TotalCount
-}
-
-// UnsafeAppend should not be used
-// Internal usage only
-func (r *ListDNSZoneRecordsResponse) UnsafeAppend(res interface{}) (uint32, error) {
-	results, ok := res.(*ListDNSZoneRecordsResponse)
-	if !ok {
-		return 0, errors.New("%T type cannot be appended to type %T", res, r)
-	}
-
-	r.Records = append(r.Records, results.Records...)
-	r.TotalCount += uint32(len(results.Records))
-	return uint32(len(results.Records)), nil
-}
-
 type UpdateDNSZoneRecordsRequest struct {
+	// DNSZone: the DNS zone where the DNS zone records will be updated
 	DNSZone string `json:"-"`
-
+	// Changes: the changes made to the records
 	Changes []*RecordChange `json:"changes"`
-
+	// ReturnAllRecords: whether or not to return all the records
 	ReturnAllRecords *bool `json:"return_all_records"`
+	// DisallowNewZoneCreation: forbid the creation of the target zone if not existing (default action is yes)
+	DisallowNewZoneCreation bool `json:"disallow_new_zone_creation"`
+	// Serial: don't use the autoincremenent serial but the provided one (0 to keep the same)
+	Serial *uint64 `json:"serial"`
 }
 
 // UpdateDNSZoneRecords: update DNS zone records
@@ -1917,8 +2075,9 @@ func (s *API) UpdateDNSZoneRecords(req *UpdateDNSZoneRecordsRequest, opts ...scw
 }
 
 type ListDNSZoneNameserversRequest struct {
+	// DNSZone: the DNS zone on which to filter the returned DNS zone nameservers
 	DNSZone string `json:"-"`
-
+	// ProjectID: the project ID on which to filter the returned DNS zone nameservers
 	ProjectID *string `json:"-"`
 }
 
@@ -1952,8 +2111,9 @@ func (s *API) ListDNSZoneNameservers(req *ListDNSZoneNameserversRequest, opts ..
 }
 
 type UpdateDNSZoneNameserversRequest struct {
+	// DNSZone: the DNS zone where the DNS zone nameservers will be updated
 	DNSZone string `json:"-"`
-
+	// Ns: the new DNS zone nameservers
 	Ns []*Nameserver `json:"ns"`
 }
 
@@ -1988,6 +2148,7 @@ func (s *API) UpdateDNSZoneNameservers(req *UpdateDNSZoneNameserversRequest, opt
 }
 
 type ClearDNSZoneRecordsRequest struct {
+	// DNSZone: the DNS zone to clear
 	DNSZone string `json:"-"`
 }
 
@@ -2020,10 +2181,11 @@ func (s *API) ClearDNSZoneRecords(req *ClearDNSZoneRecordsRequest, opts ...scw.R
 }
 
 type ExportRawDNSZoneRequest struct {
+	// DNSZone: the DNS zone to export
 	DNSZone string `json:"-"`
-	// Format:
+	// Format: format for DNS zone
 	//
-	// Default value: unknown_raw_format
+	// Default value: bind
 	Format RawFormat `json:"-"`
 }
 
@@ -2057,15 +2219,22 @@ func (s *API) ExportRawDNSZone(req *ExportRawDNSZoneRequest, opts ...scw.Request
 }
 
 type ImportRawDNSZoneRequest struct {
+	// DNSZone: the DNS zone to import
 	DNSZone string `json:"-"`
-	// Format:
-	//
-	// Default value: unknown_raw_format
-	Format RawFormat `json:"format"`
-
+	// Deprecated
 	Content string `json:"content"`
 
 	ProjectID string `json:"project_id"`
+	// Deprecated: Format:
+	//
+	// Default value: unknown_raw_format
+	Format RawFormat `json:"format"`
+	// BindSource: import a bind file format
+	// Precisely one of AxfrSource, BindSource must be set.
+	BindSource *ImportRawDNSZoneRequestBindSource `json:"bind_source,omitempty"`
+	// AxfrSource: import from the nameserver given with tsig use or not
+	// Precisely one of AxfrSource, BindSource must be set.
+	AxfrSource *ImportRawDNSZoneRequestAXFRSource `json:"axfr_source,omitempty"`
 }
 
 // ImportRawDNSZone: import raw DNS zone
@@ -2141,10 +2310,11 @@ func (s *API) ImportProviderDNSZone(req *ImportProviderDNSZoneRequest, opts ...s
 }
 
 type RefreshDNSZoneRequest struct {
+	// DNSZone: the DNS zone to refresh
 	DNSZone string `json:"-"`
-
+	// RecreateDNSZone: whether or not to recreate the DNS zone
 	RecreateDNSZone bool `json:"recreate_dns_zone"`
-
+	// RecreateSubDNSZone: whether or not to recreate the sub DNS zone
 	RecreateSubDNSZone bool `json:"recreate_sub_dns_zone"`
 }
 
@@ -2182,6 +2352,10 @@ func (s *API) RefreshDNSZone(req *RefreshDNSZoneRequest, opts ...scw.RequestOpti
 
 type ListDNSZoneVersionsRequest struct {
 	DNSZone string `json:"-"`
+	// Page: the page number for the returned DNS zones versions
+	Page *int32 `json:"-"`
+	// PageSize: the maximum number of DNS zones versions per page
+	PageSize *uint32 `json:"-"`
 }
 
 // ListDNSZoneVersions: list DNS zone versions
@@ -2193,6 +2367,15 @@ type ListDNSZoneVersionsRequest struct {
 func (s *API) ListDNSZoneVersions(req *ListDNSZoneVersionsRequest, opts ...scw.RequestOption) (*ListDNSZoneVersionsResponse, error) {
 	var err error
 
+	defaultPageSize, exist := s.client.GetDefaultPageSize()
+	if (req.PageSize == nil || *req.PageSize == 0) && exist {
+		req.PageSize = &defaultPageSize
+	}
+
+	query := url.Values{}
+	parameter.AddToQuery(query, "page", req.Page)
+	parameter.AddToQuery(query, "page_size", req.PageSize)
+
 	if fmt.Sprint(req.DNSZone) == "" {
 		return nil, errors.New("field DNSZone cannot be empty in request")
 	}
@@ -2200,6 +2383,7 @@ func (s *API) ListDNSZoneVersions(req *ListDNSZoneVersionsRequest, opts ...scw.R
 	scwReq := &scw.ScalewayRequest{
 		Method:  "GET",
 		Path:    "/domain/v2beta1/dns-zones/" + fmt.Sprint(req.DNSZone) + "/versions",
+		Query:   query,
 		Headers: http.Header{},
 	}
 
@@ -2214,6 +2398,10 @@ func (s *API) ListDNSZoneVersions(req *ListDNSZoneVersionsRequest, opts ...scw.R
 
 type ListDNSZoneVersionRecordsRequest struct {
 	DNSZoneVersionID string `json:"-"`
+	// Page: the page number for the returned DNS zones versions records
+	Page *int32 `json:"-"`
+	// PageSize: the maximum number of DNS zones versions records per page
+	PageSize *uint32 `json:"-"`
 }
 
 // ListDNSZoneVersionRecords: list DNS zone version records
@@ -2222,6 +2410,15 @@ type ListDNSZoneVersionRecordsRequest struct {
 func (s *API) ListDNSZoneVersionRecords(req *ListDNSZoneVersionRecordsRequest, opts ...scw.RequestOption) (*ListDNSZoneVersionRecordsResponse, error) {
 	var err error
 
+	defaultPageSize, exist := s.client.GetDefaultPageSize()
+	if (req.PageSize == nil || *req.PageSize == 0) && exist {
+		req.PageSize = &defaultPageSize
+	}
+
+	query := url.Values{}
+	parameter.AddToQuery(query, "page", req.Page)
+	parameter.AddToQuery(query, "page_size", req.PageSize)
+
 	if fmt.Sprint(req.DNSZoneVersionID) == "" {
 		return nil, errors.New("field DNSZoneVersionID cannot be empty in request")
 	}
@@ -2229,6 +2426,7 @@ func (s *API) ListDNSZoneVersionRecords(req *ListDNSZoneVersionRecordsRequest, o
 	scwReq := &scw.ScalewayRequest{
 		Method:  "GET",
 		Path:    "/domain/v2beta1/dns-zones/version/" + fmt.Sprint(req.DNSZoneVersionID) + "",
+		Query:   query,
 		Headers: http.Header{},
 	}
 
@@ -2308,7 +2506,7 @@ type GetSSLCertificateRequest struct {
 	DNSZone string `json:"-"`
 }
 
-// GetSSLCertificate: get the zone SSL certificate if it exists
+// GetSSLCertificate: get the zone TLS certificate if it exists
 func (s *API) GetSSLCertificate(req *GetSSLCertificateRequest, opts ...scw.RequestOption) (*SSLCertificate, error) {
 	var err error
 
@@ -2337,7 +2535,7 @@ type CreateSSLCertificateRequest struct {
 	AlternativeDNSZones []string `json:"alternative_dns_zones"`
 }
 
-// CreateSSLCertificate: create or return the zone SSL certificate
+// CreateSSLCertificate: create or return the zone TLS certificate
 func (s *API) CreateSSLCertificate(req *CreateSSLCertificateRequest, opts ...scw.RequestOption) (*SSLCertificate, error) {
 	var err error
 
@@ -2362,16 +2560,16 @@ func (s *API) CreateSSLCertificate(req *CreateSSLCertificateRequest, opts ...scw
 }
 
 type ListSSLCertificatesRequest struct {
+	DNSZone string `json:"-"`
+
 	Page *int32 `json:"-"`
 
 	PageSize *uint32 `json:"-"`
 
-	DNSZone string `json:"-"`
-
 	ProjectID *string `json:"-"`
 }
 
-// ListSSLCertificates: list all user SSL certificates
+// ListSSLCertificates: list all user TLS certificates
 func (s *API) ListSSLCertificates(req *ListSSLCertificatesRequest, opts ...scw.RequestOption) (*ListSSLCertificatesResponse, error) {
 	var err error
 
@@ -2381,9 +2579,9 @@ func (s *API) ListSSLCertificates(req *ListSSLCertificatesRequest, opts ...scw.R
 	}
 
 	query := url.Values{}
+	parameter.AddToQuery(query, "dns_zone", req.DNSZone)
 	parameter.AddToQuery(query, "page", req.Page)
 	parameter.AddToQuery(query, "page_size", req.PageSize)
-	parameter.AddToQuery(query, "dns_zone", req.DNSZone)
 	parameter.AddToQuery(query, "project_id", req.ProjectID)
 
 	scwReq := &scw.ScalewayRequest{
@@ -2402,30 +2600,11 @@ func (s *API) ListSSLCertificates(req *ListSSLCertificatesRequest, opts ...scw.R
 	return &resp, nil
 }
 
-// UnsafeGetTotalCount should not be used
-// Internal usage only
-func (r *ListSSLCertificatesResponse) UnsafeGetTotalCount() uint32 {
-	return r.TotalCount
-}
-
-// UnsafeAppend should not be used
-// Internal usage only
-func (r *ListSSLCertificatesResponse) UnsafeAppend(res interface{}) (uint32, error) {
-	results, ok := res.(*ListSSLCertificatesResponse)
-	if !ok {
-		return 0, errors.New("%T type cannot be appended to type %T", res, r)
-	}
-
-	r.Certificates = append(r.Certificates, results.Certificates...)
-	r.TotalCount += uint32(len(results.Certificates))
-	return uint32(len(results.Certificates)), nil
-}
-
 type DeleteSSLCertificateRequest struct {
 	DNSZone string `json:"-"`
 }
 
-// DeleteSSLCertificate: delete an SSL certificate
+// DeleteSSLCertificate: delete an TLS certificate
 func (s *API) DeleteSSLCertificate(req *DeleteSSLCertificateRequest, opts ...scw.RequestOption) (*DeleteSSLCertificateResponse, error) {
 	var err error
 
@@ -2552,27 +2731,8 @@ func (s *RegistrarAPI) ListTasks(req *RegistrarAPIListTasksRequest, opts ...scw.
 	return &resp, nil
 }
 
-// UnsafeGetTotalCount should not be used
-// Internal usage only
-func (r *ListTasksResponse) UnsafeGetTotalCount() uint32 {
-	return r.TotalCount
-}
-
-// UnsafeAppend should not be used
-// Internal usage only
-func (r *ListTasksResponse) UnsafeAppend(res interface{}) (uint32, error) {
-	results, ok := res.(*ListTasksResponse)
-	if !ok {
-		return 0, errors.New("%T type cannot be appended to type %T", res, r)
-	}
-
-	r.Tasks = append(r.Tasks, results.Tasks...)
-	r.TotalCount += uint32(len(results.Tasks))
-	return uint32(len(results.Tasks)), nil
-}
-
-type RegistrarAPIBuyDomainRequest struct {
-	Domain string `json:"domain"`
+type RegistrarAPIBuyDomainsRequest struct {
+	Domains []string `json:"domains"`
 
 	DurationInYears uint32 `json:"duration_in_years"`
 
@@ -2597,12 +2757,12 @@ type RegistrarAPIBuyDomainRequest struct {
 	TechnicalContact *NewContact `json:"technical_contact,omitempty"`
 }
 
-// BuyDomain: buy a domain
+// BuyDomains: buy one or more domains
 //
-// Request the registration of a domain name.
+// Request the registration of domain names.
 // You can provide an already existing domain's contact or a new contact.
 //
-func (s *RegistrarAPI) BuyDomain(req *RegistrarAPIBuyDomainRequest, opts ...scw.RequestOption) (*Domain, error) {
+func (s *RegistrarAPI) BuyDomains(req *RegistrarAPIBuyDomainsRequest, opts ...scw.RequestOption) (*OrderResponse, error) {
 	var err error
 
 	if req.ProjectID == "" {
@@ -2612,7 +2772,7 @@ func (s *RegistrarAPI) BuyDomain(req *RegistrarAPIBuyDomainRequest, opts ...scw.
 
 	scwReq := &scw.ScalewayRequest{
 		Method:  "POST",
-		Path:    "/domain/v2beta1/domains",
+		Path:    "/domain/v2beta1/buy-domains",
 		Headers: http.Header{},
 	}
 
@@ -2621,7 +2781,7 @@ func (s *RegistrarAPI) BuyDomain(req *RegistrarAPIBuyDomainRequest, opts ...scw.
 		return nil, err
 	}
 
-	var resp Domain
+	var resp OrderResponse
 
 	err = s.client.Do(scwReq, &resp, opts...)
 	if err != nil {
@@ -2630,26 +2790,24 @@ func (s *RegistrarAPI) BuyDomain(req *RegistrarAPIBuyDomainRequest, opts ...scw.
 	return &resp, nil
 }
 
-type RegistrarAPIRenewDomainRequest struct {
-	Domain string `json:"-"`
+type RegistrarAPIRenewDomainsRequest struct {
+	Domains []string `json:"domains"`
 
 	DurationInYears uint32 `json:"duration_in_years"`
+
+	ForceLateRenewal *bool `json:"force_late_renewal"`
 }
 
-// RenewDomain: renew a domain
+// RenewDomains: renew one or more domains
 //
-// Request the renewal of a domain name.
+// Request the renewal of domain names.
 //
-func (s *RegistrarAPI) RenewDomain(req *RegistrarAPIRenewDomainRequest, opts ...scw.RequestOption) (*Domain, error) {
+func (s *RegistrarAPI) RenewDomains(req *RegistrarAPIRenewDomainsRequest, opts ...scw.RequestOption) (*OrderResponse, error) {
 	var err error
-
-	if fmt.Sprint(req.Domain) == "" {
-		return nil, errors.New("field Domain cannot be empty in request")
-	}
 
 	scwReq := &scw.ScalewayRequest{
 		Method:  "POST",
-		Path:    "/domain/v2beta1/domains/" + fmt.Sprint(req.Domain) + "/renew",
+		Path:    "/domain/v2beta1/renew-domains",
 		Headers: http.Header{},
 	}
 
@@ -2658,7 +2816,7 @@ func (s *RegistrarAPI) RenewDomain(req *RegistrarAPIRenewDomainRequest, opts ...
 		return nil, err
 	}
 
-	var resp Domain
+	var resp OrderResponse
 
 	err = s.client.Do(scwReq, &resp, opts...)
 	if err != nil {
@@ -2697,7 +2855,7 @@ type RegistrarAPITransferInDomainRequest struct {
 //
 // Request the transfer from another registrar domain to Scaleway.
 //
-func (s *RegistrarAPI) TransferInDomain(req *RegistrarAPITransferInDomainRequest, opts ...scw.RequestOption) (*Domain, error) {
+func (s *RegistrarAPI) TransferInDomain(req *RegistrarAPITransferInDomainRequest, opts ...scw.RequestOption) (*OrderResponse, error) {
 	var err error
 
 	if req.ProjectID == "" {
@@ -2716,7 +2874,7 @@ func (s *RegistrarAPI) TransferInDomain(req *RegistrarAPITransferInDomainRequest
 		return nil, err
 	}
 
-	var resp Domain
+	var resp OrderResponse
 
 	err = s.client.Do(scwReq, &resp, opts...)
 	if err != nil {
@@ -2744,7 +2902,7 @@ type RegistrarAPITradeDomainRequest struct {
 // If no contact is given, the first contact of the other Scaleway account is taken.<br/>
 // If the other Scaleway account has no contact. An error occurs.
 //
-func (s *RegistrarAPI) TradeDomain(req *RegistrarAPITradeDomainRequest, opts ...scw.RequestOption) (*Domain, error) {
+func (s *RegistrarAPI) TradeDomain(req *RegistrarAPITradeDomainRequest, opts ...scw.RequestOption) (*OrderResponse, error) {
 	var err error
 
 	if fmt.Sprint(req.Domain) == "" {
@@ -2762,7 +2920,7 @@ func (s *RegistrarAPI) TradeDomain(req *RegistrarAPITradeDomainRequest, opts ...
 		return nil, err
 	}
 
-	var resp Domain
+	var resp OrderResponse
 
 	err = s.client.Do(scwReq, &resp, opts...)
 	if err != nil {
@@ -2887,25 +3045,6 @@ func (s *RegistrarAPI) ListContacts(req *RegistrarAPIListContactsRequest, opts .
 	return &resp, nil
 }
 
-// UnsafeGetTotalCount should not be used
-// Internal usage only
-func (r *ListContactsResponse) UnsafeGetTotalCount() uint32 {
-	return r.TotalCount
-}
-
-// UnsafeAppend should not be used
-// Internal usage only
-func (r *ListContactsResponse) UnsafeAppend(res interface{}) (uint32, error) {
-	results, ok := res.(*ListContactsResponse)
-	if !ok {
-		return 0, errors.New("%T type cannot be appended to type %T", res, r)
-	}
-
-	r.Contacts = append(r.Contacts, results.Contacts...)
-	r.TotalCount += uint32(len(results.Contacts))
-	return uint32(len(results.Contacts)), nil
-}
-
 type RegistrarAPIGetContactRequest struct {
 	ContactID string `json:"-"`
 }
@@ -2973,6 +3112,8 @@ type RegistrarAPIUpdateContactRequest struct {
 	ExtensionEu *ContactExtensionEU `json:"extension_eu"`
 
 	WhoisOptIn *bool `json:"whois_opt_in"`
+
+	State *string `json:"state"`
 }
 
 // UpdateContact: update contact
@@ -3064,23 +3205,52 @@ func (s *RegistrarAPI) ListDomains(req *RegistrarAPIListDomainsRequest, opts ...
 	return &resp, nil
 }
 
-// UnsafeGetTotalCount should not be used
-// Internal usage only
-func (r *ListDomainsResponse) UnsafeGetTotalCount() uint32 {
-	return r.TotalCount
+type RegistrarAPIListRenewableDomainsRequest struct {
+	Page *int32 `json:"-"`
+
+	PageSize *uint32 `json:"-"`
+	// OrderBy:
+	//
+	// Default value: domain_asc
+	OrderBy ListRenewableDomainsRequestOrderBy `json:"-"`
+
+	ProjectID *string `json:"-"`
+
+	OrganizationID *string `json:"-"`
 }
 
-// UnsafeAppend should not be used
-// Internal usage only
-func (r *ListDomainsResponse) UnsafeAppend(res interface{}) (uint32, error) {
-	results, ok := res.(*ListDomainsResponse)
-	if !ok {
-		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+// ListRenewableDomains: list scaleway domains that can or not be renewed
+//
+// Returns a list of domains owned by the user with a renew status and if renewable, the maximum renew duration in years.
+func (s *RegistrarAPI) ListRenewableDomains(req *RegistrarAPIListRenewableDomainsRequest, opts ...scw.RequestOption) (*ListRenewableDomainsResponse, error) {
+	var err error
+
+	defaultPageSize, exist := s.client.GetDefaultPageSize()
+	if (req.PageSize == nil || *req.PageSize == 0) && exist {
+		req.PageSize = &defaultPageSize
 	}
 
-	r.Domains = append(r.Domains, results.Domains...)
-	r.TotalCount += uint32(len(results.Domains))
-	return uint32(len(results.Domains)), nil
+	query := url.Values{}
+	parameter.AddToQuery(query, "page", req.Page)
+	parameter.AddToQuery(query, "page_size", req.PageSize)
+	parameter.AddToQuery(query, "order_by", req.OrderBy)
+	parameter.AddToQuery(query, "project_id", req.ProjectID)
+	parameter.AddToQuery(query, "organization_id", req.OrganizationID)
+
+	scwReq := &scw.ScalewayRequest{
+		Method:  "GET",
+		Path:    "/domain/v2beta1/renewable-domains",
+		Query:   query,
+		Headers: http.Header{},
+	}
+
+	var resp ListRenewableDomainsResponse
+
+	err = s.client.Do(scwReq, &resp, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
 }
 
 type RegistrarAPIGetDomainRequest struct {
@@ -3416,4 +3586,211 @@ func (s *RegistrarAPI) DisableDomainDNSSEC(req *RegistrarAPIDisableDomainDNSSECR
 		return nil, err
 	}
 	return &resp, nil
+}
+
+type RegistrarAPISearchAvailableDomainsRequest struct {
+	// Domains: a list of domain to search, TLD is optional
+	Domains []string `json:"-"`
+	// Tlds: array of tlds to search on
+	Tlds []string `json:"-"`
+}
+
+// SearchAvailableDomains: search available domains
+//
+// Search a domain (or at maximum, 10 domains).
+//
+// If the TLD list is empty or not set the search returns the results from the most popular TLDs.
+//
+func (s *RegistrarAPI) SearchAvailableDomains(req *RegistrarAPISearchAvailableDomainsRequest, opts ...scw.RequestOption) (*SearchAvailableDomainsResponse, error) {
+	var err error
+
+	query := url.Values{}
+	parameter.AddToQuery(query, "domains", req.Domains)
+	parameter.AddToQuery(query, "tlds", req.Tlds)
+
+	scwReq := &scw.ScalewayRequest{
+		Method:  "GET",
+		Path:    "/domain/v2beta1/search-domains",
+		Query:   query,
+		Headers: http.Header{},
+	}
+
+	var resp SearchAvailableDomainsResponse
+
+	err = s.client.Do(scwReq, &resp, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListDNSZonesResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListDNSZonesResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListDNSZonesResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.DNSZones = append(r.DNSZones, results.DNSZones...)
+	r.TotalCount += uint32(len(results.DNSZones))
+	return uint32(len(results.DNSZones)), nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListDNSZoneRecordsResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListDNSZoneRecordsResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListDNSZoneRecordsResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.Records = append(r.Records, results.Records...)
+	r.TotalCount += uint32(len(results.Records))
+	return uint32(len(results.Records)), nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListDNSZoneVersionsResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListDNSZoneVersionsResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListDNSZoneVersionsResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.Versions = append(r.Versions, results.Versions...)
+	r.TotalCount += uint32(len(results.Versions))
+	return uint32(len(results.Versions)), nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListDNSZoneVersionRecordsResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListDNSZoneVersionRecordsResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListDNSZoneVersionRecordsResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.Records = append(r.Records, results.Records...)
+	r.TotalCount += uint32(len(results.Records))
+	return uint32(len(results.Records)), nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListSSLCertificatesResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListSSLCertificatesResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListSSLCertificatesResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.Certificates = append(r.Certificates, results.Certificates...)
+	r.TotalCount += uint32(len(results.Certificates))
+	return uint32(len(results.Certificates)), nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListTasksResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListTasksResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListTasksResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.Tasks = append(r.Tasks, results.Tasks...)
+	r.TotalCount += uint32(len(results.Tasks))
+	return uint32(len(results.Tasks)), nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListContactsResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListContactsResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListContactsResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.Contacts = append(r.Contacts, results.Contacts...)
+	r.TotalCount += uint32(len(results.Contacts))
+	return uint32(len(results.Contacts)), nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListDomainsResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListDomainsResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListDomainsResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.Domains = append(r.Domains, results.Domains...)
+	r.TotalCount += uint32(len(results.Domains))
+	return uint32(len(results.Domains)), nil
+}
+
+// UnsafeGetTotalCount should not be used
+// Internal usage only
+func (r *ListRenewableDomainsResponse) UnsafeGetTotalCount() uint32 {
+	return r.TotalCount
+}
+
+// UnsafeAppend should not be used
+// Internal usage only
+func (r *ListRenewableDomainsResponse) UnsafeAppend(res interface{}) (uint32, error) {
+	results, ok := res.(*ListRenewableDomainsResponse)
+	if !ok {
+		return 0, errors.New("%T type cannot be appended to type %T", res, r)
+	}
+
+	r.Domains = append(r.Domains, results.Domains...)
+	r.TotalCount += uint32(len(results.Domains))
+	return uint32(len(results.Domains)), nil
 }

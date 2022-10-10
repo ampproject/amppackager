@@ -177,9 +177,6 @@ type Catalyst_Enrollment_Request struct {
 	// Applicant's last name
 	LastName *string `json:"lastName,omitempty" xmlrpc:"lastName,omitempty"`
 
-	// no documentation yet
-	MarketingConsent *Catalyst_Enrollment_Request_MarketingConsent `json:"marketingConsent,omitempty" xmlrpc:"marketingConsent,omitempty"`
-
 	// Applicant's primary phone number
 	OfficePhone *string `json:"officePhone,omitempty" xmlrpc:"officePhone,omitempty"`
 
@@ -214,21 +211,4 @@ type Catalyst_Enrollment_Request_Container_AnswerOption struct {
 
 	// no documentation yet
 	Index *int `json:"index,omitempty" xmlrpc:"index,omitempty"`
-}
-
-// Contains user marketing consent information for Catalyst self-enrollment.
-type Catalyst_Enrollment_Request_MarketingConsent struct {
-	Entity
-
-	// no documentation yet
-	MarketingByEmailFlag *bool `json:"marketingByEmailFlag,omitempty" xmlrpc:"marketingByEmailFlag,omitempty"`
-
-	// no documentation yet
-	MarketingByPostalMailFlag *bool `json:"marketingByPostalMailFlag,omitempty" xmlrpc:"marketingByPostalMailFlag,omitempty"`
-
-	// no documentation yet
-	MarketingByTelephoneFlag *bool `json:"marketingByTelephoneFlag,omitempty" xmlrpc:"marketingByTelephoneFlag,omitempty"`
-
-	// no documentation yet
-	Request *Catalyst_Enrollment_Request `json:"request,omitempty" xmlrpc:"request,omitempty"`
 }

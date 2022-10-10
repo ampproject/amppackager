@@ -231,6 +231,9 @@ type Hardware struct {
 	// A name reflecting the hostname and domain of the hardware. This is created from the combined values of the hardware's hostname and domain name automatically, and thus should not be edited directly.
 	FullyQualifiedDomainName *string `json:"fullyQualifiedDomainName,omitempty" xmlrpc:"fullyQualifiedDomainName,omitempty"`
 
+	// Information regarding the future billing item for a server.
+	FutureBillingItem *Billing_Item_Hardware `json:"futureBillingItem,omitempty" xmlrpc:"futureBillingItem,omitempty"`
+
 	// A hardware's universally unique identifier.
 	GlobalIdentifier *string `json:"globalIdentifier,omitempty" xmlrpc:"globalIdentifier,omitempty"`
 
@@ -248,6 +251,9 @@ type Hardware struct {
 
 	// A hardware's function.
 	HardwareFunctionDescription *string `json:"hardwareFunctionDescription,omitempty" xmlrpc:"hardwareFunctionDescription,omitempty"`
+
+	// A hardware's power/transaction state.
+	HardwareState *Hardware_State `json:"hardwareState,omitempty" xmlrpc:"hardwareState,omitempty"`
 
 	// A hardware's status.
 	HardwareStatus *Hardware_Status `json:"hardwareStatus,omitempty" xmlrpc:"hardwareStatus,omitempty"`
@@ -275,6 +281,9 @@ type Hardware struct {
 
 	// The total public inbound bandwidth for this hardware for the current billing cycle.
 	InboundPublicBandwidthUsage *Float64 `json:"inboundPublicBandwidthUsage,omitempty" xmlrpc:"inboundPublicBandwidthUsage,omitempty"`
+
+	// Whether or not this hardware object is eligible to change to term billing.
+	IsBillingTermChangeAvailableFlag *bool `json:"isBillingTermChangeAvailableFlag,omitempty" xmlrpc:"isBillingTermChangeAvailableFlag,omitempty"`
 
 	// Information regarding the last transaction a server performed.
 	LastTransaction *Provisioning_Version1_Transaction `json:"lastTransaction,omitempty" xmlrpc:"lastTransaction,omitempty"`
@@ -583,6 +592,7 @@ type Hardware struct {
 	StorageNetworkComponentCount *uint `json:"storageNetworkComponentCount,omitempty" xmlrpc:"storageNetworkComponentCount,omitempty"`
 
 	// A piece of hardware's private storage network components. [Deprecated]
+	// Deprecated: This function has been marked as deprecated.
 	StorageNetworkComponents []Network_Component `json:"storageNetworkComponents,omitempty" xmlrpc:"storageNetworkComponents,omitempty"`
 
 	// A count of
@@ -981,6 +991,9 @@ type Hardware_Component_Firmware struct {
 
 	// All revisions of this firmware.
 	Revisions []Hardware_Component_Revision `json:"revisions,omitempty" xmlrpc:"revisions,omitempty"`
+
+	// no documentation yet
+	Severity *int `json:"severity,omitempty" xmlrpc:"severity,omitempty"`
 
 	// no documentation yet
 	Version *string `json:"version,omitempty" xmlrpc:"version,omitempty"`
@@ -1598,6 +1611,9 @@ type Hardware_Component_Type struct {
 type Hardware_Firewall struct {
 	Hardware_Switch
 
+	// The firewall's primary public IP address.
+	PrimaryIpAddress *string `json:"primaryIpAddress,omitempty" xmlrpc:"primaryIpAddress,omitempty"`
+
 	// A count of a list of users that have access to this hardware firewall.
 	UserCount *uint `json:"userCount,omitempty" xmlrpc:"userCount,omitempty"`
 
@@ -1975,6 +1991,12 @@ type Hardware_Server struct {
 	// no documentation yet
 	Partitions []Hardware_Server_Partition `json:"partitions,omitempty" xmlrpc:"partitions,omitempty"`
 
+	// A count of a collection of backendNetwork components
+	PrivateBackendNetworkComponentCount *uint `json:"privateBackendNetworkComponentCount,omitempty" xmlrpc:"privateBackendNetworkComponentCount,omitempty"`
+
+	// A collection of backendNetwork components
+	PrivateBackendNetworkComponents []Network_Component `json:"privateBackendNetworkComponents,omitempty" xmlrpc:"privateBackendNetworkComponents,omitempty"`
+
 	// A server's primary private IP address.
 	PrivateIpAddress *string `json:"privateIpAddress,omitempty" xmlrpc:"privateIpAddress,omitempty"`
 
@@ -2065,6 +2087,26 @@ type Hardware_Server_Partition_Network_Attribute struct {
 
 	// no documentation yet
 	PartitionId *int `json:"partitionId,omitempty" xmlrpc:"partitionId,omitempty"`
+}
+
+// The SoftLayer_Hardware_State type contains general information about the current state of it's associated hardware, including the current power state (i.e. Running or Stopped), and it's current transitioning state (e.g. Provisioning, Reloading).
+type Hardware_State struct {
+	Entity
+
+	// no documentation yet
+	DeviceStatus *Device_Status `json:"deviceStatus,omitempty" xmlrpc:"deviceStatus,omitempty"`
+
+	// The id of the device status of the assigned hardware.
+	DeviceStatusId *int `json:"deviceStatusId,omitempty" xmlrpc:"deviceStatusId,omitempty"`
+
+	// The hardware this state is assigned to.
+	HardwareId *int `json:"hardwareId,omitempty" xmlrpc:"hardwareId,omitempty"`
+
+	// A hardware state's unique identifier.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// no documentation yet
+	TransitioningStatus *Device_Status `json:"transitioningStatus,omitempty" xmlrpc:"transitioningStatus,omitempty"`
 }
 
 // SoftLayer_Hardware_Status models the inventory state of any piece of hardware in SoftLayer's inventory. Most of these statuses are used by SoftLayer while a server is not provisioned or undergoing provisioning. SoftLayer uses the following status codes:

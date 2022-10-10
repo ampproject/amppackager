@@ -213,6 +213,9 @@ type Product_Item struct {
 	// Detailed product description
 	LongDescription *string `json:"longDescription,omitempty" xmlrpc:"longDescription,omitempty"`
 
+	// Indicates whether an item is a M.2 drive.
+	M2DriveFlag *bool `json:"m2DriveFlag,omitempty" xmlrpc:"m2DriveFlag,omitempty"`
+
 	// The minimum number of bays that support NVMe SSDs.
 	MinimumNvmeBays *int `json:"minimumNvmeBays,omitempty" xmlrpc:"minimumNvmeBays,omitempty"`
 
@@ -233,6 +236,9 @@ type Product_Item struct {
 
 	// A collection of all the SoftLayer_Product_Package(s) in which this item exists.
 	Packages []Product_Package `json:"packages,omitempty" xmlrpc:"packages,omitempty"`
+
+	// Indicates whether an item is a PCIe drive.
+	PcieDriveFlag *bool `json:"pcieDriveFlag,omitempty" xmlrpc:"pcieDriveFlag,omitempty"`
 
 	// The number of cores that a processor has.
 	PhysicalCoreCapacity *string `json:"physicalCoreCapacity,omitempty" xmlrpc:"physicalCoreCapacity,omitempty"`
@@ -346,7 +352,7 @@ type Product_Item_Billing_Type struct {
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 }
 
-// The SoftLayer_Product_Item_Bundles contains item to price cross references Relates a category, price and item to a bundle.  Match bundle ids to see all items and prices in a particular bundle.
+// The SoftLayer_Product_Item_Bundles contains item to price cross references. Relates a category, price and item to a bundle.  Match bundle ids to see all items and prices in a particular bundle.
 type Product_Item_Bundles struct {
 	Entity
 
@@ -1722,6 +1728,7 @@ type Product_Package_Server struct {
 	NetworkGatewayApplianceRoleFlag *bool `json:"networkGatewayApplianceRoleFlag,omitempty" xmlrpc:"networkGatewayApplianceRoleFlag,omitempty"`
 
 	// DEPRECATED. Indicates whether or not the server is being sold as part of an outlet package.
+	// Deprecated: This function has been marked as deprecated.
 	OutletFlag *bool `json:"outletFlag,omitempty" xmlrpc:"outletFlag,omitempty"`
 
 	// no documentation yet

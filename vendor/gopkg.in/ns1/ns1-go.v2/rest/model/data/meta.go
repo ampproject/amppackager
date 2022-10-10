@@ -302,7 +302,17 @@ func MetaFromMap(m map[string]interface{}) *Meta {
 					fv.Set(reflect.ValueOf(pulsars))
 				}
 			case "Subdivisions":
-				fv.Set(reflect.ValueOf(v.(map[string]interface{})))
+				switch v.(type) {
+				case string:
+					var subMap map[string]interface{}
+					json.Unmarshal([]byte(v.(string)), &subMap)
+					fv.Set(reflect.ValueOf(subMap))
+				case map[string]interface{}:
+					fv.Set(reflect.ValueOf(v.(map[string]interface{})))
+				}
+			case "Note":
+				// If it's a Note, just pass the string without any type of parse.
+				fv.Set(reflect.ValueOf(v.(string)))
 			default:
 				fv.Set(reflect.ValueOf(ParseType(v.(string))))
 			}

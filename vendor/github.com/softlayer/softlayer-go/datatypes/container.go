@@ -1963,6 +1963,9 @@ type Container_Hardware_Server_Configuration struct {
 	// An Image Template ID [[SoftLayer_Virtual_Guest_Block_Device_Template_Group]] that will be deployed to the host.  If provided no item prices are required.
 	ImageTemplateId *int `json:"imageTemplateId,omitempty" xmlrpc:"imageTemplateId,omitempty"`
 
+	// Whether the OS reload will be in-place for accounts that support it.
+	InPlaceFlag *bool `json:"inPlaceFlag,omitempty" xmlrpc:"inPlaceFlag,omitempty"`
+
 	// The item prices that a server can be configured with.
 	ItemPrices []Product_Item_Price `json:"itemPrices,omitempty" xmlrpc:"itemPrices,omitempty"`
 
@@ -2168,6 +2171,7 @@ type Container_Monitoring_Alarm_History struct {
 	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
 
 	// DEPRECATED. ID of the monitoring agent that triggered this alarm
+	// Deprecated: This function has been marked as deprecated.
 	AgentId *int `json:"agentId,omitempty" xmlrpc:"agentId,omitempty"`
 
 	// Alarm ID
@@ -2183,6 +2187,7 @@ type Container_Monitoring_Alarm_History struct {
 	Message *string `json:"message,omitempty" xmlrpc:"message,omitempty"`
 
 	// DEPRECATED. Robot ID
+	// Deprecated: This function has been marked as deprecated.
 	RobotId *int `json:"robotId,omitempty" xmlrpc:"robotId,omitempty"`
 
 	// Severity of an alarm
@@ -2882,7 +2887,7 @@ type Container_Network_Media_Transcode_Preset_Element_Option struct {
 	Value *string `json:"value,omitempty" xmlrpc:"value,omitempty"`
 }
 
-// no documentation yet
+// This datatype is deprecated and will be removed in API version 3.2.
 type Container_Network_Message_Delivery_Email struct {
 	Entity
 
@@ -3176,6 +3181,20 @@ type Container_Network_Storage_DataCenterLimits_VolumeCountLimitContainer struct
 	ProvisionedCount *int `json:"provisionedCount,omitempty" xmlrpc:"provisionedCount,omitempty"`
 }
 
+// no documentation yet
+type Container_Network_Storage_DuplicateConversionStatusInformation struct {
+	Entity
+
+	// This represents the timestamp when current conversion process started.
+	ActiveConversionStartTime *string `json:"activeConversionStartTime,omitempty" xmlrpc:"activeConversionStartTime,omitempty"`
+
+	// This represents the percentage progress of conversion of a dependent
+	DeDuplicateConversionPercentage *int `json:"deDuplicateConversionPercentage,omitempty" xmlrpc:"deDuplicateConversionPercentage,omitempty"`
+
+	// This represents the volume username.
+	VolumeUsername *string `json:"volumeUsername,omitempty" xmlrpc:"volumeUsername,omitempty"`
+}
+
 // SoftLayer's StorageLayer Evault services provides details regarding the the purchased vault.
 //
 // When a job is created using the Webcc Console, the job created is identified as a task on the vault. Using this service, information regarding the task can be retrieved.
@@ -3263,6 +3282,20 @@ type Container_Network_Storage_Host struct {
 
 	// Reference id field for object associated with host.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// Type for the object associated with host
+	ObjectType *string `json:"objectType,omitempty" xmlrpc:"objectType,omitempty"`
+}
+
+// The SoftLayer_Container_Network_Storage_HostsGatewayInformation will contain the reference id field for the object associated with the host. The host object type will also be returned.
+type Container_Network_Storage_HostsGatewayInformation struct {
+	Entity
+
+	// Reference id field for object associated with host.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// no documentation yet
+	IsBehindGatewayDevice *bool `json:"isBehindGatewayDevice,omitempty" xmlrpc:"isBehindGatewayDevice,omitempty"`
 
 	// Type for the object associated with host
 	ObjectType *string `json:"objectType,omitempty" xmlrpc:"objectType,omitempty"`
@@ -3651,6 +3684,7 @@ type Container_Product_Order struct {
 	DeviceFingerprintId *string `json:"deviceFingerprintId,omitempty" xmlrpc:"deviceFingerprintId,omitempty"`
 
 	// This has been deprecated. It is the identifier used to track configurations in legacy order forms.
+	// Deprecated: This function has been marked as deprecated.
 	DisplayLayerSessionId *string `json:"displayLayerSessionId,omitempty" xmlrpc:"displayLayerSessionId,omitempty"`
 
 	// no documentation yet
@@ -4070,6 +4104,7 @@ type Container_Product_Order_Hardware_Server struct {
 	DriveDestructionDisks []string `json:"driveDestructionDisks,omitempty" xmlrpc:"driveDestructionDisks,omitempty"`
 
 	// Id used with the monitoring package. (Deprecated)
+	// Deprecated: This function has been marked as deprecated.
 	MonitoringAgentConfigurationTemplateGroupId *int `json:"monitoringAgentConfigurationTemplateGroupId,omitempty" xmlrpc:"monitoringAgentConfigurationTemplateGroupId,omitempty"`
 
 	// When ordering Virtual Server (Private Node), this variable specifies the role of the server configuration. (Deprecated)
@@ -4095,6 +4130,17 @@ type Container_Product_Order_Hardware_Server_Gateway_Appliance struct {
 // This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. This datatype has everything required to place a hardware upgrade.
 type Container_Product_Order_Hardware_Server_Upgrade struct {
 	Container_Product_Order_Hardware_Server
+}
+
+// Use this datatype to upgrade your existing monthly-billed server to term based pricing. Only monthly to 1 year, and 1 year to 3 year migrations are available. A new billing agreement contract will be created upon order approval, starting at the next billing cycle. A price is required for each existing billing item and all term-based prices must match in length. Hourly billed servers are not eligible for this upgrade. Downgrading to a shorter term is not available. Multiple term upgrades per billing cycle are not allowed.
+type Container_Product_Order_Hardware_Server_Upgrade_MigrateToReserved struct {
+	Container_Product_Order_Hardware_Server_Upgrade
+
+	// no documentation yet
+	TermLength *int `json:"termLength,omitempty" xmlrpc:"termLength,omitempty"`
+
+	// no documentation yet
+	TermStartDate *Time `json:"termStartDate,omitempty" xmlrpc:"termStartDate,omitempty"`
 }
 
 // no documentation yet
@@ -4137,6 +4183,7 @@ type Container_Product_Order_Monitoring_Package struct {
 	Container_Product_Order
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	ServerType *string `json:"serverType,omitempty" xmlrpc:"serverType,omitempty"`
 }
 
@@ -4150,7 +4197,7 @@ type Container_Product_Order_MultiConfiguration_Tornado struct {
 	Container_Product_Order_MultiConfiguration
 }
 
-// This type contains the structure of network-related objects that may be specified when ordering services.
+// (DEPRECATED) This type contains the structure of network-related objects that may be specified when ordering services.
 type Container_Product_Order_Network struct {
 	Entity
 
@@ -4612,6 +4659,7 @@ type Container_Product_Order_NewCustomerSetup struct {
 	Container_Product_Order
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	AuthorizationToken *string `json:"authorizationToken,omitempty" xmlrpc:"authorizationToken,omitempty"`
 
 	// no documentation yet
@@ -4708,6 +4756,7 @@ type Container_Product_Order_Security_Certificate struct {
 	RenewalFlag *bool `json:"renewalFlag,omitempty" xmlrpc:"renewalFlag,omitempty"`
 
 	// (DEPRECATED) Do not set this property, as it will always be set to 1.
+	// Deprecated: This function has been marked as deprecated.
 	ServerCount *int `json:"serverCount,omitempty" xmlrpc:"serverCount,omitempty"`
 
 	// The server type. This is the name from a [[SoftLayer_Security_Certificate_Request_ServerType]] object.
@@ -4770,6 +4819,11 @@ type Container_Product_Order_Storage_Group struct {
 	//
 	// This must match a disk controller price on the order. The disk controller index is 0-indexed. 'disk_controller' = 0 'disk_controller1' = 1 'disk_controller2' = 2
 	DiskControllerIndex *int `json:"diskControllerIndex,omitempty" xmlrpc:"diskControllerIndex,omitempty"`
+
+	// String array of category codes for drives to use in the storage group as an alternative to their index positions.
+	//
+	// This must be specified if ordering a storage group with PCIe drives.
+	HardDriveCategoryCodes []string `json:"hardDriveCategoryCodes,omitempty" xmlrpc:"hardDriveCategoryCodes,omitempty"`
 
 	// Integer array of drive indexes to use in the storage group.
 	HardDrives []int `json:"hardDrives,omitempty" xmlrpc:"hardDrives,omitempty"`
@@ -5339,7 +5393,7 @@ type Container_Search_Result struct {
 	RelevanceScore *Float64 `json:"relevanceScore,omitempty" xmlrpc:"relevanceScore,omitempty"`
 
 	// A search results resource object that matched search criteria.
-	Resource *Entity `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
+	Resource interface{} `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
 
 	// The type of the resource object that matched search criteria.
 	ResourceType *string `json:"resourceType,omitempty" xmlrpc:"resourceType,omitempty"`
@@ -5963,6 +6017,23 @@ type Container_Utility_Network_Subnet_Mask_Generic_Detail struct {
 
 	// The subnet mask.
 	Mask *string `json:"mask,omitempty" xmlrpc:"mask,omitempty"`
+}
+
+// The SoftLayer_Container_Virtual_ConsoleData data type contains information used to access a VSIs console
+type Container_Virtual_ConsoleData struct {
+	Entity
+
+	// The websocket host address used to access the console
+	WebsocketHost *string `json:"websocketHost,omitempty" xmlrpc:"websocketHost,omitempty"`
+
+	// The path to the websocket
+	WebsocketPath *string `json:"websocketPath,omitempty" xmlrpc:"websocketPath,omitempty"`
+
+	// The websocket port used to access the console
+	WebsocketPort *string `json:"websocketPort,omitempty" xmlrpc:"websocketPort,omitempty"`
+
+	// The token used to authenticate with the console websocket
+	WebsocketToken *string `json:"websocketToken,omitempty" xmlrpc:"websocketToken,omitempty"`
 }
 
 // This data type represents the structure to hold the allocation properties of a [[SoftLayer_Virtual_DedicatedHost]].

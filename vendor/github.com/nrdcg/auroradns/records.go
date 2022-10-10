@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// Record types
+// Record types.
 const (
 	RecordTypeA     = "A"
 	RecordTypeAAAA  = "AAAA"
@@ -23,7 +23,7 @@ const (
 	RecordTypeTLSA  = "TLS"
 )
 
-// Record a DNS record
+// Record a DNS record.
 type Record struct {
 	ID         string `json:"id,omitempty"`
 	RecordType string `json:"type"`
@@ -56,7 +56,7 @@ func (c *Client) CreateRecord(zoneID string, record Record) (*Record, *http.Resp
 }
 
 // DeleteRecord Delete a record.
-func (c *Client) DeleteRecord(zoneID string, recordID string) (bool, *http.Response, error) {
+func (c *Client) DeleteRecord(zoneID, recordID string) (bool, *http.Response, error) {
 	resource := fmt.Sprintf("/zones/%s/records/%s", zoneID, recordID)
 
 	req, err := c.newRequest(http.MethodDelete, resource, nil)
@@ -72,7 +72,7 @@ func (c *Client) DeleteRecord(zoneID string, recordID string) (bool, *http.Respo
 	return true, resp, nil
 }
 
-// ListRecords returns a list of all records in given zone
+// ListRecords returns a list of all records in given zone.
 func (c *Client) ListRecords(zoneID string) ([]Record, *http.Response, error) {
 	resource := fmt.Sprintf("/zones/%s/records", zoneID)
 

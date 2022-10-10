@@ -568,6 +568,148 @@ func (r Software_Component_Password) GetSshKeys() (resp []datatypes.Security_Ssh
 	return
 }
 
+// This object specifies a specific type of Software Component:  An Trellix instance. Trellix installations have specific properties and methods such as SoftLayer_Software_Component_Trellix::updateTrellixPolicy. Defaults are initiated by this object.
+type Software_Component_Trellix struct {
+	Session *session.Session
+	Options sl.Options
+}
+
+// GetSoftwareComponentTrellixService returns an instance of the Software_Component_Trellix SoftLayer service
+func GetSoftwareComponentTrellixService(sess *session.Session) Software_Component_Trellix {
+	return Software_Component_Trellix{Session: sess}
+}
+
+func (r Software_Component_Trellix) Id(id int) Software_Component_Trellix {
+	r.Options.Id = &id
+	return r
+}
+
+func (r Software_Component_Trellix) Mask(mask string) Software_Component_Trellix {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r Software_Component_Trellix) Filter(filter string) Software_Component_Trellix {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r Software_Component_Trellix) Limit(limit int) Software_Component_Trellix {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r Software_Component_Trellix) Offset(offset int) Software_Component_Trellix {
+	r.Options.Offset = &offset
+	return r
+}
+
+// Retrieve The average amount of time that a software component takes to install.
+func (r Software_Component_Trellix) GetAverageInstallationDuration() (resp uint, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getAverageInstallationDuration", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The billing item for a software component.
+func (r Software_Component_Trellix) GetBillingItem() (resp datatypes.Billing_Item, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getBillingItem", nil, &r.Options, &resp)
+	return
+}
+
+// Get the current Host IPS policies.
+func (r Software_Component_Trellix) GetCurrentHostIpsPolicies() (resp []datatypes.Container_Software_Component_HostIps_Policy, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getCurrentHostIpsPolicies", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The hardware this Software Component is installed upon.
+func (r Software_Component_Trellix) GetHardware() (resp datatypes.Hardware, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getHardware", nil, &r.Options, &resp)
+	return
+}
+
+// Attempt to retrieve the file associated with a software component.  If the software component does not support downloading license files an exception will be thrown.
+func (r Software_Component_Trellix) GetLicenseFile() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getLicenseFile", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Software_Component_Trellix) GetObject() (resp datatypes.Software_Component_Trellix, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve History Records for Software Passwords.
+func (r Software_Component_Trellix) GetPasswordHistory() (resp []datatypes.Software_Component_Password_History, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getPasswordHistory", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Username/Password pairs used for access to this Software Installation.
+func (r Software_Component_Trellix) GetPasswords() (resp []datatypes.Software_Component_Password, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getPasswords", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The Software Description of this Software Component.
+func (r Software_Component_Trellix) GetSoftwareDescription() (resp datatypes.Software_Description, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getSoftwareDescription", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The License this Software Component uses.
+func (r Software_Component_Trellix) GetSoftwareLicense() (resp datatypes.Software_License, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getSoftwareLicense", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Software_Component_Trellix) GetVendorSetUpConfiguration() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getVendorSetUpConfiguration", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The virtual guest this software component is installed upon.
+func (r Software_Component_Trellix) GetVirtualGuest() (resp datatypes.Virtual_Guest, err error) {
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "getVirtualGuest", nil, &r.Options, &resp)
+	return
+}
+
+// Update an anti-virus/spyware policy. The policy options that it accepts are the following:
+// *1 - Minimal
+// *2 - Relaxed
+// *3 - Default
+// *4 - High
+// *5 - Ultimate
+func (r Software_Component_Trellix) UpdateAntivirusSpywarePolicy(newPolicy *string, enforce *bool) (resp bool, err error) {
+	params := []interface{}{
+		newPolicy,
+		enforce,
+	}
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "updateAntivirusSpywarePolicy", params, &r.Options, &resp)
+	return
+}
+
+// Update the Host IPS policies. To retrieve valid policy options you must use the provided relationships.
+func (r Software_Component_Trellix) UpdateHipsPolicies(newIpsMode *string, newIpsProtection *string, newFirewallMode *string, newFirewallRuleset *string, newApplicationMode *string, newApplicationRuleset *string, newEnforcementPolicy *string) (resp bool, err error) {
+	params := []interface{}{
+		newIpsMode,
+		newIpsProtection,
+		newFirewallMode,
+		newFirewallRuleset,
+		newApplicationMode,
+		newApplicationRuleset,
+		newEnforcementPolicy,
+	}
+	err = r.Session.DoRequest("SoftLayer_Software_Component_Trellix", "updateHipsPolicies", params, &r.Options, &resp)
+	return
+}
+
 // This class holds a description for a specific installation of a Software Component.
 //
 // SoftLayer_Software_Licenses tie a Software Component (A specific installation on a piece of hardware) to it's description.

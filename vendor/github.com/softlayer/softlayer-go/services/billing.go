@@ -1078,13 +1078,7 @@ func (r Billing_Item) GetBillableChildren() (resp []datatypes.Billing_Item, err 
 	return
 }
 
-// Retrieve A Billing Item's bundled billing items
-func (r Billing_Item) GetBundleItems() (resp []datatypes.Product_Item_Bundles, err error) {
-	err = r.Session.DoRequest("SoftLayer_Billing_Item", "getBundleItems", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve A Billing Item's bundled billing items'
+// Retrieve A Billing Item's bundled billing items.
 func (r Billing_Item) GetBundledItems() (resp []datatypes.Billing_Item, err error) {
 	err = r.Session.DoRequest("SoftLayer_Billing_Item", "getBundledItems", nil, &r.Options, &resp)
 	return
@@ -1572,6 +1566,64 @@ func (r Billing_Item_Cancellation_Request) Void(closeRelatedTicketFlag *bool) (r
 }
 
 // no documentation yet
+type Billing_Item_Chronicle struct {
+	Session *session.Session
+	Options sl.Options
+}
+
+// GetBillingItemChronicleService returns an instance of the Billing_Item_Chronicle SoftLayer service
+func GetBillingItemChronicleService(sess *session.Session) Billing_Item_Chronicle {
+	return Billing_Item_Chronicle{Session: sess}
+}
+
+func (r Billing_Item_Chronicle) Id(id int) Billing_Item_Chronicle {
+	r.Options.Id = &id
+	return r
+}
+
+func (r Billing_Item_Chronicle) Mask(mask string) Billing_Item_Chronicle {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r Billing_Item_Chronicle) Filter(filter string) Billing_Item_Chronicle {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r Billing_Item_Chronicle) Limit(limit int) Billing_Item_Chronicle {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r Billing_Item_Chronicle) Offset(offset int) Billing_Item_Chronicle {
+	r.Options.Offset = &offset
+	return r
+}
+
+// Retrieve A Billing Item's associated child billing items. This includes "floating" items that are not necessarily child billing items of this billing item.
+func (r Billing_Item_Chronicle) GetAssociatedChildren() (resp []datatypes.Billing_Item_Chronicle, err error) {
+	err = r.Session.DoRequest("SoftLayer_Billing_Item_Chronicle", "getAssociatedChildren", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Billing_Item_Chronicle) GetObject() (resp datatypes.Billing_Item_Chronicle, err error) {
+	err = r.Session.DoRequest("SoftLayer_Billing_Item_Chronicle", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The entry in the product catalog that the underlying billing item is based on.
+func (r Billing_Item_Chronicle) GetProduct() (resp datatypes.Product_Item, err error) {
+	err = r.Session.DoRequest("SoftLayer_Billing_Item_Chronicle", "getProduct", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
 type Billing_Item_Virtual_DedicatedHost struct {
 	Session *session.Session
 	Options sl.Options
@@ -1755,13 +1807,7 @@ func (r Billing_Item_Virtual_DedicatedHost) GetBillableChildren() (resp []dataty
 	return
 }
 
-// Retrieve A Billing Item's bundled billing items
-func (r Billing_Item_Virtual_DedicatedHost) GetBundleItems() (resp []datatypes.Product_Item_Bundles, err error) {
-	err = r.Session.DoRequest("SoftLayer_Billing_Item_Virtual_DedicatedHost", "getBundleItems", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve A Billing Item's bundled billing items'
+// Retrieve A Billing Item's bundled billing items.
 func (r Billing_Item_Virtual_DedicatedHost) GetBundledItems() (resp []datatypes.Billing_Item, err error) {
 	err = r.Session.DoRequest("SoftLayer_Billing_Item_Virtual_DedicatedHost", "getBundledItems", nil, &r.Options, &resp)
 	return
@@ -2450,7 +2496,7 @@ func (r Billing_Order_Cart) WithdrawGdprAcceptance() (err error) {
 	return
 }
 
-// Every individual item that a SoftLayer customer is billed for is recorded in the SoftLayer_Billing_Item data type. Billing items range from server chassis to hard drives to control panels, bandwidth quota upgrades and port upgrade charges. Softlayer [[SoftLayer_Billing_Invoice|invoices]] are generated from the cost of a customer's billing items. Billing items are copied from the product catalog as they're ordered by customers to create a reference between an account and the billable items they own.
+// Every individual item that a SoftLayer customer is billed for is recorded in the SoftLayer_Billing_Item data type. Billing items range from server chassis to hard drives to control panels, bandwidth quota upgrades and port upgrade charges. SoftLayer [[SoftLayer_Billing_Invoice|invoices]] are generated from the cost of a customer's billing items. Billing items are copied from the product catalog as they're ordered by customers to create a reference between an account and the billable items they own.
 //
 // Billing items exist in a tree relationship. Items are associated with each other by parent/child relationships. Component items such as CPU's, RAM, and software each have a parent billing item for the server chassis they're associated with. Billing Items with a null parent item do not have an associated parent item.
 type Billing_Order_Item struct {

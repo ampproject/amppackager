@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/exoscale/egoscale/v2/api"
-	papi "github.com/exoscale/egoscale/v2/internal/public-api"
+	"github.com/exoscale/egoscale/v2/oapi"
 	"github.com/exoscale/egoscale/version"
 )
 
 const (
 	defaultTimeout      = 60 * time.Second
-	defaultPollInterval = papi.DefaultPollingInterval
+	defaultPollInterval = oapi.DefaultPollingInterval
 )
 
 // UserAgent is the "User-Agent" HTTP request header added to outgoing HTTP requests.
@@ -35,13 +35,7 @@ type defaultTransport struct {
 // RoundTrip executes a single HTTP transaction, returning a Response for the provided Request.
 func (t *defaultTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Add("User-Agent", UserAgent)
-
-	resp, err := t.next.RoundTrip(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+	return t.next.RoundTrip(req)
 }
 
 // ClientOpt represents a function setting Exoscale API client option.
@@ -89,7 +83,7 @@ func ClientOptWithPollInterval(v time.Duration) ClientOpt {
 	}
 }
 
-// ClientOptWithTrace returns a ClientOpt enabling HTTP request/reponse tracing.
+// ClientOptWithTrace returns a ClientOpt enabling HTTP request/response tracing.
 func ClientOptWithTrace() ClientOpt {
 	return func(c *Client) error {
 		c.trace = true
@@ -121,8 +115,14 @@ func ClientOptWithHTTPClient(v *http.Client) ClientOpt {
 	}
 }
 
+type oapiClient interface {
+	oapi.ClientWithResponsesInterface
+}
+
 // Client represents an Exoscale API client.
 type Client struct {
+	oapiClient
+
 	apiKey       string
 	apiSecret    string
 	apiEndpoint  string
@@ -130,8 +130,6 @@ type Client struct {
 	pollInterval time.Duration
 	trace        bool
 	httpClient   *http.Client
-
-	*papi.ClientWithResponses
 }
 
 // NewClient returns a new Exoscale API client, or an error if one couldn't be initialized.
@@ -157,12 +155,12 @@ func NewClient(apiKey, apiSecret string, opts ...ClientOpt) (*Client, error) {
 
 	apiSecurityProvider, err := api.NewSecurityProvider(client.apiKey, client.apiSecret)
 	if err != nil {
-		return nil, fmt.Errorf("unable to initialize API security provider: %s", err)
+		return nil, fmt.Errorf("unable to initialize API security provider: %w", err)
 	}
 
 	apiURL, err := url.Parse(client.apiEndpoint)
 	if err != nil {
-		return nil, fmt.Errorf("unable to initialize API client: %s", err)
+		return nil, fmt.Errorf("unable to initialize API client: %w", err)
 	}
 	apiURL = apiURL.ResolveReference(&url.URL{Path: api.Prefix})
 
@@ -174,18 +172,18 @@ func NewClient(apiKey, apiSecret string, opts ...ClientOpt) (*Client, error) {
 
 	client.httpClient.Transport = api.NewAPIErrorHandlerMiddleware(client.httpClient.Transport)
 
-	papiOpts := []papi.ClientOption{
-		papi.WithHTTPClient(client.httpClient),
-		papi.WithRequestEditorFn(
-			papi.MultiRequestsEditor(
+	oapiOpts := []oapi.ClientOption{
+		oapi.WithHTTPClient(client.httpClient),
+		oapi.WithRequestEditorFn(
+			oapi.MultiRequestsEditor(
 				apiSecurityProvider.Intercept,
 				setEndpointFromContext,
 			),
 		),
 	}
 
-	if client.ClientWithResponses, err = papi.NewClientWithResponses(apiURL.String(), papiOpts...); err != nil {
-		return nil, fmt.Errorf("unable to initialize API client: %s", err)
+	if client.oapiClient, err = oapi.NewClientWithResponses(apiURL.String(), oapiOpts...); err != nil {
+		return nil, fmt.Errorf("unable to initialize API client: %w", err)
 	}
 
 	return &client, nil
@@ -201,7 +199,7 @@ func (c *Client) SetTimeout(v time.Duration) {
 	c.timeout = v
 }
 
-// SetTrace enables or disables HTTP request/reponse tracing.
+// SetTrace enables or disables HTTP request/response tracing.
 func (c *Client) SetTrace(enabled bool) {
 	c.trace = enabled
 }
