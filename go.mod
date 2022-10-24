@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed
-	github.com/ampproject/amphtml v0.0.0-20221014210205-4cbbe2b23e7b
+	github.com/ampproject/amphtml v0.0.0-20221021220420-07d99f82baf8
 	github.com/go-acme/lego/v4 v4.9.0
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
@@ -17,8 +17,8 @@ require (
 	github.com/prometheus/common v0.37.0
 	github.com/stretchr/testify v1.8.0
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
-	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a
-	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b
+	golang.org/x/crypto v0.1.0
+	golang.org/x/net v0.1.0
 	google.golang.org/grpc v1.50.1
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
@@ -124,13 +124,12 @@ require (
 	github.com/yandex-cloud/go-sdk v0.0.0-20220805164847-cf028e604997 // indirect
 	go.opencensus.io v0.22.4 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
-	golang.org/x/mod v0.4.2 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1 // indirect
-	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
-	golang.org/x/tools v0.1.6-0.20210726203631-07bc1bf47fb2 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/api v0.30.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20211021150943-2b146023228c // indirect
