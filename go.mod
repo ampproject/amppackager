@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed
-	github.com/ampproject/amphtml v0.0.0-20221021220420-07d99f82baf8
+	github.com/ampproject/amphtml v0.0.0-20221027225741-9664ef260a4e
 	github.com/go-acme/lego/v4 v4.9.0
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
@@ -15,7 +15,7 @@ require (
 	github.com/pquerna/cachecontrol v0.1.0
 	github.com/prometheus/client_golang v1.13.0
 	github.com/prometheus/common v0.37.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 	golang.org/x/crypto v0.1.0
 	golang.org/x/net v0.1.0
@@ -114,7 +114,7 @@ require (
 	github.com/softlayer/softlayer-go v1.0.6 // indirect
 	github.com/softlayer/xmlrpc v0.0.0-20200409220501-5f089df7cb7e // indirect
 	github.com/spf13/cast v1.3.1 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.490 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.490 // indirect
 	github.com/transip/gotransip/v6 v6.17.0 // indirect
