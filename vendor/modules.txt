@@ -69,7 +69,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20221027225741-9664ef260a4e
+# github.com/ampproject/amphtml v0.0.0-20221106002409-f6dce0a3fbdb
 ## explicit
 github.com/ampproject/amphtml/validator
 # github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129
@@ -552,7 +552,7 @@ github.com/pquerna/cachecontrol/cacheobject
 github.com/pquerna/otp
 github.com/pquerna/otp/hotp
 github.com/pquerna/otp/totp
-# github.com/prometheus/client_golang v1.13.0
+# github.com/prometheus/client_golang v1.13.1
 ## explicit; go 1.17
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
