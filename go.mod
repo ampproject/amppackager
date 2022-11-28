@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed
-	github.com/ampproject/amphtml v0.0.0-20221118214636-d5bdbc6c3647
-	github.com/go-acme/lego/v4 v4.9.0
+	github.com/ampproject/amphtml v0.0.0-20221125045135-3f47d465c6e6
+	github.com/go-acme/lego/v4 v4.9.1
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.9

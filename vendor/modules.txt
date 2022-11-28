@@ -69,7 +69,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20221118214636-d5bdbc6c3647
+# github.com/ampproject/amphtml v0.0.0-20221125045135-3f47d465c6e6
 ## explicit
 github.com/ampproject/amphtml/validator
 # github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129
@@ -172,7 +172,7 @@ github.com/fsnotify/fsnotify
 # github.com/ghodss/yaml v1.0.0
 ## explicit
 github.com/ghodss/yaml
-# github.com/go-acme/lego/v4 v4.9.0
+# github.com/go-acme/lego/v4 v4.9.1
 ## explicit; go 1.18
 github.com/go-acme/lego/v4/acme
 github.com/go-acme/lego/v4/acme/api
