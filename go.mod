@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed
-	github.com/ampproject/amphtml v0.0.0-20221130230430-8ec16ecf1bb9
+	github.com/ampproject/amphtml v0.0.0-20221215163211-6754eb8b2feb
 	github.com/go-acme/lego/v4 v4.9.1
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
@@ -14,11 +14,11 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.1.0
 	github.com/prometheus/client_golang v1.14.0
-	github.com/prometheus/common v0.37.0
+	github.com/prometheus/common v0.39.0
 	github.com/stretchr/testify v1.8.1
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
-	golang.org/x/crypto v0.3.0
-	golang.org/x/net v0.2.0
+	golang.org/x/crypto v0.4.0
+	golang.org/x/net v0.4.0
 	google.golang.org/grpc v1.51.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
@@ -82,7 +82,7 @@ require (
 	github.com/liquidweb/liquidweb-cli v0.6.9 // indirect
 	github.com/liquidweb/liquidweb-go v1.6.3 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/mimuret/golang-iij-dpf v0.7.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -125,9 +125,9 @@ require (
 	go.opencensus.io v0.22.4 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/oauth2 v0.3.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/api v0.30.0 // indirect
