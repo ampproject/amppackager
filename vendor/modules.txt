@@ -534,7 +534,7 @@ github.com/ovh/go-ovh/ovh
 # github.com/patrickmn/go-cache v2.1.0+incompatible
 ## explicit
 github.com/patrickmn/go-cache
-# github.com/pelletier/go-toml v1.9.5
+# github.com/pelletier/go-toml/v2 v2.0.6
 ## explicit; go 1.12
 github.com/pelletier/go-toml
 # github.com/pkg/errors v0.9.1
