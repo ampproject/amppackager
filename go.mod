@@ -4,13 +4,13 @@ go 1.19
 
 require (
 	github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed
-	github.com/ampproject/amphtml v0.0.0-20230111234658-290809452fa1
+	github.com/ampproject/amphtml v0.0.0-20230126190056-a6ea9dbc37fe
 	github.com/go-acme/lego/v4 v4.9.1
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.9
 	github.com/kylelemons/godebug v1.1.0
-	github.com/pelletier/go-toml v1.8.1
+	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.1.0
 	github.com/prometheus/client_golang v1.14.0
@@ -19,7 +19,7 @@ require (
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 	golang.org/x/crypto v0.5.0
 	golang.org/x/net v0.5.0
-	google.golang.org/grpc v1.52.0
+	google.golang.org/grpc v1.52.3
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
 
