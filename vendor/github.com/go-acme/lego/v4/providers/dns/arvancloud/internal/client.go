@@ -7,12 +7,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 )
 
 // defaultBaseURL represents the API endpoint to call.
-const defaultBaseURL = "https://napi.arvancloud.com"
+const defaultBaseURL = "https://napi.arvancloud.ir"
 
 const authHeader = "Authorization"
 
@@ -49,7 +48,7 @@ func (c *Client) GetTxtRecord(domain, name, value string) (*DNSRecord, error) {
 	return nil, fmt.Errorf("could not find record: Domain: %s; Record: %s", domain, name)
 }
 
-// https://www.arvancloud.com/docs/api/cdn/4.0#operation/dns_records.list
+// https://www.arvancloud.ir/docs/api/cdn/4.0#operation/dns_records.list
 func (c *Client) getRecords(domain, search string) ([]DNSRecord, error) {
 	endpoint, err := c.createEndpoint("cdn", "4.0", "domains", domain, "dns-records")
 	if err != nil {
@@ -95,7 +94,7 @@ func (c *Client) getRecords(domain, search string) ([]DNSRecord, error) {
 }
 
 // CreateRecord creates a DNS record.
-// https://www.arvancloud.com/docs/api/cdn/4.0#operation/dns_records.create
+// https://www.arvancloud.ir/docs/api/cdn/4.0#operation/dns_records.create
 func (c *Client) CreateRecord(domain string, record DNSRecord) (*DNSRecord, error) {
 	reqBody, err := json.Marshal(record)
 	if err != nil {
@@ -137,7 +136,7 @@ func (c *Client) CreateRecord(domain string, record DNSRecord) (*DNSRecord, erro
 }
 
 // DeleteRecord deletes a DNS record.
-// https://www.arvancloud.com/docs/api/cdn/4.0#operation/dns_records.remove
+// https://www.arvancloud.ir/docs/api/cdn/4.0#operation/dns_records.remove
 func (c *Client) DeleteRecord(domain, id string) error {
 	endpoint, err := c.createEndpoint("cdn", "4.0", "domains", domain, "dns-records", id)
 	if err != nil {
@@ -178,12 +177,7 @@ func (c *Client) createEndpoint(parts ...string) (*url.URL, error) {
 		return nil, err
 	}
 
-	endpoint, err := baseURL.Parse(path.Join(parts...))
-	if err != nil {
-		return nil, err
-	}
-
-	return endpoint, nil
+	return baseURL.JoinPath(parts...), nil
 }
 
 func equalsTXTRecord(record DNSRecord, name, value string) bool {

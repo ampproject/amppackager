@@ -7,9 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
-	"strings"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
 )
@@ -58,10 +56,7 @@ func (c *Client) GetZone(authFQDN string) (*Zone, error) {
 
 	authZoneName := dns01.UnFqdn(authZone)
 
-	endpoint, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "get-zone-info.json"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
-	}
+	endpoint := c.BaseURL.JoinPath("get-zone-info.json")
 
 	q := endpoint.Query()
 	q.Set("domain-name", authZoneName)
@@ -89,20 +84,20 @@ func (c *Client) GetZone(authFQDN string) (*Zone, error) {
 
 // FindTxtRecord returns the TXT record a zone ID and a FQDN.
 func (c *Client) FindTxtRecord(zoneName, fqdn string) (*TXTRecord, error) {
-	host := dns01.UnFqdn(strings.TrimSuffix(dns01.UnFqdn(fqdn), zoneName))
-
-	reqURL, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "records.json"))
+	subDomain, err := dns01.ExtractSubDomain(fqdn, zoneName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
+		return nil, err
 	}
 
-	q := reqURL.Query()
-	q.Set("domain-name", zoneName)
-	q.Set("host", host)
-	q.Set("type", "TXT")
-	reqURL.RawQuery = q.Encode()
+	endpoint := c.BaseURL.JoinPath("records.json")
 
-	result, err := c.doRequest(http.MethodGet, reqURL)
+	q := endpoint.Query()
+	q.Set("domain-name", zoneName)
+	q.Set("host", subDomain)
+	q.Set("type", "TXT")
+	endpoint.RawQuery = q.Encode()
+
+	result, err := c.doRequest(http.MethodGet, endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +113,7 @@ func (c *Client) FindTxtRecord(zoneName, fqdn string) (*TXTRecord, error) {
 	}
 
 	for _, record := range records {
-		if record.Host == host && record.Type == "TXT" {
+		if record.Host == subDomain && record.Type == "TXT" {
 			return &record, nil
 		}
 	}
@@ -128,20 +123,20 @@ func (c *Client) FindTxtRecord(zoneName, fqdn string) (*TXTRecord, error) {
 
 // ListTxtRecords returns the TXT records a zone ID and a FQDN.
 func (c *Client) ListTxtRecords(zoneName, fqdn string) ([]TXTRecord, error) {
-	host := dns01.UnFqdn(strings.TrimSuffix(dns01.UnFqdn(fqdn), zoneName))
-
-	reqURL, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "records.json"))
+	subDomain, err := dns01.ExtractSubDomain(fqdn, zoneName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
+		return nil, err
 	}
 
-	q := reqURL.Query()
-	q.Set("domain-name", zoneName)
-	q.Set("host", host)
-	q.Set("type", "TXT")
-	reqURL.RawQuery = q.Encode()
+	endpoint := c.BaseURL.JoinPath("records.json")
 
-	result, err := c.doRequest(http.MethodGet, reqURL)
+	q := endpoint.Query()
+	q.Set("domain-name", zoneName)
+	q.Set("host", subDomain)
+	q.Set("type", "TXT")
+	endpoint.RawQuery = q.Encode()
+
+	result, err := c.doRequest(http.MethodGet, endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +153,7 @@ func (c *Client) ListTxtRecords(zoneName, fqdn string) ([]TXTRecord, error) {
 
 	var records []TXTRecord
 	for _, record := range raw {
-		if record.Host == host && record.Type == "TXT" {
+		if record.Host == subDomain && record.Type == "TXT" {
 			records = append(records, record)
 		}
 	}
@@ -168,22 +163,22 @@ func (c *Client) ListTxtRecords(zoneName, fqdn string) ([]TXTRecord, error) {
 
 // AddTxtRecord adds a TXT record.
 func (c *Client) AddTxtRecord(zoneName, fqdn, value string, ttl int) error {
-	host := dns01.UnFqdn(strings.TrimSuffix(dns01.UnFqdn(fqdn), zoneName))
-
-	reqURL, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "add-record.json"))
+	subDomain, err := dns01.ExtractSubDomain(fqdn, zoneName)
 	if err != nil {
-		return fmt.Errorf("failed to parse endpoint: %w", err)
+		return err
 	}
 
-	q := reqURL.Query()
+	endpoint := c.BaseURL.JoinPath("add-record.json")
+
+	q := endpoint.Query()
 	q.Set("domain-name", zoneName)
-	q.Set("host", host)
+	q.Set("host", subDomain)
 	q.Set("record", value)
 	q.Set("ttl", strconv.Itoa(ttlRounder(ttl)))
 	q.Set("record-type", "TXT")
-	reqURL.RawQuery = q.Encode()
+	endpoint.RawQuery = q.Encode()
 
-	raw, err := c.doRequest(http.MethodPost, reqURL)
+	raw, err := c.doRequest(http.MethodPost, endpoint)
 	if err != nil {
 		return err
 	}
@@ -202,17 +197,14 @@ func (c *Client) AddTxtRecord(zoneName, fqdn, value string, ttl int) error {
 
 // RemoveTxtRecord removes a TXT record.
 func (c *Client) RemoveTxtRecord(recordID int, zoneName string) error {
-	reqURL, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "delete-record.json"))
-	if err != nil {
-		return fmt.Errorf("failed to parse endpoint: %w", err)
-	}
+	endpoint := c.BaseURL.JoinPath("delete-record.json")
 
-	q := reqURL.Query()
+	q := endpoint.Query()
 	q.Set("domain-name", zoneName)
 	q.Set("record-id", strconv.Itoa(recordID))
-	reqURL.RawQuery = q.Encode()
+	endpoint.RawQuery = q.Encode()
 
-	raw, err := c.doRequest(http.MethodPost, reqURL)
+	raw, err := c.doRequest(http.MethodPost, endpoint)
 	if err != nil {
 		return err
 	}
@@ -231,16 +223,13 @@ func (c *Client) RemoveTxtRecord(recordID int, zoneName string) error {
 
 // GetUpdateStatus gets sync progress of all CloudDNS NS servers.
 func (c *Client) GetUpdateStatus(zoneName string) (*SyncProgress, error) {
-	reqURL, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "update-status.json"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
-	}
+	endpoint := c.BaseURL.JoinPath("update-status.json")
 
-	q := reqURL.Query()
+	q := endpoint.Query()
 	q.Set("domain-name", zoneName)
-	reqURL.RawQuery = q.Encode()
+	endpoint.RawQuery = q.Encode()
 
-	result, err := c.doRequest(http.MethodGet, reqURL)
+	result, err := c.doRequest(http.MethodGet, endpoint)
 	if err != nil {
 		return nil, err
 	}

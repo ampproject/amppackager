@@ -28,6 +28,7 @@ type hostedZone struct {
 	ID     string  `json:"id"`
 	Name   string  `json:"name"`
 	URL    string  `json:"url"`
+	Kind   string  `json:"kind"`
 	RRSets []rrSet `json:"rrsets"`
 
 	// pre-v1 API
@@ -137,14 +138,16 @@ func (d *DNSProvider) getAPIVersion() (int, error) {
 	return latestVersion, err
 }
 
-func (d *DNSProvider) notify(zoneURL string) error {
-	if d.apiVersion >= 1 {
-		p := path.Join(zoneURL, "/notify")
-		_, err := d.sendRequest(http.MethodPut, p, nil)
-		if err != nil {
-			return err
-		}
+func (d *DNSProvider) notify(zone *hostedZone) error {
+	if d.apiVersion < 1 || zone.Kind != "Master" && zone.Kind != "Slave" {
+		return nil
 	}
+
+	_, err := d.sendRequest(http.MethodPut, path.Join(zone.URL, "/notify"), nil)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -197,12 +200,9 @@ func (d *DNSProvider) makeRequest(method, uri string, body io.Reader) (*http.Req
 		p = path.Join("/api", "v"+strconv.Itoa(d.apiVersion), p)
 	}
 
-	u, err := d.config.Host.Parse(path.Join(d.config.Host.Path, p))
-	if err != nil {
-		return nil, err
-	}
+	endpoint := d.config.Host.JoinPath(p)
 
-	req, err := http.NewRequest(method, u.String(), body)
+	req, err := http.NewRequest(method, strings.TrimSuffix(endpoint.String(), "/"), body)
 	if err != nil {
 		return nil, err
 	}

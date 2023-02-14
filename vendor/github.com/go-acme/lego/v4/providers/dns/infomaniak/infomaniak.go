@@ -112,18 +112,22 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	fqdn, value := dns01.GetRecord(domain, keyAuth)
 
-	// TODO(ldez) replace domain by FQDN to follow CNAME.
-	ikDomain, err := d.client.GetDomainByName(domain)
+	ikDomain, err := d.client.GetDomainByName(dns01.UnFqdn(fqdn))
 	if err != nil {
-		return fmt.Errorf("infomaniak: could not get domain %q: %w", domain, err)
+		return fmt.Errorf("infomaniak: could not get domain %q: %w", fqdn, err)
 	}
 
 	d.domainIDsMu.Lock()
 	d.domainIDs[token] = ikDomain.ID
 	d.domainIDsMu.Unlock()
 
+	subDomain, err := dns01.ExtractSubDomain(fqdn, ikDomain.CustomerName)
+	if err != nil {
+		return fmt.Errorf("infomaniak: %w", err)
+	}
+
 	record := internal.Record{
-		Source: extractRecordName(fqdn, ikDomain.CustomerName),
+		Source: subDomain,
 		Target: value,
 		Type:   "TXT",
 		TTL:    d.config.TTL,
@@ -163,7 +167,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	err := d.client.DeleteDNSRecord(domainID, recordID)
 	if err != nil {
-		return fmt.Errorf("infomaniak: could not delete record %q: %w", domain, err)
+		return fmt.Errorf("infomaniak: could not delete record %q: %w", dns01.UnFqdn(fqdn), err)
 	}
 
 	// Delete record ID from map
@@ -183,10 +187,4 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 // Adjusting here to cope with spikes in propagation times.
 func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
-}
-
-func extractRecordName(fqdn, domain string) string {
-	name := dns01.UnFqdn(fqdn)
-
-	return name[:len(name)-len(domain)-1]
 }

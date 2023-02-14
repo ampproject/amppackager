@@ -25,6 +25,7 @@ import (
 	"github.com/go-acme/lego/v4/providers/dns/desec"
 	"github.com/go-acme/lego/v4/providers/dns/designate"
 	"github.com/go-acme/lego/v4/providers/dns/digitalocean"
+	"github.com/go-acme/lego/v4/providers/dns/dnshomede"
 	"github.com/go-acme/lego/v4/providers/dns/dnsimple"
 	"github.com/go-acme/lego/v4/providers/dns/dnsmadeeasy"
 	"github.com/go-acme/lego/v4/providers/dns/dnspod"
@@ -62,6 +63,7 @@ import (
 	"github.com/go-acme/lego/v4/providers/dns/ionos"
 	"github.com/go-acme/lego/v4/providers/dns/iwantmyname"
 	"github.com/go-acme/lego/v4/providers/dns/joker"
+	"github.com/go-acme/lego/v4/providers/dns/liara"
 	"github.com/go-acme/lego/v4/providers/dns/lightsail"
 	"github.com/go-acme/lego/v4/providers/dns/linode"
 	"github.com/go-acme/lego/v4/providers/dns/liquidweb"
@@ -99,6 +101,7 @@ import (
 	"github.com/go-acme/lego/v4/providers/dns/stackpath"
 	"github.com/go-acme/lego/v4/providers/dns/tencentcloud"
 	"github.com/go-acme/lego/v4/providers/dns/transip"
+	"github.com/go-acme/lego/v4/providers/dns/ultradns"
 	"github.com/go-acme/lego/v4/providers/dns/variomedia"
 	"github.com/go-acme/lego/v4/providers/dns/vegadns"
 	"github.com/go-acme/lego/v4/providers/dns/vercel"
@@ -107,6 +110,7 @@ import (
 	"github.com/go-acme/lego/v4/providers/dns/vkcloud"
 	"github.com/go-acme/lego/v4/providers/dns/vscale"
 	"github.com/go-acme/lego/v4/providers/dns/vultr"
+	"github.com/go-acme/lego/v4/providers/dns/websupport"
 	"github.com/go-acme/lego/v4/providers/dns/wedos"
 	"github.com/go-acme/lego/v4/providers/dns/yandex"
 	"github.com/go-acme/lego/v4/providers/dns/yandexcloud"
@@ -157,6 +161,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return designate.NewDNSProvider()
 	case "digitalocean":
 		return digitalocean.NewDNSProvider()
+	case "dnshomede":
+		return dnshomede.NewDNSProvider()
 	case "dnsimple":
 		return dnsimple.NewDNSProvider()
 	case "dnsmadeeasy":
@@ -231,6 +237,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return iwantmyname.NewDNSProvider()
 	case "joker":
 		return joker.NewDNSProvider()
+	case "liara":
+		return liara.NewDNSProvider()
 	case "lightsail":
 		return lightsail.NewDNSProvider()
 	case "linode", "linodev4": // "linodev4" is for compatibility with v3, must be dropped in v5
@@ -307,6 +315,8 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return tencentcloud.NewDNSProvider()
 	case "transip":
 		return transip.NewDNSProvider()
+	case "ultradns":
+		return ultradns.NewDNSProvider()
 	case "variomedia":
 		return variomedia.NewDNSProvider()
 	case "vegadns":
@@ -319,10 +329,12 @@ func NewDNSChallengeProviderByName(name string) (challenge.Provider, error) {
 		return vinyldns.NewDNSProvider()
 	case "vkcloud":
 		return vkcloud.NewDNSProvider()
-	case "vultr":
-		return vultr.NewDNSProvider()
 	case "vscale":
 		return vscale.NewDNSProvider()
+	case "vultr":
+		return vultr.NewDNSProvider()
+	case "websupport":
+		return websupport.NewDNSProvider()
 	case "wedos":
 		return wedos.NewDNSProvider()
 	case "yandex":

@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path"
 )
 
 // defaultBaseURL represents the API endpoint to call.
@@ -129,7 +128,7 @@ func (c *Client) DeleteRecord(recordID string) error {
 
 // GetZoneID gets the zone ID for a domain.
 func (c *Client) GetZoneID(domain string) (string, error) {
-	zones, err := c.getZones()
+	zones, err := c.getZones(domain)
 	if err != nil {
 		return "", err
 	}
@@ -144,15 +143,24 @@ func (c *Client) GetZoneID(domain string) (string, error) {
 }
 
 // https://dns.hetzner.com/api-docs#operation/GetZones
-func (c *Client) getZones() (*Zones, error) {
+func (c *Client) getZones(name string) (*Zones, error) {
 	endpoint, err := c.createEndpoint("api", "v1", "zones")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create endpoint: %w", err)
 	}
 
+	query := endpoint.Query()
+	query.Set("name", name)
+	endpoint.RawQuery = query.Encode()
+
 	resp, err := c.do(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not get zones: %w", err)
+	}
+
+	// EOF fallback
+	if resp.StatusCode == http.StatusNotFound {
+		return &Zones{}, nil
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -187,10 +195,5 @@ func (c *Client) createEndpoint(parts ...string) (*url.URL, error) {
 		return nil, err
 	}
 
-	endpoint, err := baseURL.Parse(path.Join(parts...))
-	if err != nil {
-		return nil, err
-	}
-
-	return endpoint, nil
+	return baseURL.JoinPath(parts...), nil
 }
