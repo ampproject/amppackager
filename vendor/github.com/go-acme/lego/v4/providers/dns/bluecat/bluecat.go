@@ -2,6 +2,7 @@
 package bluecat
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -97,7 +98,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("bluecat: credentials missing")
 	}
 
-	client := internal.NewClient(config.BaseURL)
+	client := internal.NewClient(config.BaseURL, config.UserName, config.Password)
 
 	if config.HTTPClient != nil {
 		client.HTTPClient = config.HTTPClient
@@ -110,44 +111,44 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 // This will *not* create a sub-zone to contain the TXT record,
 // so make sure the FQDN specified is within an existent zone.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.Login(d.config.UserName, d.config.Password)
+	ctx, err := d.client.CreateAuthenticatedContext(context.Background())
 	if err != nil {
 		return fmt.Errorf("bluecat: login: %w", err)
 	}
 
-	viewID, err := d.client.LookupViewID(d.config.ConfigName, d.config.DNSView)
+	viewID, err := d.client.LookupViewID(ctx, d.config.ConfigName, d.config.DNSView)
 	if err != nil {
 		return fmt.Errorf("bluecat: lookupViewID: %w", err)
 	}
 
-	parentZoneID, name, err := d.client.LookupParentZoneID(viewID, fqdn)
+	parentZoneID, name, err := d.client.LookupParentZoneID(ctx, viewID, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("bluecat: lookupParentZoneID: %w", err)
 	}
 
 	if d.config.Debug {
-		log.Infof("fqdn: %s; viewID: %d; ZoneID: %d; zone: %s", fqdn, viewID, parentZoneID, name)
+		log.Infof("fqdn: %s; viewID: %d; ZoneID: %d; zone: %s", info.EffectiveFQDN, viewID, parentZoneID, name)
 	}
 
 	txtRecord := internal.Entity{
 		Name:       name,
 		Type:       internal.TXTType,
-		Properties: fmt.Sprintf("ttl=%d|absoluteName=%s|txt=%s|", d.config.TTL, fqdn, value),
+		Properties: fmt.Sprintf("ttl=%d|absoluteName=%s|txt=%s|", d.config.TTL, info.EffectiveFQDN, info.Value),
 	}
 
-	_, err = d.client.AddEntity(parentZoneID, txtRecord)
+	_, err = d.client.AddEntity(ctx, parentZoneID, txtRecord)
 	if err != nil {
 		return fmt.Errorf("bluecat: add TXT record: %w", err)
 	}
 
-	err = d.client.Deploy(parentZoneID)
+	err = d.client.Deploy(ctx, parentZoneID)
 	if err != nil {
 		return fmt.Errorf("bluecat: deploy: %w", err)
 	}
 
-	err = d.client.Logout()
+	err = d.client.Logout(ctx)
 	if err != nil {
 		return fmt.Errorf("bluecat: logout: %w", err)
 	}
@@ -157,39 +158,39 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.client.Login(d.config.UserName, d.config.Password)
+	ctx, err := d.client.CreateAuthenticatedContext(context.Background())
 	if err != nil {
 		return fmt.Errorf("bluecat: login: %w", err)
 	}
 
-	viewID, err := d.client.LookupViewID(d.config.ConfigName, d.config.DNSView)
+	viewID, err := d.client.LookupViewID(ctx, d.config.ConfigName, d.config.DNSView)
 	if err != nil {
 		return fmt.Errorf("bluecat: lookupViewID: %w", err)
 	}
 
-	parentZoneID, name, err := d.client.LookupParentZoneID(viewID, fqdn)
+	parentZoneID, name, err := d.client.LookupParentZoneID(ctx, viewID, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("bluecat: lookupParentZoneID: %w", err)
 	}
 
-	txtRecord, err := d.client.GetEntityByName(parentZoneID, name, internal.TXTType)
+	txtRecord, err := d.client.GetEntityByName(ctx, parentZoneID, name, internal.TXTType)
 	if err != nil {
 		return fmt.Errorf("bluecat: get TXT record: %w", err)
 	}
 
-	err = d.client.Delete(txtRecord.ID)
+	err = d.client.Delete(ctx, txtRecord.ID)
 	if err != nil {
 		return fmt.Errorf("bluecat: delete TXT record: %w", err)
 	}
 
-	err = d.client.Deploy(parentZoneID)
+	err = d.client.Deploy(ctx, parentZoneID)
 	if err != nil {
 		return fmt.Errorf("bluecat: deploy: %w", err)
 	}
 
-	err = d.client.Logout()
+	err = d.client.Logout(ctx)
 	if err != nil {
 		return fmt.Errorf("bluecat: logout: %w", err)
 	}

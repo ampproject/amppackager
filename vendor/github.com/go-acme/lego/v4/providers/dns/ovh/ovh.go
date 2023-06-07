@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -123,19 +122,23 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	// Parse domain name
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("ovh: could not determine zone for domain %q: %w", fqdn, err)
+		return fmt.Errorf("ovh: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	authZone = dns01.UnFqdn(authZone)
-	subDomain := extractRecordName(fqdn, authZone)
+
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	if err != nil {
+		return fmt.Errorf("ovh: %w", err)
+	}
 
 	reqURL := fmt.Sprintf("/domain/zone/%s/record", authZone)
-	reqData := Record{FieldType: "TXT", SubDomain: subDomain, Target: value, TTL: d.config.TTL}
+	reqData := Record{FieldType: "TXT", SubDomain: subDomain, Target: info.Value, TTL: d.config.TTL}
 
 	// Create TXT record
 	var respData Record
@@ -160,19 +163,19 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	// get the record's unique ID from when we created it
 	d.recordIDsMu.Lock()
 	recordID, ok := d.recordIDs[token]
 	d.recordIDsMu.Unlock()
 	if !ok {
-		return fmt.Errorf("ovh: unknown record ID for '%s'", fqdn)
+		return fmt.Errorf("ovh: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("ovh: could not determine zone for domain %q: %w", fqdn, err)
+		return fmt.Errorf("ovh: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	authZone = dns01.UnFqdn(authZone)
@@ -203,12 +206,4 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 // Adjusting here to cope with spikes in propagation times.
 func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
-}
-
-func extractRecordName(fqdn, zone string) string {
-	name := dns01.UnFqdn(fqdn)
-	if idx := strings.Index(name, "."+zone); idx != -1 {
-		return name[:idx]
-	}
-	return ""
 }

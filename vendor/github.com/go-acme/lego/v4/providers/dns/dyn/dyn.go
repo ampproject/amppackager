@@ -2,14 +2,15 @@
 package dyn
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
+	"github.com/go-acme/lego/v4/providers/dns/dyn/internal"
 )
 
 // Environment variables names.
@@ -52,7 +53,7 @@ func NewDefaultConfig() *Config {
 // DNSProvider implements the challenge.Provider interface.
 type DNSProvider struct {
 	config *Config
-	token  string
+	client *internal.Client
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for Dyn DNS.
@@ -82,85 +83,67 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("dyn: credentials missing")
 	}
 
-	return &DNSProvider{config: config}, nil
+	client := internal.NewClient(config.CustomerName, config.UserName, config.Password)
+
+	if config.HTTPClient != nil {
+		client.HTTPClient = config.HTTPClient
+	}
+
+	return &DNSProvider{config: config, client: client}, nil
 }
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("dyn: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	ctx, err := d.client.CreateAuthenticatedContext(context.Background())
 	if err != nil {
 		return fmt.Errorf("dyn: %w", err)
 	}
 
-	err = d.login()
+	err = d.client.AddTXTRecord(ctx, authZone, info.EffectiveFQDN, info.Value, d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("dyn: %w", err)
 	}
 
-	data := map[string]interface{}{
-		"rdata": map[string]string{
-			"txtdata": value,
-		},
-		"ttl": strconv.Itoa(d.config.TTL),
-	}
-
-	resource := fmt.Sprintf("TXTRecord/%s/%s/", authZone, fqdn)
-	_, err = d.sendRequest(http.MethodPost, resource, data)
+	err = d.client.Publish(ctx, authZone, "Added TXT record for ACME dns-01 challenge using lego client")
 	if err != nil {
 		return fmt.Errorf("dyn: %w", err)
 	}
 
-	err = d.publish(authZone, "Added TXT record for ACME dns-01 challenge using lego client")
-	if err != nil {
-		return fmt.Errorf("dyn: %w", err)
-	}
-
-	return d.logout()
+	return d.client.Logout(ctx)
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("dyn: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	ctx, err := d.client.CreateAuthenticatedContext(context.Background())
 	if err != nil {
 		return fmt.Errorf("dyn: %w", err)
 	}
 
-	err = d.login()
+	err = d.client.RemoveTXTRecord(ctx, authZone, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("dyn: %w", err)
 	}
 
-	resource := fmt.Sprintf("TXTRecord/%s/%s/", authZone, fqdn)
-	url := fmt.Sprintf("%s/%s", defaultBaseURL, resource)
-
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	err = d.client.Publish(ctx, authZone, "Removed TXT record for ACME dns-01 challenge using lego client")
 	if err != nil {
 		return fmt.Errorf("dyn: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Auth-Token", d.token)
-
-	resp, err := d.config.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("dyn: %w", err)
-	}
-	resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("dyn: API request failed to delete TXT record HTTP status code %d", resp.StatusCode)
-	}
-
-	err = d.publish(authZone, "Removed TXT record for ACME dns-01 challenge using lego client")
-	if err != nil {
-		return fmt.Errorf("dyn: %w", err)
-	}
-
-	return d.logout()
+	return d.client.Logout(ctx)
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.

@@ -2,10 +2,10 @@
 package loopia
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -31,10 +31,10 @@ const (
 )
 
 type dnsClient interface {
-	AddTXTRecord(domain string, subdomain string, ttl int, value string) error
-	RemoveTXTRecord(domain string, subdomain string, recordID int) error
-	GetTXTRecords(domain string, subdomain string) ([]internal.RecordObj, error)
-	RemoveSubdomain(domain, subdomain string) error
+	AddTXTRecord(ctx context.Context, domain string, subdomain string, ttl int, value string) error
+	RemoveTXTRecord(ctx context.Context, domain string, subdomain string, recordID int) error
+	GetTXTRecords(ctx context.Context, domain string, subdomain string) ([]internal.RecordObj, error)
+	RemoveSubdomain(ctx context.Context, domain, subdomain string) error
 }
 
 // Config is used to configure the creation of the DNSProvider.
@@ -68,6 +68,7 @@ type DNSProvider struct {
 	inProgressInfo map[string]int
 	inProgressMu   sync.Mutex
 
+	// only for testing purpose.
 	findZoneByFqdn func(fqdn string) (string, error)
 }
 
@@ -129,16 +130,21 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	subdomain, authZone := d.splitDomain(fqdn)
+	subDomain, authZone, err := d.splitDomain(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("loopia: %w", err)
+	}
 
-	err := d.client.AddTXTRecord(authZone, subdomain, d.config.TTL, value)
+	ctx := context.Background()
+
+	err = d.client.AddTXTRecord(ctx, authZone, subDomain, d.config.TTL, info.Value)
 	if err != nil {
 		return fmt.Errorf("loopia: failed to add TXT record: %w", err)
 	}
 
-	txtRecords, err := d.client.GetTXTRecords(authZone, subdomain)
+	txtRecords, err := d.client.GetTXTRecords(ctx, authZone, subDomain)
 	if err != nil {
 		return fmt.Errorf("loopia: failed to get TXT records: %w", err)
 	}
@@ -147,7 +153,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	defer d.inProgressMu.Unlock()
 
 	for _, r := range txtRecords {
-		if r.Rdata == value {
+		if r.Rdata == info.Value {
 			d.inProgressInfo[token] = r.RecordID
 			return nil
 		}
@@ -158,19 +164,24 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	subdomain, authZone := d.splitDomain(fqdn)
+	subDomain, authZone, err := d.splitDomain(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("loopia: %w", err)
+	}
 
 	d.inProgressMu.Lock()
 	defer d.inProgressMu.Unlock()
 
-	err := d.client.RemoveTXTRecord(authZone, subdomain, d.inProgressInfo[token])
+	ctx := context.Background()
+
+	err = d.client.RemoveTXTRecord(ctx, authZone, subDomain, d.inProgressInfo[token])
 	if err != nil {
 		return fmt.Errorf("loopia: failed to remove TXT record: %w", err)
 	}
 
-	records, err := d.client.GetTXTRecords(authZone, subdomain)
+	records, err := d.client.GetTXTRecords(ctx, authZone, subDomain)
 	if err != nil {
 		return fmt.Errorf("loopia: failed to get TXT records: %w", err)
 	}
@@ -179,7 +190,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return nil
 	}
 
-	err = d.client.RemoveSubdomain(authZone, subdomain)
+	err = d.client.RemoveSubdomain(ctx, authZone, subDomain)
 	if err != nil {
 		return fmt.Errorf("loopia: failed to remove sub-domain: %w", err)
 	}
@@ -187,11 +198,16 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	return nil
 }
 
-func (d *DNSProvider) splitDomain(fqdn string) (string, string) {
-	authZone, _ := d.findZoneByFqdn(fqdn)
-	authZone = dns01.UnFqdn(authZone)
+func (d *DNSProvider) splitDomain(fqdn string) (string, string, error) {
+	authZone, err := d.findZoneByFqdn(fqdn)
+	if err != nil {
+		return "", "", fmt.Errorf("desec: could not find zone for FQDN %q: %w", fqdn, err)
+	}
 
-	subdomain := strings.TrimSuffix(dns01.UnFqdn(fqdn), "."+authZone)
+	subDomain, err := dns01.ExtractSubDomain(fqdn, authZone)
+	if err != nil {
+		return "", "", err
+	}
 
-	return subdomain, authZone
+	return subDomain, dns01.UnFqdn(authZone), nil
 }

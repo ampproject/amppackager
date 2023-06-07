@@ -2,11 +2,11 @@
 package hosttech
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -81,11 +81,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("hosttech: missing credentials")
 	}
 
-	client := internal.NewClient(config.APIKey)
-
-	if config.HTTPClient != nil {
-		client.HTTPClient = config.HTTPClient
-	}
+	client := internal.NewClient(internal.OAuthStaticAccessToken(config.HTTPClient, config.APIKey))
 
 	return &DNSProvider{
 		config:    config,
@@ -102,26 +98,33 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("hosttech: could not determine zone for domain %q: %w", domain, err)
+		return fmt.Errorf("hosttech: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
-	zone, err := d.client.GetZone(dns01.UnFqdn(authZone))
+	ctx := context.Background()
+
+	zone, err := d.client.GetZone(ctx, dns01.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("hosttech: could not find zone for domain %q (%s): %w", domain, authZone, err)
 	}
 
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	if err != nil {
+		return fmt.Errorf("hosttech: %w", err)
+	}
+
 	record := internal.Record{
 		Type: "TXT",
-		Name: dns01.UnFqdn(strings.TrimSuffix(fqdn, authZone)),
-		Text: value,
+		Name: subDomain,
+		Text: info.Value,
 		TTL:  d.config.TTL,
 	}
 
-	newRecord, err := d.client.AddRecord(strconv.Itoa(zone.ID), record)
+	newRecord, err := d.client.AddRecord(ctx, strconv.Itoa(zone.ID), record)
 	if err != nil {
 		return fmt.Errorf("hosttech: %w", err)
 	}
@@ -135,14 +138,16 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("hosttech: could not determine zone for domain %q: %w", domain, err)
+		return fmt.Errorf("hosttech: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
-	zone, err := d.client.GetZone(dns01.UnFqdn(authZone))
+	ctx := context.Background()
+
+	zone, err := d.client.GetZone(ctx, dns01.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("hosttech: could not find zone for domain %q (%s): %w", domain, authZone, err)
 	}
@@ -152,10 +157,10 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	recordID, ok := d.recordIDs[token]
 	d.recordIDsMu.Unlock()
 	if !ok {
-		return fmt.Errorf("hosttech: unknown record ID for '%s' '%s'", fqdn, token)
+		return fmt.Errorf("hosttech: unknown record ID for '%s' '%s'", info.EffectiveFQDN, token)
 	}
 
-	err = d.client.DeleteRecord(strconv.Itoa(zone.ID), strconv.Itoa(recordID))
+	err = d.client.DeleteRecord(ctx, strconv.Itoa(zone.ID), strconv.Itoa(recordID))
 	if err != nil {
 		return fmt.Errorf("hosttech: %w", err)
 	}

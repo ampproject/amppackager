@@ -2,6 +2,7 @@
 package clouddns
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -89,10 +90,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		client.HTTPClient = config.HTTPClient
 	}
 
-	return &DNSProvider{
-		client: client,
-		config: config,
-	}, nil
+	return &DNSProvider{client: client, config: config}, nil
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.
@@ -103,16 +101,21 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("clouddns: %w", err)
+		return fmt.Errorf("clouddns: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
-	err = d.client.AddRecord(authZone, fqdn, value)
+	ctx, err := d.client.CreateAuthenticatedContext(context.Background())
 	if err != nil {
-		return fmt.Errorf("clouddns: %w", err)
+		return err
+	}
+
+	err = d.client.AddRecord(ctx, authZone, info.EffectiveFQDN, info.Value)
+	if err != nil {
+		return fmt.Errorf("clouddns: add record: %w", err)
 	}
 
 	return nil
@@ -120,16 +123,21 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("clouddns: %w", err)
+		return fmt.Errorf("clouddns: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
-	err = d.client.DeleteRecord(authZone, fqdn)
+	ctx, err := d.client.CreateAuthenticatedContext(context.Background())
 	if err != nil {
-		return fmt.Errorf("clouddns: %w", err)
+		return err
+	}
+
+	err = d.client.DeleteRecord(ctx, authZone, info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("clouddns: delete record: %w", err)
 	}
 
 	return nil
