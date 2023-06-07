@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
+	"net/url"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
 	aazure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
+	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
 )
 
 const defaultMetadataEndpoint = "http://169.254.169.254"
@@ -124,7 +124,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	if config.HTTPClient == nil {
-		config.HTTPClient = http.DefaultClient
+		config.HTTPClient = &http.Client{Timeout: 5 * time.Second}
 	}
 
 	authorizer, err := getAuthorizer(config)
@@ -179,11 +179,6 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	return d.provider.CleanUp(domain, token, keyAuth)
 }
 
-// Returns the relative record to the domain.
-func toRelativeRecord(domain, zone string) string {
-	return dns01.UnFqdn(strings.TrimSuffix(domain, zone))
-}
-
 func getAuthorizer(config *Config) (autorest.Authorizer, error) {
 	if config.ClientID != "" && config.ClientSecret != "" && config.TenantID != "" {
 		credentialsConfig := auth.ClientCredentialsConfig{
@@ -215,8 +210,12 @@ func getMetadata(config *Config, field string) (string, error) {
 		metadataEndpoint = defaultMetadataEndpoint
 	}
 
-	resource := fmt.Sprintf("%s/metadata/instance/compute/%s", metadataEndpoint, field)
-	req, err := http.NewRequest(http.MethodGet, resource, nil)
+	endpoint, err := url.JoinPath(metadataEndpoint, "metadata", "instance", "compute", field)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
 		return "", err
 	}
@@ -230,14 +229,15 @@ func getMetadata(config *Config, field string) (string, error) {
 
 	resp, err := config.HTTPClient.Do(req)
 	if err != nil {
-		return "", err
+		return "", errutils.NewHTTPDoError(req, err)
 	}
-	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
+
+	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", errutils.NewReadResponseError(req, resp.StatusCode, err)
 	}
 
-	return string(respBody), nil
+	return string(raw), nil
 }

@@ -29,9 +29,9 @@ func (d *dnsProviderPublic) Timeout() (timeout, interval time.Duration) {
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *dnsProviderPublic) Present(domain, token, keyAuth string) error {
 	ctx := context.Background()
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := d.getHostedZoneID(ctx, fqdn)
+	zone, err := d.getHostedZoneID(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("azure: %w", err)
 	}
@@ -39,10 +39,13 @@ func (d *dnsProviderPublic) Present(domain, token, keyAuth string) error {
 	rsc := dns.NewRecordSetsClientWithBaseURI(d.config.ResourceManagerEndpoint, d.config.SubscriptionID)
 	rsc.Authorizer = d.authorizer
 
-	relative := toRelativeRecord(fqdn, dns01.ToFqdn(zone))
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	if err != nil {
+		return fmt.Errorf("azure: %w", err)
+	}
 
 	// Get existing record set
-	rset, err := rsc.Get(ctx, d.config.ResourceGroup, zone, relative, dns.TXT)
+	rset, err := rsc.Get(ctx, d.config.ResourceGroup, zone, subDomain, dns.TXT)
 	if err != nil {
 		var detailed autorest.DetailedError
 		if !errors.As(err, &detailed) || detailed.StatusCode != http.StatusNotFound {
@@ -51,7 +54,7 @@ func (d *dnsProviderPublic) Present(domain, token, keyAuth string) error {
 	}
 
 	// Construct unique TXT records using map
-	uniqRecords := map[string]struct{}{value: {}}
+	uniqRecords := map[string]struct{}{info.Value: {}}
 	if rset.RecordSetProperties != nil && rset.TxtRecords != nil {
 		for _, txtRecord := range *rset.TxtRecords {
 			// Assume Value doesn't contain multiple strings
@@ -68,14 +71,14 @@ func (d *dnsProviderPublic) Present(domain, token, keyAuth string) error {
 	}
 
 	rec := dns.RecordSet{
-		Name: &relative,
+		Name: &subDomain,
 		RecordSetProperties: &dns.RecordSetProperties{
 			TTL:        to.Int64Ptr(int64(d.config.TTL)),
 			TxtRecords: &txtRecords,
 		},
 	}
 
-	_, err = rsc.CreateOrUpdate(ctx, d.config.ResourceGroup, zone, relative, dns.TXT, rec, "", "")
+	_, err = rsc.CreateOrUpdate(ctx, d.config.ResourceGroup, zone, subDomain, dns.TXT, rec, "", "")
 	if err != nil {
 		return fmt.Errorf("azure: %w", err)
 	}
@@ -85,19 +88,22 @@ func (d *dnsProviderPublic) Present(domain, token, keyAuth string) error {
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *dnsProviderPublic) CleanUp(domain, token, keyAuth string) error {
 	ctx := context.Background()
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := d.getHostedZoneID(ctx, fqdn)
+	zone, err := d.getHostedZoneID(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("azure: %w", err)
 	}
 
-	relative := toRelativeRecord(fqdn, dns01.ToFqdn(zone))
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
+	if err != nil {
+		return fmt.Errorf("azure: %w", err)
+	}
 
 	rsc := dns.NewRecordSetsClientWithBaseURI(d.config.ResourceManagerEndpoint, d.config.SubscriptionID)
 	rsc.Authorizer = d.authorizer
 
-	_, err = rsc.Delete(ctx, d.config.ResourceGroup, zone, relative, dns.TXT, "")
+	_, err = rsc.Delete(ctx, d.config.ResourceGroup, zone, subDomain, dns.TXT, "")
 	if err != nil {
 		return fmt.Errorf("azure: %w", err)
 	}
@@ -112,7 +118,7 @@ func (d *dnsProviderPublic) getHostedZoneID(ctx context.Context, fqdn string) (s
 
 	authZone, err := dns01.FindZoneByFqdn(fqdn)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("could not find zone for FQDN %q: %w", fqdn, err)
 	}
 
 	dc := dns.NewZonesClientWithBaseURI(d.config.ResourceManagerEndpoint, d.config.SubscriptionID)

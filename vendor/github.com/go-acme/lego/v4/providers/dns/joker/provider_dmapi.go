@@ -1,9 +1,9 @@
 package joker
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
@@ -74,32 +74,35 @@ func (d *dmapiProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *dmapiProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("joker: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("joker: %w", err)
 	}
 
-	relative := getRelative(fqdn, zone)
-
 	if d.config.Debug {
-		log.Infof("[%s] joker: adding TXT record %q to zone %q with value %q", domain, relative, zone, value)
+		log.Infof("[%s] joker: adding TXT record %q to zone %q with value %q", domain, subDomain, zone, info.Value)
 	}
 
-	response, err := d.client.Login()
+	ctx, err := d.client.CreateAuthenticatedContext(context.Background())
 	if err != nil {
-		return formatResponseError(response, err)
+		return err
 	}
 
-	response, err = d.client.GetZone(zone)
+	response, err := d.client.GetZone(ctx, zone)
 	if err != nil || response.StatusCode != 0 {
 		return formatResponseError(response, err)
 	}
 
-	dnsZone := dmapi.AddTxtEntryToZone(response.Body, relative, value, d.config.TTL)
+	dnsZone := dmapi.AddTxtEntryToZone(response.Body, subDomain, info.Value, d.config.TTL)
 
-	response, err = d.client.PutZone(zone, dnsZone)
+	response, err = d.client.PutZone(ctx, zone, dnsZone)
 	if err != nil || response.StatusCode != 0 {
 		return formatResponseError(response, err)
 	}
@@ -109,51 +112,50 @@ func (d *dmapiProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *dmapiProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("joker: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zone)
 	if err != nil {
 		return fmt.Errorf("joker: %w", err)
 	}
 
-	relative := getRelative(fqdn, zone)
-
 	if d.config.Debug {
-		log.Infof("[%s] joker: removing entry %q from zone %q", domain, relative, zone)
+		log.Infof("[%s] joker: removing entry %q from zone %q", domain, subDomain, zone)
 	}
 
-	response, err := d.client.Login()
+	ctx, err := d.client.CreateAuthenticatedContext(context.Background())
 	if err != nil {
-		return formatResponseError(response, err)
+		return err
 	}
 
 	defer func() {
-		// Try to logout in case of errors
-		_, _ = d.client.Logout()
+		// Try to log out in case of errors
+		_, _ = d.client.Logout(ctx)
 	}()
 
-	response, err = d.client.GetZone(zone)
+	response, err := d.client.GetZone(ctx, zone)
 	if err != nil || response.StatusCode != 0 {
 		return formatResponseError(response, err)
 	}
 
-	dnsZone, modified := dmapi.RemoveTxtEntryFromZone(response.Body, relative)
+	dnsZone, modified := dmapi.RemoveTxtEntryFromZone(response.Body, subDomain)
 	if modified {
-		response, err = d.client.PutZone(zone, dnsZone)
+		response, err = d.client.PutZone(ctx, zone, dnsZone)
 		if err != nil || response.StatusCode != 0 {
 			return formatResponseError(response, err)
 		}
 	}
 
-	response, err = d.client.Logout()
+	response, err = d.client.Logout(ctx)
 	if err != nil {
 		return formatResponseError(response, err)
 	}
 	return nil
-}
-
-func getRelative(fqdn, zone string) string {
-	return dns01.UnFqdn(strings.TrimSuffix(fqdn, dns01.ToFqdn(zone)))
 }
 
 // formatResponseError formats error with optional details from DMAPI response.

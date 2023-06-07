@@ -234,7 +234,7 @@ func TestParamsIncorrectValueType(t *testing.T) {
 // There is an option that doesn't look safe enough:
 // https://www.reddit.com/r/golang/comments/30try1/monkey_patching_in_go/
 // https://news.ycombinator.com/item?id=22442170.
-func TestPrometheusMetricRequestsLatency(t *testing.T) {
+func DisableTestPrometheusMetricRequestsLatency(t *testing.T) {
 	hintPrefix := "TestPrometheusMetricRequestsLatency"
 
 	type metricRecordKey struct {

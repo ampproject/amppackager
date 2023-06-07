@@ -87,9 +87,10 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	_, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.addTxtRecord(domain, value)
+	// TODO(ldez) replace domain by FQDN to follow CNAME.
+	err := d.addTxtRecord(domain, info.Value)
 	if err != nil {
 		return fmt.Errorf("iij: %w", err)
 	}
@@ -98,10 +99,10 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	_, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	// TODO(ldez) replace domain by FQDN to follow CNAME.
-	err := d.deleteTxtRecord(domain, value)
+	err := d.deleteTxtRecord(domain, info.Value)
 	if err != nil {
 		return fmt.Errorf("iij: %w", err)
 	}
@@ -230,7 +231,7 @@ func splitDomain(domain string, zones []string) (string, string, error) {
 		zone = strings.Join(parts[i:], ".")
 		if zoneContains(zone, zones) {
 			baseOwner := strings.Join(parts[0:i], ".")
-			if len(baseOwner) > 0 {
+			if baseOwner != "" {
 				baseOwner = "." + baseOwner
 			}
 			owner = "_acme-challenge" + baseOwner

@@ -127,9 +127,9 @@ func (d *DNSProvider) Sequential() time.Duration {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.changeRecord("INSERT", fqdn, value, d.config.TTL)
+	err := d.changeRecord("INSERT", info.EffectiveFQDN, info.Value, d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("rfc2136: failed to insert: %w", err)
 	}
@@ -138,9 +138,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.changeRecord("REMOVE", fqdn, value, d.config.TTL)
+	err := d.changeRecord("REMOVE", info.EffectiveFQDN, info.Value, d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("rfc2136: failed to remove: %w", err)
 	}
@@ -179,7 +179,7 @@ func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 	c.SingleInflight = true
 
 	// TSIG authentication / msg signing
-	if len(d.config.TSIGKey) > 0 && len(d.config.TSIGSecret) > 0 {
+	if d.config.TSIGKey != "" && d.config.TSIGSecret != "" {
 		key := strings.ToLower(dns.Fqdn(d.config.TSIGKey))
 		alg := dns.Fqdn(d.config.TSIGAlgorithm)
 		m.SetTsig(key, alg, 300, time.Now().Unix())

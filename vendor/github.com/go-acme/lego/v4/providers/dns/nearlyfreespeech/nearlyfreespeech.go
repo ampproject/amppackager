@@ -2,6 +2,7 @@
 package nearlyfreespeech
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -108,21 +109,26 @@ func (d *DNSProvider) Sequential() time.Duration {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("nearlyfreespeech: could not determine zone for domain %q: %w", fqdn, err)
+		return fmt.Errorf("nearlyfreespeech: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	if err != nil {
+		return fmt.Errorf("nearlyfreespeech: %w", err)
 	}
 
 	record := internal.Record{
-		Name: getRecordName(fqdn, authZone),
+		Name: recordName,
 		Type: "TXT",
-		Data: value,
+		Data: info.Value,
 		TTL:  d.config.TTL,
 	}
 
-	err = d.client.AddRecord(authZone, record)
+	err = d.client.AddRecord(context.Background(), authZone, record)
 	if err != nil {
 		return fmt.Errorf("nearlyfreespeech: %w", err)
 	}
@@ -132,27 +138,28 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("nearlyfreespeech: could not determine zone for domain %q: %w", fqdn, err)
+		return fmt.Errorf("nearlyfreespeech: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	recordName, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	if err != nil {
+		return fmt.Errorf("nearlyfreespeech: %w", err)
 	}
 
 	record := internal.Record{
-		Name: getRecordName(fqdn, authZone),
+		Name: recordName,
 		Type: "TXT",
-		Data: value,
+		Data: info.Value,
 	}
 
-	err = d.client.RemoveRecord(domain, record)
+	err = d.client.RemoveRecord(context.Background(), domain, record)
 	if err != nil {
 		return fmt.Errorf("nearlyfreespeech: %w", err)
 	}
 
 	return nil
-}
-
-func getRecordName(fqdn, authZone string) string {
-	return fqdn[0 : len(fqdn)-len(authZone)-1]
 }

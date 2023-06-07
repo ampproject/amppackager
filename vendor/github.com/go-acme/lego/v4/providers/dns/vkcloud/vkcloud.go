@@ -17,8 +17,6 @@ const (
 	defaultDNSEndpoint      = "https://mcs.mail.ru/public-dns/v2/dns"
 )
 
-const defaultTTL = 60
-
 const defaultDomainName = "users"
 
 // Environment variables names.
@@ -58,7 +56,7 @@ type Config struct {
 // NewDefaultConfig returns a default configuration for the DNSProvider.
 func NewDefaultConfig() *Config {
 	return &Config{
-		TTL:                env.GetOrDefaultInt(EnvTTL, defaultTTL),
+		TTL:                env.GetOrDefaultInt(EnvTTL, 60),
 		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, dns01.DefaultPropagationTimeout),
 		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, dns01.DefaultPollingInterval),
 	}
@@ -119,11 +117,11 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (r *DNSProvider) Present(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("vkcloud: %w", err)
+		return fmt.Errorf("vkcloud: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	authZone = dns01.UnFqdn(authZone)
@@ -144,9 +142,12 @@ func (r *DNSProvider) Present(domain, _, keyAuth string) error {
 		return fmt.Errorf("vkcloud: cant find dns zone %s in VK Cloud", authZone)
 	}
 
-	name := fqdn[:len(fqdn)-len(authZone)-1]
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	if err != nil {
+		return fmt.Errorf("vkcloud: %w", err)
+	}
 
-	err = r.upsertTXTRecord(zoneUUID, name, value)
+	err = r.upsertTXTRecord(zoneUUID, subDomain, info.Value)
 	if err != nil {
 		return fmt.Errorf("vkcloud: %w", err)
 	}
@@ -156,11 +157,11 @@ func (r *DNSProvider) Present(domain, _, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (r *DNSProvider) CleanUp(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("vkcloud: %w", err)
+		return fmt.Errorf("vkcloud: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	authZone = dns01.UnFqdn(authZone)
@@ -182,9 +183,12 @@ func (r *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return nil
 	}
 
-	name := fqdn[:len(fqdn)-len(authZone)-1]
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	if err != nil {
+		return fmt.Errorf("vkcloud: %w", err)
+	}
 
-	err = r.removeTXTRecord(zoneUUID, name, value)
+	err = r.removeTXTRecord(zoneUUID, subDomain, info.Value)
 	if err != nil {
 		return fmt.Errorf("vkcloud: %w", err)
 	}

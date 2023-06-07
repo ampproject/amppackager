@@ -2,6 +2,7 @@
 package infomaniak
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -29,8 +30,6 @@ const (
 	EnvHTTPTimeout        = envNamespace + "HTTP_TIMEOUT"
 )
 
-const defaultBaseURL = "https://api.infomaniak.com"
-
 // Config is used to configure the creation of the DNSProvider.
 type Config struct {
 	APIEndpoint        string
@@ -44,7 +43,7 @@ type Config struct {
 // NewDefaultConfig returns a default configuration for the DNSProvider.
 func NewDefaultConfig() *Config {
 	return &Config{
-		APIEndpoint:        env.GetOrDefaultString(EnvEndpoint, defaultBaseURL),
+		APIEndpoint:        env.GetOrDefaultString(EnvEndpoint, internal.DefaultBaseURL),
 		TTL:                env.GetOrDefaultInt(EnvTTL, 7200),
 		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, dns01.DefaultPropagationTimeout),
 		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, dns01.DefaultPollingInterval),
@@ -94,10 +93,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("infomaniak: missing access token")
 	}
 
-	client := internal.New(config.APIEndpoint, config.AccessToken)
-
-	if config.HTTPClient != nil {
-		client.HTTPClient = config.HTTPClient
+	client, err := internal.New(internal.OAuthStaticAccessToken(config.HTTPClient, config.AccessToken), config.APIEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("infomaniak: %w", err)
 	}
 
 	return &DNSProvider{
@@ -110,26 +108,32 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	// TODO(ldez) replace domain by FQDN to follow CNAME.
-	ikDomain, err := d.client.GetDomainByName(domain)
+	ctx := context.Background()
+
+	ikDomain, err := d.client.GetDomainByName(ctx, dns01.UnFqdn(info.EffectiveFQDN))
 	if err != nil {
-		return fmt.Errorf("infomaniak: could not get domain %q: %w", domain, err)
+		return fmt.Errorf("infomaniak: could not get domain %q: %w", info.EffectiveFQDN, err)
 	}
 
 	d.domainIDsMu.Lock()
 	d.domainIDs[token] = ikDomain.ID
 	d.domainIDsMu.Unlock()
 
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, ikDomain.CustomerName)
+	if err != nil {
+		return fmt.Errorf("infomaniak: %w", err)
+	}
+
 	record := internal.Record{
-		Source: extractRecordName(fqdn, ikDomain.CustomerName),
-		Target: value,
+		Source: subDomain,
+		Target: info.Value,
 		Type:   "TXT",
 		TTL:    d.config.TTL,
 	}
 
-	recordID, err := d.client.CreateDNSRecord(ikDomain, record)
+	recordID, err := d.client.CreateDNSRecord(ctx, ikDomain, record)
 	if err != nil {
 		return fmt.Errorf("infomaniak: error when calling api to create DNS record: %w", err)
 	}
@@ -143,14 +147,14 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	d.recordIDsMu.Lock()
 	recordID, ok := d.recordIDs[token]
 	d.recordIDsMu.Unlock()
 
 	if !ok {
-		return fmt.Errorf("infomaniak: unknown record ID for '%s'", fqdn)
+		return fmt.Errorf("infomaniak: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
 	d.domainIDsMu.Lock()
@@ -158,12 +162,12 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	d.domainIDsMu.Unlock()
 
 	if !ok {
-		return fmt.Errorf("infomaniak: unknown domain ID for '%s'", fqdn)
+		return fmt.Errorf("infomaniak: unknown domain ID for '%s'", info.EffectiveFQDN)
 	}
 
-	err := d.client.DeleteDNSRecord(domainID, recordID)
+	err := d.client.DeleteDNSRecord(context.Background(), domainID, recordID)
 	if err != nil {
-		return fmt.Errorf("infomaniak: could not delete record %q: %w", domain, err)
+		return fmt.Errorf("infomaniak: could not delete record %q: %w", dns01.UnFqdn(info.EffectiveFQDN), err)
 	}
 
 	// Delete record ID from map
@@ -183,10 +187,4 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 // Adjusting here to cope with spikes in propagation times.
 func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
-}
-
-func extractRecordName(fqdn, domain string) string {
-	name := dns01.UnFqdn(fqdn)
-
-	return name[:len(name)-len(domain)-1]
 }
