@@ -2,6 +2,7 @@
 package safedns
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -100,21 +101,21 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(dns01.ToFqdn(fqdn))
+	zone, err := dns01.FindZoneByFqdn(dns01.ToFqdn(info.EffectiveFQDN))
 	if err != nil {
-		return fmt.Errorf("safedns: could not determine zone for domain: %q: %w", fqdn, err)
+		return fmt.Errorf("safedns: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	record := internal.Record{
-		Name:    dns01.UnFqdn(fqdn),
+		Name:    dns01.UnFqdn(info.EffectiveFQDN),
 		Type:    "TXT",
-		Content: fmt.Sprintf("%q", value),
+		Content: fmt.Sprintf("%q", info.Value),
 		TTL:     d.config.TTL,
 	}
 
-	resp, err := d.client.AddRecord(zone, record)
+	resp, err := d.client.AddRecord(context.Background(), zone, record)
 	if err != nil {
 		return fmt.Errorf("safedns: %w", err)
 	}
@@ -128,21 +129,21 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record previously created.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("safedns: %w", err)
+		return fmt.Errorf("safedns: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	d.recordIDsMu.Lock()
 	recordID, ok := d.recordIDs[token]
 	d.recordIDsMu.Unlock()
 	if !ok {
-		return fmt.Errorf("safedns: unknown record ID for '%s'", fqdn)
+		return fmt.Errorf("safedns: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	err = d.client.RemoveRecord(authZone, recordID)
+	err = d.client.RemoveRecord(context.Background(), authZone, recordID)
 	if err != nil {
 		return fmt.Errorf("safedns: %w", err)
 	}

@@ -17,8 +17,6 @@ import (
 	"github.com/yandex-cloud/go-sdk/iamkey"
 )
 
-const defaultTTL = 60
-
 // Environment variables names.
 const (
 	envNamespace = "YANDEX_CLOUD_"
@@ -44,7 +42,7 @@ type Config struct {
 // NewDefaultConfig returns a default configuration for the DNSProvider.
 func NewDefaultConfig() *Config {
 	return &Config{
-		TTL:                env.GetOrDefaultInt(EnvTTL, defaultTTL),
+		TTL:                env.GetOrDefaultInt(EnvTTL, 60),
 		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, dns01.DefaultPropagationTimeout),
 		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, dns01.DefaultPollingInterval),
 	}
@@ -102,11 +100,11 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (r *DNSProvider) Present(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("yandexcloud: %w", err)
+		return fmt.Errorf("yandexcloud: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	ctx := context.Background()
@@ -128,9 +126,12 @@ func (r *DNSProvider) Present(domain, _, keyAuth string) error {
 		return fmt.Errorf("yandexcloud: cant find dns zone %s in yandex cloud", authZone)
 	}
 
-	name := fqdn[:len(fqdn)-len(authZone)-1]
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	if err != nil {
+		return fmt.Errorf("yandexcloud: %w", err)
+	}
 
-	err = r.upsertRecordSetData(ctx, zoneID, name, value)
+	err = r.upsertRecordSetData(ctx, zoneID, subDomain, info.Value)
 	if err != nil {
 		return fmt.Errorf("yandexcloud: %w", err)
 	}
@@ -140,11 +141,11 @@ func (r *DNSProvider) Present(domain, _, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (r *DNSProvider) CleanUp(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("yandexcloud: %w", err)
+		return fmt.Errorf("yandexcloud: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	ctx := context.Background()
@@ -166,9 +167,12 @@ func (r *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return nil
 	}
 
-	name := fqdn[:len(fqdn)-len(authZone)-1]
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
+	if err != nil {
+		return fmt.Errorf("yandexcloud: %w", err)
+	}
 
-	err = r.removeRecordSetData(ctx, zoneID, name, value)
+	err = r.removeRecordSetData(ctx, zoneID, subDomain, info.Value)
 	if err != nil {
 		return fmt.Errorf("yandexcloud: %w", err)
 	}

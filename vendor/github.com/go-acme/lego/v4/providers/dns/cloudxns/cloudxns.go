@@ -2,6 +2,7 @@
 package cloudxns
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -59,7 +60,7 @@ type DNSProvider struct {
 func NewDNSProvider() (*DNSProvider, error) {
 	values, err := env.Get(EnvAPIKey, EnvSecretKey)
 	if err != nil {
-		return nil, fmt.Errorf("CloudXNS: %w", err)
+		return nil, fmt.Errorf("cloudxns: %w", err)
 	}
 
 	config := NewDefaultConfig()
@@ -72,46 +73,62 @@ func NewDNSProvider() (*DNSProvider, error) {
 // NewDNSProviderConfig return a DNSProvider instance configured for CloudXNS.
 func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	if config == nil {
-		return nil, errors.New("CloudXNS: the configuration of the DNS provider is nil")
+		return nil, errors.New("cloudxns: the configuration of the DNS provider is nil")
 	}
 
 	client, err := internal.NewClient(config.APIKey, config.SecretKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cloudxns: %w", err)
 	}
 
-	client.HTTPClient = config.HTTPClient
+	if config.HTTPClient != nil {
+		client.HTTPClient = config.HTTPClient
+	}
 
 	return &DNSProvider{client: client, config: config}, nil
 }
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	challengeInfo := dns01.GetChallengeInfo(domain, keyAuth)
 
-	info, err := d.client.GetDomainInformation(fqdn)
+	ctx := context.Background()
+
+	info, err := d.client.GetDomainInformation(ctx, challengeInfo.EffectiveFQDN)
 	if err != nil {
-		return err
+		return fmt.Errorf("cloudxns: %w", err)
 	}
 
-	return d.client.AddTxtRecord(info, fqdn, value, d.config.TTL)
+	err = d.client.AddTxtRecord(ctx, info, challengeInfo.EffectiveFQDN, challengeInfo.Value, d.config.TTL)
+	if err != nil {
+		return fmt.Errorf("cloudxns: %w", err)
+	}
+
+	return nil
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	challengeInfo := dns01.GetChallengeInfo(domain, keyAuth)
 
-	info, err := d.client.GetDomainInformation(fqdn)
+	ctx := context.Background()
+
+	info, err := d.client.GetDomainInformation(ctx, challengeInfo.EffectiveFQDN)
 	if err != nil {
-		return err
+		return fmt.Errorf("cloudxns: %w", err)
 	}
 
-	record, err := d.client.FindTxtRecord(info.ID, fqdn)
+	record, err := d.client.FindTxtRecord(ctx, info.ID, challengeInfo.EffectiveFQDN)
 	if err != nil {
-		return err
+		return fmt.Errorf("cloudxns: %w", err)
 	}
 
-	return d.client.RemoveTxtRecord(record.RecordID, info.ID)
+	err = d.client.RemoveTxtRecord(ctx, record.RecordID, info.ID)
+	if err != nil {
+		return fmt.Errorf("cloudxns: %w", err)
+	}
+
+	return nil
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.

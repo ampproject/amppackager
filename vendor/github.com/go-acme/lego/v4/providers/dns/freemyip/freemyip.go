@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
@@ -106,11 +105,14 @@ func (d *DNSProvider) Sequential() time.Duration {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	subDomain := dns01.UnFqdn(strings.TrimSuffix(dns01.UnFqdn(fqdn), freemyip.RootDomain))
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, freemyip.RootDomain)
+	if err != nil {
+		return fmt.Errorf("freemyip: %w", err)
+	}
 
-	_, err := d.client.EditTXTRecord(context.Background(), subDomain, value)
+	_, err = d.client.EditTXTRecord(context.Background(), subDomain, info.Value)
 	if err != nil {
 		return fmt.Errorf("freemyip: %w", err)
 	}
@@ -120,11 +122,14 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	subDomain := dns01.UnFqdn(strings.TrimSuffix(dns01.UnFqdn(fqdn), freemyip.RootDomain))
+	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, freemyip.RootDomain)
+	if err != nil {
+		return fmt.Errorf("freemyip: %w", err)
+	}
 
-	_, err := d.client.DeleteTXTRecord(context.Background(), subDomain)
+	_, err = d.client.DeleteTXTRecord(context.Background(), subDomain)
 	if err != nil {
 		return fmt.Errorf("freemyip: %w", err)
 	}

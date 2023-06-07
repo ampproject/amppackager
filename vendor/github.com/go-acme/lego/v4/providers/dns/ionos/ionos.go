@@ -92,10 +92,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		client.HTTPClient = config.HTTPClient
 	}
 
-	return &DNSProvider{
-		config: config,
-		client: client,
-	}, nil
+	return &DNSProvider{config: config, client: client}, nil
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.
@@ -106,7 +103,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	ctx := context.Background()
 
@@ -122,7 +119,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	}
 
 	filter := &internal.RecordsFilter{
-		Suffix:     dns01.UnFqdn(fqdn),
+		Suffix:     dns01.UnFqdn(info.EffectiveFQDN),
 		RecordType: "TXT",
 	}
 
@@ -132,8 +129,8 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	}
 
 	records = append(records, internal.Record{
-		Name:    dns01.UnFqdn(fqdn),
-		Content: value,
+		Name:    dns01.UnFqdn(info.EffectiveFQDN),
+		Content: info.Value,
 		TTL:     d.config.TTL,
 		Type:    "TXT",
 	})
@@ -148,7 +145,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	ctx := context.Background()
 
@@ -164,7 +161,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	}
 
 	filter := &internal.RecordsFilter{
-		Suffix:     dns01.UnFqdn(fqdn),
+		Suffix:     dns01.UnFqdn(info.EffectiveFQDN),
 		RecordType: "TXT",
 	}
 
@@ -174,7 +171,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	}
 
 	for _, record := range records {
-		if record.Name == dns01.UnFqdn(fqdn) && record.Content == value {
+		if record.Name == dns01.UnFqdn(info.EffectiveFQDN) && record.Content == info.Value {
 			err := d.client.RemoveRecord(ctx, zone.ID, record.ID)
 			if err != nil {
 				return fmt.Errorf("ionos: failed to remove record (zone=%s, record=%s): %w", zone.ID, record.ID, err)

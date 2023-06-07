@@ -2,6 +2,7 @@
 package internetbs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -98,16 +99,16 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	query := internal.RecordQuery{
-		FullRecordName: dns01.UnFqdn(fqdn),
+		FullRecordName: dns01.UnFqdn(info.EffectiveFQDN),
 		Type:           "TXT",
-		Value:          value,
+		Value:          info.Value,
 		TTL:            d.config.TTL,
 	}
 
-	err := d.client.AddRecord(query)
+	err := d.client.AddRecord(context.Background(), query)
 	if err != nil {
 		return fmt.Errorf("internetbs: %w", err)
 	}
@@ -117,16 +118,16 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
 	query := internal.RecordQuery{
-		FullRecordName: dns01.UnFqdn(fqdn),
+		FullRecordName: dns01.UnFqdn(info.EffectiveFQDN),
 		Type:           "TXT",
-		Value:          value,
+		Value:          info.Value,
 		TTL:            d.config.TTL,
 	}
 
-	err := d.client.RemoveRecord(query)
+	err := d.client.RemoveRecord(context.Background(), query)
 	if err != nil {
 		return fmt.Errorf("internetbs: %w", err)
 	}

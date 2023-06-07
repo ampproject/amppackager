@@ -2,8 +2,7 @@
 package pdns
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
+	"github.com/go-acme/lego/v4/providers/dns/pdns/internal"
 )
 
 // Environment variables names.
@@ -55,8 +55,8 @@ func NewDefaultConfig() *Config {
 
 // DNSProvider implements the challenge.Provider interface.
 type DNSProvider struct {
-	apiVersion int
-	config     *Config
+	config *Config
+	client *internal.Client
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for pdns.
@@ -94,15 +94,14 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("pdns: API URL missing")
 	}
 
-	d := &DNSProvider{config: config}
+	client := internal.NewClient(config.Host, config.ServerName, config.APIKey)
 
-	apiVersion, err := d.getAPIVersion()
+	err := client.SetAPIVersion(context.Background())
 	if err != nil {
 		log.Warnf("pdns: failed to get API version %v", err)
 	}
-	d.apiVersion = apiVersion
 
-	return d, nil
+	return &DNSProvider{config: config, client: client}, nil
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS
@@ -113,22 +112,37 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := d.getHostedZone(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("pdns: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	ctx := context.Background()
+
+	zone, err := d.client.GetHostedZone(ctx, authZone)
 	if err != nil {
 		return fmt.Errorf("pdns: %w", err)
 	}
 
-	name := fqdn
-
-	// pre-v1 API wants non-fqdn
-	if d.apiVersion == 0 {
-		name = dns01.UnFqdn(fqdn)
+	name := info.EffectiveFQDN
+	if d.client.APIVersion() == 0 {
+		// pre-v1 API wants non-fqdn
+		name = dns01.UnFqdn(info.EffectiveFQDN)
 	}
 
-	rec := Record{
-		Content:  "\"" + value + "\"",
+	// Look for existing records.
+	existingRRSet := findTxtRecord(zone, info.EffectiveFQDN)
+
+	// merge the existing and new records
+	var records []internal.Record
+	if existingRRSet != nil {
+		records = existingRRSet.Records
+	}
+
+	rec := internal.Record{
+		Content:  "\"" + info.Value + "\"",
 		Disabled: false,
 
 		// pre-v1 API
@@ -137,73 +151,51 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		TTL:  d.config.TTL,
 	}
 
-	// Look for existing records.
-	existingRrSet, err := d.findTxtRecord(fqdn)
-	if err != nil {
-		return fmt.Errorf("pdns: %w", err)
-	}
-
-	// merge the existing and new records
-	var records []Record
-	if existingRrSet != nil {
-		records = existingRrSet.Records
-	}
-	records = append(records, rec)
-
-	rrsets := rrSets{
-		RRSets: []rrSet{
+	rrSets := internal.RRSets{
+		RRSets: []internal.RRSet{
 			{
 				Name:       name,
 				ChangeType: "REPLACE",
 				Type:       "TXT",
 				Kind:       "Master",
 				TTL:        d.config.TTL,
-				Records:    records,
+				Records:    append(records, rec),
 			},
 		},
 	}
 
-	body, err := json.Marshal(rrsets)
+	err = d.client.UpdateRecords(ctx, zone, rrSets)
 	if err != nil {
 		return fmt.Errorf("pdns: %w", err)
 	}
 
-	_, err = d.sendRequest(http.MethodPatch, zone.URL, bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("pdns: %w", err)
-	}
-
-	if d.apiVersion < 1 {
-		return nil
-	}
-
-	err = d.notify(zone.URL)
-	if err != nil {
-		return fmt.Errorf("pdns: %w", err)
-	}
-
-	return nil
+	return d.client.Notify(ctx, zone)
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := d.getHostedZone(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("pdns: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	ctx := context.Background()
+
+	zone, err := d.client.GetHostedZone(ctx, authZone)
 	if err != nil {
 		return fmt.Errorf("pdns: %w", err)
 	}
 
-	set, err := d.findTxtRecord(fqdn)
-	if err != nil {
-		return fmt.Errorf("pdns: %w", err)
-	}
+	set := findTxtRecord(zone, info.EffectiveFQDN)
+
 	if set == nil {
-		return fmt.Errorf("pdns: no existing record found for %s", fqdn)
+		return fmt.Errorf("pdns: no existing record found for %s", info.EffectiveFQDN)
 	}
 
-	rrsets := rrSets{
-		RRSets: []rrSet{
+	rrSets := internal.RRSets{
+		RRSets: []internal.RRSet{
 			{
 				Name:       set.Name,
 				Type:       set.Type,
@@ -211,23 +203,20 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 			},
 		},
 	}
-	body, err := json.Marshal(rrsets)
+
+	err = d.client.UpdateRecords(ctx, zone, rrSets)
 	if err != nil {
 		return fmt.Errorf("pdns: %w", err)
 	}
 
-	_, err = d.sendRequest(http.MethodPatch, zone.URL, bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("pdns: %w", err)
-	}
+	return d.client.Notify(ctx, zone)
+}
 
-	if d.apiVersion < 1 {
-		return nil
-	}
-
-	err = d.notify(zone.URL)
-	if err != nil {
-		return fmt.Errorf("pdns: %w", err)
+func findTxtRecord(zone *internal.HostedZone, fqdn string) *internal.RRSet {
+	for _, set := range zone.RRSets {
+		if set.Type == "TXT" && (set.Name == dns01.UnFqdn(fqdn) || set.Name == fqdn) {
+			return &set
+		}
 	}
 
 	return nil

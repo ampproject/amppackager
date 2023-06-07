@@ -103,17 +103,17 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zoneNameOrID, err1 := dns01.FindZoneByFqdn(fqdn)
-	if err1 != nil {
-		return fmt.Errorf("oraclecloud: could not find zone for domain %q and fqdn %q : %w", domain, fqdn, err1)
+	zoneNameOrID, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("oraclecloud: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	// generate request to dns.PatchDomainRecordsRequest
 	recordOperation := dns.RecordOperation{
-		Domain:      common.String(dns01.UnFqdn(fqdn)),
-		Rdata:       common.String(value),
+		Domain:      common.String(dns01.UnFqdn(info.EffectiveFQDN)),
+		Rdata:       common.String(info.Value),
 		Rtype:       common.String("TXT"),
 		Ttl:         common.Int(d.config.TTL),
 		IsProtected: common.Bool(false),
@@ -122,13 +122,13 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	request := dns.PatchDomainRecordsRequest{
 		CompartmentId: common.String(d.config.CompartmentID),
 		ZoneNameOrId:  common.String(zoneNameOrID),
-		Domain:        common.String(dns01.UnFqdn(fqdn)),
+		Domain:        common.String(dns01.UnFqdn(info.EffectiveFQDN)),
 		PatchDomainRecordsDetails: dns.PatchDomainRecordsDetails{
 			Items: []dns.RecordOperation{recordOperation},
 		},
 	}
 
-	_, err := d.client.PatchDomainRecords(context.Background(), request)
+	_, err = d.client.PatchDomainRecords(context.Background(), request)
 	if err != nil {
 		return fmt.Errorf("oraclecloud: %w", err)
 	}
@@ -138,17 +138,17 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zoneNameOrID, err1 := dns01.FindZoneByFqdn(fqdn)
-	if err1 != nil {
-		return fmt.Errorf("oraclecloud: could not find zone for domain %q and fqdn %q : %w", domain, fqdn, err1)
+	zoneNameOrID, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("oraclecloud: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
 
 	// search to TXT record's hash to delete
 	getRequest := dns.GetDomainRecordsRequest{
 		ZoneNameOrId:  common.String(zoneNameOrID),
-		Domain:        common.String(dns01.UnFqdn(fqdn)),
+		Domain:        common.String(dns01.UnFqdn(info.EffectiveFQDN)),
 		CompartmentId: common.String(d.config.CompartmentID),
 		Rtype:         common.String("TXT"),
 	}
@@ -166,7 +166,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	var deleteHash *string
 	for _, record := range domainRecords.RecordCollection.Items {
-		if record.Rdata != nil && *record.Rdata == `"`+value+`"` {
+		if record.Rdata != nil && *record.Rdata == `"`+info.Value+`"` {
 			deleteHash = record.RecordHash
 			break
 		}
@@ -183,7 +183,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	patchRequest := dns.PatchDomainRecordsRequest{
 		ZoneNameOrId: common.String(zoneNameOrID),
-		Domain:       common.String(dns01.UnFqdn(fqdn)),
+		Domain:       common.String(dns01.UnFqdn(info.EffectiveFQDN)),
 		PatchDomainRecordsDetails: dns.PatchDomainRecordsDetails{
 			Items: []dns.RecordOperation{recordOperation},
 		},

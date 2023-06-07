@@ -2,6 +2,7 @@
 package cloudns
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -102,31 +103,35 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := d.client.GetZone(fqdn)
+	ctx := context.Background()
+
+	zone, err := d.client.GetZone(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ClouDNS: %w", err)
 	}
 
-	err = d.client.AddTxtRecord(zone.Name, fqdn, value, d.config.TTL)
+	err = d.client.AddTxtRecord(ctx, zone.Name, info.EffectiveFQDN, info.Value, d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("ClouDNS: %w", err)
 	}
 
-	return d.waitNameservers(domain, zone)
+	return d.waitNameservers(ctx, domain, zone)
 }
 
 // CleanUp removes the TXT records matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, err := d.client.GetZone(fqdn)
+	ctx := context.Background()
+
+	zone, err := d.client.GetZone(ctx, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ClouDNS: %w", err)
 	}
 
-	records, err := d.client.ListTxtRecords(zone.Name, fqdn)
+	records, err := d.client.ListTxtRecords(ctx, zone.Name, info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("ClouDNS: %w", err)
 	}
@@ -136,7 +141,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	}
 
 	for _, record := range records {
-		err = d.client.RemoveTxtRecord(record.ID, zone.Name)
+		err = d.client.RemoveTxtRecord(ctx, record.ID, zone.Name)
 		if err != nil {
 			return fmt.Errorf("ClouDNS: %w", err)
 		}
@@ -153,9 +158,9 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // waitNameservers At the time of writing 4 servers are found as authoritative, but 8 are reported during the sync.
 // If this is not done, the secondary verification done by Let's Encrypt server will fail quire a bit.
-func (d *DNSProvider) waitNameservers(domain string, zone *internal.Zone) error {
+func (d *DNSProvider) waitNameservers(ctx context.Context, domain string, zone *internal.Zone) error {
 	return wait.For("Nameserver sync on "+domain, d.config.PropagationTimeout, d.config.PollingInterval, func() (bool, error) {
-		syncProgress, err := d.client.GetUpdateStatus(zone.Name)
+		syncProgress, err := d.client.GetUpdateStatus(ctx, zone.Name)
 		if err != nil {
 			return false, err
 		}

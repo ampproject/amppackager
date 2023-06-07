@@ -2,9 +2,9 @@
 package namecheap
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,6 +13,7 @@ import (
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
+	"github.com/go-acme/lego/v4/providers/dns/namecheap/internal"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -28,12 +29,6 @@ import (
 //    its APIs. It also requires all API calls to include the whitelisted IP
 //    address as a form or query string value. This code uses a namecheap
 //    service to query the client's IP address.
-
-const (
-	defaultBaseURL = "https://api.namecheap.com/xml.response"
-	sandboxBaseURL = "https://api.sandbox.namecheap.com/xml.response"
-	getIPURL       = "https://dynamicdns.park-your-domain.com/getip"
-)
 
 // Environment variables names.
 const (
@@ -62,6 +57,37 @@ type challenge struct {
 	host     string
 }
 
+// newChallenge builds a challenge record from a domain name and a challenge authentication key.
+func newChallenge(domain, keyAuth string) (*challenge, error) {
+	domain = dns01.UnFqdn(domain)
+
+	tld, _ := publicsuffix.PublicSuffix(domain)
+	if tld == domain {
+		return nil, fmt.Errorf("invalid domain name %q", domain)
+	}
+
+	parts := strings.Split(domain, ".")
+	longest := len(parts) - strings.Count(tld, ".") - 1
+	sld := parts[longest-1]
+
+	var host string
+	if longest >= 1 {
+		host = strings.Join(parts[:longest-1], ".")
+	}
+
+	info := dns01.GetChallengeInfo(domain, keyAuth)
+
+	return &challenge{
+		domain:   domain,
+		key:      "_acme-challenge." + host,
+		keyFqdn:  info.EffectiveFQDN,
+		keyValue: info.Value,
+		tld:      tld,
+		sld:      sld,
+		host:     host,
+	}, nil
+}
+
 // Config is used to configure the creation of the DNSProvider.
 type Config struct {
 	Debug              bool
@@ -77,9 +103,9 @@ type Config struct {
 
 // NewDefaultConfig returns a default configuration for the DNSProvider.
 func NewDefaultConfig() *Config {
-	baseURL := defaultBaseURL
+	baseURL := internal.DefaultBaseURL
 	if env.GetOrDefaultBool(EnvSandbox, false) {
-		baseURL = sandboxBaseURL
+		baseURL = internal.SandboxBaseURL
 	}
 
 	return &Config{
@@ -97,6 +123,7 @@ func NewDefaultConfig() *Config {
 // DNSProvider implements the challenge.Provider interface.
 type DNSProvider struct {
 	config *Config
+	client *internal.Client
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for namecheap.
@@ -126,14 +153,21 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	if config.ClientIP == "" {
-		clientIP, err := getClientIP(config.HTTPClient, config.Debug)
+		clientIP, err := internal.GetClientIP(context.Background(), config.HTTPClient, config.Debug)
 		if err != nil {
 			return nil, fmt.Errorf("namecheap: %w", err)
 		}
 		config.ClientIP = clientIP
 	}
 
-	return &DNSProvider{config: config}, nil
+	client := internal.NewClient(config.APIUser, config.APIKey, config.ClientIP)
+	client.BaseURL = config.BaseURL
+
+	if config.HTTPClient != nil {
+		client.HTTPClient = config.HTTPClient
+	}
+
+	return &DNSProvider{config: config, client: client}, nil
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.
@@ -150,12 +184,14 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("namecheap: %w", err)
 	}
 
-	records, err := d.getHosts(ch.sld, ch.tld)
+	ctx := context.Background()
+
+	records, err := d.client.GetHosts(ctx, ch.sld, ch.tld)
 	if err != nil {
 		return fmt.Errorf("namecheap: %w", err)
 	}
 
-	record := Record{
+	record := internal.Record{
 		Name:    ch.key,
 		Type:    "TXT",
 		Address: ch.keyValue,
@@ -171,7 +207,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		}
 	}
 
-	err = d.setHosts(ch.sld, ch.tld, records)
+	err = d.client.SetHosts(ctx, ch.sld, ch.tld, records)
 	if err != nil {
 		return fmt.Errorf("namecheap: %w", err)
 	}
@@ -186,14 +222,16 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("namecheap: %w", err)
 	}
 
-	records, err := d.getHosts(ch.sld, ch.tld)
+	ctx := context.Background()
+
+	records, err := d.client.GetHosts(ctx, ch.sld, ch.tld)
 	if err != nil {
 		return fmt.Errorf("namecheap: %w", err)
 	}
 
 	// Find the challenge TXT record and remove it if found.
 	var found bool
-	var newRecords []Record
+	var newRecords []internal.Record
 	for _, h := range records {
 		if h.Name == ch.key && h.Type == "TXT" {
 			found = true
@@ -206,60 +244,9 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return nil
 	}
 
-	err = d.setHosts(ch.sld, ch.tld, newRecords)
+	err = d.client.SetHosts(ctx, ch.sld, ch.tld, newRecords)
 	if err != nil {
 		return fmt.Errorf("namecheap: %w", err)
 	}
 	return nil
-}
-
-// getClientIP returns the client's public IP address.
-// It uses namecheap's IP discovery service to perform the lookup.
-func getClientIP(client *http.Client, debug bool) (addr string, err error) {
-	resp, err := client.Get(getIPURL)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	clientIP, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	if debug {
-		log.Println("Client IP:", string(clientIP))
-	}
-	return string(clientIP), nil
-}
-
-// newChallenge builds a challenge record from a domain name and a challenge authentication key.
-func newChallenge(domain, keyAuth string) (*challenge, error) {
-	domain = dns01.UnFqdn(domain)
-
-	tld, _ := publicsuffix.PublicSuffix(domain)
-	if tld == domain {
-		return nil, fmt.Errorf("invalid domain name %q", domain)
-	}
-
-	parts := strings.Split(domain, ".")
-	longest := len(parts) - strings.Count(tld, ".") - 1
-	sld := parts[longest-1]
-
-	var host string
-	if longest >= 1 {
-		host = strings.Join(parts[:longest-1], ".")
-	}
-
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
-
-	return &challenge{
-		domain:   domain,
-		key:      "_acme-challenge." + host,
-		keyFqdn:  fqdn,
-		keyValue: value,
-		tld:      tld,
-		sld:      sld,
-		host:     host,
-	}, nil
 }

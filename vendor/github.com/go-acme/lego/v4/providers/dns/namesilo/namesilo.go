@@ -4,7 +4,6 @@ package namesilo
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
@@ -87,18 +86,30 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zoneName, err := getZoneNameByDomain(fqdn)
+	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
+	if err != nil {
+		return fmt.Errorf("namesilo: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+	}
+
+	zoneName := dns01.UnFqdn(zone)
+
+	subdomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zoneName)
 	if err != nil {
 		return fmt.Errorf("namesilo: %w", err)
+	}
+
+	err = d.CleanUp(domain, token, keyAuth)
+	if err != nil {
+		return err
 	}
 
 	_, err = d.client.DnsAddRecord(&namesilo.DnsAddRecordParams{
 		Domain: zoneName,
 		Type:   "TXT",
-		Host:   getRecordName(fqdn, zoneName),
-		Value:  value,
+		Host:   subdomain,
+		Value:  info.Value,
 		TTL:    d.config.TTL,
 	})
 	if err != nil {
@@ -108,23 +119,29 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 }
 
 // CleanUp removes the TXT record matching the specified parameters.
-func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zoneName, err := getZoneNameByDomain(fqdn)
+	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("namesilo: %w", err)
+		return fmt.Errorf("namesilo: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
 	}
+
+	zoneName := dns01.UnFqdn(zone)
 
 	resp, err := d.client.DnsListRecords(&namesilo.DnsListRecordsParams{Domain: zoneName})
 	if err != nil {
 		return fmt.Errorf("namesilo: %w", err)
 	}
 
+	subdomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zoneName)
+	if err != nil {
+		return fmt.Errorf("namesilo: %w", err)
+	}
+
 	var lastErr error
-	name := getRecordName(fqdn, zoneName)
 	for _, r := range resp.Reply.ResourceRecord {
-		if r.Type == "TXT" && (r.Host == name || r.Host == dns01.UnFqdn(fqdn)) {
+		if r.Type == "TXT" && (r.Host == subdomain || r.Host == dns01.UnFqdn(info.EffectiveFQDN)) {
 			_, err := d.client.DnsDeleteRecord(&namesilo.DnsDeleteRecordParams{Domain: zoneName, ID: r.RecordID})
 			if err != nil {
 				lastErr = fmt.Errorf("namesilo: %w", err)
@@ -138,16 +155,4 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 // Adjusting here to cope with spikes in propagation times.
 func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
-}
-
-func getZoneNameByDomain(domain string) (string, error) {
-	zone, err := dns01.FindZoneByFqdn(domain)
-	if err != nil {
-		return "", fmt.Errorf("failed to find zone for domain: %s, %w", domain, err)
-	}
-	return dns01.UnFqdn(zone), nil
-}
-
-func getRecordName(domain, zone string) string {
-	return strings.TrimSuffix(dns01.ToFqdn(domain), "."+dns01.ToFqdn(zone))
 }

@@ -2,9 +2,11 @@
 package nifcloud
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
@@ -88,8 +90,13 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		client.HTTPClient = config.HTTPClient
 	}
 
-	if len(config.BaseURL) > 0 {
-		client.BaseURL = config.BaseURL
+	if config.BaseURL != "" {
+		baseURL, err := url.Parse(config.BaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("nifcloud: %w", err)
+		}
+
+		client.BaseURL = baseURL
 	}
 
 	return &DNSProvider{client: client, config: config}, nil
@@ -97,9 +104,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.changeRecord("CREATE", fqdn, value, d.config.TTL)
+	err := d.changeRecord("CREATE", info.EffectiveFQDN, info.Value, d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("nifcloud: %w", err)
 	}
@@ -108,9 +115,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	err := d.changeRecord("DELETE", fqdn, value, d.config.TTL)
+	err := d.changeRecord("DELETE", info.EffectiveFQDN, info.Value, d.config.TTL)
 	if err != nil {
 		return fmt.Errorf("nifcloud: %w", err)
 	}
@@ -154,10 +161,12 @@ func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 
 	authZone, err := dns01.FindZoneByFqdn(fqdn)
 	if err != nil {
-		return fmt.Errorf("failed to find zone: %w", err)
+		return fmt.Errorf("could not find zone for FQDN %q: %w", fqdn, err)
 	}
 
-	resp, err := d.client.ChangeResourceRecordSets(dns01.UnFqdn(authZone), reqParams)
+	ctx := context.Background()
+
+	resp, err := d.client.ChangeResourceRecordSets(ctx, dns01.UnFqdn(authZone), reqParams)
 	if err != nil {
 		return fmt.Errorf("failed to change record set: %w", err)
 	}
@@ -165,7 +174,7 @@ func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 	statusID := resp.ChangeInfo.ID
 
 	return wait.For("nifcloud", 120*time.Second, 4*time.Second, func() (bool, error) {
-		resp, err := d.client.GetChange(statusID)
+		resp, err := d.client.GetChange(ctx, statusID)
 		if err != nil {
 			return false, fmt.Errorf("failed to query change status: %w", err)
 		}

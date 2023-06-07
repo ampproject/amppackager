@@ -2,10 +2,10 @@
 package domeneshop
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
@@ -94,19 +94,21 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, host, err := d.splitDomain(fqdn)
+	zone, host, err := d.splitDomain(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("domeneshop: %w", err)
 	}
 
-	domainInstance, err := d.client.GetDomainByName(zone)
+	ctx := context.Background()
+
+	domainInstance, err := d.client.GetDomainByName(ctx, zone)
 	if err != nil {
 		return fmt.Errorf("domeneshop: %w", err)
 	}
 
-	err = d.client.CreateTXTRecord(domainInstance, host, value)
+	err = d.client.CreateTXTRecord(ctx, domainInstance, host, info.Value)
 	if err != nil {
 		return fmt.Errorf("domeneshop: failed to create record: %w", err)
 	}
@@ -116,19 +118,21 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	zone, host, err := d.splitDomain(fqdn)
+	zone, host, err := d.splitDomain(info.EffectiveFQDN)
 	if err != nil {
 		return fmt.Errorf("domeneshop: %w", err)
 	}
 
-	domainInstance, err := d.client.GetDomainByName(zone)
+	ctx := context.Background()
+
+	domainInstance, err := d.client.GetDomainByName(ctx, zone)
 	if err != nil {
 		return fmt.Errorf("domeneshop: %w", err)
 	}
 
-	if err := d.client.DeleteTXTRecord(domainInstance, host, value); err != nil {
+	if err := d.client.DeleteTXTRecord(ctx, domainInstance, host, info.Value); err != nil {
 		return fmt.Errorf("domeneshop: failed to create record: %w", err)
 	}
 
@@ -139,11 +143,13 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 func (d *DNSProvider) splitDomain(fqdn string) (string, string, error) {
 	zone, err := dns01.FindZoneByFqdn(fqdn)
 	if err != nil {
+		return "", "", fmt.Errorf("could not find zone for FQDN %q: %w", fqdn, err)
+	}
+
+	subDomain, err := dns01.ExtractSubDomain(fqdn, zone)
+	if err != nil {
 		return "", "", err
 	}
 
-	host := dns01.UnFqdn(strings.TrimSuffix(fqdn, zone))
-	zone = dns01.UnFqdn(zone)
-
-	return zone, host, nil
+	return dns01.UnFqdn(zone), subDomain, nil
 }

@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path"
+	"time"
+
+	"github.com/go-acme/lego/v4/providers/dns/internal/errutils"
 )
 
 const (
@@ -29,7 +31,7 @@ type Client struct {
 // NewClient Creates a Constellix client.
 func NewClient(httpClient *http.Client) *Client {
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{Timeout: 5 * time.Second}
 	}
 
 	client := &Client{
@@ -49,13 +51,15 @@ type service struct {
 }
 
 // do sends an API request and returns the API response.
-func (c *Client) do(req *http.Request, v interface{}) error {
+func (c *Client) do(req *http.Request, result any) error {
+	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return errutils.NewHTTPDoError(req, err)
 	}
+
 	defer func() { _ = resp.Body.Close() }()
 
 	err = checkResponse(resp)
@@ -65,28 +69,18 @@ func (c *Client) do(req *http.Request, v interface{}) error {
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read body: %w", err)
+		return errutils.NewReadResponseError(req, resp.StatusCode, err)
 	}
 
-	if err = json.Unmarshal(raw, v); err != nil {
-		return fmt.Errorf("unmarshaling %T error: %w: %s", v, err, string(raw))
+	if err = json.Unmarshal(raw, result); err != nil {
+		return errutils.NewUnmarshalError(req, resp.StatusCode, raw, err)
 	}
 
 	return nil
 }
 
 func (c *Client) createEndpoint(fragment ...string) (string, error) {
-	baseURL, err := url.Parse(c.BaseURL)
-	if err != nil {
-		return "", err
-	}
-
-	endpoint, err := baseURL.Parse(path.Join(fragment...))
-	if err != nil {
-		return "", err
-	}
-
-	return endpoint.String(), nil
+	return url.JoinPath(c.BaseURL, fragment...)
 }
 
 func checkResponse(resp *http.Response) error {
@@ -94,21 +88,21 @@ func checkResponse(resp *http.Response) error {
 		return nil
 	}
 
-	data, err := io.ReadAll(resp.Body)
-	if err == nil && data != nil {
-		msg := &APIError{StatusCode: resp.StatusCode}
+	raw, err := io.ReadAll(resp.Body)
+	if err == nil && raw != nil {
+		errAPI := &APIError{StatusCode: resp.StatusCode}
 
-		if json.Unmarshal(data, msg) != nil {
-			return fmt.Errorf("API error: status code: %d: %v", resp.StatusCode, string(data))
+		if json.Unmarshal(raw, errAPI) != nil {
+			return fmt.Errorf("API error: status code: %d: %v", resp.StatusCode, string(raw))
 		}
 
 		switch resp.StatusCode {
 		case http.StatusNotFound:
-			return &NotFound{APIError: msg}
+			return &NotFound{APIError: errAPI}
 		case http.StatusBadRequest:
-			return &BadRequest{APIError: msg}
+			return &BadRequest{APIError: errAPI}
 		default:
-			return msg
+			return errAPI
 		}
 	}
 
