@@ -19,3 +19,4 @@ lego --email you@example.com --dns googledomains --domains my.example.org run
 
 [Links]
   GoClient = "https://github.com/googleapis/google-api-go-client"
+

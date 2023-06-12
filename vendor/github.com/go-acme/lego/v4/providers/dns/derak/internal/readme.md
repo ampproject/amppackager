@@ -37,7 +37,7 @@ https://api.derak.cloud/v1.0/zones/47c0ecf6c91243308c649ad1d2d618dd/dnsrecords
 ```bash
 curl -X GET --user "api:api-MbmnxdpIBvk14nk5LFFdG1CV9PdMDfqi3tZAixBZLXYzM3qc187d7ede2de" \
 https://api.derak.cloud/v1.0/zones/47c0ecf6c91243308c649ad1d2d618dd/dnsrecords \
--F dnsType="TXT"
+-F dnsType="TXT" 
 ```
 
 
