@@ -8,6 +8,6 @@
 
 ## License
 
-`sacloud/api-client-go` Copyright (C) 2022 [The sacloud/api-client-go Authors](AUTHORS).
+`sacloud/api-client-go` Copyright (C) 2022-2023 [The sacloud/api-client-go Authors](AUTHORS).
 
 This project is published under [Apache 2.0 License](LICENSE.txt).

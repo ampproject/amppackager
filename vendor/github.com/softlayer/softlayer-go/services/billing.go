@@ -393,6 +393,12 @@ func (r Billing_Invoice) GetBrandAtInvoiceCreation() (resp datatypes.Brand, err 
 	return
 }
 
+// Retrieve Chargeback type for invoice.
+func (r Billing_Invoice) GetChargebackType() (resp datatypes.Billing_Chargeback_Type, err error) {
+	err = r.Session.DoRequest("SoftLayer_Billing_Invoice", "getChargebackType", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve A flag that will reflect whether the detailed version of the pdf has been generated.
 func (r Billing_Invoice) GetDetailedPdfGeneratedFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Billing_Invoice", "getDetailedPdfGeneratedFlag", nil, &r.Options, &resp)

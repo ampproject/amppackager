@@ -20,13 +20,13 @@ type ContactService service
 func (s *ContactService) Create(request *ContactCreateRequest) (int, error) {
 	req := s.client.NewRequest(methodContactCreate, structs.Map(request))
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return 0, err
 	}
 
 	result := make(map[string]int)
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return 0, err
 	}
@@ -40,7 +40,7 @@ func (s *ContactService) Delete(roID int) error {
 		"id": roID,
 	})
 
-	_, err := s.client.Do(*req)
+	_, err := s.client.Do(req)
 	return err
 }
 
@@ -48,7 +48,7 @@ func (s *ContactService) Delete(roID int) error {
 func (s *ContactService) Update(request *ContactUpdateRequest) error {
 	req := s.client.NewRequest(methodContactUpdate, structs.Map(request))
 
-	_, err := s.client.Do(*req)
+	_, err := s.client.Do(req)
 	return err
 }
 
@@ -63,13 +63,13 @@ func (s *ContactService) Info(contactID int) (*ContactInfoResponse, error) {
 
 	req := s.client.NewRequest(methodContactInfo, requestMap)
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	result := ContactInfoResponse{}
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -87,13 +87,13 @@ func (s *ContactService) List(search string) (*ContactListResponse, error) {
 
 	req := s.client.NewRequest(methodContactList, requestMap)
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	result := ContactListResponse{}
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}

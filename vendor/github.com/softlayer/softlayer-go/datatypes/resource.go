@@ -131,8 +131,6 @@ type Resource_Group_Attribute_Type struct {
 }
 
 // The SoftLayer_Resource_Group_Descendant_Reference data type simplifies the link between one SoftLayer_Resource_Group_Member object and all of its parents.
-//
-//
 type Resource_Group_Descendant_Reference struct {
 	Entity
 
@@ -379,9 +377,6 @@ type Resource_Group_Template struct {
 
 	// no documentation yet
 	Members []Resource_Group_Template_Member `json:"members,omitempty" xmlrpc:"members,omitempty"`
-
-	// no documentation yet
-	Package *Product_Package `json:"package,omitempty" xmlrpc:"package,omitempty"`
 }
 
 // no documentation yet

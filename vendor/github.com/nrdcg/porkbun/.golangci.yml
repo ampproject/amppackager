@@ -46,11 +46,19 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - maligned # deprecated
+    - deadcode # deprecated
+    - exhaustivestruct # deprecated
+    - golint # deprecated
+    - ifshort # deprecated
     - interfacer # deprecated
+    - maligned # deprecated
+    - nosnakecase # deprecated
     - scopelint # deprecated
+    - structcheck # deprecated
+    - varcheck # deprecated
     - sqlclosecheck # not relevant (SQL)
     - rowserrcheck # not relevant (SQL)
+    - execinquery # not relevant (SQL)
     - cyclop # duplicate of gocyclo
     - lll
     - dupl
@@ -60,7 +68,7 @@ linters:
     - goerr113
     - wrapcheck
     - exhaustive
-    - exhaustivestruct
+    - exhaustruct
     - testpackage
     - tparallel
     - paralleltest
@@ -68,6 +76,7 @@ linters:
     - ifshort
     - forcetypeassert
     - bodyclose # Too many false positives: https://github.com/timakin/bodyclose/issues/30
+    - varnamelen
 
 issues:
   exclude-use-default: false
@@ -81,3 +90,5 @@ issues:
     - path: .*_test.go
       linters:
         - funlen
+    - path: types.go
+      text: 'the type name `Status` should conform to the `XxxError` format'

@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -213,7 +213,7 @@ func (s *JSONFileStore) Put(resourceKey, zone string, id types.ID, value interfa
 	values[id.String()] = value
 	s.cache[s.key(resourceKey, zone)] = values
 
-	s.store() // nolint
+	s.store() //nolint
 }
 
 // Get .
@@ -250,7 +250,7 @@ func (s *JSONFileStore) Delete(resourceKey, zone string, id types.ID) {
 	if values != nil {
 		delete(values, id.String())
 	}
-	s.store() // nolint
+	s.store() //nolint
 }
 
 var jsonResourceTypeMap = map[string]func() interface{}{

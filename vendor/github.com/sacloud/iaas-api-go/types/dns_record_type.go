@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,6 +37,10 @@ var DNSRecordTypes = struct {
 	SRV EDNSRecordType
 	// CAA CAAレコード
 	CAA EDNSRecordType
+	// HTTPS HTTPSレコード
+	HTTPS EDNSRecordType
+	// SVCB SVCBレコード
+	SVCB EDNSRecordType
 	// PTR PTRレコード
 	PTR EDNSRecordType
 }{
@@ -49,6 +53,8 @@ var DNSRecordTypes = struct {
 	TXT:   EDNSRecordType("TXT"),
 	SRV:   EDNSRecordType("SRV"),
 	CAA:   EDNSRecordType("CAA"),
+	HTTPS: EDNSRecordType("HTTPS"),
+	SVCB:  EDNSRecordType("SVCB"),
 	PTR:   EDNSRecordType("PTR"),
 }
 
@@ -68,5 +74,7 @@ var DNSRecordTypeStrings = []string{
 	DNSRecordTypes.TXT.String(),
 	DNSRecordTypes.SRV.String(),
 	DNSRecordTypes.CAA.String(),
+	DNSRecordTypes.HTTPS.String(),
+	DNSRecordTypes.SVCB.String(),
 	DNSRecordTypes.PTR.String(),
 }

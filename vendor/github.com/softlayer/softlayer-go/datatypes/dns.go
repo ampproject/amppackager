@@ -106,15 +106,12 @@ type Dns_Domain_Registration struct {
 
 // SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status models the state of the registrant. Here are the following status codes:
 //
-//
-// *'''Admin Reviewing''': The registrant data has been submitted and being reviewed by compliance team.
-// *'''Pending''': The verification process has been inititated, and verification email will be sent.
-// *'''Suspended''': The registrant has failed verification and the domain has been suspended.
-// *'''Verified''': The registrant has been validated.
-// *'''Verifying''': The verification process has been initiated and is waiting for registrant response.
-// *'''Unverified''': The verification process has not been inititated.
-//
-//
+// *”'Admin Reviewing”': The registrant data has been submitted and being reviewed by compliance team.
+// *”'Pending”': The verification process has been inititated, and verification email will be sent.
+// *”'Suspended”': The registrant has failed verification and the domain has been suspended.
+// *”'Verified”': The registrant has been validated.
+// *”'Verifying”': The verification process has been initiated and is waiting for registrant response.
+// *”'Unverified”': The verification process has not been inititated.
 type Dns_Domain_Registration_Registrant_Verification_Status struct {
 	Entity
 
@@ -133,14 +130,11 @@ type Dns_Domain_Registration_Registrant_Verification_Status struct {
 
 // SoftLayer_Dns_Domain_Registration_Status models the state of domain name. Here are the following status codes:
 //
-//
-// *'''Active''': This domain name is active.
-// *'''Pending Owner Approval''': Pending owner approval for completion of transfer.
-// *'''Pending Admin Review''': Pending admin review for transfer.
-// *'''Pending Registry''': Pending registry for transfer.
-// *'''Expired''': Domain name has expired.
-//
-//
+// *”'Active”': This domain name is active.
+// *”'Pending Owner Approval”': Pending owner approval for completion of transfer.
+// *”'Pending Admin Review”': Pending admin review for transfer.
+// *”'Pending Registry”': Pending registry for transfer.
+// *”'Expired”': Domain name has expired.
 type Dns_Domain_Registration_Status struct {
 	Entity
 
@@ -157,20 +151,19 @@ type Dns_Domain_Registration_Status struct {
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 }
 
-// The SoftLayer_Dns_Domain_ResourceRecord data type represents a single resource record entry in a SoftLayer hosted domain. Each resource record contains a ''host'' and ''data'' property, defining a resource's name and it's target data. Domains contain multiple types of resource records. The ''type'' property separates out resource records by type. ''Type'' can take one of the following values:
-// * '''"a"''' for [[SoftLayer_Dns_Domain_ResourceRecord_AType|address]] records
-// * '''"aaaa"''' for [[SoftLayer_Dns_Domain_ResourceRecord_AaaaType|address]] records
-// * '''"cname"''' for [[SoftLayer_Dns_Domain_ResourceRecord_CnameType|canonical name]] records
-// * '''"mx"''' for [[SoftLayer_Dns_Domain_ResourceRecord_MxType|mail exchanger]] records
-// * '''"ns"''' for [[SoftLayer_Dns_Domain_ResourceRecord_NsType|name server]] records
-// * '''"ptr"''' for [[SoftLayer_Dns_Domain_ResourceRecord_PtrType|pointer]] records in reverse domains
-// * '''"soa"''' for a domain's [[SoftLayer_Dns_Domain_ResourceRecord_SoaType|start of authority]] record
-// * '''"spf"''' for [[SoftLayer_Dns_Domain_ResourceRecord_SpfType|sender policy framework]] records
-// * '''"srv"''' for [[SoftLayer_Dns_Domain_ResourceRecord_SrvType|service]] records
-// * '''"txt"''' for [[SoftLayer_Dns_Domain_ResourceRecord_TxtType|text]] records
+// The SoftLayer_Dns_Domain_ResourceRecord data type represents a single resource record entry in a SoftLayer hosted domain. Each resource record contains a ”host” and ”data” property, defining a resource's name and it's target data. Domains contain multiple types of resource records. The ”type” property separates out resource records by type. ”Type” can take one of the following values:
+// * ”'"a"”' for [[SoftLayer_Dns_Domain_ResourceRecord_AType|address]] records
+// * ”'"aaaa"”' for [[SoftLayer_Dns_Domain_ResourceRecord_AaaaType|address]] records
+// * ”'"cname"”' for [[SoftLayer_Dns_Domain_ResourceRecord_CnameType|canonical name]] records
+// * ”'"mx"”' for [[SoftLayer_Dns_Domain_ResourceRecord_MxType|mail exchanger]] records
+// * ”'"ns"”' for [[SoftLayer_Dns_Domain_ResourceRecord_NsType|name server]] records
+// * ”'"ptr"”' for [[SoftLayer_Dns_Domain_ResourceRecord_PtrType|pointer]] records in reverse domains
+// * ”'"soa"”' for a domain's [[SoftLayer_Dns_Domain_ResourceRecord_SoaType|start of authority]] record
+// * ”'"spf"”' for [[SoftLayer_Dns_Domain_ResourceRecord_SpfType|sender policy framework]] records
+// * ”'"srv"”' for [[SoftLayer_Dns_Domain_ResourceRecord_SrvType|service]] records
+// * ”'"txt"”' for [[SoftLayer_Dns_Domain_ResourceRecord_TxtType|text]] records
 //
-//
-// As ''SoftLayer_Dns_Domain_ResourceRecord'' objects are created and loaded, the API verifies the ''type'' property and casts the object as the appropriate type.
+// As ”SoftLayer_Dns_Domain_ResourceRecord” objects are created and loaded, the API verifies the ”type” property and casts the object as the appropriate type.
 type Dns_Domain_ResourceRecord struct {
 	Entity
 
@@ -232,24 +225,24 @@ type Dns_Domain_ResourceRecord struct {
 	Weight *int `json:"weight,omitempty" xmlrpc:"weight,omitempty"`
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_AType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "a" and defines a DNS A record on a SoftLayer hosted domain. An A record directs a host name to an IP address. For instance if the A record for "host.example.org" points to the IP address 10.0.0.1 then the ''host'' property for the A record equals "host" and the ''data'' property equals "10.0.0.1".
+// SoftLayer_Dns_Domain_ResourceRecord_AType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "a" and defines a DNS A record on a SoftLayer hosted domain. An A record directs a host name to an IP address. For instance if the A record for "host.example.org" points to the IP address 10.0.0.1 then the ”host” property for the A record equals "host" and the ”data” property equals "10.0.0.1".
 type Dns_Domain_ResourceRecord_AType struct {
 	Dns_Domain_ResourceRecord
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_AaaaType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "aaaa" and defines a DNS AAAA record on a SoftLayer hosted domain. An AAAA record directs a host name to an IPv6 address. For instance if the AAAA record for "host.example.org" points to the IPv6 address "fe80:0:0:0:0:0:a00:0" then the ''host'' property for the AAAA record equals "host" and the ''data'' property equals "fe80:0:0:0:0:0:a00:0".
+// SoftLayer_Dns_Domain_ResourceRecord_AaaaType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "aaaa" and defines a DNS AAAA record on a SoftLayer hosted domain. An AAAA record directs a host name to an IPv6 address. For instance if the AAAA record for "host.example.org" points to the IPv6 address "fe80:0:0:0:0:0:a00:0" then the ”host” property for the AAAA record equals "host" and the ”data” property equals "fe80:0:0:0:0:0:a00:0".
 type Dns_Domain_ResourceRecord_AaaaType struct {
 	Dns_Domain_ResourceRecord
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_CnameType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "cname" and defines a DNS CNAME record on a SoftLayer hosted domain. A CNAME record directs a host name to another host. For instance, if the CNAME record for "alias.example.org" points to the host "host.example.org" then the ''host'' property equals "alias" and the ''data'' property equals "host.example.org.".
+// SoftLayer_Dns_Domain_ResourceRecord_CnameType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "cname" and defines a DNS CNAME record on a SoftLayer hosted domain. A CNAME record directs a host name to another host. For instance, if the CNAME record for "alias.example.org" points to the host "host.example.org" then the ”host” property equals "alias" and the ”data” property equals "host.example.org.".
 //
 // DNS entries defined by CNAME should not be used as the data field for an MX record.
 type Dns_Domain_ResourceRecord_CnameType struct {
 	Dns_Domain_ResourceRecord
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_MxType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "mx" and used to describe MX resource records. MX records control which hosts are responsible as mail exchangers for a domain. For instance, in the domain example.org, an MX record whose host is "@" and data is "mail" says that the host "mail.example.org" is responsible for handling mail for example.org. That means mail sent to users @example.org are delivered to mail.example.org.
+// SoftLayer_Dns_Domain_ResourceRecord_MxType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "mx" and used to describe MX resource records. MX records control which hosts are responsible as mail exchangers for a domain. For instance, in the domain example.org, an MX record whose host is "@" and data is "mail" says that the host "mail.example.org" is responsible for handling mail for example.org. That means mail sent to users @example.org are delivered to mail.example.org.
 //
 // Domains can have more than one MX record if it uses more than one server to send mail through. Multiple MX records are denoted by their priority, defined by the mxPriority property.
 //
@@ -258,22 +251,22 @@ type Dns_Domain_ResourceRecord_MxType struct {
 	Dns_Domain_ResourceRecord
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_NsType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "ns" and defines a DNS NS record on a SoftLayer hosted domain. An NS record defines the authoritative name server for a domain. All SoftLayer hosted domains contain NS records for "ns1.softlayer.com" and "ns2.softlayer.com" . For instance, if example.org is hosted on ns1.softlayer.com, then example.org contains an NS record whose ''host'' property equals "@" and whose ''data'' property equals "ns1.example.org".
+// SoftLayer_Dns_Domain_ResourceRecord_NsType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "ns" and defines a DNS NS record on a SoftLayer hosted domain. An NS record defines the authoritative name server for a domain. All SoftLayer hosted domains contain NS records for "ns1.softlayer.com" and "ns2.softlayer.com" . For instance, if example.org is hosted on ns1.softlayer.com, then example.org contains an NS record whose ”host” property equals "@" and whose ”data” property equals "ns1.example.org".
 //
 // NS resource records pointing to ns1.softlayer.com or ns2.softlayer.com many not be removed from a SoftLayer hosted domain.
 type Dns_Domain_ResourceRecord_NsType struct {
 	Dns_Domain_ResourceRecord
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_PtrType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "ptr" and defines a reverse DNS PTR record on the SoftLayer name servers.
+// SoftLayer_Dns_Domain_ResourceRecord_PtrType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "ptr" and defines a reverse DNS PTR record on the SoftLayer name servers.
 //
 // The format for a reverse DNS PTR record varies based on whether it is for an IPv4 or IPv6 address.
 //
-// For an IPv4 address the ''host'' property for every PTR record is the last octet of the IP address that the PTR record belongs to, while the ''data'' property is the canonical name of the host that the reverse lookup resolves to. Every PTR record belongs to a domain on the SoftLayer name servers named by the first three octets of an IP address in reverse order followed by ".in-addr.arpa".
+// For an IPv4 address the ”host” property for every PTR record is the last octet of the IP address that the PTR record belongs to, while the ”data” property is the canonical name of the host that the reverse lookup resolves to. Every PTR record belongs to a domain on the SoftLayer name servers named by the first three octets of an IP address in reverse order followed by ".in-addr.arpa".
 //
 // For instance, if the reverse DNS record for 10.0.0.1 is "host.example.org" then it's corresponding SoftLayer_Dns_Domain_ResourceRecord_PtrType host is "1", while it's data property equals "host.example.org". The full name of the reverse record for host.example.org including the domain name is "1.0.0.10.in-addr.arpa".
 //
-// For an IPv6 address the ''host'' property for every PTR record is the last four octets of the IP address that the PTR record belongs to.  The last four octets need to be in reversed order and each digit separated by a period.  The ''data'' property is the canonical name of the host that the reverse lookup resolves to.  Every PTR record belongs to a domain on the SoftLayer name servers named by the first four octets of an IP address in reverse order, split up by digit with a period, and followed by ".ip6.arpa".
+// For an IPv6 address the ”host” property for every PTR record is the last four octets of the IP address that the PTR record belongs to.  The last four octets need to be in reversed order and each digit separated by a period.  The ”data” property is the canonical name of the host that the reverse lookup resolves to.  Every PTR record belongs to a domain on the SoftLayer name servers named by the first four octets of an IP address in reverse order, split up by digit with a period, and followed by ".ip6.arpa".
 //
 // For instance, if the reverse DNS record for fe80:0000:0000:0000:0000:0000:0a00:0001 is "host.example.org" then it's corresponding SoftLayer_Dns_Domain_ResourceRecord_PtrType host is "1.0.0.0.0.0.a.0.0.0.0.0.0.0.0.0", while it's data property equals "host.example.org". The full name of the reverse record for host.example.org including the domain name is "1.0.0.0.0.0.a.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.f.ip6.arpa".
 //
@@ -292,14 +285,14 @@ type Dns_Domain_ResourceRecord_SoaType struct {
 	Dns_Domain_ResourceRecord
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_SpfType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "spf" and defines a DNS SPF record on a SoftLayer hosted domain. An SPF record provides sender policy framework data for a host. For instance, if defining the SPF record "v=spf1 mx:mail.example.org ~all" for "host.example.org". then the ''host'' property equals "host" and the ''data'' property equals "v=spf1 mx:mail.example.org ~all".
+// SoftLayer_Dns_Domain_ResourceRecord_SpfType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "spf" and defines a DNS SPF record on a SoftLayer hosted domain. An SPF record provides sender policy framework data for a host. For instance, if defining the SPF record "v=spf1 mx:mail.example.org ~all" for "host.example.org". then the ”host” property equals "host" and the ”data” property equals "v=spf1 mx:mail.example.org ~all".
 //
 // SPF records are commonly used in email verification methods such as Sender Policy Framework.
 type Dns_Domain_ResourceRecord_SpfType struct {
 	Dns_Domain_ResourceRecord_TxtType
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_SrvType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "srv" and defines a DNS SRV record on a SoftLayer hosted domain.
+// SoftLayer_Dns_Domain_ResourceRecord_SrvType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "srv" and defines a DNS SRV record on a SoftLayer hosted domain.
 type Dns_Domain_ResourceRecord_SrvType struct {
 	Dns_Domain_ResourceRecord
 
@@ -319,7 +312,7 @@ type Dns_Domain_ResourceRecord_SrvType struct {
 	Weight *int `json:"weight,omitempty" xmlrpc:"weight,omitempty"`
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_TxtType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "txt" and defines a DNS TXT record on a SoftLayer hosted domain. A TXT record provides a text description for a host. For instance, if defining the TXT record "My test host" for "host.example.org". then the ''host'' property equals "host" and the ''data'' property equals "My test host".
+// SoftLayer_Dns_Domain_ResourceRecord_TxtType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "txt" and defines a DNS TXT record on a SoftLayer hosted domain. A TXT record provides a text description for a host. For instance, if defining the TXT record "My test host" for "host.example.org". then the ”host” property equals "host" and the ”data” property equals "My test host".
 //
 // TXT records are commonly used in email verification methods such as Sender Policy Framework.
 type Dns_Domain_ResourceRecord_TxtType struct {

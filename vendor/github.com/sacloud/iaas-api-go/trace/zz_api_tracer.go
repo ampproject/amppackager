@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -1058,6 +1058,64 @@ func (t *AutoScaleTracer) Status(ctx context.Context, id types.ID) (*iaas.AutoSc
 	}
 
 	return resultAutoScaleStatus, err
+}
+
+// ScaleUp is API call with trace log
+func (t *AutoScaleTracer) ScaleUp(ctx context.Context, id types.ID) error {
+	log.Println("[TRACE] AutoScaleAPI.ScaleUp start")
+	targetArguments := struct {
+		Argid types.ID `json:"id"`
+	}{
+		Argid: id,
+	}
+	if d, err := json.Marshal(targetArguments); err == nil {
+		log.Printf("[TRACE] \targs: %s\n", string(d))
+	}
+
+	defer func() {
+		log.Println("[TRACE] AutoScaleAPI.ScaleUp end")
+	}()
+
+	err := t.Internal.ScaleUp(ctx, id)
+	targetResults := struct {
+		Error error
+	}{
+		Error: err,
+	}
+	if d, err := json.Marshal(targetResults); err == nil {
+		log.Printf("[TRACE] \tresults: %s\n", string(d))
+	}
+
+	return err
+}
+
+// ScaleDown is API call with trace log
+func (t *AutoScaleTracer) ScaleDown(ctx context.Context, id types.ID) error {
+	log.Println("[TRACE] AutoScaleAPI.ScaleDown start")
+	targetArguments := struct {
+		Argid types.ID `json:"id"`
+	}{
+		Argid: id,
+	}
+	if d, err := json.Marshal(targetArguments); err == nil {
+		log.Printf("[TRACE] \targs: %s\n", string(d))
+	}
+
+	defer func() {
+		log.Println("[TRACE] AutoScaleAPI.ScaleDown end")
+	}()
+
+	err := t.Internal.ScaleDown(ctx, id)
+	targetResults := struct {
+		Error error
+	}{
+		Error: err,
+	}
+	if d, err := json.Marshal(targetResults); err == nil {
+		log.Printf("[TRACE] \tresults: %s\n", string(d))
+	}
+
+	return err
 }
 
 /*************************************************
@@ -4171,6 +4229,68 @@ func (t *EnhancedDBTracer) SetPassword(ctx context.Context, id types.ID, param *
 	}()
 
 	err := t.Internal.SetPassword(ctx, id, param)
+	targetResults := struct {
+		Error error
+	}{
+		Error: err,
+	}
+	if d, err := json.Marshal(targetResults); err == nil {
+		log.Printf("[TRACE] \tresults: %s\n", string(d))
+	}
+
+	return err
+}
+
+// GetConfig is API call with trace log
+func (t *EnhancedDBTracer) GetConfig(ctx context.Context, id types.ID) (*iaas.EnhancedDBConfig, error) {
+	log.Println("[TRACE] EnhancedDBAPI.GetConfig start")
+	targetArguments := struct {
+		Argid types.ID `json:"id"`
+	}{
+		Argid: id,
+	}
+	if d, err := json.Marshal(targetArguments); err == nil {
+		log.Printf("[TRACE] \targs: %s\n", string(d))
+	}
+
+	defer func() {
+		log.Println("[TRACE] EnhancedDBAPI.GetConfig end")
+	}()
+
+	resultEnhancedDBConfig, err := t.Internal.GetConfig(ctx, id)
+	targetResults := struct {
+		EnhancedDBConfig *iaas.EnhancedDBConfig
+		Error            error
+	}{
+		EnhancedDBConfig: resultEnhancedDBConfig,
+		Error:            err,
+	}
+	if d, err := json.Marshal(targetResults); err == nil {
+		log.Printf("[TRACE] \tresults: %s\n", string(d))
+	}
+
+	return resultEnhancedDBConfig, err
+}
+
+// SetConfig is API call with trace log
+func (t *EnhancedDBTracer) SetConfig(ctx context.Context, id types.ID, param *iaas.EnhancedDBSetConfigRequest) error {
+	log.Println("[TRACE] EnhancedDBAPI.SetConfig start")
+	targetArguments := struct {
+		Argid    types.ID                         `json:"id"`
+		Argparam *iaas.EnhancedDBSetConfigRequest `json:"param"`
+	}{
+		Argid:    id,
+		Argparam: param,
+	}
+	if d, err := json.Marshal(targetArguments); err == nil {
+		log.Printf("[TRACE] \targs: %s\n", string(d))
+	}
+
+	defer func() {
+		log.Println("[TRACE] EnhancedDBAPI.SetConfig end")
+	}()
+
+	err := t.Internal.SetConfig(ctx, id, param)
 	targetResults := struct {
 		Error error
 	}{
@@ -12070,6 +12190,41 @@ func (t *VPCRouterTracer) Logs(ctx context.Context, zone string, id types.ID) (*
 	}
 
 	return resultVPCRouterLog, err
+}
+
+// Ping is API call with trace log
+func (t *VPCRouterTracer) Ping(ctx context.Context, zone string, id types.ID, destination string) (*iaas.VPCRouterPingResults, error) {
+	log.Println("[TRACE] VPCRouterAPI.Ping start")
+	targetArguments := struct {
+		Argzone        string
+		Argid          types.ID `json:"id"`
+		Argdestination string   `json:"destination"`
+	}{
+		Argzone:        zone,
+		Argid:          id,
+		Argdestination: destination,
+	}
+	if d, err := json.Marshal(targetArguments); err == nil {
+		log.Printf("[TRACE] \targs: %s\n", string(d))
+	}
+
+	defer func() {
+		log.Println("[TRACE] VPCRouterAPI.Ping end")
+	}()
+
+	resultVPCRouterPingResults, err := t.Internal.Ping(ctx, zone, id, destination)
+	targetResults := struct {
+		VPCRouterPingResults *iaas.VPCRouterPingResults
+		Error                error
+	}{
+		VPCRouterPingResults: resultVPCRouterPingResults,
+		Error:                err,
+	}
+	if d, err := json.Marshal(targetResults); err == nil {
+		log.Printf("[TRACE] \tresults: %s\n", string(d))
+	}
+
+	return resultVPCRouterPingResults, err
 }
 
 /*************************************************

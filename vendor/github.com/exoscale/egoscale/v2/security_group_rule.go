@@ -12,16 +12,18 @@ import (
 
 // SecurityGroupRule represents a Security Group rule.
 type SecurityGroupRule struct {
-	Description     *string
-	EndPort         *uint16
-	FlowDirection   *string `req-for:"create"`
-	ICMPCode        *int64
-	ICMPType        *int64
-	ID              *string `req-for:"delete"`
-	Network         *net.IPNet
-	Protocol        *string `req-for:"create"`
-	SecurityGroupID *string
-	StartPort       *uint16
+	Description       *string
+	EndPort           *uint16
+	FlowDirection     *string `req-for:"create"`
+	ICMPCode          *int64
+	ICMPType          *int64
+	ID                *string `req-for:"delete"`
+	Network           *net.IPNet
+	Protocol          *string `req-for:"create"`
+	SecurityGroupID   *string
+	SecurityGroupName *string
+	Visibility        *string
+	StartPort         *uint16
 }
 
 func securityGroupRuleFromAPI(r *oapi.SecurityGroupRule) *SecurityGroupRule {
@@ -56,8 +58,17 @@ func securityGroupRuleFromAPI(r *oapi.SecurityGroupRule) *SecurityGroupRule {
 		}(),
 		Protocol: (*string)(r.Protocol),
 		SecurityGroupID: func() (v *string) {
-			if r.SecurityGroup != nil {
-				v = &r.SecurityGroup.Id
+			if r.SecurityGroup != nil &&
+				(r.SecurityGroup.Visibility == nil ||
+					*r.SecurityGroup.Visibility != "public") {
+				v = r.SecurityGroup.Id
+			}
+			return
+		}(),
+		SecurityGroupName: func() (v *string) {
+			if r.SecurityGroup != nil && r.SecurityGroup.Visibility != nil &&
+				*r.SecurityGroup.Visibility == "public" && r.SecurityGroup.Name != nil {
+				v = r.SecurityGroup.Name
 			}
 			return
 		}(),
@@ -65,6 +76,12 @@ func securityGroupRuleFromAPI(r *oapi.SecurityGroupRule) *SecurityGroupRule {
 			if r.StartPort != nil {
 				port := uint16(*r.StartPort)
 				v = &port
+			}
+			return
+		}(),
+		Visibility: func() (v *string) {
+			if r.SecurityGroup != nil && r.SecurityGroup.Visibility != nil {
+				v = (*string)(r.SecurityGroup.Visibility)
 			}
 			return
 		}(),
@@ -142,7 +159,11 @@ func (c *Client) CreateSecurityGroupRule(
 			Protocol: oapi.AddRuleToSecurityGroupJSONBodyProtocol(*rule.Protocol),
 			SecurityGroup: func() (v *oapi.SecurityGroupResource) {
 				if rule.SecurityGroupID != nil {
-					v = &oapi.SecurityGroupResource{Id: *rule.SecurityGroupID}
+					v = &oapi.SecurityGroupResource{Id: rule.SecurityGroupID}
+				}
+				if rule.SecurityGroupName != nil {
+					visibility := oapi.SecurityGroupResourceVisibilityPublic
+					v = &oapi.SecurityGroupResource{Name: rule.SecurityGroupName, Visibility: &visibility}
 				}
 				return
 			}(),

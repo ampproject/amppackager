@@ -30,10 +30,10 @@ type VersionInfo struct {
 }
 
 var Version = VersionInfo{
-	Major: 0,
+	Major: 1,
 	Minor: 1,
 	Patch: 0,
-	Pre:   "alpha",
+	Pre:   "",
 }
 
 func (v VersionInfo) String() string {

@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -362,5 +362,24 @@ func (a *vPCRouterLogsResponseEnvelope) UnmarshalJSON(data []byte) error {
 	tmp.VPCRouter = &nakedLogs
 
 	*a = vPCRouterLogsResponseEnvelope(tmp)
+	return nil
+}
+
+// UnmarshalJSON APIからの戻り値でレスポンスボディ直下にデータを持つことへの対応
+func (a *vPCRouterPingResponseEnvelope) UnmarshalJSON(data []byte) error {
+	type alias vPCRouterPingResponseEnvelope
+
+	var tmp alias
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	var nakedResult naked.VPCRouterPingResult
+	if err := json.Unmarshal(data, &nakedResult); err != nil {
+		return err
+	}
+	tmp.VPCRouter = &nakedResult
+
+	*a = vPCRouterPingResponseEnvelope(tmp)
 	return nil
 }

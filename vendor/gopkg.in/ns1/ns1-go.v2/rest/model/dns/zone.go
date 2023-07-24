@@ -20,13 +20,14 @@ type Zone struct {
 	ID   string `json:"id,omitempty"`
 	Zone string `json:"zone,omitempty"`
 
-	TTL        int    `json:"ttl,omitempty"`
-	NxTTL      int    `json:"nx_ttl,omitempty"`
-	Retry      int    `json:"retry,omitempty"`
-	Serial     int    `json:"serial,omitempty"`
-	Refresh    int    `json:"refresh,omitempty"`
-	Expiry     int    `json:"expiry,omitempty"`
-	Hostmaster string `json:"hostmaster,omitempty"`
+	TTL           int    `json:"ttl,omitempty"`
+	NxTTL         int    `json:"nx_ttl,omitempty"`
+	Retry         int    `json:"retry,omitempty"`
+	Serial        int    `json:"serial,omitempty"`
+	Refresh       int    `json:"refresh,omitempty"`
+	Expiry        int    `json:"expiry,omitempty"`
+	Hostmaster    string `json:"hostmaster,omitempty"`
+	PrimaryMaster string `json:"primary_master,omitempty"`
 
 	// If this is a linked zone, Link points to an existing standard zone,
 	// reusing its configuration and records. Link is a zones' domain name.
@@ -56,7 +57,7 @@ func (z Zone) String() string {
 
 // ZoneRecord wraps Zone's "records" attribute
 type ZoneRecord struct {
-	Domain   string      `json:"Domain,omitempty"`
+	Domain   string      `json:"domain,omitempty"`
 	ID       string      `json:"id,omitempty"`
 	Link     string      `json:"link,omitempty"`
 	ShortAns []string    `json:"short_answers,omitempty"`
@@ -101,8 +102,9 @@ type ZoneSecondary struct {
 	PrimaryPort int    `json:"primary_port,omitempty"`
 	Enabled     bool   `json:"enabled"`
 
-	OtherIPs   []string `json:"other_ips,omitempty"`
-	OtherPorts []int    `json:"other_ports,omitempty"`
+	OtherIPs      []string `json:"other_ips,omitempty"`
+	OtherPorts    []int    `json:"other_ports,omitempty"`
+	OtherNetworks []int    `json:"other_networks,omitempty"`
 
 	TSIG *TSIG `json:"tsig,omitempty"`
 }

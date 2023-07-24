@@ -10,20 +10,23 @@ import (
 	"os"
 	"reflect"
 	"time"
+
+	"golang.org/x/time/rate"
 )
 
 const DefaultEndpoint = "https://api.dns-platform.jp/dpf/v1"
 
 type ClientInterface interface {
-	Read(ctx context.Context, s Spec) (requestID string, err error)
-	List(ctx context.Context, s ListSpec, keywords SearchParams) (requestID string, err error)
-	ListAll(ctx context.Context, s CountableListSpec, keywords SearchParams) (requestID string, err error)
-	Count(ctx context.Context, s CountableListSpec, keywords SearchParams) (requestID string, err error)
-	Update(ctx context.Context, s Spec, body interface{}) (requestID string, err error)
-	Create(ctx context.Context, s Spec, body interface{}) (requestID string, err error)
-	Apply(ctx context.Context, s Spec, body interface{}) (requestID string, err error)
-	Delete(ctx context.Context, s Spec) (requestID string, err error)
-	Cancel(ctx context.Context, s Spec) (requestID string, err error)
+	SetRoundTripper(rt http.RoundTripper)
+	Read(ctx context.Context, s Spec) (string, error)
+	List(ctx context.Context, s ListSpec, keywords SearchParams) (string, error)
+	ListAll(ctx context.Context, s CountableListSpec, keywords SearchParams) (string, error)
+	Count(ctx context.Context, s CountableListSpec, keywords SearchParams) (string, error)
+	Update(ctx context.Context, s Spec, body interface{}) (string, error)
+	Create(ctx context.Context, s Spec, body interface{}) (string, error)
+	Apply(ctx context.Context, s Spec, body interface{}) (string, error)
+	Delete(ctx context.Context, s Spec) (string, error)
+	Cancel(ctx context.Context, s Spec) (string, error)
 	WatchRead(ctx context.Context, interval time.Duration, s Spec) error
 	WatchList(ctx context.Context, interval time.Duration, s ListSpec, keyword SearchParams) error
 	WatchListAll(ctx context.Context, interval time.Duration, s CountableListSpec, keyword SearchParams) error
@@ -34,23 +37,48 @@ var _ ClientInterface = &Client{}
 type Client struct {
 	Endpoint string
 	Token    string
-	logger   Logger
 
-	Client       *http.Client
+	logger Logger
+	client *http.Client
+
 	LastRequest  *RequestInfo
 	LastResponse *ResponseInfo
-	Json         JsonApiInterface
 }
 
 type RequestInfo struct {
 	Method string
-	Url    string
+	URL    string
 	Body   []byte
 }
 
 type ResponseInfo struct {
 	Response *http.Response
 	Body     []byte
+}
+
+type RateRoundTripper struct {
+	RroundTripper http.RoundTripper
+	Limiter       *rate.Limiter
+}
+
+func NewRateRoundTripper(rt http.RoundTripper, limiter *rate.Limiter) *RateRoundTripper {
+	return &RateRoundTripper{
+		RroundTripper: rt,
+		Limiter:       limiter,
+	}
+}
+
+func (r *RateRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	if r.Limiter == nil {
+		r.Limiter = rate.NewLimiter(rate.Limit(1.0), 5)
+	}
+	if r.RroundTripper == nil {
+		r.RroundTripper = http.DefaultTransport
+	}
+	if err := r.Limiter.Wait(req.Context()); err != nil {
+		return nil, fmt.Errorf("request rate-limit by client side: %w", err)
+	}
+	return r.RroundTripper.RoundTrip(req)
 }
 
 func NewClient(token string, endpoint string, logger Logger) *Client {
@@ -60,21 +88,25 @@ func NewClient(token string, endpoint string, logger Logger) *Client {
 	if logger == nil {
 		logger = NewStdLogger(os.Stderr, "dpf-client", 0, 4)
 	}
-	return &Client{Endpoint: endpoint, Token: token, logger: logger, Client: http.DefaultClient, Json: &JsonAPIAdapter{}}
+	return &Client{Endpoint: endpoint, Token: token, logger: logger, client: &http.Client{Transport: NewRateRoundTripper(nil, nil)}}
 }
 
-func (c *Client) marshalJson(action Action, body interface{}) ([]byte, error) {
+func (c *Client) SetRoundTripper(rt http.RoundTripper) {
+	c.client.Transport = rt
+}
+
+func (c *Client) marshalJSON(action Action, body interface{}) ([]byte, error) {
 	var (
 		jsonBody []byte
 		err      error
 	)
 	switch action {
 	case ActionCreate:
-		jsonBody, err = c.Json.MarshalCreate(body)
+		jsonBody, err = JSON.MarshalCreate(body)
 	case ActionUpdate:
-		jsonBody, err = c.Json.MarshalUpdate(body)
+		jsonBody, err = JSON.MarshalUpdate(body)
 	case ActionApply:
-		jsonBody, err = c.Json.MarshalApply(body)
+		jsonBody, err = JSON.MarshalApply(body)
 	default:
 		return nil, fmt.Errorf("not support action `%s` with body request", action)
 	}
@@ -108,11 +140,11 @@ func (c *Client) doSetup(ctx context.Context, spec Spec, action Action, body int
 		}
 		url += "?" + p.Encode()
 	}
-	c.LastRequest.Url = url
+	c.LastRequest.URL = url
 	c.logger.Debugf("method: %s request-url: %s", method, url)
 	// make request body
 	if body != nil {
-		jsonBody, err := c.marshalJson(action, body)
+		jsonBody, err := c.marshalJSON(action, body)
 		if err != nil {
 			return nil, err
 		}
@@ -133,13 +165,13 @@ func (c *Client) doSetup(ctx context.Context, spec Spec, action Action, body int
 	return req.WithContext(ctx), nil
 }
 
-func (c *Client) Do(ctx context.Context, spec Spec, action Action, body interface{}, params SearchParams) (requestID string, err error) {
+func (c *Client) Do(ctx context.Context, spec Spec, action Action, body interface{}, params SearchParams) (string, error) {
 	req, err := c.doSetup(ctx, spec, action, body, params)
 	if err != nil {
 		return "", err
 	}
 	// request
-	resp, err := c.Client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to get http response: %w", err)
 	}
@@ -157,9 +189,9 @@ func (c *Client) Do(ctx context.Context, spec Spec, action Action, body interfac
 	c.logger.Tracef("response-body: `%s`", string(bs))
 
 	// if statiscode is error, response body type is BadResponse or Plantext
-	if resp.StatusCode >= 400 {
+	if resp.StatusCode >= http.StatusBadRequest {
 		badRequest := &BadResponse{StatusCode: resp.StatusCode}
-		if err := c.Json.UnmarshalRead(bs, badRequest); err != nil {
+		if err := UnmarshalRead(bs, badRequest); err != nil {
 			return "", fmt.Errorf("failed to request: status code: %d body: %s err: %w", resp.StatusCode, string(bs), err)
 		}
 		return badRequest.RequestID, badRequest
@@ -167,7 +199,7 @@ func (c *Client) Do(ctx context.Context, spec Spec, action Action, body interfac
 
 	// parse raw response
 	rawResponse := &RawResponse{}
-	if err := c.Json.UnmarshalRead(bs, rawResponse); err != nil {
+	if err := UnmarshalRead(bs, rawResponse); err != nil {
 		// maybe not executed
 		return "", fmt.Errorf("failed to parse get response: %w", err)
 	}
@@ -190,7 +222,7 @@ func (c *Client) doReadResponse(action Action, spec Spec, bs []byte, rawResponse
 	case action == ActionCount:
 		// ActionCount
 		count := &Count{}
-		if err := c.Json.UnmarshalRead(rawResponse.Result, count); err != nil {
+		if err := UnmarshalRead(rawResponse.Result, count); err != nil {
 			return fmt.Errorf("failed to parse count response result: %w", err)
 		}
 		if cl, ok := spec.(CountableListSpec); ok {
@@ -198,7 +230,7 @@ func (c *Client) doReadResponse(action Action, spec Spec, bs []byte, rawResponse
 		}
 	case rawResponse.Result != nil:
 		// ActionRead
-		if err := c.Json.UnmarshalRead(rawResponse.Result, spec); err != nil {
+		if err := UnmarshalRead(rawResponse.Result, spec); err != nil {
 			return fmt.Errorf("failed to parse response result: %w", err)
 		}
 	case rawResponse.Results != nil:
@@ -208,26 +240,26 @@ func (c *Client) doReadResponse(action Action, spec Spec, bs []byte, rawResponse
 			return fmt.Errorf("not support ListSpec %s", spec.GetName())
 		}
 		items := listSpec.GetItems()
-		if err := c.Json.UnmarshalRead(rawResponse.Results, items); err != nil {
+		if err := UnmarshalRead(rawResponse.Results, items); err != nil {
 			return fmt.Errorf("failed to parse list response results: %w", err)
 		}
 	default:
-		if err := c.Json.UnmarshalRead(bs, spec); err != nil {
+		if err := UnmarshalRead(bs, spec); err != nil {
 			return fmt.Errorf("failed to parse response result: %w", err)
 		}
 	}
 	return nil
 }
 
-func (c *Client) Read(ctx context.Context, s Spec) (requestID string, err error) {
+func (c *Client) Read(ctx context.Context, s Spec) (string, error) {
 	return c.Do(ctx, s, ActionRead, nil, nil)
 }
 
-func (c *Client) List(ctx context.Context, s ListSpec, keywords SearchParams) (requestID string, err error) {
+func (c *Client) List(ctx context.Context, s ListSpec, keywords SearchParams) (string, error) {
 	return c.Do(ctx, s, ActionList, nil, keywords)
 }
 
-func (c *Client) ListAll(ctx context.Context, s CountableListSpec, keywords SearchParams) (requestID string, err error) {
+func (c *Client) ListAll(ctx context.Context, s CountableListSpec, keywords SearchParams) (string, error) {
 	req, err := c.Count(ctx, s, keywords)
 	if err != nil {
 		return req, err
@@ -254,36 +286,36 @@ func (c *Client) ListAll(ctx context.Context, s CountableListSpec, keywords Sear
 	return req, nil
 }
 
-func (c *Client) Count(ctx context.Context, s CountableListSpec, keywords SearchParams) (requestID string, err error) {
+func (c *Client) Count(ctx context.Context, s CountableListSpec, keywords SearchParams) (string, error) {
 	return c.Do(ctx, s, ActionCount, nil, keywords)
 }
 
-func (c *Client) Update(ctx context.Context, s Spec, body interface{}) (requestID string, err error) {
+func (c *Client) Update(ctx context.Context, s Spec, body interface{}) (string, error) {
 	if body == nil {
 		body = s
 	}
 	return c.Do(ctx, s, ActionUpdate, body, nil)
 }
 
-func (c *Client) Create(ctx context.Context, s Spec, body interface{}) (requestID string, err error) {
+func (c *Client) Create(ctx context.Context, s Spec, body interface{}) (string, error) {
 	if body == nil {
 		body = s
 	}
 	return c.Do(ctx, s, ActionCreate, body, nil)
 }
 
-func (c *Client) Apply(ctx context.Context, s Spec, body interface{}) (requestID string, err error) {
+func (c *Client) Apply(ctx context.Context, s Spec, body interface{}) (string, error) {
 	if body == nil {
 		body = s
 	}
 	return c.Do(ctx, s, ActionApply, body, nil)
 }
 
-func (c *Client) Delete(ctx context.Context, s Spec) (requestID string, err error) {
+func (c *Client) Delete(ctx context.Context, s Spec) (string, error) {
 	return c.Do(ctx, s, ActionDelete, nil, nil)
 }
 
-func (c *Client) Cancel(ctx context.Context, s Spec) (requestID string, err error) {
+func (c *Client) Cancel(ctx context.Context, s Spec) (string, error) {
 	return c.Do(ctx, s, ActionCancel, nil, nil)
 }
 

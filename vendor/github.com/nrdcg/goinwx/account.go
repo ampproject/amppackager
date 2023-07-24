@@ -19,13 +19,13 @@ func (s *AccountService) Login() (*LoginResponse, error) {
 		"pass": s.client.password,
 	})
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	var result LoginResponse
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (s *AccountService) Login() (*LoginResponse, error) {
 func (s *AccountService) Logout() error {
 	req := s.client.NewRequest(methodAccountLogout, nil)
 
-	_, err := s.client.Do(*req)
+	_, err := s.client.Do(req)
 	return err
 }
 
@@ -45,7 +45,7 @@ func (s *AccountService) Logout() error {
 func (s *AccountService) Lock() error {
 	req := s.client.NewRequest(methodAccountLock, nil)
 
-	_, err := s.client.Do(*req)
+	_, err := s.client.Do(req)
 	return err
 }
 
@@ -55,7 +55,7 @@ func (s *AccountService) Unlock(tan string) error {
 		"tan": tan,
 	})
 
-	_, err := s.client.Do(*req)
+	_, err := s.client.Do(req)
 	return err
 }
 

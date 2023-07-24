@@ -195,3 +195,22 @@ func (c KeywordsFavorite) EncodeValues(key string, v *url.Values) error {
 	}
 	return nil
 }
+
+// +k8s:deepcopy-gen=false
+type KeywordsLabels []Label
+
+func (c KeywordsLabels) EncodeValues(key string, v *url.Values) error {
+	for _, plan := range c {
+		v.Add(key, plan.String())
+	}
+	return nil
+}
+
+type Label struct {
+	Key   string
+	Value string
+}
+
+func (l Label) String() string {
+	return l.Key + "=" + l.Value
+}

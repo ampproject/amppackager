@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"gopkg.in/ns1/ns1-go.v2/rest/model/dns"
+	"gopkg.in/ns1/ns1-go.v2/rest/model/filter"
 )
 
 // RecordsService handles 'zones/ZONE/DOMAIN/TYPE' endpoint.
@@ -32,6 +33,10 @@ func (s *RecordsService) Get(zone, domain, t string) (*dns.Record, *http.Respons
 			}
 		}
 		return nil, resp, err
+	}
+
+	if r.Filters == nil {
+		r.Filters = make([]*filter.Filter, 0)
 	}
 
 	return &r, resp, nil

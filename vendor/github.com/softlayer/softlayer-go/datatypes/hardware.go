@@ -180,10 +180,11 @@ type Hardware struct {
 	// A count of all network hardware downstream from the selected piece of hardware.
 	DownstreamNetworkHardwareCount *uint `json:"downstreamNetworkHardwareCount,omitempty" xmlrpc:"downstreamNetworkHardwareCount,omitempty"`
 
-	// A count of all network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware.
+	// A count of all network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware. [DEPRECATED]
 	DownstreamNetworkHardwareWithIncidentCount *uint `json:"downstreamNetworkHardwareWithIncidentCount,omitempty" xmlrpc:"downstreamNetworkHardwareWithIncidentCount,omitempty"`
 
-	// All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware.
+	// All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware. [DEPRECATED]
+	// Deprecated: This function has been marked as deprecated.
 	DownstreamNetworkHardwareWithIncidents []Hardware `json:"downstreamNetworkHardwareWithIncidents,omitempty" xmlrpc:"downstreamNetworkHardwareWithIncidents,omitempty"`
 
 	// A count of information regarding all servers attached downstream to a piece of network hardware.
@@ -316,7 +317,7 @@ type Hardware struct {
 	MemoryCount *uint `json:"memoryCount,omitempty" xmlrpc:"memoryCount,omitempty"`
 
 	// A piece of hardware's metric tracking object.
-	MetricTrackingObject *Metric_Tracking_Object_HardwareServer `json:"metricTrackingObject,omitempty" xmlrpc:"metricTrackingObject,omitempty"`
+	MetricTrackingObject *Metric_Tracking_Object `json:"metricTrackingObject,omitempty" xmlrpc:"metricTrackingObject,omitempty"`
 
 	// A count of
 	ModuleCount *uint `json:"moduleCount,omitempty" xmlrpc:"moduleCount,omitempty"`
@@ -381,10 +382,12 @@ type Hardware struct {
 	// Information regarding a piece of hardware's network monitors.
 	NetworkMonitors []Network_Monitor_Version1_Query_Host `json:"networkMonitors,omitempty" xmlrpc:"networkMonitors,omitempty"`
 
-	// The value of a hardware's network status attribute.
+	// The value of a hardware's network status attribute. [DEPRECATED]
+	// Deprecated: This function has been marked as deprecated.
 	NetworkStatus *string `json:"networkStatus,omitempty" xmlrpc:"networkStatus,omitempty"`
 
-	// The hardware's related network status attribute.
+	// The hardware's related network status attribute. [DEPRECATED]
+	// Deprecated: This function has been marked as deprecated.
 	NetworkStatusAttribute *Hardware_Attribute `json:"networkStatusAttribute,omitempty" xmlrpc:"networkStatusAttribute,omitempty"`
 
 	// Information regarding a piece of hardware's associated network storage service account.
@@ -540,10 +543,11 @@ type Hardware struct {
 	// A hardware's routers.
 	Routers []Hardware `json:"routers,omitempty" xmlrpc:"routers,omitempty"`
 
-	// A count of collection of scale assets this hardware corresponds to.
+	// A count of [DEPRECATED] Collection of scale assets this hardware corresponds to.
 	ScaleAssetCount *uint `json:"scaleAssetCount,omitempty" xmlrpc:"scaleAssetCount,omitempty"`
 
-	// Collection of scale assets this hardware corresponds to.
+	// [DEPRECATED] Collection of scale assets this hardware corresponds to.
+	// Deprecated: This function has been marked as deprecated.
 	ScaleAssets []Scale_Asset `json:"scaleAssets,omitempty" xmlrpc:"scaleAssets,omitempty"`
 
 	// A count of information regarding a piece of hardware's vulnerability scan requests.
@@ -606,6 +610,12 @@ type Hardware struct {
 
 	// An account's associated upgrade request object, if any.
 	UpgradeRequest *Product_Upgrade_Request `json:"upgradeRequest,omitempty" xmlrpc:"upgradeRequest,omitempty"`
+
+	// A count of a piece of hardware's active upgradeable physical components.
+	UpgradeableActiveComponentCount *uint `json:"upgradeableActiveComponentCount,omitempty" xmlrpc:"upgradeableActiveComponentCount,omitempty"`
+
+	// A piece of hardware's active upgradeable physical components.
+	UpgradeableActiveComponents []Hardware_Component `json:"upgradeableActiveComponents,omitempty" xmlrpc:"upgradeableActiveComponents,omitempty"`
 
 	// The network device connected to a piece of hardware.
 	UplinkHardware *Hardware `json:"uplinkHardware,omitempty" xmlrpc:"uplinkHardware,omitempty"`
@@ -779,6 +789,9 @@ type Hardware_Chassis struct {
 	PowerCapacity *string `json:"powerCapacity,omitempty" xmlrpc:"powerCapacity,omitempty"`
 
 	// no documentation yet
+	StorageShelfNode *string `json:"storageShelfNode,omitempty" xmlrpc:"storageShelfNode,omitempty"`
+
+	// no documentation yet
 	U2Capacity *string `json:"u2Capacity,omitempty" xmlrpc:"u2Capacity,omitempty"`
 
 	// The physical size of a hardware chassis.  Currently this relates to the 'U' size of a chassis buy default.
@@ -824,6 +837,9 @@ type Hardware_Component struct {
 
 	// The internal identifier of the hardware that a hardware component resides inside.
 	HardwareId *int `json:"hardwareId,omitempty" xmlrpc:"hardwareId,omitempty"`
+
+	// no documentation yet
+	HasUpgradeableFirmware *bool `json:"hasUpgradeableFirmware,omitempty" xmlrpc:"hasUpgradeableFirmware,omitempty"`
 
 	// A hardware component's internal identifier.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
@@ -1167,6 +1183,12 @@ type Hardware_Component_Model struct {
 
 	// The model name of a hardware component model.
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+
+	// A count of
+	QualifiedFirmwareCount *uint `json:"qualifiedFirmwareCount,omitempty" xmlrpc:"qualifiedFirmwareCount,omitempty"`
+
+	// no documentation yet
+	QualifiedFirmwares []Hardware_Component_Firmware `json:"qualifiedFirmwares,omitempty" xmlrpc:"qualifiedFirmwares,omitempty"`
 
 	// A motherboard's average reboot time.
 	RebootTime *Hardware_Component_Motherboard_Reboot_Time `json:"rebootTime,omitempty" xmlrpc:"rebootTime,omitempty"`
@@ -1660,10 +1682,11 @@ type Hardware_Group struct {
 	// A count of all network hardware downstream from this hardware.
 	DownstreamNetworkHardwareCount *uint `json:"downstreamNetworkHardwareCount,omitempty" xmlrpc:"downstreamNetworkHardwareCount,omitempty"`
 
-	// A count of all network hardware with monitoring warnings or errors downstream from this hardware.
+	// A count of all network hardware with monitoring warnings or errors downstream from this hardware. [DEPRECATED]
 	DownstreamNetworkHardwareWithIncidentCount *uint `json:"downstreamNetworkHardwareWithIncidentCount,omitempty" xmlrpc:"downstreamNetworkHardwareWithIncidentCount,omitempty"`
 
-	// All network hardware with monitoring warnings or errors downstream from this hardware.
+	// All network hardware with monitoring warnings or errors downstream from this hardware. [DEPRECATED]
+	// Deprecated: This function has been marked as deprecated.
 	DownstreamNetworkHardwareWithIncidents []Hardware `json:"downstreamNetworkHardwareWithIncidents,omitempty" xmlrpc:"downstreamNetworkHardwareWithIncidents,omitempty"`
 
 	// The chassis that a piece of hardware is housed in.
@@ -1687,7 +1710,8 @@ type Hardware_Group struct {
 	// Virtual guests that are attached downstream to a hardware that have failed monitoring
 	NetworkMonitorAttachedDownVirtualGuests []Virtual_Guest `json:"networkMonitorAttachedDownVirtualGuests,omitempty" xmlrpc:"networkMonitorAttachedDownVirtualGuests,omitempty"`
 
-	// The value of a hardware's network status attribute.
+	// The value of a hardware's network status attribute. [DEPRECATED]
+	// Deprecated: This function has been marked as deprecated.
 	NetworkStatus *string `json:"networkStatus,omitempty" xmlrpc:"networkStatus,omitempty"`
 }
 
@@ -2042,10 +2066,11 @@ type Hardware_Server struct {
 	// A list of users that have access to this computing instance.
 	Users []User_Customer `json:"users,omitempty" xmlrpc:"users,omitempty"`
 
-	// A count of a hardware server's virtual servers.
+	// A count of [DEPRECATED] A hardware server's virtual servers.
 	VirtualGuestCount *uint `json:"virtualGuestCount,omitempty" xmlrpc:"virtualGuestCount,omitempty"`
 
-	// A hardware server's virtual servers.
+	// [DEPRECATED] A hardware server's virtual servers.
+	// Deprecated: This function has been marked as deprecated.
 	VirtualGuests []Virtual_Guest `json:"virtualGuests,omitempty" xmlrpc:"virtualGuests,omitempty"`
 }
 
@@ -2111,13 +2136,11 @@ type Hardware_State struct {
 
 // SoftLayer_Hardware_Status models the inventory state of any piece of hardware in SoftLayer's inventory. Most of these statuses are used by SoftLayer while a server is not provisioned or undergoing provisioning. SoftLayer uses the following status codes:
 //
-//
-// *'''ACTIVE''': This server is active and in use.
-// *'''DEPLOY''': Used during server provisioning.
-// *'''DEPLOY2''': Used during server provisioning.
-// *'''MACWAIT''': Used during server provisioning.
-// *'''RECLAIM''': This server has been reclaimed by SoftLayer and is awaiting de-provisioning.
-//
+// *”'ACTIVE”': This server is active and in use.
+// *”'DEPLOY”': Used during server provisioning.
+// *”'DEPLOY2”': Used during server provisioning.
+// *”'MACWAIT”': Used during server provisioning.
+// *”'RECLAIM”': This server has been reclaimed by SoftLayer and is awaiting de-provisioning.
 //
 // Servers in production and in use should stay in the ACTIVE state. If a server's status ever reads anything else then please contact SoftLayer support.
 type Hardware_Status struct {

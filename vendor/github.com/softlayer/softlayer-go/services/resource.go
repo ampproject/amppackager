@@ -245,12 +245,6 @@ func (r Resource_Group_Template) GetObject() (resp datatypes.Resource_Group_Temp
 	return
 }
 
-// Retrieve
-func (r Resource_Group_Template) GetPackage() (resp datatypes.Product_Package, err error) {
-	err = r.Session.DoRequest("SoftLayer_Resource_Group_Template", "getPackage", nil, &r.Options, &resp)
-	return
-}
-
 // no documentation yet
 type Resource_Metadata struct {
 	Session *session.Session
@@ -400,7 +394,7 @@ func (r Resource_Metadata) GetTags() (resp []string, err error) {
 	return
 }
 
-// The getUserMetadata method retrieves metadata completed by users who interact with the resource. Metadata gathered using this method is unique to parameters set using the '''setUserMetadata''' method, which must be executed prior to completing this method. User metadata may also be provided while placing an order for a resource.
+// The getUserMetadata method retrieves metadata completed by users who interact with the resource. Metadata gathered using this method is unique to parameters set using the ”'setUserMetadata”' method, which must be executed prior to completing this method. User metadata may also be provided while placing an order for a resource.
 func (r Resource_Metadata) GetUserMetadata() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Resource_Metadata", "getUserMetadata", nil, &r.Options, &resp)
 	return

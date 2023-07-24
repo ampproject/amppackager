@@ -128,20 +128,19 @@ func (r Dns_Domain) CreateNsRecord(host *string, data *string, ttl *int) (resp d
 // Create a new domain on the SoftLayer name servers. The SoftLayer_Dns_Domain object passed to this function must have at least one A or AAAA resource record.
 //
 // createObject creates a default SOA record with the data:
-// * '''host''': "@"
-// * '''data''': "ns1.softlayer.com."
-// * '''responsible person''': "root.[your domain name]."
-// * '''expire''': 604800 seconds
-// * '''refresh''': 3600 seconds
-// * '''retry''': 300 seconds
-// * '''minimum''': 3600 seconds
-//
+// * ”'host”': "@"
+// * ”'data”': "ns1.softlayer.com."
+// * ”'responsible person”': "root.[your domain name]."
+// * ”'expire”': 604800 seconds
+// * ”'refresh”': 3600 seconds
+// * ”'retry”': 300 seconds
+// * ”'minimum”': 3600 seconds
 //
 // If your new domain uses the .de top-level domain then SOA refresh is set to 10000 seconds, retry is set to 1800 seconds, and minimum to 10000 seconds.
 //
-// If your domain doesn't contain NS resource records for ns1.softlayer.com or ns2.softlayer.com then ''createObject'' will create them for you.
+// If your domain doesn't contain NS resource records for ns1.softlayer.com or ns2.softlayer.com then ”createObject” will create them for you.
 //
-// ''createObject'' returns a Boolean ''true'' on successful object creation or ''false'' if your domain was unable to be created..
+// ”createObject” returns a Boolean ”true” on successful object creation or ”false” if your domain was unable to be created..
 func (r Dns_Domain) CreateObject(templateObject *datatypes.Dns_Domain) (resp datatypes.Dns_Domain, err error) {
 	params := []interface{}{
 		templateObject,
@@ -150,7 +149,7 @@ func (r Dns_Domain) CreateObject(templateObject *datatypes.Dns_Domain) (resp dat
 	return
 }
 
-// Create multiple domains on the SoftLayer name servers. Each domain record passed to ''createObjects'' follows the logic in the SoftLayer_Dns_Domain ''createObject'' method.
+// Create multiple domains on the SoftLayer name servers. Each domain record passed to ”createObjects” follows the logic in the SoftLayer_Dns_Domain ”createObject” method.
 func (r Dns_Domain) CreateObjects(templateObjects []datatypes.Dns_Domain) (resp []datatypes.Dns_Domain, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -192,7 +191,7 @@ func (r Dns_Domain) CreateTxtRecord(host *string, data *string, ttl *int) (resp 
 	return
 }
 
-// deleteObject permanently removes a domain and all of it's associated resource records from the softlayer name servers. '''This cannot be undone.''' Be wary of running this method. If you remove a domain in error you will need to re-create it by creating a new SoftLayer_Dns_Domain object.
+// deleteObject permanently removes a domain and all of it's associated resource records from the softlayer name servers. ”'This cannot be undone.”' Be wary of running this method. If you remove a domain in error you will need to re-create it by creating a new SoftLayer_Dns_Domain object.
 func (r Dns_Domain) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Dns_Domain", "deleteObject", nil, &r.Options, &resp)
 	return
@@ -476,15 +475,12 @@ func (r Dns_Domain_Registration) UnlockDomain() (resp bool, err error) {
 
 // SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status models the state of the registrant. Here are the following status codes:
 //
-//
-// *'''Admin Reviewing''': The registrant data has been submitted and being reviewed by compliance team.
-// *'''Pending''': The verification process has been inititated, and verification email will be sent.
-// *'''Suspended''': The registrant has failed verification and the domain has been suspended.
-// *'''Verified''': The registrant has been validated.
-// *'''Verifying''': The verification process has been initiated and is waiting for registrant response.
-// *'''Unverified''': The verification process has not been inititated.
-//
-//
+// *”'Admin Reviewing”': The registrant data has been submitted and being reviewed by compliance team.
+// *”'Pending”': The verification process has been inititated, and verification email will be sent.
+// *”'Suspended”': The registrant has failed verification and the domain has been suspended.
+// *”'Verified”': The registrant has been validated.
+// *”'Verifying”': The verification process has been initiated and is waiting for registrant response.
+// *”'Unverified”': The verification process has not been inititated.
 type Dns_Domain_Registration_Registrant_Verification_Status struct {
 	Session *session.Session
 	Options sl.Options
@@ -538,14 +534,11 @@ func (r Dns_Domain_Registration_Registrant_Verification_Status) GetObject() (res
 
 // SoftLayer_Dns_Domain_Registration_Status models the state of domain name. Here are the following status codes:
 //
-//
-// *'''Active''': This domain name is active.
-// *'''Pending Owner Approval''': Pending owner approval for completion of transfer.
-// *'''Pending Admin Review''': Pending admin review for transfer.
-// *'''Pending Registry''': Pending registry for transfer.
-// *'''Expired''': Domain name has expired.
-//
-//
+// *”'Active”': This domain name is active.
+// *”'Pending Owner Approval”': Pending owner approval for completion of transfer.
+// *”'Pending Admin Review”': Pending admin review for transfer.
+// *”'Pending Registry”': Pending registry for transfer.
+// *”'Expired”': Domain name has expired.
 type Dns_Domain_Registration_Status struct {
 	Session *session.Session
 	Options sl.Options
@@ -597,20 +590,19 @@ func (r Dns_Domain_Registration_Status) GetObject() (resp datatypes.Dns_Domain_R
 	return
 }
 
-// The SoftLayer_Dns_Domain_ResourceRecord data type represents a single resource record entry in a SoftLayer hosted domain. Each resource record contains a ''host'' and ''data'' property, defining a resource's name and it's target data. Domains contain multiple types of resource records. The ''type'' property separates out resource records by type. ''Type'' can take one of the following values:
-// * '''"a"''' for [[SoftLayer_Dns_Domain_ResourceRecord_AType|address]] records
-// * '''"aaaa"''' for [[SoftLayer_Dns_Domain_ResourceRecord_AaaaType|address]] records
-// * '''"cname"''' for [[SoftLayer_Dns_Domain_ResourceRecord_CnameType|canonical name]] records
-// * '''"mx"''' for [[SoftLayer_Dns_Domain_ResourceRecord_MxType|mail exchanger]] records
-// * '''"ns"''' for [[SoftLayer_Dns_Domain_ResourceRecord_NsType|name server]] records
-// * '''"ptr"''' for [[SoftLayer_Dns_Domain_ResourceRecord_PtrType|pointer]] records in reverse domains
-// * '''"soa"''' for a domain's [[SoftLayer_Dns_Domain_ResourceRecord_SoaType|start of authority]] record
-// * '''"spf"''' for [[SoftLayer_Dns_Domain_ResourceRecord_SpfType|sender policy framework]] records
-// * '''"srv"''' for [[SoftLayer_Dns_Domain_ResourceRecord_SrvType|service]] records
-// * '''"txt"''' for [[SoftLayer_Dns_Domain_ResourceRecord_TxtType|text]] records
+// The SoftLayer_Dns_Domain_ResourceRecord data type represents a single resource record entry in a SoftLayer hosted domain. Each resource record contains a ”host” and ”data” property, defining a resource's name and it's target data. Domains contain multiple types of resource records. The ”type” property separates out resource records by type. ”Type” can take one of the following values:
+// * ”'"a"”' for [[SoftLayer_Dns_Domain_ResourceRecord_AType|address]] records
+// * ”'"aaaa"”' for [[SoftLayer_Dns_Domain_ResourceRecord_AaaaType|address]] records
+// * ”'"cname"”' for [[SoftLayer_Dns_Domain_ResourceRecord_CnameType|canonical name]] records
+// * ”'"mx"”' for [[SoftLayer_Dns_Domain_ResourceRecord_MxType|mail exchanger]] records
+// * ”'"ns"”' for [[SoftLayer_Dns_Domain_ResourceRecord_NsType|name server]] records
+// * ”'"ptr"”' for [[SoftLayer_Dns_Domain_ResourceRecord_PtrType|pointer]] records in reverse domains
+// * ”'"soa"”' for a domain's [[SoftLayer_Dns_Domain_ResourceRecord_SoaType|start of authority]] record
+// * ”'"spf"”' for [[SoftLayer_Dns_Domain_ResourceRecord_SpfType|sender policy framework]] records
+// * ”'"srv"”' for [[SoftLayer_Dns_Domain_ResourceRecord_SrvType|service]] records
+// * ”'"txt"”' for [[SoftLayer_Dns_Domain_ResourceRecord_TxtType|text]] records
 //
-//
-// As ''SoftLayer_Dns_Domain_ResourceRecord'' objects are created and loaded, the API verifies the ''type'' property and casts the object as the appropriate type.
+// As ”SoftLayer_Dns_Domain_ResourceRecord” objects are created and loaded, the API verifies the ”type” property and casts the object as the appropriate type.
 type Dns_Domain_ResourceRecord struct {
 	Session *session.Session
 	Options sl.Options
@@ -650,9 +642,9 @@ func (r Dns_Domain_ResourceRecord) Offset(offset int) Dns_Domain_ResourceRecord 
 	return r
 }
 
-// createObject creates a new domain resource record. The ''host'' property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ''data'' property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Creating a resource record updates the serial number of the domain the resource record is associated with.
+// createObject creates a new domain resource record. The ”host” property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ”data” property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Creating a resource record updates the serial number of the domain the resource record is associated with.
 //
-// ''createObject'' returns Boolean ''true'' on successful create or ''false'' if it was unable to create a resource record.
+// ”createObject” returns Boolean ”true” on successful create or ”false” if it was unable to create a resource record.
 func (r Dns_Domain_ResourceRecord) CreateObject(templateObject *datatypes.Dns_Domain_ResourceRecord) (resp datatypes.Dns_Domain_ResourceRecord, err error) {
 	params := []interface{}{
 		templateObject,
@@ -661,9 +653,9 @@ func (r Dns_Domain_ResourceRecord) CreateObject(templateObject *datatypes.Dns_Do
 	return
 }
 
-// Create multiple resource records on a domain. This follows the same logic as ''createObject'. The serial number of the domain associated with this resource record is updated upon creation.
+// Create multiple resource records on a domain. This follows the same logic as ”createObject'. The serial number of the domain associated with this resource record is updated upon creation.
 //
-// ''createObjects'' returns Boolean ''true'' on successful creation or ''false'' if it was unable to create a resource record.
+// ”createObjects” returns Boolean ”true” on successful creation or ”false” if it was unable to create a resource record.
 func (r Dns_Domain_ResourceRecord) CreateObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord) (resp []datatypes.Dns_Domain_ResourceRecord, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -672,17 +664,17 @@ func (r Dns_Domain_ResourceRecord) CreateObjects(templateObjects []datatypes.Dns
 	return
 }
 
-// Delete a domain's resource record. '''This cannot be undone.''' Be wary of running this method. If you remove a resource record in error you will need to re-create it by creating a new SoftLayer_Dns_Domain_ResourceRecord object. The serial number of the domain associated with this resource record is updated upon deletion. You may not delete SOA, NS, or PTR resource records.
+// Delete a domain's resource record. ”'This cannot be undone.”' Be wary of running this method. If you remove a resource record in error you will need to re-create it by creating a new SoftLayer_Dns_Domain_ResourceRecord object. The serial number of the domain associated with this resource record is updated upon deletion. You may not delete SOA, NS, or PTR resource records.
 //
-// ''deleteObject'' returns Boolean ''true'' on successful deletion or ''false'' if it was unable to remove a resource record.
+// ”deleteObject” returns Boolean ”true” on successful deletion or ”false” if it was unable to remove a resource record.
 func (r Dns_Domain_ResourceRecord) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Dns_Domain_ResourceRecord", "deleteObject", nil, &r.Options, &resp)
 	return
 }
 
-// Remove multiple resource records from a domain. This follows the same logic as ''deleteObject'' and '''cannot be undone'''. The serial number of the domain associated with this resource record is updated upon deletion. You may not delete SOA records, PTR records, or NS resource records that point to ns1.softlayer.com or ns2.softlayer.com.
+// Remove multiple resource records from a domain. This follows the same logic as ”deleteObject” and ”'cannot be undone”'. The serial number of the domain associated with this resource record is updated upon deletion. You may not delete SOA records, PTR records, or NS resource records that point to ns1.softlayer.com or ns2.softlayer.com.
 //
-// ''deleteObjects'' returns Boolean ''true'' on successful deletion or ''false'' if it was unable to remove a resource record.
+// ”deleteObjects” returns Boolean ”true” on successful deletion or ”false” if it was unable to remove a resource record.
 func (r Dns_Domain_ResourceRecord) DeleteObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord) (resp bool, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -691,9 +683,9 @@ func (r Dns_Domain_ResourceRecord) DeleteObjects(templateObjects []datatypes.Dns
 	return
 }
 
-// editObject edits an existing domain resource record. The ''host'' property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ''data'' property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Editing a resource record updates the serial number of the domain the resource record is associated with.
+// editObject edits an existing domain resource record. The ”host” property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ”data” property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Editing a resource record updates the serial number of the domain the resource record is associated with.
 //
-// ''editObject'' returns Boolean ''true'' on a successful edit or ''false'' if it was unable to edit the resource record.
+// ”editObject” returns Boolean ”true” on a successful edit or ”false” if it was unable to edit the resource record.
 func (r Dns_Domain_ResourceRecord) EditObject(templateObject *datatypes.Dns_Domain_ResourceRecord) (resp bool, err error) {
 	params := []interface{}{
 		templateObject,
@@ -702,9 +694,9 @@ func (r Dns_Domain_ResourceRecord) EditObject(templateObject *datatypes.Dns_Doma
 	return
 }
 
-// Edit multiple resource records on a domain. This follows the same logic as ''createObject'. The serial number of the domain associated with this resource record is updated upon creation.
+// Edit multiple resource records on a domain. This follows the same logic as ”createObject'. The serial number of the domain associated with this resource record is updated upon creation.
 //
-// ''createObjects'' returns Boolean ''true'' on successful creation or ''false'' if it was unable to create a resource record.
+// ”createObjects” returns Boolean ”true” on successful creation or ”false” if it was unable to create a resource record.
 func (r Dns_Domain_ResourceRecord) EditObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord) (resp bool, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -725,7 +717,7 @@ func (r Dns_Domain_ResourceRecord) GetObject() (resp datatypes.Dns_Domain_Resour
 	return
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_MxType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "mx" and used to describe MX resource records. MX records control which hosts are responsible as mail exchangers for a domain. For instance, in the domain example.org, an MX record whose host is "@" and data is "mail" says that the host "mail.example.org" is responsible for handling mail for example.org. That means mail sent to users @example.org are delivered to mail.example.org.
+// SoftLayer_Dns_Domain_ResourceRecord_MxType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "mx" and used to describe MX resource records. MX records control which hosts are responsible as mail exchangers for a domain. For instance, in the domain example.org, an MX record whose host is "@" and data is "mail" says that the host "mail.example.org" is responsible for handling mail for example.org. That means mail sent to users @example.org are delivered to mail.example.org.
 //
 // Domains can have more than one MX record if it uses more than one server to send mail through. Multiple MX records are denoted by their priority, defined by the mxPriority property.
 //
@@ -769,7 +761,7 @@ func (r Dns_Domain_ResourceRecord_MxType) Offset(offset int) Dns_Domain_Resource
 	return r
 }
 
-// createObject creates a new MX record. The ''host'' property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ''data'' property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Creating an MX record updates the serial number of the domain the resource record is associated with.
+// createObject creates a new MX record. The ”host” property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ”data” property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Creating an MX record updates the serial number of the domain the resource record is associated with.
 func (r Dns_Domain_ResourceRecord_MxType) CreateObject(templateObject *datatypes.Dns_Domain_ResourceRecord_MxType) (resp datatypes.Dns_Domain_ResourceRecord_MxType, err error) {
 	params := []interface{}{
 		templateObject,
@@ -778,9 +770,9 @@ func (r Dns_Domain_ResourceRecord_MxType) CreateObject(templateObject *datatypes
 	return
 }
 
-// Create multiple MX records on a domain. This follows the same logic as ''createObject'. The serial number of the domain associated with this MX record is updated upon creation.
+// Create multiple MX records on a domain. This follows the same logic as ”createObject'. The serial number of the domain associated with this MX record is updated upon creation.
 //
-// ''createObjects'' returns Boolean ''true'' on successful creation or ''false'' if it was unable to create a resource record.
+// ”createObjects” returns Boolean ”true” on successful creation or ”false” if it was unable to create a resource record.
 func (r Dns_Domain_ResourceRecord_MxType) CreateObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord) (resp []datatypes.Dns_Domain_ResourceRecord, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -789,17 +781,17 @@ func (r Dns_Domain_ResourceRecord_MxType) CreateObjects(templateObjects []dataty
 	return
 }
 
-// Delete a domain's MX record. '''This cannot be undone.''' Be wary of running this method. If you remove a resource record in error you will need to re-create it by creating a new SoftLayer_Dns_Domain_ResourceRecord_MxType object. The serial number of the domain associated with this MX record is updated upon deletion.
+// Delete a domain's MX record. ”'This cannot be undone.”' Be wary of running this method. If you remove a resource record in error you will need to re-create it by creating a new SoftLayer_Dns_Domain_ResourceRecord_MxType object. The serial number of the domain associated with this MX record is updated upon deletion.
 //
-// ''deleteObject'' returns Boolean ''true'' on successful deletion or ''false'' if it was unable to remove a resource record.
+// ”deleteObject” returns Boolean ”true” on successful deletion or ”false” if it was unable to remove a resource record.
 func (r Dns_Domain_ResourceRecord_MxType) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Dns_Domain_ResourceRecord_MxType", "deleteObject", nil, &r.Options, &resp)
 	return
 }
 
-// Remove multiple MX records from a domain. This follows the same logic as ''deleteObject'' and '''cannot be undone'''. The serial number of the domain associated with this MX record is updated upon deletion.
+// Remove multiple MX records from a domain. This follows the same logic as ”deleteObject” and ”'cannot be undone”'. The serial number of the domain associated with this MX record is updated upon deletion.
 //
-// ''deleteObjects'' returns Boolean ''true'' on successful deletion or ''false'' if it was unable to remove a resource record.
+// ”deleteObjects” returns Boolean ”true” on successful deletion or ”false” if it was unable to remove a resource record.
 func (r Dns_Domain_ResourceRecord_MxType) DeleteObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord_MxType) (resp bool, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -808,9 +800,9 @@ func (r Dns_Domain_ResourceRecord_MxType) DeleteObjects(templateObjects []dataty
 	return
 }
 
-// editObject edits an existing MX resource record. The ''host'' property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ''data'' property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Editing an MX record updates the serial number of the domain the record is associated with.
+// editObject edits an existing MX resource record. The ”host” property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ”data” property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Editing an MX record updates the serial number of the domain the record is associated with.
 //
-// ''editObject'' returns Boolean ''true'' on a successful edit or ''false'' if it was unable to edit the resource record.
+// ”editObject” returns Boolean ”true” on a successful edit or ”false” if it was unable to edit the resource record.
 func (r Dns_Domain_ResourceRecord_MxType) EditObject(templateObject *datatypes.Dns_Domain_ResourceRecord_MxType) (resp bool, err error) {
 	params := []interface{}{
 		templateObject,
@@ -819,9 +811,9 @@ func (r Dns_Domain_ResourceRecord_MxType) EditObject(templateObject *datatypes.D
 	return
 }
 
-// Edit multiple MX records on a domain. This follows the same logic as ''createObject'. The serial number of the domain associated with this MX record is updated upon creation.
+// Edit multiple MX records on a domain. This follows the same logic as ”createObject'. The serial number of the domain associated with this MX record is updated upon creation.
 //
-// ''createObjects'' returns Boolean ''true'' on successful creation or ''false'' if it was unable to create a resource record.
+// ”createObjects” returns Boolean ”true” on successful creation or ”false” if it was unable to create a resource record.
 func (r Dns_Domain_ResourceRecord_MxType) EditObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord_MxType) (resp bool, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -842,7 +834,7 @@ func (r Dns_Domain_ResourceRecord_MxType) GetObject() (resp datatypes.Dns_Domain
 	return
 }
 
-// SoftLayer_Dns_Domain_ResourceRecord_SrvType is a SoftLayer_Dns_Domain_ResourceRecord object whose ''type'' property is set to "srv" and defines a DNS SRV record on a SoftLayer hosted domain.
+// SoftLayer_Dns_Domain_ResourceRecord_SrvType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "srv" and defines a DNS SRV record on a SoftLayer hosted domain.
 type Dns_Domain_ResourceRecord_SrvType struct {
 	Session *session.Session
 	Options sl.Options
@@ -882,7 +874,7 @@ func (r Dns_Domain_ResourceRecord_SrvType) Offset(offset int) Dns_Domain_Resourc
 	return r
 }
 
-// createObject creates a new SRV record. The ''host'' property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ''data'' property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Creating an SRV record updates the serial number of the domain the resource record is associated with.
+// createObject creates a new SRV record. The ”host” property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ”data” property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Creating an SRV record updates the serial number of the domain the resource record is associated with.
 func (r Dns_Domain_ResourceRecord_SrvType) CreateObject(templateObject *datatypes.Dns_Domain_ResourceRecord_SrvType) (resp datatypes.Dns_Domain_ResourceRecord_SrvType, err error) {
 	params := []interface{}{
 		templateObject,
@@ -891,9 +883,9 @@ func (r Dns_Domain_ResourceRecord_SrvType) CreateObject(templateObject *datatype
 	return
 }
 
-// Create multiple SRV records on a domain. This follows the same logic as ''createObject'. The serial number of the domain associated with this SRV record is updated upon creation.
+// Create multiple SRV records on a domain. This follows the same logic as ”createObject'. The serial number of the domain associated with this SRV record is updated upon creation.
 //
-// ''createObjects'' returns Boolean ''true'' on successful creation or ''false'' if it was unable to create a resource record.
+// ”createObjects” returns Boolean ”true” on successful creation or ”false” if it was unable to create a resource record.
 func (r Dns_Domain_ResourceRecord_SrvType) CreateObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord) (resp []datatypes.Dns_Domain_ResourceRecord, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -902,17 +894,17 @@ func (r Dns_Domain_ResourceRecord_SrvType) CreateObjects(templateObjects []datat
 	return
 }
 
-// Delete a domain's SRV record. '''This cannot be undone.''' Be wary of running this method. If you remove a resource record in error you will need to re-create it by creating a new SoftLayer_Dns_Domain_ResourceRecord_SrvType object. The serial number of the domain associated with this SRV record is updated upon deletion.
+// Delete a domain's SRV record. ”'This cannot be undone.”' Be wary of running this method. If you remove a resource record in error you will need to re-create it by creating a new SoftLayer_Dns_Domain_ResourceRecord_SrvType object. The serial number of the domain associated with this SRV record is updated upon deletion.
 //
-// ''deleteObject'' returns Boolean ''true'' on successful deletion or ''false'' if it was unable to remove a resource record.
+// ”deleteObject” returns Boolean ”true” on successful deletion or ”false” if it was unable to remove a resource record.
 func (r Dns_Domain_ResourceRecord_SrvType) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Dns_Domain_ResourceRecord_SrvType", "deleteObject", nil, &r.Options, &resp)
 	return
 }
 
-// Remove multiple SRV records from a domain. This follows the same logic as ''deleteObject'' and '''cannot be undone'''. The serial number of the domain associated with this SRV record is updated upon deletion.
+// Remove multiple SRV records from a domain. This follows the same logic as ”deleteObject” and ”'cannot be undone”'. The serial number of the domain associated with this SRV record is updated upon deletion.
 //
-// ''deleteObjects'' returns Boolean ''true'' on successful deletion or ''false'' if it was unable to remove a resource record.
+// ”deleteObjects” returns Boolean ”true” on successful deletion or ”false” if it was unable to remove a resource record.
 func (r Dns_Domain_ResourceRecord_SrvType) DeleteObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord_SrvType) (resp bool, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -921,9 +913,9 @@ func (r Dns_Domain_ResourceRecord_SrvType) DeleteObjects(templateObjects []datat
 	return
 }
 
-// editObject edits an existing SRV resource record. The ''host'' property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ''data'' property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Editing an SRV record updates the serial number of the domain the record is associated with.
+// editObject edits an existing SRV resource record. The ”host” property of the templateObject parameter is scrubbed to remove all non-alpha numeric characters except for "@", "_", ".", "*", and "-". The ”data” property of the templateObject parameter is scrubbed to remove all non-alphanumeric characters for "." and "-". Editing an SRV record updates the serial number of the domain the record is associated with.
 //
-// ''editObject'' returns Boolean ''true'' on a successful edit or ''false'' if it was unable to edit the resource record.
+// ”editObject” returns Boolean ”true” on a successful edit or ”false” if it was unable to edit the resource record.
 func (r Dns_Domain_ResourceRecord_SrvType) EditObject(templateObject *datatypes.Dns_Domain_ResourceRecord_SrvType) (resp bool, err error) {
 	params := []interface{}{
 		templateObject,
@@ -932,9 +924,9 @@ func (r Dns_Domain_ResourceRecord_SrvType) EditObject(templateObject *datatypes.
 	return
 }
 
-// Edit multiple SRV records on a domain. This follows the same logic as ''createObject'. The serial number of the domain associated with this SRV record is updated upon creation.
+// Edit multiple SRV records on a domain. This follows the same logic as ”createObject'. The serial number of the domain associated with this SRV record is updated upon creation.
 //
-// ''createObjects'' returns Boolean ''true'' on successful creation or ''false'' if it was unable to create a resource record.
+// ”createObjects” returns Boolean ”true” on successful creation or ”false” if it was unable to create a resource record.
 func (r Dns_Domain_ResourceRecord_SrvType) EditObjects(templateObjects []datatypes.Dns_Domain_ResourceRecord_SrvType) (resp bool, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -1002,12 +994,10 @@ func (r Dns_Secondary) Offset(offset int) Dns_Secondary {
 // * All NS records are removed and replaced with SoftLayer's NS records.
 // * The secondary DNS record is removed.
 //
-//
 // After the DNS records are converted, the following restrictions will apply to the new domain record:
 // * You will need to manage the zone record using the [[SoftLayer_Dns_Domain]] service.
 // * You may not edit the SOA or NS records.
 // * You may only edit the following resource records: A, AAAA, CNAME, MX, TX, SRV.
-//
 //
 // This change can not be undone, and the record can not be converted back into a secondary DNS record once the conversion is complete.
 func (r Dns_Secondary) ConvertToPrimary() (resp bool, err error) {
@@ -1015,7 +1005,7 @@ func (r Dns_Secondary) ConvertToPrimary() (resp bool, err error) {
 	return
 }
 
-// Create a secondary DNS record. The ''zoneName'', ''masterIpAddress'', and ''transferFrequency'' properties in the templateObject parameter are required parameters to create a secondary DNS record.
+// Create a secondary DNS record. The ”zoneName”, ”masterIpAddress”, and ”transferFrequency” properties in the templateObject parameter are required parameters to create a secondary DNS record.
 func (r Dns_Secondary) CreateObject(templateObject *datatypes.Dns_Secondary) (resp datatypes.Dns_Secondary, err error) {
 	params := []interface{}{
 		templateObject,
@@ -1024,7 +1014,7 @@ func (r Dns_Secondary) CreateObject(templateObject *datatypes.Dns_Secondary) (re
 	return
 }
 
-// Create multiple secondary DNS records. Each record passed to ''createObjects'' follows the logic in the SoftLayer_Dns_Secondary [[SoftLayer_Dns_Secondary::createObject|createObject]] method.
+// Create multiple secondary DNS records. Each record passed to ”createObjects” follows the logic in the SoftLayer_Dns_Secondary [[SoftLayer_Dns_Secondary::createObject|createObject]] method.
 func (r Dns_Secondary) CreateObjects(templateObjects []datatypes.Dns_Secondary) (resp []datatypes.Dns_Secondary, err error) {
 	params := []interface{}{
 		templateObjects,
@@ -1039,7 +1029,7 @@ func (r Dns_Secondary) DeleteObject() (resp bool, err error) {
 	return
 }
 
-// Edit the properties of a secondary DNS record by passing in a modified instance of a SoftLayer_Dns_Secondary object. You may only edit the ''masterIpAddress'' and ''transferFrequency'' properties of your secondary DNS record. ''ZoneName'' may not be altered after a secondary DNS record has been created.  Please remove and re-create the record if you need to make changes to your zone name.
+// Edit the properties of a secondary DNS record by passing in a modified instance of a SoftLayer_Dns_Secondary object. You may only edit the ”masterIpAddress” and ”transferFrequency” properties of your secondary DNS record. ”ZoneName” may not be altered after a secondary DNS record has been created.  Please remove and re-create the record if you need to make changes to your zone name.
 func (r Dns_Secondary) EditObject(templateObject *datatypes.Dns_Secondary) (resp bool, err error) {
 	params := []interface{}{
 		templateObject,

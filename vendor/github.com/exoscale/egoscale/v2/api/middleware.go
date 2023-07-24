@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -40,7 +40,7 @@ func (m *ErrorHandlerMiddleware) RoundTrip(req *http.Request) (*http.Response, e
 			Message string `json:"message"`
 		}
 
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("error reading response body: %s", err)
 		}

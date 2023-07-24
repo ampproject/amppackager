@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,15 +45,32 @@ type AutoScaleSettingsUpdate struct {
 
 // AutoScaleSettings セッティング
 type AutoScaleSettings struct {
-	CPUThresholdScaling *AutoScaleCPUThresholdScaling `json:",omitempty" yaml:",omitempty" structs:",omitempty"`
-	Zones               []string                      `json:"SakuraCloudZones"`
-	Config              string                        `json:",omitempty" yaml:",omitempty"`
+	TriggerType            types.EAutoScaleTriggerType
+	CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `json:",omitempty" yaml:",omitempty" structs:",omitempty"`
+	RouterThresholdScaling *AutoScaleRouterThresholdScaling `json:",omitempty" yaml:",omitempty" structs:",omitempty"`
+	ScheduleScaling        []*AutoScaleScheduleScaling
+	Zones                  []string `json:"SakuraCloudZones"`
+	Config                 string   `json:",omitempty" yaml:",omitempty"`
+	Disabled               bool
 }
 
 type AutoScaleCPUThresholdScaling struct {
 	ServerPrefix string `json:",omitempty" yaml:",omitempty"`
 	Up           int    `json:",omitempty" yaml:",omitempty"`
 	Down         int    `json:",omitempty" yaml:",omitempty"`
+}
+
+type AutoScaleRouterThresholdScaling struct {
+	RouterPrefix string `json:",omitempty" yaml:",omitempty"`
+	Direction    string `json:",omitempty" yaml:",omitempty"`
+	Mbps         int    `json:",omitempty" yaml:",omitempty"`
+}
+
+type AutoScaleScheduleScaling struct {
+	Action    types.EAutoScaleAction
+	Hour      int
+	Minute    int
+	DayOfWeek []types.EDayOfTheWeek
 }
 
 // AutoScaleStatus ステータス

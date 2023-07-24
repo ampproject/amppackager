@@ -10,9 +10,10 @@ type Application struct {
 	DefaultConfig      DefaultConfig `json:"default_config"`
 }
 
+// DefaultConfig contains configuration parameters for application
 type DefaultConfig struct {
-	Http                 bool `json:"http"`
-	Https                bool `json:"https"`
+	HTTP                 bool `json:"http"`
+	HTTPS                bool `json:"https"`
 	RequestTimeoutMillis int  `json:"request_timeout_millis"`
 	JobTimeoutMillis     int  `json:"job_timeout_millis"`
 	UseXhr               bool `json:"use_xhr"`

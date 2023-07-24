@@ -958,9 +958,6 @@ type Container_Authentication_Response_Account struct {
 	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
 
 	// no documentation yet
-	PhoneFactorExternalAuthenticationRequired *bool `json:"phoneFactorExternalAuthenticationRequired,omitempty" xmlrpc:"phoneFactorExternalAuthenticationRequired,omitempty"`
-
-	// no documentation yet
 	SecurityQuestionRequired *bool `json:"securityQuestionRequired,omitempty" xmlrpc:"securityQuestionRequired,omitempty"`
 
 	// no documentation yet
@@ -2908,6 +2905,31 @@ type Container_Network_Message_Delivery_Email struct {
 }
 
 // no documentation yet
+type Container_Network_Message_Delivery_Email_Sendgrid_Account struct {
+	Entity
+
+	// no documentation yet
+	Offerings []Container_Network_Message_Delivery_Email_Sendgrid_Account_Offering `json:"offerings,omitempty" xmlrpc:"offerings,omitempty"`
+
+	// no documentation yet
+	Profile *Container_Network_Message_Delivery_Email_Sendgrid_Account_Profile `json:"profile,omitempty" xmlrpc:"profile,omitempty"`
+}
+
+// no documentation yet
+type Container_Network_Message_Delivery_Email_Sendgrid_Account_Offering struct {
+	Entity
+
+	// no documentation yet
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+
+	// no documentation yet
+	Quantity *int `json:"quantity,omitempty" xmlrpc:"quantity,omitempty"`
+
+	// no documentation yet
+	Type *string `json:"type,omitempty" xmlrpc:"type,omitempty"`
+}
+
+// no documentation yet
 type Container_Network_Message_Delivery_Email_Sendgrid_Account_Overview struct {
 	Entity
 
@@ -2924,6 +2946,12 @@ type Container_Network_Message_Delivery_Email_Sendgrid_Account_Overview struct {
 	CreditsUsed *int `json:"creditsUsed,omitempty" xmlrpc:"creditsUsed,omitempty"`
 
 	// no documentation yet
+	Email *int `json:"email,omitempty" xmlrpc:"email,omitempty"`
+
+	// no documentation yet
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// no documentation yet
 	Package *string `json:"package,omitempty" xmlrpc:"package,omitempty"`
 
 	// no documentation yet
@@ -2931,6 +2959,95 @@ type Container_Network_Message_Delivery_Email_Sendgrid_Account_Overview struct {
 
 	// no documentation yet
 	Requests *int `json:"requests,omitempty" xmlrpc:"requests,omitempty"`
+}
+
+// no documentation yet
+type Container_Network_Message_Delivery_Email_Sendgrid_Account_Profile struct {
+	Entity
+
+	// no documentation yet
+	CompanyName *string `json:"companyName,omitempty" xmlrpc:"companyName,omitempty"`
+
+	// no documentation yet
+	CompanyWebsite *string `json:"companyWebsite,omitempty" xmlrpc:"companyWebsite,omitempty"`
+
+	// no documentation yet
+	CreatedAt *string `json:"createdAt,omitempty" xmlrpc:"createdAt,omitempty"`
+
+	// no documentation yet
+	Email *string `json:"email,omitempty" xmlrpc:"email,omitempty"`
+
+	// no documentation yet
+	FirstName *string `json:"firstName,omitempty" xmlrpc:"firstName,omitempty"`
+
+	// no documentation yet
+	Id *string `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// no documentation yet
+	LastName *string `json:"lastName,omitempty" xmlrpc:"lastName,omitempty"`
+
+	// no documentation yet
+	Overage *int `json:"overage,omitempty" xmlrpc:"overage,omitempty"`
+
+	// no documentation yet
+	Package *string `json:"package,omitempty" xmlrpc:"package,omitempty"`
+
+	// no documentation yet
+	Remain *int `json:"remain,omitempty" xmlrpc:"remain,omitempty"`
+
+	// no documentation yet
+	Reputation *int `json:"reputation,omitempty" xmlrpc:"reputation,omitempty"`
+
+	// no documentation yet
+	Total *int `json:"total,omitempty" xmlrpc:"total,omitempty"`
+
+	// no documentation yet
+	UpdatedAt *string `json:"updatedAt,omitempty" xmlrpc:"updatedAt,omitempty"`
+
+	// no documentation yet
+	Used *int `json:"used,omitempty" xmlrpc:"used,omitempty"`
+}
+
+// no documentation yet
+type Container_Network_Message_Delivery_Email_Sendgrid_Catalog_Item struct {
+	Entity
+
+	// no documentation yet
+	Entitlements *Container_Network_Message_Delivery_Email_Sendgrid_Catalog_Item_Entitlements `json:"entitlements,omitempty" xmlrpc:"entitlements,omitempty"`
+
+	// no documentation yet
+	Offering *Container_Network_Message_Delivery_Email_Sendgrid_Catalog_Item_Offering `json:"offering,omitempty" xmlrpc:"offering,omitempty"`
+}
+
+// no documentation yet
+type Container_Network_Message_Delivery_Email_Sendgrid_Catalog_Item_Entitlements struct {
+	Entity
+
+	// no documentation yet
+	EmailSendsMaxMonthly *int `json:"emailSendsMaxMonthly,omitempty" xmlrpc:"emailSendsMaxMonthly,omitempty"`
+
+	// no documentation yet
+	IpCount *int `json:"ipCount,omitempty" xmlrpc:"ipCount,omitempty"`
+
+	// no documentation yet
+	TeammatesMaxTotal *int `json:"teammatesMaxTotal,omitempty" xmlrpc:"teammatesMaxTotal,omitempty"`
+
+	// no documentation yet
+	UsersMaxTotal *int `json:"usersMaxTotal,omitempty" xmlrpc:"usersMaxTotal,omitempty"`
+}
+
+// no documentation yet
+type Container_Network_Message_Delivery_Email_Sendgrid_Catalog_Item_Offering struct {
+	Entity
+
+	// no documentation yet
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+
+	// no documentation yet
+	Quantity *int `json:"quantity,omitempty" xmlrpc:"quantity,omitempty"`
+
+	// no documentation yet
+	Type *string `json:"type,omitempty" xmlrpc:"type,omitempty"`
 }
 
 // no documentation yet
@@ -3052,6 +3169,9 @@ type Container_Network_Message_Delivery_Email_Sendgrid_Statistics_Graph struct {
 // no documentation yet
 type Container_Network_Message_Delivery_Email_Sendgrid_Statistics_Options struct {
 	Entity
+
+	// no documentation yet
+	AggregatedBy *bool `json:"aggregatedBy,omitempty" xmlrpc:"aggregatedBy,omitempty"`
 
 	// no documentation yet
 	AggregatesOnly *bool `json:"aggregatesOnly,omitempty" xmlrpc:"aggregatesOnly,omitempty"`
@@ -3198,8 +3318,6 @@ type Container_Network_Storage_DuplicateConversionStatusInformation struct {
 // SoftLayer's StorageLayer Evault services provides details regarding the the purchased vault.
 //
 // When a job is created using the Webcc Console, the job created is identified as a task on the vault. Using this service, information regarding the task can be retrieved.
-//
-//
 type Container_Network_Storage_Evault_Vault_Task struct {
 	Entity
 
@@ -4017,6 +4135,9 @@ type Container_Product_Order_Billing_Information struct {
 	// Please refer to https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/360668/Cardinal+Cruise+Hybrid and view section under "DFReferenceId / ReferenceId" to populate this property accordingly.
 	PayerAuthenticationEnrollmentReferenceId *string `json:"payerAuthenticationEnrollmentReferenceId,omitempty" xmlrpc:"payerAuthenticationEnrollmentReferenceId,omitempty"`
 
+	// The URL where the issuing bank will redirect.
+	PayerAuthenticationEnrollmentReturnUrl *string `json:"payerAuthenticationEnrollmentReturnUrl,omitempty" xmlrpc:"payerAuthenticationEnrollmentReturnUrl,omitempty"`
+
 	// "Continue with Consumer Authentication" decoded response JWT (JSON Web Token) after successful authentication. The response is part of the implementation of Cardinal Cruise Hybrid.
 	//
 	// Please refer to https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/360668/Cardinal+Cruise+Hybrid and view section under "Continue with Consumer Authentication" to populate this property accordingly based on the CCA response.
@@ -4317,6 +4438,14 @@ type Container_Product_Order_Network_Message_Delivery struct {
 	EmailAddress *string `json:"emailAddress,omitempty" xmlrpc:"emailAddress,omitempty"`
 }
 
+// This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. This datatype has everything required to place an upgrade order for network message delivery.
+type Container_Product_Order_Network_Message_Delivery_Upgrade struct {
+	Container_Product_Order_Network_Message_Delivery
+
+	// The ID of the [[SoftLayer_Network_Message_Delivery]] being upgraded.
+	MessageDeliveryId *int `json:"messageDeliveryId,omitempty" xmlrpc:"messageDeliveryId,omitempty"`
+}
+
 // This is the base data type for Performance storage order containers. If you wish to place an order you must not use this class and instead use the appropriate child container for the type of storage you would like to order: [[SoftLayer_Container_Product_Order_Network_PerformanceStorage_Nfs]] for File and [[SoftLayer_Container_Product_Order_Network_PerformanceStorage_Iscsi]] for Block storage.
 type Container_Product_Order_Network_PerformanceStorage struct {
 	Container_Product_Order
@@ -4550,9 +4679,9 @@ type Container_Product_Order_Network_Storage_MassDataMigration_Request struct {
 	State *string `json:"state,omitempty" xmlrpc:"state,omitempty"`
 }
 
-// The SoftLayer_Container_Product_Order_Network_Storage_Modification datatype has everything required to place a modification to an existing StorageLayer account with SoftLayer. Modifications, at present time, include upgrade and downgrades only. The ''volumeId'' property must be set to the network storage volume id to be upgraded. Once populated send this container to the [[SoftLayer_Product_Order::placeOrder]] method.
+// The SoftLayer_Container_Product_Order_Network_Storage_Modification datatype has everything required to place a modification to an existing StorageLayer account with SoftLayer. Modifications, at present time, include upgrade and downgrades only. The ”volumeId” property must be set to the network storage volume id to be upgraded. Once populated send this container to the [[SoftLayer_Product_Order::placeOrder]] method.
 //
-// The ''packageId'' property passed in for CloudLayer storage accounts must be set to 0 (zero) and the ''quantity'' property must be set to 1. The location does not have to be set. Please use the [[SoftLayer_Product_Package]] service to retrieve a list of CloudLayer items.
+// The ”packageId” property passed in for CloudLayer storage accounts must be set to 0 (zero) and the ”quantity” property must be set to 1. The location does not have to be set. Please use the [[SoftLayer_Product_Package]] service to retrieve a list of CloudLayer items.
 //
 // NOTE: When upgrading CloudLayer storage service from a metered plan (pay as you go) to a non-metered plan, make sure the chosen plan's storage allotment has enough space to cover the current usage. If the chosen plan's usage allotment is less than the CloudLayer storage's usage the order will be rejected.
 type Container_Product_Order_Network_Storage_Modification struct {
@@ -5585,53 +5714,6 @@ type Container_User_Customer_External_Binding struct {
 }
 
 // Container classed used to hold portal token
-type Container_User_Customer_External_Binding_Phone struct {
-	Container_User_Customer_External_Binding
-}
-
-// This container can be used to configure the phone authentication mode. By default, "VOICE_CALL" in "STANDARD" mode with no Pin number will be used. With the default mode, you will have to answer a phone call from a trusted 2 form factor vendor during authentication process. You have to answer the call and follow the instruction in order to complete the authentication.
-//
-// You can also use SMS text message or PhoneFactor mobile app modes (in case you're using PhoneFactor). Additionally, you can set up a Pin number. By requiring you to verify your secret PIN, you can ensure that you have possession of your phone.
-type Container_User_Customer_External_Binding_Phone_Mode struct {
-	Entity
-
-	// Authentication mode. Valid modes are: VOICE_CALL, SMS_TEXT, PHONE_APP
-	//
-	//
-	// *VOICE_CALL
-	// In this mode, users will receive a phone call to authenticate. Using PIN can enhance the security of the phone authentication by requiring the user to enter a PIN during the authentication call. Valid Pin modes are: PIN, VOICE_PRINT, STANDARD
-	//
-	//
-	// **STANDARD: (default) No PIN is used.
-	// **PIN: 4 to 10 digit numeric value
-	// **VOICE_PRINT: The user's voice will be used to identify the user.
-	//
-	//
-	// *SMS_TEXT
-	// SMS Text mode will send a SMS text message to the user's phone to complete the authentication.  There are 2 different pin modes:
-	//
-	//
-	// **OTP: (default) A text message containing a One-Time Passcode (OTP) is sent to the user. The user must reply to the text message entering this OTP to complete the authentication.
-	// **OTP_PIN: This mode enhances the security of the authentication by requiring the user to enter the OTP + their PIN in the text reply.
-	//
-	//
-	//
-	//
-	// *PHONE_APP
-	// This mode is applicable for PhoneFactor. Phone App mode results in a notification being sent to the user's PhoneFactor phone app. There are 2 different pin modes for the mobile app authentication.
-	// **STANDARD: (default) The first authentication is when the user signs on using a username and password.
-	// The second authentication is when the user receives a notification in the PhoneFactor phone app. In Standard Mode, users will prompted to authenticate, deny, or deny and report fraud.
-	// **PIN: This mode enhances the security of the authentication by requiring the user to enter their PIN in the phone app.
-	Mode *string `json:"mode,omitempty" xmlrpc:"mode,omitempty"`
-
-	// Optional authentication pin.
-	Pin *string `json:"pin,omitempty" xmlrpc:"pin,omitempty"`
-
-	// Available Pin modes are: PIN, VOICE_PRINT, STANDARD Default: STANDARD (Pin is not used)
-	PinMode *string `json:"pinMode,omitempty" xmlrpc:"pinMode,omitempty"`
-}
-
-// Container classed used to hold portal token
 type Container_User_Customer_External_Binding_Totp struct {
 	Container_User_Customer_External_Binding
 
@@ -5849,23 +5931,6 @@ type Container_User_Customer_Profile_Event_HyperWarp_ProfileChange_EventProperti
 
 	// no documentation yet
 	User_id *string `json:"user_id,omitempty" xmlrpc:"user_id,omitempty"`
-}
-
-// This container holds user's phone information.
-type Container_User_Data_Phone struct {
-	Entity
-
-	// Country code number for the phone number Default: 1 (United States & Canada +1)
-	CountryCode *int `json:"countryCode,omitempty" xmlrpc:"countryCode,omitempty"`
-
-	// Phone extension code. It can be digits, commas, *, and # are allowed.
-	Extension *string `json:"extension,omitempty" xmlrpc:"extension,omitempty"`
-
-	// Phone number can be a mobile phone number, desk phone number, or some other option. The phone number format must match the format selected in the country code.
-	Phone *string `json:"phone,omitempty" xmlrpc:"phone,omitempty"`
-
-	// Type of phone number such as "primary", "office" or "home"
-	PhoneType *string `json:"phoneType,omitempty" xmlrpc:"phoneType,omitempty"`
 }
 
 // Container classed used to hold portal token

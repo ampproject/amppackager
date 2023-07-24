@@ -27,8 +27,12 @@ const (
 	ZoneNlAms1 = Zone("nl-ams-1")
 	// ZoneNlAms2 represents the nl-ams-2 zone
 	ZoneNlAms2 = Zone("nl-ams-2")
+	// ZoneNlAms3 represents the nl-ams-3 zone
+	ZoneNlAms3 = Zone("nl-ams-3")
 	// ZonePlWaw1 represents the pl-waw-1 zone
 	ZonePlWaw1 = Zone("pl-waw-1")
+	// ZonePlWaw2 represents the pl-waw-2 zone
+	ZonePlWaw2 = Zone("pl-waw-2")
 )
 
 var (
@@ -39,7 +43,9 @@ var (
 		ZoneFrPar3,
 		ZoneNlAms1,
 		ZoneNlAms2,
+		ZoneNlAms3,
 		ZonePlWaw1,
+		ZonePlWaw2,
 	}
 )
 
@@ -106,9 +112,9 @@ func (region Region) GetZones() []Zone {
 	case RegionFrPar:
 		return []Zone{ZoneFrPar1, ZoneFrPar2, ZoneFrPar3}
 	case RegionNlAms:
-		return []Zone{ZoneNlAms1, ZoneNlAms2}
+		return []Zone{ZoneNlAms1, ZoneNlAms2, ZoneNlAms3}
 	case RegionPlWaw:
-		return []Zone{ZonePlWaw1}
+		return []Zone{ZonePlWaw1, ZonePlWaw2}
 	default:
 		return []Zone{}
 	}

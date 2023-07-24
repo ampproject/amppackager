@@ -445,7 +445,6 @@ func (r Notification_User_Subscriber) Offset(offset int) Notification_User_Subsc
 //
 // For example to create a subscriber for a Storage EVault service to be notified 15 times during a billing cycle and to be notified when the vault usage reaches 85% of its allowed capacity use the following structure:
 //
-//
 // *userRecordId = 1111
 // *notificationId = 3
 // *resourceRecord
@@ -456,8 +455,6 @@ func (r Notification_User_Subscriber) Offset(offset int) Notification_User_Subsc
 // *preference[2]
 // **notificationPreferenceId = 3
 // **value = 15
-//
-//
 func (r Notification_User_Subscriber) CreateObject(templateObject *datatypes.Notification_User_Subscriber) (resp bool, err error) {
 	params := []interface{}{
 		templateObject,
@@ -469,7 +466,6 @@ func (r Notification_User_Subscriber) CreateObject(templateObject *datatypes.Not
 // The subscriber's subscription status can be "turned off" or "turned on" if the subscription is not required.
 //
 // Subscriber preferences may also be edited.  To edit the preferences, you must pass in the id off the preferences to edit.  Here is an example of structure to pass in.  In this example, the structure will set the subscriber status to active and the threshold preference to 90 and the limit preference to 20
-//
 //
 // *id = 1111
 // *active = 1
@@ -579,7 +575,6 @@ func (r Notification_User_Subscriber_Billing) Offset(offset int) Notification_Us
 //
 // For example to create a subscriber for a Storage EVault service to be notified 15 times during a billing cycle and to be notified when the vault usage reaches 85% of its allowed capacity use the following structure:
 //
-//
 // *userRecordId = 1111
 // *notificationId = 3
 // *resourceRecord
@@ -590,8 +585,6 @@ func (r Notification_User_Subscriber_Billing) Offset(offset int) Notification_Us
 // *preference[2]
 // **notificationPreferenceId = 3
 // **value = 15
-//
-//
 func (r Notification_User_Subscriber_Billing) CreateObject(templateObject *datatypes.Notification_User_Subscriber) (resp bool, err error) {
 	params := []interface{}{
 		templateObject,
@@ -603,7 +596,6 @@ func (r Notification_User_Subscriber_Billing) CreateObject(templateObject *datat
 // The subscriber's subscription status can be "turned off" or "turned on" if the subscription is not required.
 //
 // Subscriber preferences may also be edited.  To edit the preferences, you must pass in the id off the preferences to edit.  Here is an example of structure to pass in.  In this example, the structure will set the subscriber status to active and the threshold preference to 90 and the limit preference to 20
-//
 //
 // *id = 1111
 // *active = 1
@@ -719,7 +711,6 @@ func (r Notification_User_Subscriber_Mobile) ClearSnoozeTimer() (resp bool, err 
 //
 // For example to create a subscriber for a Storage EVault service to be notified 15 times during a billing cycle and to be notified when the vault usage reaches 85% of its allowed capacity use the following structure:
 //
-//
 // *userRecordId = 1111
 // *notificationId = 3
 // *resourceRecord
@@ -730,8 +721,6 @@ func (r Notification_User_Subscriber_Mobile) ClearSnoozeTimer() (resp bool, err 
 // *preference[2]
 // **notificationPreferenceId = 3
 // **value = 15
-//
-//
 func (r Notification_User_Subscriber_Mobile) CreateObject(templateObject *datatypes.Notification_User_Subscriber) (resp bool, err error) {
 	params := []interface{}{
 		templateObject,
@@ -743,7 +732,6 @@ func (r Notification_User_Subscriber_Mobile) CreateObject(templateObject *dataty
 // The subscriber's subscription status can be "turned off" or "turned on" if the subscription is not required.
 //
 // Subscriber preferences may also be edited.  To edit the preferences, you must pass in the id off the preferences to edit.  Here is an example of structure to pass in.  In this example, the structure will set the subscriber status to active and the threshold preference to 90 and the limit preference to 20
-//
 //
 // *id = 1111
 // *active = 1

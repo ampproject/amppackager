@@ -24,7 +24,7 @@ type Job struct {
 	Status map[string]*Status `json:"status,omitempty"`
 
 	// Rules for determining failure conditions.
-	Rules []*Rule `json:"rules,omitempty"`
+	Rules []*Rule `json:"rules"`
 
 	// List of regions in which to run the monitor.
 	// eg, ["dal", "sin", "sjc", "lga", "ams"]

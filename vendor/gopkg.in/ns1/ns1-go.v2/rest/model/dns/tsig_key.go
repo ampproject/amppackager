@@ -7,7 +7,7 @@ type TSIGKey struct {
 	Secret    string `json:"secret,omitempty"`
 }
 
-// NewTSIGKey takes a name, algorithm and secret and creates a new TSIG key.
+// NewTsigKey takes a name, algorithm and secret and creates a new TSIG key.
 func NewTsigKey(name string, algorithm string, secret string) *TSIGKey {
 	tsigKey := TSIGKey{
 		Name:      name,

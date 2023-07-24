@@ -23,6 +23,7 @@ type Reservation struct {
 // IdentifierType is a type of the reservation identifier
 type IdentifierType string
 
+// List of available Identifier types
 const (
 	HWAddressType IdentifierType = "hw-address"
 	CircuitIDType IdentifierType = "circuit-id"

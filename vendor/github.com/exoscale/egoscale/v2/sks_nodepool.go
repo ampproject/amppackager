@@ -71,7 +71,7 @@ func sksNodepoolFromAPI(n *oapi.SksNodepool) *SKSNodepool {
 		CreatedAt: n.CreatedAt,
 		DeployTargetID: func() (v *string) {
 			if n.DeployTarget != nil {
-				v = n.DeployTarget.Id
+				v = &n.DeployTarget.Id
 			}
 			return
 		}(),
@@ -168,7 +168,7 @@ func (c *Client) CreateSKSNodepool(
 			}(),
 			DeployTarget: func() (v *oapi.DeployTarget) {
 				if nodepool.DeployTargetID != nil {
-					v = &oapi.DeployTarget{Id: nodepool.DeployTargetID}
+					v = &oapi.DeployTarget{Id: *nodepool.DeployTargetID}
 				}
 				return
 			}(),
@@ -374,7 +374,7 @@ func (c *Client) UpdateSKSNodepool(
 			}(),
 			DeployTarget: func() (v *oapi.DeployTarget) {
 				if nodepool.DeployTargetID != nil {
-					v = &oapi.DeployTarget{Id: nodepool.DeployTargetID}
+					v = &oapi.DeployTarget{Id: *nodepool.DeployTargetID}
 				}
 				return
 			}(),

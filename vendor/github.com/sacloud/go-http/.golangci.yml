@@ -8,7 +8,6 @@ issues:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - depguard
     - errcheck
     - exportloopref
@@ -23,12 +22,9 @@ linters:
     - misspell
     - nakedret
     - nolintlint
-    - revive
-    - stylecheck
     - typecheck
     - unconvert
     - unused
-    - varcheck
     - whitespace
 
   # don't enable:
@@ -47,6 +43,8 @@ linters:
   #  - goerr113
   #  - lll
   #  - prealloc
+  #  - revive
+  #  - stylecheck
   #  - staticcheck
   #  - structcheck
   #  - testpackage

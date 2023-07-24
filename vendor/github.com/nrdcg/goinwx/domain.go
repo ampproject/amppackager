@@ -2,6 +2,7 @@ package goinwx
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/fatih/structs"
@@ -31,20 +32,20 @@ const (
 // DomainService API access to Domain.
 type DomainService service
 
-// Check Checks domains.
+// Check checks domains.
 func (s *DomainService) Check(domains []string) ([]DomainCheckResponse, error) {
 	req := s.client.NewRequest(methodDomainCheck, map[string]interface{}{
 		"domain": domains,
 		"wide":   "2",
 	})
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	root := new(domainCheckResponseRoot)
-	err = mapstructure.Decode(*resp, &root)
+	err = mapstructure.Decode(resp, &root)
 	if err != nil {
 		return nil, err
 	}
@@ -52,20 +53,20 @@ func (s *DomainService) Check(domains []string) ([]DomainCheckResponse, error) {
 	return root.Domains, nil
 }
 
-// GetPrices Gets TLDS prices.
+// GetPrices gets TLDS prices.
 func (s *DomainService) GetPrices(tlds []string) ([]DomainPriceResponse, error) {
 	req := s.client.NewRequest(methodDomainGetPrices, map[string]interface{}{
 		"tld": tlds,
 		"vat": false,
 	})
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	root := new(domainPriceResponseRoot)
-	err = mapstructure.Decode(*resp, &root)
+	err = mapstructure.Decode(resp, &root)
 	if err != nil {
 		return nil, err
 	}
@@ -73,17 +74,17 @@ func (s *DomainService) GetPrices(tlds []string) ([]DomainPriceResponse, error) 
 	return root.Prices, nil
 }
 
-// Register Register a domain.
+// Register registers a domain.
 func (s *DomainService) Register(request *DomainRegisterRequest) (*DomainRegisterResponse, error) {
 	req := s.client.NewRequest(methodDomainCreate, structs.Map(request))
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	var result DomainRegisterResponse
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -91,18 +92,18 @@ func (s *DomainService) Register(request *DomainRegisterRequest) (*DomainRegiste
 	return &result, nil
 }
 
-// Delete Deletes a domain.
+// Delete deletes a domain.
 func (s *DomainService) Delete(domain string, scheduledDate time.Time) error {
 	req := s.client.NewRequest(methodDomainDelete, map[string]interface{}{
 		"domain": domain,
 		"scDate": scheduledDate.Format(time.RFC3339),
 	})
 
-	_, err := s.client.Do(*req)
+	_, err := s.client.Do(req)
 	return err
 }
 
-// Info Gets information about a domain.
+// Info gets information about a domain.
 func (s *DomainService) Info(domain string, roID int) (*DomainInfoResponse, error) {
 	req := s.client.NewRequest(methodDomainInfo, map[string]interface{}{
 		"domain": domain,
@@ -112,13 +113,13 @@ func (s *DomainService) Info(domain string, roID int) (*DomainInfoResponse, erro
 		req.Args["roId"] = roID
 	}
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	var result DomainInfoResponse
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +127,7 @@ func (s *DomainService) Info(domain string, roID int) (*DomainInfoResponse, erro
 	return &result, nil
 }
 
-// List List domains.
+// List lists domains.
 func (s *DomainService) List(request *DomainListRequest) (*DomainList, error) {
 	if request == nil {
 		return nil, errors.New("request can't be nil")
@@ -137,13 +138,25 @@ func (s *DomainService) List(request *DomainListRequest) (*DomainList, error) {
 
 	req := s.client.NewRequest(methodDomainList, requestMap)
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
+	// This is a (temporary) workaround to convert the API response from string to int.
+	// The code only applies when string is being return, otherwise it's being skipped.
+	// As per docs at https://www.inwx.com/en/help/apidoc/f/ch02s08.html#domain.list we should get int here, but apparently it's not the case.
+	// Ticket 10026265 with INWX was raised.
+	if countStr, ok := resp["count"].(string); ok {
+		// If we land here, we got string back, but we expect int.
+		// Converting value to int and writing it to the response.
+		if num, ok := strconv.Atoi(countStr); ok == nil {
+			resp["count"] = num
+		}
+	}
+
 	var result DomainList
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -151,19 +164,19 @@ func (s *DomainService) List(request *DomainListRequest) (*DomainList, error) {
 	return &result, nil
 }
 
-// Whois Whois about a domains.
+// Whois information about a domains.
 func (s *DomainService) Whois(domain string) (string, error) {
 	req := s.client.NewRequest(methodDomainWhois, map[string]interface{}{
 		"domain": domain,
 	})
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return "", err
 	}
 
 	var result map[string]string
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return "", err
 	}
@@ -171,17 +184,17 @@ func (s *DomainService) Whois(domain string) (string, error) {
 	return result["whois"], nil
 }
 
-// Update Updates domain information.
+// Update updates domain information.
 func (s *DomainService) Update(request *DomainUpdateRequest) (float32, error) {
 	req := s.client.NewRequest(methodDomainUpdate, structs.Map(request))
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return 0, err
 	}
 
 	var result DomainUpdateResponse
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return 0, err
 	}
@@ -331,17 +344,17 @@ type DomainUpdateRequest struct {
 	RenewalMode  string   `structs:"renewalMode,omitempty"`
 	TransferMode string   `structs:"transferMode,omitempty"`
 	// unsupported fields:
-	// registrant	New owner contact handle id	int	false
-	// admin	New administrative contact handle id	int	false
-	// tech	New technical contact handle id	int	false
-	// billing	New billing contact handle id	int	false
-	// authCode	Authorization code (if supported)	text64	false
-	// scDate	Time of scheduled execution	timestamp	false
-	// whoisProvider	Whois provider	token0255	false
-	// whoisUrl	Whois url	token0255	false
-	// extData	Domain extra data	extData	false
-	// asynchron	Asynchron domain update	boolean	false	false
-	// testing	Execute command in testing mode	boolean	false	false
+	// registrant:	New owner contact handle id	(int, false)
+	// admin:	New administrative contact handle id (int, false)
+	// tech:	New technical contact handle id	(int, false)
+	// billing:	New billing contact handle id	(int, false)
+	// authCode:	Authorization code (if supported)	(text64, false)
+	// scDate:	Time of scheduled execution	(timestamp, false)
+	// whoisProvider:	Whois provider	(token0255, false)
+	// whoisUrl:	Whois url	(token0255, false)
+	// extData:	Domain extra data	(extData, false)
+	// asynchron:	Asynchron domain update	boolean	(false, false)
+	// testing:	Execute command in testing mode	boolean	(false, false)
 }
 
 // DomainUpdateResponse API model.

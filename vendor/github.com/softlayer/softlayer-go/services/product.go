@@ -714,7 +714,6 @@ func (r Product_Order) GetVlans(locationId *int, packageId *int, selectedItems *
 	return
 }
 
-//
 // Use this method to place bare metal server, virtual server and additional service orders with SoftLayer.
 // Upon success, your credit card or PayPal account will incur charges for the monthly order total
 // (or prorated value if ordered mid billing cycle). If all products on the order are only billed hourly,
@@ -725,25 +724,19 @@ func (r Product_Order) GetVlans(locationId *int, packageId *int, selectedItems *
 // process. This authorization tells PayPal that you indeed want to place an order with SoftLayer.
 // From PayPal's web site, you will be redirected back to SoftLayer for your order receipt.
 //
-//
 // When an order is placed, your order will be in a "pending approval" state. When all internal checks pass,
 // your order will be automatically approved. For orders that may need extra attention, a Sales representative
 // will review the order and contact you if necessary. Once the order is approved, your server or service will
 // be provisioned and available to you shortly thereafter. Depending on the type of server or service ordered,
 // provisioning times will vary.
 //
-//
 // ## Order Containers
-//
-//
 //
 // When placing API orders, it's important to order your server and services on the appropriate
 // [[SoftLayer_Container_Product_Order]]. Failing to provide the correct container may delay your server or service
 // from being provisioned in a timely manner. Some common order containers are included below.
 //
-//
 // **Note:** `SoftLayer_Container_Product_Order_` has been removed from the containers in the table below for readability.
-//
 //
 // | Product | Order Container | Package Type |
 // | ------- | --------------- | ------------ |
@@ -772,13 +765,9 @@ func (r Product_Order) GetVlans(locationId *int, packageId *int, selectedItems *
 // | External authentication | [[SoftLayer_Container_Product_Order_User_Customer_External_Binding]] | ADDITIONAL_SERVICES |
 // | Dedicated Host | [[SoftLayer_Container_Product_Order_Virtual_DedicatedHost]] | DEDICATED_HOST |
 //
-//
 // ## Server example
 //
-//
-//
 // This example includes a single bare metal server being ordered with monthly billing.
-//
 //
 // **Warning:** the price ids provided below may be outdated or unavailable, so you will need to determine the
 //
@@ -786,195 +775,191 @@ func (r Product_Order) GetVlans(locationId *int, packageId *int, selectedItems *
 // [[SoftLayer_Product_Package_Type]] of `BARE_METAL_CPU` or `BARE_METAL_CORE`. You can get a full list of
 // package types with [[SoftLayer_Product_Package_Type/getAllObjects]].
 //
-//
 // ### Bare Metal Ordering
 //
 // ```xml
 // <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://api.service.softlayer.com/soap/v3/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-//   <SOAP-ENV:Header>
-//     <ns1:authenticate>
-//       <username>your username</username>
-//       <apiKey>your api key</apiKey>
-//     </ns1:authenticate>
-//   </SOAP-ENV:Header>
-//   <SOAP-ENV:Body>
-//     <ns1:placeOrder>
-//       <orderData xsi:type="ns1:SoftLayer_Container_Product_Order_Hardware_Server">
-//         <hardware SOAP-ENC:arrayType="ns1:SoftLayer_Hardware[1]" xsi:type="ns1:SoftLayer_HardwareArray">
-//           <item xsi:type="ns1:SoftLayer_Hardware">
-//             <domain xsi:type="xsd:string">example.com</domain>
-//             <hostname xsi:type="xsd:string">server1</hostname>
-//           </item>
-//         </hardware>
-//         <location xsi:type="xsd:string">138124</location>
-//         <packageId xsi:type="xsd:int">142</packageId>
-//         <prices SOAP-ENC:arrayType="ns1:SoftLayer_Product_Item_Price[14]" xsi:type="ns1:SoftLayer_Product_Item_PriceArray">
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">58</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">22337</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">21189</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">876</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">57</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">55</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">21190</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">36381</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">21</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">22013</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">906</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">420</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">418</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">342</id>
-//           </item>
-//         </prices>
-//         <useHourlyPricing xsi:type="xsd:boolean">false</useHourlyPricing>
-//       </orderData>
-//       <saveAsQuote xsi:nil="true" />
-//     </ns1:placeOrder>
-//   </SOAP-ENV:Body>
+//
+//	<SOAP-ENV:Header>
+//	  <ns1:authenticate>
+//	    <username>your username</username>
+//	    <apiKey>your api key</apiKey>
+//	  </ns1:authenticate>
+//	</SOAP-ENV:Header>
+//	<SOAP-ENV:Body>
+//	  <ns1:placeOrder>
+//	    <orderData xsi:type="ns1:SoftLayer_Container_Product_Order_Hardware_Server">
+//	      <hardware SOAP-ENC:arrayType="ns1:SoftLayer_Hardware[1]" xsi:type="ns1:SoftLayer_HardwareArray">
+//	        <item xsi:type="ns1:SoftLayer_Hardware">
+//	          <domain xsi:type="xsd:string">example.com</domain>
+//	          <hostname xsi:type="xsd:string">server1</hostname>
+//	        </item>
+//	      </hardware>
+//	      <location xsi:type="xsd:string">138124</location>
+//	      <packageId xsi:type="xsd:int">142</packageId>
+//	      <prices SOAP-ENC:arrayType="ns1:SoftLayer_Product_Item_Price[14]" xsi:type="ns1:SoftLayer_Product_Item_PriceArray">
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">58</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">22337</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">21189</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">876</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">57</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">55</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">21190</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">36381</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">21</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">22013</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">906</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">420</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">418</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">342</id>
+//	        </item>
+//	      </prices>
+//	      <useHourlyPricing xsi:type="xsd:boolean">false</useHourlyPricing>
+//	    </orderData>
+//	    <saveAsQuote xsi:nil="true" />
+//	  </ns1:placeOrder>
+//	</SOAP-ENV:Body>
+//
 // </SOAP-ENV:Envelope>
 // ```
 //
-//
 // ## Virtual server example
-//
-//
 //
 // This example includes 2 identical virtual servers (except for hostname) being ordered for hourly billing.
 // It includes an optional image template id and VLAN data specified on the virtualGuest objects -
 // `primaryBackendNetworkComponent` and `primaryNetworkComponent`.
-//
 //
 // **Warning:** the price ids provided below may be outdated or unavailable, so you will need to determine the
 //
 // available prices from the virtual server package with [[SoftLayer_Product_Package/getAllObjects]],
 // which has a [[SoftLayer_Product_Package_Type]] of `VIRTUAL_SERVER_INSTANCE`.
 //
-//
 // #### Virtual Ordering
 //
 // ```xml
 // <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://api.service.softlayer.com/soap/v3/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-//   <SOAP-ENV:Header>
-//     <ns1:authenticate>
-//       <username>your username</username>
-//       <apiKey>your api key</apiKey>
-//     </ns1:authenticate>
-//   </SOAP-ENV:Header>
-//   <SOAP-ENV:Body>
-//     <ns1:placeOrder>
-//       <orderData xsi:type="ns1:SoftLayer_Container_Product_Order_Virtual_Guest">
-//         <imageTemplateId xsi:type="xsd:int">13251</imageTemplateId>
-//         <location xsi:type="xsd:string">37473</location>
-//         <packageId xsi:type="xsd:int">46</packageId>
-//         <prices SOAP-ENC:arrayType="ns1:SoftLayer_Product_Item_Price[13]" xsi:type="ns1:SoftLayer_Product_Item_PriceArray">
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">2159</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">55</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">13754</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">1641</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">905</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">1800</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">58</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">21</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">1645</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">272</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">57</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">418</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">420</id>
-//           </item>
-//         </prices>
-//         <quantity xsi:type="xsd:int">2</quantity>
-//         <useHourlyPricing xsi:type="xsd:boolean">true</useHourlyPricing>
-//         <virtualGuests SOAP-ENC:arrayType="ns1:SoftLayer_Virtual_Guest[1]" xsi:type="ns1:SoftLayer_Virtual_GuestArray">
-//           <item xsi:type="ns1:SoftLayer_Virtual_Guest">
-//             <domain xsi:type="xsd:string">example.com</domain>
-//             <hostname xsi:type="xsd:string">server1</hostname>
-//             <primaryBackendNetworkComponent xsi:type="ns1:SoftLayer_Virtual_Guest_Network_Component">
-//               <networkVlan xsi:type="ns1:SoftLayer_Network_Vlan">
-//                 <id xsi:type="xsd:int">12345</id>
-//               </networkVlan>
-//             </primaryBackendNetworkComponent>
-//             <primaryNetworkComponent xsi:type="ns1:SoftLayer_Virtual_Guest_Network_Component">
-//               <networkVlan xsi:type="ns1:SoftLayer_Network_Vlan">
-//                 <id xsi:type="xsd:int">67890</id>
-//               </networkVlan>
-//             </primaryNetworkComponent>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Virtual_Guest">
-//             <domain xsi:type="xsd:string">example.com</domain>
-//             <hostname xsi:type="xsd:string">server2</hostname>
-//             <primaryBackendNetworkComponent xsi:type="ns1:SoftLayer_Virtual_Guest_Network_Component">
-//               <networkVlan xsi:type="ns1:SoftLayer_Network_Vlan">
-//                 <id xsi:type="xsd:int">12345</id>
-//               </networkVlan>
-//             </primaryBackendNetworkComponent>
-//             <primaryNetworkComponent xsi:type="ns1:SoftLayer_Virtual_Guest_Network_Component">
-//               <networkVlan xsi:type="ns1:SoftLayer_Network_Vlan">
-//                 <id xsi:type="xsd:int">67890</id>
-//               </networkVlan>
-//             </primaryNetworkComponent>
-//           </item>
-//         </virtualGuests>
-//       </orderData>
-//       <saveAsQuote xsi:nil="true" />
-//     </ns1:placeOrder>
-//   </SOAP-ENV:Body>
+//
+//	<SOAP-ENV:Header>
+//	  <ns1:authenticate>
+//	    <username>your username</username>
+//	    <apiKey>your api key</apiKey>
+//	  </ns1:authenticate>
+//	</SOAP-ENV:Header>
+//	<SOAP-ENV:Body>
+//	  <ns1:placeOrder>
+//	    <orderData xsi:type="ns1:SoftLayer_Container_Product_Order_Virtual_Guest">
+//	      <imageTemplateId xsi:type="xsd:int">13251</imageTemplateId>
+//	      <location xsi:type="xsd:string">37473</location>
+//	      <packageId xsi:type="xsd:int">46</packageId>
+//	      <prices SOAP-ENC:arrayType="ns1:SoftLayer_Product_Item_Price[13]" xsi:type="ns1:SoftLayer_Product_Item_PriceArray">
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">2159</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">55</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">13754</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">1641</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">905</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">1800</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">58</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">21</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">1645</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">272</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">57</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">418</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">420</id>
+//	        </item>
+//	      </prices>
+//	      <quantity xsi:type="xsd:int">2</quantity>
+//	      <useHourlyPricing xsi:type="xsd:boolean">true</useHourlyPricing>
+//	      <virtualGuests SOAP-ENC:arrayType="ns1:SoftLayer_Virtual_Guest[1]" xsi:type="ns1:SoftLayer_Virtual_GuestArray">
+//	        <item xsi:type="ns1:SoftLayer_Virtual_Guest">
+//	          <domain xsi:type="xsd:string">example.com</domain>
+//	          <hostname xsi:type="xsd:string">server1</hostname>
+//	          <primaryBackendNetworkComponent xsi:type="ns1:SoftLayer_Virtual_Guest_Network_Component">
+//	            <networkVlan xsi:type="ns1:SoftLayer_Network_Vlan">
+//	              <id xsi:type="xsd:int">12345</id>
+//	            </networkVlan>
+//	          </primaryBackendNetworkComponent>
+//	          <primaryNetworkComponent xsi:type="ns1:SoftLayer_Virtual_Guest_Network_Component">
+//	            <networkVlan xsi:type="ns1:SoftLayer_Network_Vlan">
+//	              <id xsi:type="xsd:int">67890</id>
+//	            </networkVlan>
+//	          </primaryNetworkComponent>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Virtual_Guest">
+//	          <domain xsi:type="xsd:string">example.com</domain>
+//	          <hostname xsi:type="xsd:string">server2</hostname>
+//	          <primaryBackendNetworkComponent xsi:type="ns1:SoftLayer_Virtual_Guest_Network_Component">
+//	            <networkVlan xsi:type="ns1:SoftLayer_Network_Vlan">
+//	              <id xsi:type="xsd:int">12345</id>
+//	            </networkVlan>
+//	          </primaryBackendNetworkComponent>
+//	          <primaryNetworkComponent xsi:type="ns1:SoftLayer_Virtual_Guest_Network_Component">
+//	            <networkVlan xsi:type="ns1:SoftLayer_Network_Vlan">
+//	              <id xsi:type="xsd:int">67890</id>
+//	            </networkVlan>
+//	          </primaryNetworkComponent>
+//	        </item>
+//	      </virtualGuests>
+//	    </orderData>
+//	    <saveAsQuote xsi:nil="true" />
+//	  </ns1:placeOrder>
+//	</SOAP-ENV:Body>
+//
 // </SOAP-ENV:Envelope>
 // ```
 //
-//
 // ## VLAN example
-//
 //
 // **Warning:** the price ids provided below may be outdated or unavailable, so you will need to determine the
 //
@@ -983,47 +968,44 @@ func (r Product_Order) GetVlans(locationId *int, packageId *int, selectedItems *
 // You can get a full list of [[SoftLayer_Product_Package_Type/getAllObjects|]] to find other available additional
 // service packages.<br/><br/>
 //
-//
 // ### VLAN Ordering
 //
 // ```xml
 // <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://api.service.softlayer.com/soap/v3/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-//   <SOAP-ENV:Header>
-//     <ns1:authenticate>
-//       <username>your username</username>
-//       <apiKey>your api key</apiKey>
-//     </ns1:authenticate>
-//   </SOAP-ENV:Header>
-//   <SOAP-ENV:Body>
-//     <ns1:placeOrder>
-//       <orderData xsi:type="ns1:SoftLayer_Container_Product_Order_Network_Vlan">
-//         <location xsi:type="xsd:string">154820</location>
-//         <packageId xsi:type="xsd:int">0</packageId>
-//         <prices SOAP-ENC:arrayType="ns1:SoftLayer_Product_Item_Price[2]" xsi:type="ns1:SoftLayer_Product_Item_PriceArray">
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">2021</id>
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Product_Item_Price">
-//             <id xsi:type="xsd:int">2018</id>
-//           </item>
-//         </prices>
-//         <useHourlyPricing xsi:type="xsd:boolean">true</useHourlyPricing>
-//       </orderData>
-//       <saveAsQuote xsi:nil="true" />
-//     </ns1:placeOrder>
-//   </SOAP-ENV:Body>
+//
+//	<SOAP-ENV:Header>
+//	  <ns1:authenticate>
+//	    <username>your username</username>
+//	    <apiKey>your api key</apiKey>
+//	  </ns1:authenticate>
+//	</SOAP-ENV:Header>
+//	<SOAP-ENV:Body>
+//	  <ns1:placeOrder>
+//	    <orderData xsi:type="ns1:SoftLayer_Container_Product_Order_Network_Vlan">
+//	      <location xsi:type="xsd:string">154820</location>
+//	      <packageId xsi:type="xsd:int">0</packageId>
+//	      <prices SOAP-ENC:arrayType="ns1:SoftLayer_Product_Item_Price[2]" xsi:type="ns1:SoftLayer_Product_Item_PriceArray">
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">2021</id>
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Product_Item_Price">
+//	          <id xsi:type="xsd:int">2018</id>
+//	        </item>
+//	      </prices>
+//	      <useHourlyPricing xsi:type="xsd:boolean">true</useHourlyPricing>
+//	    </orderData>
+//	    <saveAsQuote xsi:nil="true" />
+//	  </ns1:placeOrder>
+//	</SOAP-ENV:Body>
+//
 // </SOAP-ENV:Envelope>
 // ```
 //
-//
 // ## Multiple products example
-//
-//
 //
 // This example includes a combination of the above examples in a single order. Note that all the configuration
 // options for each individual order container are the same as above, except now we encapsulate each one within
 // the `orderContainers` property on the base [[SoftLayer_Container_Product_Order]].
-//
 //
 // **Warning:** not all products are available to be ordered with other products. For example, since
 //
@@ -1031,41 +1013,38 @@ func (r Product_Order) GetVlans(locationId *int, packageId *int, selectedItems *
 // and this would not be acceptable when you need your hourly virtual server right now. To better accommodate
 // customers, we restrict several products to be ordered individually.
 //
-//
 // ### Bare metal server + virtual server + VLAN
-//
-//
 //
 // ```xml
 // <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://api.service.softlayer.com/soap/v3/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-//   <SOAP-ENV:Header>
-//     <ns1:authenticate>
-//       <username>your username</username>
-//       <apiKey>your api key</apiKey>
-//     </ns1:authenticate>
-//   </SOAP-ENV:Header>
-//   <SOAP-ENV:Body>
-//     <ns1:placeOrder>
-//       <orderData xsi:type="ns1:SoftLayer_Container_Product_Order">
-//         <orderContainers SOAP-ENC:arrayType="ns1:SoftLayer_Container_Product_Order[3]" xsi:type="ns1:SoftLayer_Container_Product_OrderArray">
-//           <item xsi:type="ns1:SoftLayer_Container_Product_Order_Hardware_Server">
-//             ...
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Container_Product_Order_Virtual_Guest">
-//             ...
-//           </item>
-//           <item xsi:type="ns1:SoftLayer_Container_Product_Order_Network_Vlan">
-//             ...
-//           </item>
-//         </orderContainers>
-//       </orderData>
-//       <saveAsQuote xsi:nil="true" />
-//     </ns1:placeOrder>
-//   </SOAP-ENV:Body>
+//
+//	<SOAP-ENV:Header>
+//	  <ns1:authenticate>
+//	    <username>your username</username>
+//	    <apiKey>your api key</apiKey>
+//	  </ns1:authenticate>
+//	</SOAP-ENV:Header>
+//	<SOAP-ENV:Body>
+//	  <ns1:placeOrder>
+//	    <orderData xsi:type="ns1:SoftLayer_Container_Product_Order">
+//	      <orderContainers SOAP-ENC:arrayType="ns1:SoftLayer_Container_Product_Order[3]" xsi:type="ns1:SoftLayer_Container_Product_OrderArray">
+//	        <item xsi:type="ns1:SoftLayer_Container_Product_Order_Hardware_Server">
+//	          ...
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Container_Product_Order_Virtual_Guest">
+//	          ...
+//	        </item>
+//	        <item xsi:type="ns1:SoftLayer_Container_Product_Order_Network_Vlan">
+//	          ...
+//	        </item>
+//	      </orderContainers>
+//	    </orderData>
+//	    <saveAsQuote xsi:nil="true" />
+//	  </ns1:placeOrder>
+//	</SOAP-ENV:Body>
+//
 // </SOAP-ENV:Envelope>
 // ```
-//
-//
 func (r Product_Order) PlaceOrder(orderData interface{}, saveAsQuote *bool) (resp datatypes.Container_Product_Order_Receipt, err error) {
 	err = datatypes.SetComplexType(orderData)
 	if err != nil {
@@ -1112,8 +1091,6 @@ func (r Product_Order) RequiredItems(itemPrices []datatypes.Product_Item_Price) 
 // This service returns the same container that was provided, but with additional information that can be used for debugging or validation. It will also contain pricing information (prorated if applicable) for each of the products on the order. If an exception occurs during verification, a container with the <code>SoftLayer_Exception_Order</code> exception type will be specified in the result.<br/><br/>
 //
 // <code>verifyOrder</code> accepts the same [[SoftLayer_Container_Product_Order]] as <code>placeOrder</code>, so see [[SoftLayer_Product_Order/placeOrder]] for more details.
-//
-//
 func (r Product_Order) VerifyOrder(orderData interface{}) (resp datatypes.Container_Product_Order, err error) {
 	err = datatypes.SetComplexType(orderData)
 	if err != nil {
@@ -1497,13 +1474,13 @@ func (r Product_Package) GetObject() (resp datatypes.Product_Package, err error)
 	return
 }
 
-// This method will return a collection of [[SoftLayer_Container_Product_Order_Network_Storage_Hub_Datacenter]] objects which contain a datacenter location and all the associated active usage rate prices where object storage is available. This method is really only applicable to the object storage additional service package which has a [[SoftLayer_Product_Package_Type]] of '''ADDITIONAL_SERVICES_OBJECT_STORAGE'''. This information is useful so that you can see the "pay as you go" rates per datacenter.
+// This method will return a collection of [[SoftLayer_Container_Product_Order_Network_Storage_Hub_Datacenter]] objects which contain a datacenter location and all the associated active usage rate prices where object storage is available. This method is really only applicable to the object storage additional service package which has a [[SoftLayer_Product_Package_Type]] of ”'ADDITIONAL_SERVICES_OBJECT_STORAGE”'. This information is useful so that you can see the "pay as you go" rates per datacenter.
 func (r Product_Package) GetObjectStorageDatacenters() (resp []datatypes.Container_Product_Order_Network_Storage_Hub_Datacenter, err error) {
 	err = r.Session.DoRequest("SoftLayer_Product_Package", "getObjectStorageDatacenters", nil, &r.Options, &resp)
 	return
 }
 
-// This method will return a collection of [[SoftLayer_Container_Product_Order_Network_Storage_ObjectStorage_LocationGroup]] objects which contain a location group and all the associated active usage rate prices where object storage is available. This method is really only applicable to the object storage additional service package which has a [[SoftLayer_Product_Package_Type]] of '''ADDITIONAL_SERVICES_OBJECT_STORAGE'''. This information is useful so that you can see the "pay as you go" rates per location group.
+// This method will return a collection of [[SoftLayer_Container_Product_Order_Network_Storage_ObjectStorage_LocationGroup]] objects which contain a location group and all the associated active usage rate prices where object storage is available. This method is really only applicable to the object storage additional service package which has a [[SoftLayer_Product_Package_Type]] of ”'ADDITIONAL_SERVICES_OBJECT_STORAGE”'. This information is useful so that you can see the "pay as you go" rates per location group.
 func (r Product_Package) GetObjectStorageLocationGroups() (resp []datatypes.Container_Product_Order_Network_Storage_ObjectStorage_LocationGroup, err error) {
 	err = r.Session.DoRequest("SoftLayer_Product_Package", "getObjectStorageLocationGroups", nil, &r.Options, &resp)
 	return
@@ -1578,12 +1555,6 @@ func (r Product_Package) GetRedundantPowerFlag() (resp bool, err error) {
 // Retrieve The regional locations that a package is available in.
 func (r Product_Package) GetRegions() (resp []datatypes.Location_Region, err error) {
 	err = r.Session.DoRequest("SoftLayer_Product_Package", "getRegions", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The resource group template that describes a multi-server solution. (Deprecated)
-func (r Product_Package) GetResourceGroupTemplate() (resp datatypes.Resource_Group_Template, err error) {
-	err = r.Session.DoRequest("SoftLayer_Product_Package", "getResourceGroupTemplate", nil, &r.Options, &resp)
 	return
 }
 
@@ -1892,7 +1863,7 @@ func (r Product_Package_Server_Option) GetOptions(typ *string) (resp []datatypes
 	return
 }
 
-// The [[SoftLayer_Product_Package_Type]] object indicates the type for a service offering (package). The type can be used to filter packages. For example, if you are looking for the package representing virtual servers, you can filter on the type's key name of '''VIRTUAL_SERVER_INSTANCE'''. For bare metal servers by core or CPU, filter on '''BARE_METAL_CORE''' or '''BARE_METAL_CPU''', respectively.
+// The [[SoftLayer_Product_Package_Type]] object indicates the type for a service offering (package). The type can be used to filter packages. For example, if you are looking for the package representing virtual servers, you can filter on the type's key name of ”'VIRTUAL_SERVER_INSTANCE”'. For bare metal servers by core or CPU, filter on ”'BARE_METAL_CORE”' or ”'BARE_METAL_CPU”', respectively.
 type Product_Package_Type struct {
 	Session *session.Session
 	Options sl.Options

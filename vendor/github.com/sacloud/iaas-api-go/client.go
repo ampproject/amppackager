@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -56,9 +56,9 @@ var (
 
 const (
 	// APIAccessTokenEnvKey APIアクセストークンの環境変数名
-	APIAccessTokenEnvKey = "SAKURACLOUD_ACCESS_TOKEN" // nolint:gosec
+	APIAccessTokenEnvKey = "SAKURACLOUD_ACCESS_TOKEN" //nolint:gosec
 	// APIAccessSecretEnvKey APIアクセスシークレットの環境変数名
-	APIAccessSecretEnvKey = "SAKURACLOUD_ACCESS_TOKEN_SECRET" // nolint:gosec
+	APIAccessSecretEnvKey = "SAKURACLOUD_ACCESS_TOKEN_SECRET" //nolint:gosec
 )
 
 // APICaller API呼び出し時に利用するトランスポートのインターフェース iaas.Clientなどで実装される

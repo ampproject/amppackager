@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ func init() {
 }
 
 func random(max int) int {
-	return rand.Intn(max) // nolint:gosec
+	return rand.Intn(max) //nolint:gosec
 }
 
 func newErrorNotFound(resourceKey string, id interface{}) error {
@@ -188,7 +188,7 @@ FILTER_APPLY_LOOP:
 
 func copySameNameField(source interface{}, dest interface{}) {
 	data, _ := json.Marshal(source)
-	json.Unmarshal(data, dest) // nolint
+	json.Unmarshal(data, dest) //nolint
 }
 
 func fill(target interface{}, fillFuncs ...func(interface{})) {

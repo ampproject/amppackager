@@ -25,7 +25,6 @@ import (
 	"net/http"
 	"os"
 	"os/user"
-	"runtime"
 	"strings"
 	"time"
 
@@ -356,10 +355,11 @@ func isRetryable(err error) bool {
 	return isTimeout(err) || hasRetryableCode(err)
 }
 
+// Set ENV Variable SL_USERAGENT to append that to the useragent string
 func getDefaultUserAgent() string {
-	return fmt.Sprintf("softlayer-go/%s (%s;%s;%s)", sl.Version.String(),
-		runtime.Version(),
-		runtime.GOARCH,
-		runtime.GOOS,
-	)
+	envAgent := os.Getenv("SL_USERAGENT")
+	if envAgent != "" {
+		envAgent = fmt.Sprintf("(%s)", envAgent)
+	}
+	return fmt.Sprintf("softlayer-go/%s %s ", sl.Version.String(), envAgent)
 }

@@ -71,9 +71,6 @@ func (r Ticket) Offset(offset int) Ticket {
 	return r
 }
 
-//
-//
-//
 func (r Ticket) AddAssignedAgent(agentId *int) (err error) {
 	var resp datatypes.Void
 	params := []interface{}{
@@ -129,7 +126,7 @@ func (r Ticket) AddAttachedVirtualGuest(guestId *int, callCommit *bool) (resp da
 	return
 }
 
-// As part of the customer service process SoftLayer has provided a quick feedback mechanism for its customers to rate their overall experience with SoftLayer after a ticket is closed. addFinalComments() sets these comments for a ticket update made by a SoftLayer employee. Final comments may only be set on closed tickets, can only be set once, and may not exceed 4000 characters in length. Once the comments are set ''addFinalComments()'' returns a boolean true.
+// As part of the customer service process SoftLayer has provided a quick feedback mechanism for its customers to rate their overall experience with SoftLayer after a ticket is closed. addFinalComments() sets these comments for a ticket update made by a SoftLayer employee. Final comments may only be set on closed tickets, can only be set once, and may not exceed 4000 characters in length. Once the comments are set ”addFinalComments()” returns a boolean true.
 func (r Ticket) AddFinalComments(finalComments *string) (resp bool, err error) {
 	params := []interface{}{
 		finalComments,
@@ -158,7 +155,7 @@ func (r Ticket) AddScheduledAutoClose(activationTime *string) (err error) {
 	return
 }
 
-// Add an update to a ticket. A ticket update's entry has a maximum length of 4000 characters, so ''addUpdate()'' splits the ''entry'' property in the ''templateObject'' parameter into 3900 character blocks and creates one entry per 3900 character block. Once complete ''addUpdate()'' emails the ticket's owner and additional email addresses with an update message if the ticket's ''notifyUserOnUpdateFlag'' is set. If the ticket is a Legal or Abuse ticket, then the account's abuse emails are also notified when the updates are processed. Finally, ''addUpdate()'' returns an array of the newly created ticket updates.
+// Add an update to a ticket. A ticket update's entry has a maximum length of 4000 characters, so ”addUpdate()” splits the ”entry” property in the ”templateObject” parameter into 3900 character blocks and creates one entry per 3900 character block. Once complete ”addUpdate()” emails the ticket's owner and additional email addresses with an update message if the ticket's ”notifyUserOnUpdateFlag” is set. If the ticket is a Legal or Abuse ticket, then the account's abuse emails are also notified when the updates are processed. Finally, ”addUpdate()” returns an array of the newly created ticket updates.
 func (r Ticket) AddUpdate(templateObject *datatypes.Ticket_Update, attachedFiles []datatypes.Container_Utility_File_Attachment) (resp []datatypes.Ticket_Update, err error) {
 	params := []interface{}{
 		templateObject,
@@ -170,7 +167,7 @@ func (r Ticket) AddUpdate(templateObject *datatypes.Ticket_Update, attachedFiles
 
 // Create an administrative support ticket. Use an administrative ticket if you require SoftLayer's assistance managing your server or content. If you are experiencing an issue with SoftLayer's hardware, network, or services then please open a standard support ticket.
 //
-// Support tickets may only be created in the open state. The SoftLayer API defaults new ticket properties ''userEditableFlag'' to true, ''accountId'' to the id of the account that your API user belongs to, and ''statusId'' to 1001 (or "open"). You may not assign your new to ticket to users that your API user does not have access to.
+// Support tickets may only be created in the open state. The SoftLayer API defaults new ticket properties ”userEditableFlag” to true, ”accountId” to the id of the account that your API user belongs to, and ”statusId” to 1001 (or "open"). You may not assign your new to ticket to users that your API user does not have access to.
 //
 // Once your ticket is created it is placed in a queue for SoftLayer employees to work. As they update the ticket new [[SoftLayer_Ticket_Update]] entries are added to the ticket object.
 //
@@ -204,7 +201,6 @@ func (r Ticket) CreateAdministrativeTicket(templateObject *datatypes.Ticket, con
 // * "Sales process / upgrades"
 // * "Moving to competitor"
 //
-//
 // The content parameter describes further the reason for cancelling the server.
 func (r Ticket) CreateCancelServerTicket(attachmentId *int, reason *string, content *string, cancelAssociatedItems *bool, attachmentType *string) (resp datatypes.Ticket, err error) {
 	params := []interface{}{
@@ -232,7 +228,6 @@ func (r Ticket) CreateCancelServerTicket(attachmentId *int, reason *string, cont
 // * "Sales process / upgrades"
 // * "Moving to competitor"
 //
-//
 // The content parameter describes further the reason for cancelling service.
 func (r Ticket) CreateCancelServiceTicket(attachmentId *int, reason *string, content *string, attachmentType *string) (resp datatypes.Ticket, err error) {
 	params := []interface{}{
@@ -247,7 +242,7 @@ func (r Ticket) CreateCancelServiceTicket(attachmentId *int, reason *string, con
 
 // Create a standard support ticket. Use a standard support ticket if you need to work out a problem related to SoftLayer's hardware, network, or services. If you require SoftLayer's assistance managing your server or content then please open an administrative ticket.
 //
-// Support tickets may only be created in the open state. The SoftLayer API defaults new ticket properties ''userEditableFlag'' to true, ''accountId'' to the id of the account that your API user belongs to, and ''statusId'' to 1001 (or "open"). You may not assign your new to ticket to users that your API user does not have access to.
+// Support tickets may only be created in the open state. The SoftLayer API defaults new ticket properties ”userEditableFlag” to true, ”accountId” to the id of the account that your API user belongs to, and ”statusId” to 1001 (or "open"). You may not assign your new to ticket to users that your API user does not have access to.
 //
 // Once your ticket is created it is placed in a queue for SoftLayer employees to work. As they update the ticket new [[SoftLayer_Ticket_Update]] entries are added to the ticket object.
 func (r Ticket) CreateStandardTicket(templateObject *datatypes.Ticket, contents *string, attachmentId *int, rootPassword *string, controlPanelPassword *string, accessPort *string, attachedFiles []datatypes.Container_Utility_File_Attachment, attachmentType *string) (resp datatypes.Ticket, err error) {
@@ -279,7 +274,7 @@ func (r Ticket) CreateUpgradeTicket(attachmentId *int, genericUpgrade *string, u
 	return
 }
 
-// Edit a SoftLayer ticket. The edit method is two-fold. You may either edit a ticket itself, add an update to a ticket, attach up to two files to a ticket, or perform all of these tasks. The SoftLayer API ignores changes made to the ''userEditableFlag''  and ''accountId'' properties. You may not assign a ticket to a user that your API account does not have access to. You may not enter a custom title for standard support tickets, buy may do so when editing an administrative ticket. Finally, you may not close a ticket using this method. Please contact SoftLayer if you need a ticket closed.
+// Edit a SoftLayer ticket. The edit method is two-fold. You may either edit a ticket itself, add an update to a ticket, attach up to two files to a ticket, or perform all of these tasks. The SoftLayer API ignores changes made to the ”userEditableFlag”  and ”accountId” properties. You may not assign a ticket to a user that your API account does not have access to. You may not enter a custom title for standard support tickets, buy may do so when editing an administrative ticket. Finally, you may not close a ticket using this method. Please contact SoftLayer if you need a ticket closed.
 //
 // If you need to only add an update to a ticket then please use the [[SoftLayer_Ticket::addUpdate|addUpdate]] method in this service. Likewise if you need to only attach a file to a ticket then use the [[SoftLayer_Ticket::addAttachedFile|addAttachedFile]] method. The edit method exists as a convenience if you need to perform all these tasks at once.
 func (r Ticket) Edit(templateObject *datatypes.Ticket, contents *string, attachedFiles []datatypes.Container_Utility_File_Attachment) (resp datatypes.Ticket, err error) {
@@ -338,7 +333,7 @@ func (r Ticket) GetAttachedDedicatedHosts() (resp []datatypes.Virtual_DedicatedH
 	return
 }
 
-// Retrieve the file attached to a SoftLayer ticket by it's given identifier. To retrieve a list of files attached to a ticket either call the SoftLayer_Ticket::getAttachedFiles method or call SoftLayer_Ticket::getObject with ''attachedFiles'' defined in an object mask.
+// Retrieve the file attached to a SoftLayer ticket by it's given identifier. To retrieve a list of files attached to a ticket either call the SoftLayer_Ticket::getAttachedFiles method or call SoftLayer_Ticket::getObject with ”attachedFiles” defined in an object mask.
 func (r Ticket) GetAttachedFile(attachmentId *int) (resp []byte, err error) {
 	params := []interface{}{
 		attachmentId,
@@ -549,9 +544,6 @@ func (r Ticket) MarkAsViewed() (err error) {
 	return
 }
 
-//
-//
-//
 func (r Ticket) RemoveAssignedAgent(agentId *int) (err error) {
 	var resp datatypes.Void
 	params := []interface{}{
@@ -561,7 +553,7 @@ func (r Ticket) RemoveAssignedAgent(agentId *int) (err error) {
 	return
 }
 
-// removeAttachedAdditionalEmails() removes the specified email addresses from a ticket's notification list. If one of the provided email addresses is not attached to the ticket then ''removeAttachedAdditiaonalEmails()'' ignores it and continues to the next one. Once the email addresses are removed ''removeAttachedAdditiaonalEmails()'' returns a boolean true.
+// removeAttachedAdditionalEmails() removes the specified email addresses from a ticket's notification list. If one of the provided email addresses is not attached to the ticket then ”removeAttachedAdditiaonalEmails()” ignores it and continues to the next one. Once the email addresses are removed ”removeAttachedAdditiaonalEmails()” returns a boolean true.
 func (r Ticket) RemoveAttachedAdditionalEmails(emails []string) (resp bool, err error) {
 	params := []interface{}{
 		emails,
@@ -1045,7 +1037,7 @@ func (r Ticket_Update_Employee) Offset(offset int) Ticket_Update_Employee {
 	return r
 }
 
-// As part of the customer service process SoftLayer has provided a quick feedback mechanism for its customers to rate the responses that its employees give on tickets. addResponseRating() sets the rating for a single ticket update made by a SoftLayer employee. Ticket ratings have the integer values 1 through 5, with 1 being the worst and 5 being the best. Once the rating is set ''addResponseRating()'' returns a boolean true.
+// As part of the customer service process SoftLayer has provided a quick feedback mechanism for its customers to rate the responses that its employees give on tickets. addResponseRating() sets the rating for a single ticket update made by a SoftLayer employee. Ticket ratings have the integer values 1 through 5, with 1 being the worst and 5 being the best. Once the rating is set ”addResponseRating()” returns a boolean true.
 func (r Ticket_Update_Employee) AddResponseRating(responseRating *int, responseIndex *int) (resp bool, err error) {
 	params := []interface{}{
 		responseRating,

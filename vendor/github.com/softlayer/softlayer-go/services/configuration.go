@@ -331,8 +331,6 @@ func (r Configuration_Template_Section) HasSubSections() (resp bool, err error) 
 // Configuration definition gives you details of the value that you're setting.
 //
 // If value type is defined as "Resource Specific Values", you will have to make an additional API call to retrieve your system specific values.
-//
-//
 type Configuration_Template_Section_Definition struct {
 	Session *session.Session
 	Options sl.Options
@@ -415,8 +413,6 @@ func (r Configuration_Template_Section_Definition) GetValueType() (resp datatype
 }
 
 // Configuration definition group gives you details of the definition and allows extra functionality.
-//
-//
 type Configuration_Template_Section_Definition_Group struct {
 	Session *session.Session
 	Options sl.Options
@@ -458,7 +454,7 @@ func (r Configuration_Template_Section_Definition_Group) Offset(offset int) Conf
 
 // Get all configuration definition group objects.
 //
-// ''getAllGroups'' returns an array of SoftLayer_Configuration_Template_Section_Definition_Group objects upon success.
+// ”getAllGroups” returns an array of SoftLayer_Configuration_Template_Section_Definition_Group objects upon success.
 func (r Configuration_Template_Section_Definition_Group) GetAllGroups() (resp []datatypes.Configuration_Template_Section_Definition_Group, err error) {
 	err = r.Session.DoRequest("SoftLayer_Configuration_Template_Section_Definition_Group", "getAllGroups", nil, &r.Options, &resp)
 	return

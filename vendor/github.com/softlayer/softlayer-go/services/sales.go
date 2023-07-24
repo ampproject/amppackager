@@ -29,7 +29,7 @@ import (
 	"github.com/softlayer/softlayer-go/sl"
 )
 
-// The presale event data types indicate the information regarding an individual presale event. The '''locationId''' will indicate the datacenter associated with the presale event. The '''itemId''' will indicate the product item associated with a particular presale event - however these are more rare. The '''startDate''' and '''endDate''' will provide information regarding when the presale event is available for use. At the end of the presale event, the server or services purchased will be available once approved and provisioned.
+// The presale event data types indicate the information regarding an individual presale event. The ”'locationId”' will indicate the datacenter associated with the presale event. The ”'itemId”' will indicate the product item associated with a particular presale event - however these are more rare. The ”'startDate”' and ”'endDate”' will provide information regarding when the presale event is available for use. At the end of the presale event, the server or services purchased will be available once approved and provisioned.
 type Sales_Presale_Event struct {
 	Session *session.Session
 	Options sl.Options
@@ -99,7 +99,7 @@ func (r Sales_Presale_Event) GetLocation() (resp datatypes.Location, err error) 
 	return
 }
 
-// '''getObject''' retrieves the [[SoftLayer_Sales_Presale_Event]] object whose id number corresponds to the id number of the init parameter passed to the SoftLayer_Sales_Presale_Event service. Customers may only retrieve presale events that are currently active.
+// ”'getObject”' retrieves the [[SoftLayer_Sales_Presale_Event]] object whose id number corresponds to the id number of the init parameter passed to the SoftLayer_Sales_Presale_Event service. Customers may only retrieve presale events that are currently active.
 func (r Sales_Presale_Event) GetObject() (resp datatypes.Sales_Presale_Event, err error) {
 	err = r.Session.DoRequest("SoftLayer_Sales_Presale_Event", "getObject", nil, &r.Options, &resp)
 	return

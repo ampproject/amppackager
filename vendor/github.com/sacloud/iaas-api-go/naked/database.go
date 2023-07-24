@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -163,6 +163,10 @@ type DatabaseSettingInterface struct {
 }
 
 // UnmarshalJSON 配列中にnullが返ってくる(VPCルータなど)への対応
+//
+// Note: この実装は要素として`[]`が来た場合にゼロ値として返している。
+//
+//	クライアント側では必要に応じてnil判定ではなくゼロ値である事の判定を行う。
 func (i *DatabaseSettingInterfaces) UnmarshalJSON(b []byte) error {
 	type alias DatabaseSettingInterfaces
 	var a alias
@@ -216,6 +220,20 @@ func (i *DatabaseSettingInterface) MarshalJSON() ([]byte, error) {
 	return json.Marshal(tmp)
 }
 
+func (i *DatabaseSettingInterface) UnmarshalJSON(b []byte) error {
+	if string(b) == "[]" {
+		return nil
+	}
+	type alias DatabaseSettingInterface
+
+	var a alias
+	if err := json.Unmarshal(b, &a); err != nil {
+		return err
+	}
+	*i = DatabaseSettingInterface(a)
+	return nil
+}
+
 // DatabaseStatusResponse Status APIの戻り値
 type DatabaseStatusResponse struct {
 	SettingsResponse *DatabaseStatus `json:",omitempty" yaml:"settings_response,omitempty" structs:",omitempty"`
@@ -249,11 +267,11 @@ type DatabaseStatusPostgreSQL struct {
 
 // DatabaseStatusVersion データベース設定バージョン情報
 type DatabaseStatusVersion struct {
-	LastModified string `json:"lastmodified,omitempty" yaml:"last_modified,omitempty" structs:",omitempty"`
-	CommitHash   string `json:"commithash,omitempty" yaml:"commit_hash,omitempty" structs:",omitempty"`
-	Status       string `json:"status,omitempty" yaml:"status,omitempty" structs:",omitempty"`
-	Tag          string `json:"tag,omitempty" yaml:"tag,omitempty" structs:",omitempty"`
-	Expire       string `json:"expire,omitempty" yaml:"expire,omitempty" structs:",omitempty"`
+	LastModified string      `json:"lastmodified,omitempty" yaml:"last_modified,omitempty" structs:",omitempty"`
+	CommitHash   string      `json:"commithash,omitempty" yaml:"commit_hash,omitempty" structs:",omitempty"`
+	Status       string      `json:"status,omitempty" yaml:"status,omitempty" structs:",omitempty"`
+	Tag          interface{} `json:"tag,omitempty" yaml:"tag,omitempty" structs:",omitempty"` // Note: `1.1`や`"1.1"`などと表記揺れがあるためここではinterface{}で受け取る
+	Expire       string      `json:"expire,omitempty" yaml:"expire,omitempty" structs:",omitempty"`
 }
 
 // DatabaseLog データベースログ

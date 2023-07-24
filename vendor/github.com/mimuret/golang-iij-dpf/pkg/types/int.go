@@ -10,7 +10,7 @@ import (
 // 0 is null
 type NullablePositiveInt32 int32
 
-func (t *NullablePositiveInt32) UnMarshalJSON(bs []byte) error {
+func (t *NullablePositiveInt32) UnmarshalJSON(bs []byte) error {
 	if bytes.Equal(bs, []byte("null")) {
 		return nil
 	}
@@ -31,7 +31,7 @@ func (t NullablePositiveInt32) MarshalJSON() ([]byte, error) {
 
 type NullablePositiveInt64 int64
 
-func (t *NullablePositiveInt64) UnMarshalJSON(bs []byte) error {
+func (t *NullablePositiveInt64) UnmarshalJSON(bs []byte) error {
 	if bytes.Equal(bs, []byte("null")) {
 		return nil
 	}

@@ -46,7 +46,7 @@ func (s *APIKeysService) Get(keyID string) (*account.APIKey, *http.Response, err
 	if err != nil {
 		switch err.(type) {
 		case *Error:
-			if err.(*Error).Message == "unknown api key" {
+			if resourceMissingMatch(err.(*Error).Message) {
 				return nil, resp, ErrKeyMissing
 			}
 
@@ -125,7 +125,7 @@ func (s *APIKeysService) Update(a *account.APIKey) (*http.Response, error) {
 	if err != nil {
 		switch err.(type) {
 		case *Error:
-			if err.(*Error).Message == "unknown api key" {
+			if resourceMissingMatch(err.(*Error).Message) {
 				return resp, ErrKeyMissing
 			}
 		}
@@ -150,7 +150,7 @@ func (s *APIKeysService) Delete(keyID string) (*http.Response, error) {
 	if err != nil {
 		switch err.(type) {
 		case *Error:
-			if err.(*Error).Message == "unknown api key" {
+			if resourceMissingMatch(err.(*Error).Message) {
 				return resp, ErrKeyMissing
 			}
 		}

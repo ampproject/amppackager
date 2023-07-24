@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -85,17 +85,18 @@ type ProxyLBSettings struct {
 
 // ProxyLBSetting エンハンスドロードバランサ設定
 type ProxyLBSetting struct {
-	HealthCheck   ProxyLBHealthCheck   `yaml:"health_check"`                                                  // ヘルスチェック
-	SorryServer   ProxyLBSorryServer   `yaml:"sorry_server"`                                                  // ソーリーサーバー
-	BindPorts     []*ProxyLBBindPorts  `yaml:"bind_ports"`                                                    // プロキシ方式(プロトコル&ポート)
-	Servers       []ProxyLBServer      `yaml:"servers"`                                                       // サーバー
-	Rules         []ProxyLBRule        `yaml:"rules"`                                                         // 振り分けルール
-	LetsEncrypt   *ProxyLBACMESetting  `json:",omitempty" yaml:"lets_encrypt,omitempty" structs:",omitempty"` // Let's encryptでの証明書取得設定
-	StickySession ProxyLBStickySession `yaml:"sticky_session"`                                                // StickySession
-	Timeout       ProxyLBTimeout       `json:",omitempty" yaml:"timeout,omitempty" structs:",omitempty"`      // タイムアウト
-	Gzip          ProxyLBGzip          `yaml:"gzip"`                                                          // Gzip
-	ProxyProtocol ProxyLBProxyProtocol `yaml:"proxy_protocol"`
-	Syslog        ProxyLBSyslog        `yaml:"syslog"`
+	HealthCheck          ProxyLBHealthCheck           `yaml:"health_check"`                                                              // ヘルスチェック
+	SorryServer          ProxyLBSorryServer           `yaml:"sorry_server"`                                                              // ソーリーサーバー
+	BindPorts            []*ProxyLBBindPorts          `yaml:"bind_ports"`                                                                // プロキシ方式(プロトコル&ポート)
+	Servers              []ProxyLBServer              `yaml:"servers"`                                                                   // サーバー
+	Rules                []ProxyLBRule                `yaml:"rules"`                                                                     // 振り分けルール
+	LetsEncrypt          *ProxyLBACMESetting          `json:",omitempty" yaml:"lets_encrypt,omitempty" structs:",omitempty"`             // Let's encryptでの証明書取得設定
+	StickySession        ProxyLBStickySession         `yaml:"sticky_session"`                                                            // StickySession
+	Timeout              ProxyLBTimeout               `json:",omitempty" yaml:"timeout,omitempty" structs:",omitempty"`                  // タイムアウト
+	Gzip                 ProxyLBGzip                  `yaml:"gzip"`                                                                      // Gzip
+	BackendHttpKeepAlive *ProxyLBBackendHTTPKeepAlive `json:",omitempty" yaml:",backend_http_keey_alive,omitempty" structs:",omitempty"` // 実サーバとのHTTP持続接続
+	ProxyProtocol        ProxyLBProxyProtocol         `yaml:"proxy_protocol"`
+	Syslog               ProxyLBSyslog                `yaml:"syslog"`
 }
 
 // MarshalJSON nullの場合に空配列を出力するための実装
@@ -162,6 +163,8 @@ type ProxyLBRule struct {
 	// 条件部
 	Host string `json:",omitempty" yaml:"host,omitempty" structs:",omitempty"` // ホストヘッダのパターン(ワイルドカードとして?と*が利用可能)
 	Path string `json:",omitempty" yaml:"path,omitempty" structs:",omitempty"` // パス
+
+	SourceIPs string `json:",omitempty" yaml:"source_ips,omitempty" structs:",omitempty"`
 
 	RequestHeaderName            string `json:",omitempty" yaml:"request_header_name,omitempty" structs:",omitempty"`
 	RequestHeaderValue           string `json:",omitempty" yaml:"request_header_value,omitempty" structs:",omitempty"`
@@ -233,6 +236,10 @@ type ProxyLBStickySession struct {
 // ProxyLBGzip Gzip圧縮設定
 type ProxyLBGzip struct {
 	Enabled bool `yaml:"enabled"`
+}
+
+type ProxyLBBackendHTTPKeepAlive struct {
+	Mode types.EProxyLBBackendHttpKeepAlive `json:",omitempty" yaml:"mode,omitempty" structs:",omitempty"`
 }
 
 // ProxyLBProxyProtocol ProxyProtocol(v2)の有効設定

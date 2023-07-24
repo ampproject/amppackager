@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package fake
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sacloud/iaas-api-go"
 	"github.com/sacloud/iaas-api-go/types"
@@ -44,11 +45,14 @@ func (o *EnhancedDBOp) Create(ctx context.Context, param *iaas.EnhancedDBCreateR
 	copySameNameField(param, result)
 	fill(result, fillID, fillCreatedAt)
 
-	result.DatabaseType = "tidb"
-	result.Region = "is1"
+	if result.DatabaseType == "" {
+		result.DatabaseType = "tidb"
+	}
+	if result.Region == "" {
+		result.Region = "is1"
+	}
 	result.Port = 3306
-	result.HostName = result.DatabaseName + ".tidb-is1.db.sakurausercontent.com"
-	result.MaxConnections = 50
+	result.HostName = fmt.Sprintf("%s.%s-%s.db.sakurausercontent.com", result.DatabaseName, result.DatabaseType, result.Region)
 	result.Availability = types.Availabilities.Available
 
 	putEnhancedDB(iaas.APIDefaultZone, result)
@@ -73,7 +77,6 @@ func (o *EnhancedDBOp) Update(ctx context.Context, id types.ID, param *iaas.Enha
 		return nil, err
 	}
 	copySameNameField(param, value)
-	value.MaxConnections = 50
 	fill(value, fillModifiedAt)
 
 	putEnhancedDB(iaas.APIDefaultZone, value)
@@ -93,6 +96,20 @@ func (o *EnhancedDBOp) Delete(ctx context.Context, id types.ID) error {
 
 // SetPassword is fake implementation
 func (o *EnhancedDBOp) SetPassword(ctx context.Context, id types.ID, param *iaas.EnhancedDBSetPasswordRequest) error {
+	_, err := o.Read(ctx, id)
+	return err
+}
+
+func (o *EnhancedDBOp) GetConfig(ctx context.Context, id types.ID) (*iaas.EnhancedDBConfig, error) {
+	_, err := o.Read(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &iaas.EnhancedDBConfig{MaxConnections: 50}, nil
+}
+
+func (o *EnhancedDBOp) SetConfig(ctx context.Context, id types.ID, param *iaas.EnhancedDBSetConfigRequest) error {
 	_, err := o.Read(ctx, id)
 	return err
 }

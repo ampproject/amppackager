@@ -1,7 +1,7 @@
 # INWX Go API client
 
-[![Build Status](https://travis-ci.com/nrdcg/goinwx.svg?branch=master)](https://travis-ci.com/nrdcg/goinwx)
-[![GoDoc](https://godoc.org/github.com/nrdcg/goinwx?status.svg)](https://godoc.org/github.com/nrdcg/goinwx)
+[![Build Status](https://github.com/nrdcg/goinwx/workflows/Main/badge.svg?branch=master)](https://github.com/nrdcg/goinwx/actions)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/nrdcg/goinwx)](https://pkg.go.dev/github.com/nrdcg/goinwx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nrdcg/goinwx)](https://goreportcard.com/report/github.com/nrdcg/goinwx)
 
 This go library implements some parts of the official INWX XML-RPC API.

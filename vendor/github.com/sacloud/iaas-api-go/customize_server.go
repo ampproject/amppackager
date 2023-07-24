@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,7 +63,9 @@ func (o *Server) BandWidthAt(index int) int {
 
 // GetInstanceStatus データベース(サービス)ステータスを返すためのアダプター実装
 // PostgreSQLまたはMariaDBのステータス(詳細は以下)をInstanceStatusにラップして返す
-//    ステータス: GET /appliance/:id/status -> Appliance.ResponseStatus.DBConf.{MariaDB | postgres}.status
+//
+//	ステータス: GET /appliance/:id/status -> Appliance.ResponseStatus.DBConf.{MariaDB | postgres}.status
+//
 // 主にStateWaiterで利用する。
 func (o *DatabaseStatus) GetInstanceStatus() types.EServerInstanceStatus {
 	if o.MariaDBStatus == "running" || o.PostgresStatus == "running" {

@@ -347,8 +347,6 @@ type Configuration_Template_Section_Attribute struct {
 // Configuration definition gives you details of the value that you're setting.
 //
 // If value type is defined as "Resource Specific Values", you will have to make an additional API call to retrieve your system specific values.
-//
-//
 type Configuration_Template_Section_Definition struct {
 	Entity
 
@@ -445,8 +443,6 @@ type Configuration_Template_Section_Definition_Attribute_Type struct {
 }
 
 // Configuration definition group gives you details of the definition and allows extra functionality.
-//
-//
 type Configuration_Template_Section_Definition_Group struct {
 	Entity
 

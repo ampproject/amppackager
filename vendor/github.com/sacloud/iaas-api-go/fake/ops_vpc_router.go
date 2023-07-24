@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -374,4 +374,8 @@ func (o *VPCRouterOp) MonitorCPU(ctx context.Context, zone string, id types.ID, 
 // Logs is fake implementation
 func (o *VPCRouterOp) Logs(ctx context.Context, zone string, id types.ID) (*iaas.VPCRouterLog, error) {
 	return &iaas.VPCRouterLog{Log: "fake"}, nil
+}
+
+func (o *VPCRouterOp) Ping(ctx context.Context, zone string, id types.ID, destination string) (*iaas.VPCRouterPingResults, error) {
+	return &iaas.VPCRouterPingResults{Result: []string{"fake"}}, nil
 }

@@ -1,4 +1,4 @@
-// Copyright 2021-2022 The sacloud/go-http authors
+// Copyright 2021-2023 The sacloud/go-http authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,4 +15,4 @@
 package http
 
 // Version バージョン
-const Version = "0.1.2"
+const Version = "0.1.6"

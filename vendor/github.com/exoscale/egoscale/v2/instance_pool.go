@@ -52,7 +52,7 @@ func instancePoolFromAPI(i *oapi.InstancePool, zone string) *InstancePool {
 		}(),
 		DeployTargetID: func() (v *string) {
 			if i.DeployTarget != nil {
-				v = i.DeployTarget.Id
+				v = &i.DeployTarget.Id
 			}
 			return
 		}(),
@@ -158,7 +158,7 @@ func (c *Client) CreateInstancePool(
 			}(),
 			DeployTarget: func() (v *oapi.DeployTarget) {
 				if instancePool.DeployTargetID != nil {
-					v = &oapi.DeployTarget{Id: instancePool.DeployTargetID}
+					v = &oapi.DeployTarget{Id: *instancePool.DeployTargetID}
 				}
 				return
 			}(),
@@ -385,7 +385,7 @@ func (c *Client) UpdateInstancePool(ctx context.Context, zone string, instancePo
 			}(),
 			DeployTarget: func() (v *oapi.DeployTarget) {
 				if instancePool.DeployTargetID != nil {
-					v = &oapi.DeployTarget{Id: instancePool.DeployTargetID}
+					v = &oapi.DeployTarget{Id: *instancePool.DeployTargetID}
 				}
 				return
 			}(),

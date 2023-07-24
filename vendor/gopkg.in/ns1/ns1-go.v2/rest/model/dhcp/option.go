@@ -3,9 +3,10 @@ package dhcp
 // Option encapsulates DHCPv4 and DHCPv6 option information.
 //
 // Serialized:
-//      '{"name": "dhcpv4/routers", "value": ["127.0.0.1"]}'
-//      '{"name": "dhcpv4/boot-file-name", "value": "/bootfilename"}'
-//      '{"name": "dhcpv6/dns-servers", "value": ["2001:db8::cafe"]}'
+//
+//	'{"name": "dhcpv4/routers", "value": ["127.0.0.1"]}'
+//	'{"name": "dhcpv4/boot-file-name", "value": "/bootfilename"}'
+//	'{"name": "dhcpv6/dns-servers", "value": ["2001:db8::cafe"]}'
 type Option struct {
 	Name        string      `json:"name"`
 	Value       interface{} `json:"value"`
@@ -16,8 +17,10 @@ type Option struct {
 // OptionSet is a convenience type for marshalling an array of options to and from a JSON field.
 type OptionSet []Option
 
+// ItemType defines the type of the item as a string
 type ItemType string
 
+// List of available types
 const (
 	ItemTypeBinary      = "binary"
 	ItemTypeBoolean     = "boolean"
@@ -43,8 +46,10 @@ type OptionDefSchemaItems struct {
 	Type ItemType `json:"type"`
 }
 
+// SchemaType defines the type of the schema as a string
 type SchemaType string
 
+// List of available types
 const (
 	SchemaTypeArray       SchemaType = "array"
 	SchemaTypeBinary                 = "binary"

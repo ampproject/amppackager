@@ -24,20 +24,20 @@ const (
 // NameserverService API access to Nameservers.
 type NameserverService service
 
-// Check Checks a domain on nameservers.
+// Check checks a domain on nameservers.
 func (s *NameserverService) Check(domain string, nameservers []string) (*NameserverCheckResponse, error) {
 	req := s.client.NewRequest(methodNameserverCheck, map[string]interface{}{
 		"domain": domain,
 		"ns":     nameservers,
 	})
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	var result NameserverCheckResponse
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -45,17 +45,17 @@ func (s *NameserverService) Check(domain string, nameservers []string) (*Nameser
 	return &result, nil
 }
 
-// Info Gets information.
+// Info gets information.
 func (s *NameserverService) Info(request *NameserverInfoRequest) (*NamserverInfoResponse, error) {
 	req := s.client.NewRequest(methodNameserverInfo, structs.Map(request))
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	result := NamserverInfoResponse{}
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (s *NameserverService) Info(request *NameserverInfoRequest) (*NamserverInfo
 	return &result, nil
 }
 
-// List List nameservers for a domain.
+// List lists nameservers for a domain.
 func (s *NameserverService) List(domain string) (*NamserverListResponse, error) {
 	requestMap := map[string]interface{}{
 		"domain": "*",
@@ -76,13 +76,13 @@ func (s *NameserverService) List(domain string) (*NamserverListResponse, error) 
 
 	req := s.client.NewRequest(methodNameserverList, requestMap)
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	result := NamserverListResponse{}
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -90,17 +90,17 @@ func (s *NameserverService) List(domain string) (*NamserverListResponse, error) 
 	return &result, nil
 }
 
-// Create Creates a nameserver.
+// Create creates a nameserver.
 func (s *NameserverService) Create(request *NameserverCreateRequest) (int, error) {
 	req := s.client.NewRequest(methodNameserverCreate, structs.Map(request))
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return 0, err
 	}
 
 	var result map[string]int
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return 0, err
 	}
@@ -108,17 +108,17 @@ func (s *NameserverService) Create(request *NameserverCreateRequest) (int, error
 	return result["roId"], nil
 }
 
-// CreateRecord Creates a DNS record.
+// CreateRecord creates a DNS record.
 func (s *NameserverService) CreateRecord(request *NameserverRecordRequest) (int, error) {
 	req := s.client.NewRequest(methodNameserverCreateRecord, structs.Map(request))
 
-	resp, err := s.client.Do(*req)
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return 0, err
 	}
 
 	var result map[string]int
-	err = mapstructure.Decode(*resp, &result)
+	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return 0, err
 	}
@@ -126,7 +126,7 @@ func (s *NameserverService) CreateRecord(request *NameserverRecordRequest) (int,
 	return result["id"], nil
 }
 
-// UpdateRecord Updates a DNS record.
+// UpdateRecord updates a DNS record.
 func (s *NameserverService) UpdateRecord(recID int, request *NameserverRecordRequest) error {
 	if request == nil {
 		return errors.New("request can't be nil")
@@ -137,7 +137,7 @@ func (s *NameserverService) UpdateRecord(recID int, request *NameserverRecordReq
 
 	req := s.client.NewRequest(methodNameserverUpdateRecord, requestMap)
 
-	_, err := s.client.Do(*req)
+	_, err := s.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -145,13 +145,13 @@ func (s *NameserverService) UpdateRecord(recID int, request *NameserverRecordReq
 	return nil
 }
 
-// DeleteRecord Deletes a DNS record.
+// DeleteRecord deletes a DNS record.
 func (s *NameserverService) DeleteRecord(recID int) error {
 	req := s.client.NewRequest(methodNameserverDeleteRecord, map[string]interface{}{
 		"id": recID,
 	})
 
-	_, err := s.client.Do(*req)
+	_, err := s.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (s *NameserverService) DeleteRecord(recID int) error {
 	return nil
 }
 
-// FindRecordByID Search a DNS record by ID.
+// FindRecordByID search a DNS record by ID.
 func (s *NameserverService) FindRecordByID(recID int) (*NameserverRecord, *NameserverDomain, error) {
 	listResp, err := s.client.Nameservers.List("")
 	if err != nil {

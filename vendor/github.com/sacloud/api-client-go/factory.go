@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/api-client-go Authors
+// Copyright 2022-2023 The sacloud/api-client-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -99,7 +99,8 @@ func (f *Factory) init() {
 
 		if f.options.Trace {
 			f.httpClient.Transport = &sacloudhttp.TracingRoundTripper{
-				Transport: f.httpClient.Transport,
+				Transport:       f.httpClient.Transport,
+				OutputOnlyError: f.options.TraceOnlyError,
 			}
 		}
 	})

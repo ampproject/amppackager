@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -2103,51 +2103,63 @@ func (o *AutoBackupUpdateSettingsRequest) SetSettingsHash(v string) {
 
 // AutoScale represents API parameter/response structure
 type AutoScale struct {
-	ID                  types.ID
-	Name                string
-	Description         string
-	Tags                types.Tags
-	Availability        types.EAvailability
-	IconID              types.ID `mapconv:"Icon.ID"`
-	CreatedAt           time.Time
-	ModifiedAt          time.Time
-	Zones               []string                      `mapconv:"Settings.Zones"`
-	Config              string                        `mapconv:"Settings.Config"`
-	CPUThresholdScaling *AutoScaleCPUThresholdScaling `mapconv:"Settings.CPUThresholdScaling,recursive"`
-	SettingsHash        string                        `json:",omitempty" mapconv:",omitempty"`
-	APIKeyID            string                        `mapconv:"Status.APIKey.ID"`
+	ID                     types.ID
+	Name                   string
+	Description            string
+	Tags                   types.Tags
+	Availability           types.EAvailability
+	IconID                 types.ID `mapconv:"Icon.ID"`
+	CreatedAt              time.Time
+	ModifiedAt             time.Time
+	Disabled               bool                             `mapconv:"Settings.Disabled"`
+	Zones                  []string                         `mapconv:"Settings.Zones"`
+	Config                 string                           `mapconv:"Settings.Config"`
+	TriggerType            types.EAutoScaleTriggerType      `mapconv:"Settings.TriggerType"`
+	CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `mapconv:"Settings.CPUThresholdScaling,recursive"`
+	RouterThresholdScaling *AutoScaleRouterThresholdScaling `mapconv:"Settings.RouterThresholdScaling,recursive"`
+	ScheduleScaling        []*AutoScaleScheduleScaling      `mapconv:"Settings.ScheduleScaling,recursive"`
+	SettingsHash           string                           `json:",omitempty" mapconv:",omitempty"`
+	APIKeyID               string                           `mapconv:"Status.APIKey.ID"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *AutoScale) setDefaults() interface{} {
 	return &struct {
-		ID                  types.ID
-		Name                string
-		Description         string
-		Tags                types.Tags
-		Availability        types.EAvailability
-		IconID              types.ID `mapconv:"Icon.ID"`
-		CreatedAt           time.Time
-		ModifiedAt          time.Time
-		Zones               []string                      `mapconv:"Settings.Zones"`
-		Config              string                        `mapconv:"Settings.Config"`
-		CPUThresholdScaling *AutoScaleCPUThresholdScaling `mapconv:"Settings.CPUThresholdScaling,recursive"`
-		SettingsHash        string                        `json:",omitempty" mapconv:",omitempty"`
-		APIKeyID            string                        `mapconv:"Status.APIKey.ID"`
+		ID                     types.ID
+		Name                   string
+		Description            string
+		Tags                   types.Tags
+		Availability           types.EAvailability
+		IconID                 types.ID `mapconv:"Icon.ID"`
+		CreatedAt              time.Time
+		ModifiedAt             time.Time
+		Disabled               bool                             `mapconv:"Settings.Disabled"`
+		Zones                  []string                         `mapconv:"Settings.Zones"`
+		Config                 string                           `mapconv:"Settings.Config"`
+		TriggerType            types.EAutoScaleTriggerType      `mapconv:"Settings.TriggerType"`
+		CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `mapconv:"Settings.CPUThresholdScaling,recursive"`
+		RouterThresholdScaling *AutoScaleRouterThresholdScaling `mapconv:"Settings.RouterThresholdScaling,recursive"`
+		ScheduleScaling        []*AutoScaleScheduleScaling      `mapconv:"Settings.ScheduleScaling,recursive"`
+		SettingsHash           string                           `json:",omitempty" mapconv:",omitempty"`
+		APIKeyID               string                           `mapconv:"Status.APIKey.ID"`
 	}{
-		ID:                  o.GetID(),
-		Name:                o.GetName(),
-		Description:         o.GetDescription(),
-		Tags:                o.GetTags(),
-		Availability:        o.GetAvailability(),
-		IconID:              o.GetIconID(),
-		CreatedAt:           o.GetCreatedAt(),
-		ModifiedAt:          o.GetModifiedAt(),
-		Zones:               o.GetZones(),
-		Config:              o.GetConfig(),
-		CPUThresholdScaling: o.GetCPUThresholdScaling(),
-		SettingsHash:        o.GetSettingsHash(),
-		APIKeyID:            o.GetAPIKeyID(),
+		ID:                     o.GetID(),
+		Name:                   o.GetName(),
+		Description:            o.GetDescription(),
+		Tags:                   o.GetTags(),
+		Availability:           o.GetAvailability(),
+		IconID:                 o.GetIconID(),
+		CreatedAt:              o.GetCreatedAt(),
+		ModifiedAt:             o.GetModifiedAt(),
+		Disabled:               o.GetDisabled(),
+		Zones:                  o.GetZones(),
+		Config:                 o.GetConfig(),
+		TriggerType:            o.GetTriggerType(),
+		CPUThresholdScaling:    o.GetCPUThresholdScaling(),
+		RouterThresholdScaling: o.GetRouterThresholdScaling(),
+		ScheduleScaling:        o.GetScheduleScaling(),
+		SettingsHash:           o.GetSettingsHash(),
+		APIKeyID:               o.GetAPIKeyID(),
 	}
 }
 
@@ -2271,6 +2283,16 @@ func (o *AutoScale) SetModifiedAt(v time.Time) {
 	o.ModifiedAt = v
 }
 
+// GetDisabled returns value of Disabled
+func (o *AutoScale) GetDisabled() bool {
+	return o.Disabled
+}
+
+// SetDisabled sets value to Disabled
+func (o *AutoScale) SetDisabled(v bool) {
+	o.Disabled = v
+}
+
 // GetZones returns value of Zones
 func (o *AutoScale) GetZones() []string {
 	return o.Zones
@@ -2291,6 +2313,16 @@ func (o *AutoScale) SetConfig(v string) {
 	o.Config = v
 }
 
+// GetTriggerType returns value of TriggerType
+func (o *AutoScale) GetTriggerType() types.EAutoScaleTriggerType {
+	return o.TriggerType
+}
+
+// SetTriggerType sets value to TriggerType
+func (o *AutoScale) SetTriggerType(v types.EAutoScaleTriggerType) {
+	o.TriggerType = v
+}
+
 // GetCPUThresholdScaling returns value of CPUThresholdScaling
 func (o *AutoScale) GetCPUThresholdScaling() *AutoScaleCPUThresholdScaling {
 	return o.CPUThresholdScaling
@@ -2299,6 +2331,26 @@ func (o *AutoScale) GetCPUThresholdScaling() *AutoScaleCPUThresholdScaling {
 // SetCPUThresholdScaling sets value to CPUThresholdScaling
 func (o *AutoScale) SetCPUThresholdScaling(v *AutoScaleCPUThresholdScaling) {
 	o.CPUThresholdScaling = v
+}
+
+// GetRouterThresholdScaling returns value of RouterThresholdScaling
+func (o *AutoScale) GetRouterThresholdScaling() *AutoScaleRouterThresholdScaling {
+	return o.RouterThresholdScaling
+}
+
+// SetRouterThresholdScaling sets value to RouterThresholdScaling
+func (o *AutoScale) SetRouterThresholdScaling(v *AutoScaleRouterThresholdScaling) {
+	o.RouterThresholdScaling = v
+}
+
+// GetScheduleScaling returns value of ScheduleScaling
+func (o *AutoScale) GetScheduleScaling() []*AutoScaleScheduleScaling {
+	return o.ScheduleScaling
+}
+
+// SetScheduleScaling sets value to ScheduleScaling
+func (o *AutoScale) SetScheduleScaling(v []*AutoScaleScheduleScaling) {
+	o.ScheduleScaling = v
 }
 
 // GetSettingsHash returns value of SettingsHash
@@ -2376,45 +2428,178 @@ func (o *AutoScaleCPUThresholdScaling) SetDown(v int) {
 }
 
 /*************************************************
+* AutoScaleRouterThresholdScaling
+*************************************************/
+
+// AutoScaleRouterThresholdScaling represents API parameter/response structure
+type AutoScaleRouterThresholdScaling struct {
+	RouterPrefix string
+	Direction    string
+	Mbps         int
+}
+
+// setDefaults implements iaas.argumentDefaulter
+func (o *AutoScaleRouterThresholdScaling) setDefaults() interface{} {
+	return &struct {
+		RouterPrefix string
+		Direction    string
+		Mbps         int
+	}{
+		RouterPrefix: o.GetRouterPrefix(),
+		Direction:    o.GetDirection(),
+		Mbps:         o.GetMbps(),
+	}
+}
+
+// GetRouterPrefix returns value of RouterPrefix
+func (o *AutoScaleRouterThresholdScaling) GetRouterPrefix() string {
+	return o.RouterPrefix
+}
+
+// SetRouterPrefix sets value to RouterPrefix
+func (o *AutoScaleRouterThresholdScaling) SetRouterPrefix(v string) {
+	o.RouterPrefix = v
+}
+
+// GetDirection returns value of Direction
+func (o *AutoScaleRouterThresholdScaling) GetDirection() string {
+	return o.Direction
+}
+
+// SetDirection sets value to Direction
+func (o *AutoScaleRouterThresholdScaling) SetDirection(v string) {
+	o.Direction = v
+}
+
+// GetMbps returns value of Mbps
+func (o *AutoScaleRouterThresholdScaling) GetMbps() int {
+	return o.Mbps
+}
+
+// SetMbps sets value to Mbps
+func (o *AutoScaleRouterThresholdScaling) SetMbps(v int) {
+	o.Mbps = v
+}
+
+/*************************************************
+* AutoScaleScheduleScaling
+*************************************************/
+
+// AutoScaleScheduleScaling represents API parameter/response structure
+type AutoScaleScheduleScaling struct {
+	Action    types.EAutoScaleAction
+	Hour      int
+	Minute    int
+	DayOfWeek []types.EDayOfTheWeek
+}
+
+// setDefaults implements iaas.argumentDefaulter
+func (o *AutoScaleScheduleScaling) setDefaults() interface{} {
+	return &struct {
+		Action    types.EAutoScaleAction
+		Hour      int
+		Minute    int
+		DayOfWeek []types.EDayOfTheWeek
+	}{
+		Action:    o.GetAction(),
+		Hour:      o.GetHour(),
+		Minute:    o.GetMinute(),
+		DayOfWeek: o.GetDayOfWeek(),
+	}
+}
+
+// GetAction returns value of Action
+func (o *AutoScaleScheduleScaling) GetAction() types.EAutoScaleAction {
+	return o.Action
+}
+
+// SetAction sets value to Action
+func (o *AutoScaleScheduleScaling) SetAction(v types.EAutoScaleAction) {
+	o.Action = v
+}
+
+// GetHour returns value of Hour
+func (o *AutoScaleScheduleScaling) GetHour() int {
+	return o.Hour
+}
+
+// SetHour sets value to Hour
+func (o *AutoScaleScheduleScaling) SetHour(v int) {
+	o.Hour = v
+}
+
+// GetMinute returns value of Minute
+func (o *AutoScaleScheduleScaling) GetMinute() int {
+	return o.Minute
+}
+
+// SetMinute sets value to Minute
+func (o *AutoScaleScheduleScaling) SetMinute(v int) {
+	o.Minute = v
+}
+
+// GetDayOfWeek returns value of DayOfWeek
+func (o *AutoScaleScheduleScaling) GetDayOfWeek() []types.EDayOfTheWeek {
+	return o.DayOfWeek
+}
+
+// SetDayOfWeek sets value to DayOfWeek
+func (o *AutoScaleScheduleScaling) SetDayOfWeek(v []types.EDayOfTheWeek) {
+	o.DayOfWeek = v
+}
+
+/*************************************************
 * AutoScaleCreateRequest
 *************************************************/
 
 // AutoScaleCreateRequest represents API parameter/response structure
 type AutoScaleCreateRequest struct {
-	Name                string
-	Description         string
-	Tags                types.Tags
-	IconID              types.ID                      `mapconv:"Icon.ID"`
-	Zones               []string                      `mapconv:"Settings.Zones"`
-	Config              string                        `mapconv:"Settings.Config"`
-	CPUThresholdScaling *AutoScaleCPUThresholdScaling `mapconv:"Settings.CPUThresholdScaling,recursive"`
-	APIKeyID            string                        `mapconv:"Status.APIKey.ID"`
+	Name                   string
+	Description            string
+	Tags                   types.Tags
+	IconID                 types.ID                         `mapconv:"Icon.ID"`
+	Disabled               bool                             `mapconv:"Settings.Disabled"`
+	Zones                  []string                         `mapconv:"Settings.Zones"`
+	Config                 string                           `mapconv:"Settings.Config"`
+	TriggerType            types.EAutoScaleTriggerType      `mapconv:"Settings.TriggerType"`
+	CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `mapconv:"Settings.CPUThresholdScaling,recursive"`
+	RouterThresholdScaling *AutoScaleRouterThresholdScaling `mapconv:"Settings.RouterThresholdScaling,recursive"`
+	ScheduleScaling        []*AutoScaleScheduleScaling      `mapconv:"Settings.ScheduleScaling,recursive"`
+	APIKeyID               string                           `mapconv:"Status.APIKey.ID"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *AutoScaleCreateRequest) setDefaults() interface{} {
 	return &struct {
-		Name                string
-		Description         string
-		Tags                types.Tags
-		IconID              types.ID                      `mapconv:"Icon.ID"`
-		Zones               []string                      `mapconv:"Settings.Zones"`
-		Config              string                        `mapconv:"Settings.Config"`
-		CPUThresholdScaling *AutoScaleCPUThresholdScaling `mapconv:"Settings.CPUThresholdScaling,recursive"`
-		APIKeyID            string                        `mapconv:"Status.APIKey.ID"`
-		Class               string                        `mapconv:"Provider.Class"`
-		ServiceClass        string
+		Name                   string
+		Description            string
+		Tags                   types.Tags
+		IconID                 types.ID                         `mapconv:"Icon.ID"`
+		Disabled               bool                             `mapconv:"Settings.Disabled"`
+		Zones                  []string                         `mapconv:"Settings.Zones"`
+		Config                 string                           `mapconv:"Settings.Config"`
+		TriggerType            types.EAutoScaleTriggerType      `mapconv:"Settings.TriggerType"`
+		CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `mapconv:"Settings.CPUThresholdScaling,recursive"`
+		RouterThresholdScaling *AutoScaleRouterThresholdScaling `mapconv:"Settings.RouterThresholdScaling,recursive"`
+		ScheduleScaling        []*AutoScaleScheduleScaling      `mapconv:"Settings.ScheduleScaling,recursive"`
+		APIKeyID               string                           `mapconv:"Status.APIKey.ID"`
+		Class                  string                           `mapconv:"Provider.Class"`
+		ServiceClass           string
 	}{
-		Name:                o.GetName(),
-		Description:         o.GetDescription(),
-		Tags:                o.GetTags(),
-		IconID:              o.GetIconID(),
-		Zones:               o.GetZones(),
-		Config:              o.GetConfig(),
-		CPUThresholdScaling: o.GetCPUThresholdScaling(),
-		APIKeyID:            o.GetAPIKeyID(),
-		Class:               "autoscale",
-		ServiceClass:        "cloud/autoscale/1",
+		Name:                   o.GetName(),
+		Description:            o.GetDescription(),
+		Tags:                   o.GetTags(),
+		IconID:                 o.GetIconID(),
+		Disabled:               o.GetDisabled(),
+		Zones:                  o.GetZones(),
+		Config:                 o.GetConfig(),
+		TriggerType:            o.GetTriggerType(),
+		CPUThresholdScaling:    o.GetCPUThresholdScaling(),
+		RouterThresholdScaling: o.GetRouterThresholdScaling(),
+		ScheduleScaling:        o.GetScheduleScaling(),
+		APIKeyID:               o.GetAPIKeyID(),
+		Class:                  "autoscale",
+		ServiceClass:           "cloud/autoscale/1",
 	}
 }
 
@@ -2478,6 +2663,16 @@ func (o *AutoScaleCreateRequest) SetIconID(v types.ID) {
 	o.IconID = v
 }
 
+// GetDisabled returns value of Disabled
+func (o *AutoScaleCreateRequest) GetDisabled() bool {
+	return o.Disabled
+}
+
+// SetDisabled sets value to Disabled
+func (o *AutoScaleCreateRequest) SetDisabled(v bool) {
+	o.Disabled = v
+}
+
 // GetZones returns value of Zones
 func (o *AutoScaleCreateRequest) GetZones() []string {
 	return o.Zones
@@ -2498,6 +2693,16 @@ func (o *AutoScaleCreateRequest) SetConfig(v string) {
 	o.Config = v
 }
 
+// GetTriggerType returns value of TriggerType
+func (o *AutoScaleCreateRequest) GetTriggerType() types.EAutoScaleTriggerType {
+	return o.TriggerType
+}
+
+// SetTriggerType sets value to TriggerType
+func (o *AutoScaleCreateRequest) SetTriggerType(v types.EAutoScaleTriggerType) {
+	o.TriggerType = v
+}
+
 // GetCPUThresholdScaling returns value of CPUThresholdScaling
 func (o *AutoScaleCreateRequest) GetCPUThresholdScaling() *AutoScaleCPUThresholdScaling {
 	return o.CPUThresholdScaling
@@ -2506,6 +2711,26 @@ func (o *AutoScaleCreateRequest) GetCPUThresholdScaling() *AutoScaleCPUThreshold
 // SetCPUThresholdScaling sets value to CPUThresholdScaling
 func (o *AutoScaleCreateRequest) SetCPUThresholdScaling(v *AutoScaleCPUThresholdScaling) {
 	o.CPUThresholdScaling = v
+}
+
+// GetRouterThresholdScaling returns value of RouterThresholdScaling
+func (o *AutoScaleCreateRequest) GetRouterThresholdScaling() *AutoScaleRouterThresholdScaling {
+	return o.RouterThresholdScaling
+}
+
+// SetRouterThresholdScaling sets value to RouterThresholdScaling
+func (o *AutoScaleCreateRequest) SetRouterThresholdScaling(v *AutoScaleRouterThresholdScaling) {
+	o.RouterThresholdScaling = v
+}
+
+// GetScheduleScaling returns value of ScheduleScaling
+func (o *AutoScaleCreateRequest) GetScheduleScaling() []*AutoScaleScheduleScaling {
+	return o.ScheduleScaling
+}
+
+// SetScheduleScaling sets value to ScheduleScaling
+func (o *AutoScaleCreateRequest) SetScheduleScaling(v []*AutoScaleScheduleScaling) {
+	o.ScheduleScaling = v
 }
 
 // GetAPIKeyID returns value of APIKeyID
@@ -2524,36 +2749,48 @@ func (o *AutoScaleCreateRequest) SetAPIKeyID(v string) {
 
 // AutoScaleUpdateRequest represents API parameter/response structure
 type AutoScaleUpdateRequest struct {
-	Name                string
-	Description         string
-	Tags                types.Tags
-	IconID              types.ID                      `mapconv:"Icon.ID"`
-	Zones               []string                      `mapconv:"Settings.Zones"`
-	Config              string                        `mapconv:"Settings.Config"`
-	CPUThresholdScaling *AutoScaleCPUThresholdScaling `mapconv:"Settings.CPUThresholdScaling,recursive"`
-	SettingsHash        string                        `json:",omitempty" mapconv:",omitempty"`
+	Name                   string
+	Description            string
+	Tags                   types.Tags
+	IconID                 types.ID                         `mapconv:"Icon.ID"`
+	Disabled               bool                             `mapconv:"Settings.Disabled"`
+	Zones                  []string                         `mapconv:"Settings.Zones"`
+	Config                 string                           `mapconv:"Settings.Config"`
+	TriggerType            types.EAutoScaleTriggerType      `mapconv:"Settings.TriggerType"`
+	CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `mapconv:"Settings.CPUThresholdScaling,recursive"`
+	RouterThresholdScaling *AutoScaleRouterThresholdScaling `mapconv:"Settings.RouterThresholdScaling,recursive"`
+	ScheduleScaling        []*AutoScaleScheduleScaling      `mapconv:"Settings.ScheduleScaling,recursive"`
+	SettingsHash           string                           `json:",omitempty" mapconv:",omitempty"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *AutoScaleUpdateRequest) setDefaults() interface{} {
 	return &struct {
-		Name                string
-		Description         string
-		Tags                types.Tags
-		IconID              types.ID                      `mapconv:"Icon.ID"`
-		Zones               []string                      `mapconv:"Settings.Zones"`
-		Config              string                        `mapconv:"Settings.Config"`
-		CPUThresholdScaling *AutoScaleCPUThresholdScaling `mapconv:"Settings.CPUThresholdScaling,recursive"`
-		SettingsHash        string                        `json:",omitempty" mapconv:",omitempty"`
+		Name                   string
+		Description            string
+		Tags                   types.Tags
+		IconID                 types.ID                         `mapconv:"Icon.ID"`
+		Disabled               bool                             `mapconv:"Settings.Disabled"`
+		Zones                  []string                         `mapconv:"Settings.Zones"`
+		Config                 string                           `mapconv:"Settings.Config"`
+		TriggerType            types.EAutoScaleTriggerType      `mapconv:"Settings.TriggerType"`
+		CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `mapconv:"Settings.CPUThresholdScaling,recursive"`
+		RouterThresholdScaling *AutoScaleRouterThresholdScaling `mapconv:"Settings.RouterThresholdScaling,recursive"`
+		ScheduleScaling        []*AutoScaleScheduleScaling      `mapconv:"Settings.ScheduleScaling,recursive"`
+		SettingsHash           string                           `json:",omitempty" mapconv:",omitempty"`
 	}{
-		Name:                o.GetName(),
-		Description:         o.GetDescription(),
-		Tags:                o.GetTags(),
-		IconID:              o.GetIconID(),
-		Zones:               o.GetZones(),
-		Config:              o.GetConfig(),
-		CPUThresholdScaling: o.GetCPUThresholdScaling(),
-		SettingsHash:        o.GetSettingsHash(),
+		Name:                   o.GetName(),
+		Description:            o.GetDescription(),
+		Tags:                   o.GetTags(),
+		IconID:                 o.GetIconID(),
+		Disabled:               o.GetDisabled(),
+		Zones:                  o.GetZones(),
+		Config:                 o.GetConfig(),
+		TriggerType:            o.GetTriggerType(),
+		CPUThresholdScaling:    o.GetCPUThresholdScaling(),
+		RouterThresholdScaling: o.GetRouterThresholdScaling(),
+		ScheduleScaling:        o.GetScheduleScaling(),
+		SettingsHash:           o.GetSettingsHash(),
 	}
 }
 
@@ -2617,6 +2854,16 @@ func (o *AutoScaleUpdateRequest) SetIconID(v types.ID) {
 	o.IconID = v
 }
 
+// GetDisabled returns value of Disabled
+func (o *AutoScaleUpdateRequest) GetDisabled() bool {
+	return o.Disabled
+}
+
+// SetDisabled sets value to Disabled
+func (o *AutoScaleUpdateRequest) SetDisabled(v bool) {
+	o.Disabled = v
+}
+
 // GetZones returns value of Zones
 func (o *AutoScaleUpdateRequest) GetZones() []string {
 	return o.Zones
@@ -2637,6 +2884,16 @@ func (o *AutoScaleUpdateRequest) SetConfig(v string) {
 	o.Config = v
 }
 
+// GetTriggerType returns value of TriggerType
+func (o *AutoScaleUpdateRequest) GetTriggerType() types.EAutoScaleTriggerType {
+	return o.TriggerType
+}
+
+// SetTriggerType sets value to TriggerType
+func (o *AutoScaleUpdateRequest) SetTriggerType(v types.EAutoScaleTriggerType) {
+	o.TriggerType = v
+}
+
 // GetCPUThresholdScaling returns value of CPUThresholdScaling
 func (o *AutoScaleUpdateRequest) GetCPUThresholdScaling() *AutoScaleCPUThresholdScaling {
 	return o.CPUThresholdScaling
@@ -2645,6 +2902,26 @@ func (o *AutoScaleUpdateRequest) GetCPUThresholdScaling() *AutoScaleCPUThreshold
 // SetCPUThresholdScaling sets value to CPUThresholdScaling
 func (o *AutoScaleUpdateRequest) SetCPUThresholdScaling(v *AutoScaleCPUThresholdScaling) {
 	o.CPUThresholdScaling = v
+}
+
+// GetRouterThresholdScaling returns value of RouterThresholdScaling
+func (o *AutoScaleUpdateRequest) GetRouterThresholdScaling() *AutoScaleRouterThresholdScaling {
+	return o.RouterThresholdScaling
+}
+
+// SetRouterThresholdScaling sets value to RouterThresholdScaling
+func (o *AutoScaleUpdateRequest) SetRouterThresholdScaling(v *AutoScaleRouterThresholdScaling) {
+	o.RouterThresholdScaling = v
+}
+
+// GetScheduleScaling returns value of ScheduleScaling
+func (o *AutoScaleUpdateRequest) GetScheduleScaling() []*AutoScaleScheduleScaling {
+	return o.ScheduleScaling
+}
+
+// SetScheduleScaling sets value to ScheduleScaling
+func (o *AutoScaleUpdateRequest) SetScheduleScaling(v []*AutoScaleScheduleScaling) {
+	o.ScheduleScaling = v
 }
 
 // GetSettingsHash returns value of SettingsHash
@@ -2663,25 +2940,47 @@ func (o *AutoScaleUpdateRequest) SetSettingsHash(v string) {
 
 // AutoScaleUpdateSettingsRequest represents API parameter/response structure
 type AutoScaleUpdateSettingsRequest struct {
-	Zones               []string                      `mapconv:"Settings.Zones"`
-	Config              string                        `mapconv:"Settings.Config"`
-	CPUThresholdScaling *AutoScaleCPUThresholdScaling `mapconv:"Settings.CPUThresholdScaling,recursive"`
-	SettingsHash        string                        `json:",omitempty" mapconv:",omitempty"`
+	Disabled               bool                             `mapconv:"Settings.Disabled"`
+	Zones                  []string                         `mapconv:"Settings.Zones"`
+	Config                 string                           `mapconv:"Settings.Config"`
+	TriggerType            types.EAutoScaleTriggerType      `mapconv:"Settings.TriggerType"`
+	CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `mapconv:"Settings.CPUThresholdScaling,recursive"`
+	RouterThresholdScaling *AutoScaleRouterThresholdScaling `mapconv:"Settings.RouterThresholdScaling,recursive"`
+	ScheduleScaling        []*AutoScaleScheduleScaling      `mapconv:"Settings.ScheduleScaling,recursive"`
+	SettingsHash           string                           `json:",omitempty" mapconv:",omitempty"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *AutoScaleUpdateSettingsRequest) setDefaults() interface{} {
 	return &struct {
-		Zones               []string                      `mapconv:"Settings.Zones"`
-		Config              string                        `mapconv:"Settings.Config"`
-		CPUThresholdScaling *AutoScaleCPUThresholdScaling `mapconv:"Settings.CPUThresholdScaling,recursive"`
-		SettingsHash        string                        `json:",omitempty" mapconv:",omitempty"`
+		Disabled               bool                             `mapconv:"Settings.Disabled"`
+		Zones                  []string                         `mapconv:"Settings.Zones"`
+		Config                 string                           `mapconv:"Settings.Config"`
+		TriggerType            types.EAutoScaleTriggerType      `mapconv:"Settings.TriggerType"`
+		CPUThresholdScaling    *AutoScaleCPUThresholdScaling    `mapconv:"Settings.CPUThresholdScaling,recursive"`
+		RouterThresholdScaling *AutoScaleRouterThresholdScaling `mapconv:"Settings.RouterThresholdScaling,recursive"`
+		ScheduleScaling        []*AutoScaleScheduleScaling      `mapconv:"Settings.ScheduleScaling,recursive"`
+		SettingsHash           string                           `json:",omitempty" mapconv:",omitempty"`
 	}{
-		Zones:               o.GetZones(),
-		Config:              o.GetConfig(),
-		CPUThresholdScaling: o.GetCPUThresholdScaling(),
-		SettingsHash:        o.GetSettingsHash(),
+		Disabled:               o.GetDisabled(),
+		Zones:                  o.GetZones(),
+		Config:                 o.GetConfig(),
+		TriggerType:            o.GetTriggerType(),
+		CPUThresholdScaling:    o.GetCPUThresholdScaling(),
+		RouterThresholdScaling: o.GetRouterThresholdScaling(),
+		ScheduleScaling:        o.GetScheduleScaling(),
+		SettingsHash:           o.GetSettingsHash(),
 	}
+}
+
+// GetDisabled returns value of Disabled
+func (o *AutoScaleUpdateSettingsRequest) GetDisabled() bool {
+	return o.Disabled
+}
+
+// SetDisabled sets value to Disabled
+func (o *AutoScaleUpdateSettingsRequest) SetDisabled(v bool) {
+	o.Disabled = v
 }
 
 // GetZones returns value of Zones
@@ -2704,6 +3003,16 @@ func (o *AutoScaleUpdateSettingsRequest) SetConfig(v string) {
 	o.Config = v
 }
 
+// GetTriggerType returns value of TriggerType
+func (o *AutoScaleUpdateSettingsRequest) GetTriggerType() types.EAutoScaleTriggerType {
+	return o.TriggerType
+}
+
+// SetTriggerType sets value to TriggerType
+func (o *AutoScaleUpdateSettingsRequest) SetTriggerType(v types.EAutoScaleTriggerType) {
+	o.TriggerType = v
+}
+
 // GetCPUThresholdScaling returns value of CPUThresholdScaling
 func (o *AutoScaleUpdateSettingsRequest) GetCPUThresholdScaling() *AutoScaleCPUThresholdScaling {
 	return o.CPUThresholdScaling
@@ -2712,6 +3021,26 @@ func (o *AutoScaleUpdateSettingsRequest) GetCPUThresholdScaling() *AutoScaleCPUT
 // SetCPUThresholdScaling sets value to CPUThresholdScaling
 func (o *AutoScaleUpdateSettingsRequest) SetCPUThresholdScaling(v *AutoScaleCPUThresholdScaling) {
 	o.CPUThresholdScaling = v
+}
+
+// GetRouterThresholdScaling returns value of RouterThresholdScaling
+func (o *AutoScaleUpdateSettingsRequest) GetRouterThresholdScaling() *AutoScaleRouterThresholdScaling {
+	return o.RouterThresholdScaling
+}
+
+// SetRouterThresholdScaling sets value to RouterThresholdScaling
+func (o *AutoScaleUpdateSettingsRequest) SetRouterThresholdScaling(v *AutoScaleRouterThresholdScaling) {
+	o.RouterThresholdScaling = v
+}
+
+// GetScheduleScaling returns value of ScheduleScaling
+func (o *AutoScaleUpdateSettingsRequest) GetScheduleScaling() []*AutoScaleScheduleScaling {
+	return o.ScheduleScaling
+}
+
+// SetScheduleScaling sets value to ScheduleScaling
+func (o *AutoScaleUpdateSettingsRequest) SetScheduleScaling(v []*AutoScaleScheduleScaling) {
+	o.ScheduleScaling = v
 }
 
 // GetSettingsHash returns value of SettingsHash
@@ -10200,57 +10529,54 @@ func (o *DNSUpdateSettingsRequest) SetSettingsHash(v string) {
 
 // EnhancedDB represents API parameter/response structure
 type EnhancedDB struct {
-	ID             types.ID
-	Name           string
-	Description    string
-	Tags           types.Tags
-	Availability   types.EAvailability
-	IconID         types.ID `mapconv:"Icon.ID"`
-	CreatedAt      time.Time
-	ModifiedAt     time.Time
-	SettingsHash   string `json:",omitempty" mapconv:",omitempty"`
-	MaxConnections int    `mapconv:"Settings.EnhancedDB.MaxConnections"`
-	DatabaseName   string `mapconv:"Status.DatabaseName"`
-	DatabaseType   string `mapconv:"Status.DatabaseType"`
-	Region         string `mapconv:"Status.Region"`
-	HostName       string `mapconv:"Status.HostName"`
-	Port           int    `mapconv:"Status.Port"`
+	ID           types.ID
+	Name         string
+	Description  string
+	Tags         types.Tags
+	Availability types.EAvailability
+	IconID       types.ID `mapconv:"Icon.ID"`
+	CreatedAt    time.Time
+	ModifiedAt   time.Time
+	SettingsHash string                 `json:",omitempty" mapconv:",omitempty"`
+	DatabaseName string                 `mapconv:"Status.DatabaseName"`
+	DatabaseType types.EnhancedDBType   `mapconv:"Status.DatabaseType"`
+	Region       types.EnhancedDBRegion `mapconv:"Status.Region"`
+	HostName     string                 `mapconv:"Status.HostName"`
+	Port         int                    `mapconv:"Status.Port"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *EnhancedDB) setDefaults() interface{} {
 	return &struct {
-		ID             types.ID
-		Name           string
-		Description    string
-		Tags           types.Tags
-		Availability   types.EAvailability
-		IconID         types.ID `mapconv:"Icon.ID"`
-		CreatedAt      time.Time
-		ModifiedAt     time.Time
-		SettingsHash   string `json:",omitempty" mapconv:",omitempty"`
-		MaxConnections int    `mapconv:"Settings.EnhancedDB.MaxConnections"`
-		DatabaseName   string `mapconv:"Status.DatabaseName"`
-		DatabaseType   string `mapconv:"Status.DatabaseType"`
-		Region         string `mapconv:"Status.Region"`
-		HostName       string `mapconv:"Status.HostName"`
-		Port           int    `mapconv:"Status.Port"`
+		ID           types.ID
+		Name         string
+		Description  string
+		Tags         types.Tags
+		Availability types.EAvailability
+		IconID       types.ID `mapconv:"Icon.ID"`
+		CreatedAt    time.Time
+		ModifiedAt   time.Time
+		SettingsHash string                 `json:",omitempty" mapconv:",omitempty"`
+		DatabaseName string                 `mapconv:"Status.DatabaseName"`
+		DatabaseType types.EnhancedDBType   `mapconv:"Status.DatabaseType"`
+		Region       types.EnhancedDBRegion `mapconv:"Status.Region"`
+		HostName     string                 `mapconv:"Status.HostName"`
+		Port         int                    `mapconv:"Status.Port"`
 	}{
-		ID:             o.GetID(),
-		Name:           o.GetName(),
-		Description:    o.GetDescription(),
-		Tags:           o.GetTags(),
-		Availability:   o.GetAvailability(),
-		IconID:         o.GetIconID(),
-		CreatedAt:      o.GetCreatedAt(),
-		ModifiedAt:     o.GetModifiedAt(),
-		SettingsHash:   o.GetSettingsHash(),
-		MaxConnections: o.GetMaxConnections(),
-		DatabaseName:   o.GetDatabaseName(),
-		DatabaseType:   o.GetDatabaseType(),
-		Region:         o.GetRegion(),
-		HostName:       o.GetHostName(),
-		Port:           o.GetPort(),
+		ID:           o.GetID(),
+		Name:         o.GetName(),
+		Description:  o.GetDescription(),
+		Tags:         o.GetTags(),
+		Availability: o.GetAvailability(),
+		IconID:       o.GetIconID(),
+		CreatedAt:    o.GetCreatedAt(),
+		ModifiedAt:   o.GetModifiedAt(),
+		SettingsHash: o.GetSettingsHash(),
+		DatabaseName: o.GetDatabaseName(),
+		DatabaseType: o.GetDatabaseType(),
+		Region:       o.GetRegion(),
+		HostName:     o.GetHostName(),
+		Port:         o.GetPort(),
 	}
 }
 
@@ -10384,16 +10710,6 @@ func (o *EnhancedDB) SetSettingsHash(v string) {
 	o.SettingsHash = v
 }
 
-// GetMaxConnections returns value of MaxConnections
-func (o *EnhancedDB) GetMaxConnections() int {
-	return o.MaxConnections
-}
-
-// SetMaxConnections sets value to MaxConnections
-func (o *EnhancedDB) SetMaxConnections(v int) {
-	o.MaxConnections = v
-}
-
 // GetDatabaseName returns value of DatabaseName
 func (o *EnhancedDB) GetDatabaseName() string {
 	return o.DatabaseName
@@ -10405,22 +10721,22 @@ func (o *EnhancedDB) SetDatabaseName(v string) {
 }
 
 // GetDatabaseType returns value of DatabaseType
-func (o *EnhancedDB) GetDatabaseType() string {
+func (o *EnhancedDB) GetDatabaseType() types.EnhancedDBType {
 	return o.DatabaseType
 }
 
 // SetDatabaseType sets value to DatabaseType
-func (o *EnhancedDB) SetDatabaseType(v string) {
+func (o *EnhancedDB) SetDatabaseType(v types.EnhancedDBType) {
 	o.DatabaseType = v
 }
 
 // GetRegion returns value of Region
-func (o *EnhancedDB) GetRegion() string {
+func (o *EnhancedDB) GetRegion() types.EnhancedDBRegion {
 	return o.Region
 }
 
 // SetRegion sets value to Region
-func (o *EnhancedDB) SetRegion(v string) {
+func (o *EnhancedDB) SetRegion(v types.EnhancedDBRegion) {
 	o.Region = v
 }
 
@@ -10453,32 +10769,36 @@ type EnhancedDBCreateRequest struct {
 	Name         string
 	Description  string
 	Tags         types.Tags
-	IconID       types.ID `mapconv:"Icon.ID"`
-	DatabaseName string   `mapconv:"Status.DatabaseName"`
+	IconID       types.ID               `mapconv:"Icon.ID"`
+	DatabaseName string                 `mapconv:"Status.DatabaseName"`
+	DatabaseType types.EnhancedDBType   `mapconv:"Status.DatabaseType"`
+	Region       types.EnhancedDBRegion `mapconv:"Status.Region"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *EnhancedDBCreateRequest) setDefaults() interface{} {
 	return &struct {
-		Name           string
-		Description    string
-		Tags           types.Tags
-		IconID         types.ID `mapconv:"Icon.ID"`
-		DatabaseName   string   `mapconv:"Status.DatabaseName"`
-		Class          string   `mapconv:"Provider.Class"`
-		Region         string   `mapconv:"Status.Region"`
-		DatabaseType   string   `mapconv:"Status.DatabaseType"`
-		MaxConnections int      `mapconv:"Settings.EnhancedDB.MaxConnections"`
+		Name            string
+		Description     string
+		Tags            types.Tags
+		IconID          types.ID               `mapconv:"Icon.ID"`
+		DatabaseName    string                 `mapconv:"Status.DatabaseName"`
+		DatabaseType    types.EnhancedDBType   `mapconv:"Status.DatabaseType"`
+		Region          types.EnhancedDBRegion `mapconv:"Status.Region"`
+		Class           string                 `mapconv:"Provider.Class"`
+		MaxConnections  int                    `mapconv:"Config.MaxConnections"`
+		AllowedNetworks []string               `mapconv:"Config.AllowedNetworks"`
 	}{
-		Name:           o.GetName(),
-		Description:    o.GetDescription(),
-		Tags:           o.GetTags(),
-		IconID:         o.GetIconID(),
-		DatabaseName:   o.GetDatabaseName(),
-		Class:          "enhanceddb",
-		Region:         "is1",
-		DatabaseType:   "tidb",
-		MaxConnections: 50,
+		Name:            o.GetName(),
+		Description:     o.GetDescription(),
+		Tags:            o.GetTags(),
+		IconID:          o.GetIconID(),
+		DatabaseName:    o.GetDatabaseName(),
+		DatabaseType:    o.GetDatabaseType(),
+		Region:          o.GetRegion(),
+		Class:           "enhanceddb",
+		MaxConnections:  50,
+		AllowedNetworks: []string{},
 	}
 }
 
@@ -10552,6 +10872,26 @@ func (o *EnhancedDBCreateRequest) SetDatabaseName(v string) {
 	o.DatabaseName = v
 }
 
+// GetDatabaseType returns value of DatabaseType
+func (o *EnhancedDBCreateRequest) GetDatabaseType() types.EnhancedDBType {
+	return o.DatabaseType
+}
+
+// SetDatabaseType sets value to DatabaseType
+func (o *EnhancedDBCreateRequest) SetDatabaseType(v types.EnhancedDBType) {
+	o.DatabaseType = v
+}
+
+// GetRegion returns value of Region
+func (o *EnhancedDBCreateRequest) GetRegion() types.EnhancedDBRegion {
+	return o.Region
+}
+
+// SetRegion sets value to Region
+func (o *EnhancedDBCreateRequest) SetRegion(v types.EnhancedDBRegion) {
+	o.Region = v
+}
+
 /*************************************************
 * EnhancedDBUpdateRequest
 *************************************************/
@@ -10568,19 +10908,17 @@ type EnhancedDBUpdateRequest struct {
 // setDefaults implements iaas.argumentDefaulter
 func (o *EnhancedDBUpdateRequest) setDefaults() interface{} {
 	return &struct {
-		Name           string
-		Description    string
-		Tags           types.Tags
-		IconID         types.ID `mapconv:"Icon.ID"`
-		SettingsHash   string   `json:",omitempty" mapconv:",omitempty"`
-		MaxConnections int      `mapconv:"Settings.EnhancedDB.MaxConnections"`
+		Name         string
+		Description  string
+		Tags         types.Tags
+		IconID       types.ID `mapconv:"Icon.ID"`
+		SettingsHash string   `json:",omitempty" mapconv:",omitempty"`
 	}{
-		Name:           o.GetName(),
-		Description:    o.GetDescription(),
-		Tags:           o.GetTags(),
-		IconID:         o.GetIconID(),
-		SettingsHash:   o.GetSettingsHash(),
-		MaxConnections: 50,
+		Name:         o.GetName(),
+		Description:  o.GetDescription(),
+		Tags:         o.GetTags(),
+		IconID:       o.GetIconID(),
+		SettingsHash: o.GetSettingsHash(),
 	}
 }
 
@@ -10680,6 +11018,77 @@ func (o *EnhancedDBSetPasswordRequest) GetPassword() string {
 // SetPassword sets value to Password
 func (o *EnhancedDBSetPasswordRequest) SetPassword(v string) {
 	o.Password = v
+}
+
+/*************************************************
+* EnhancedDBConfig
+*************************************************/
+
+// EnhancedDBConfig represents API parameter/response structure
+type EnhancedDBConfig struct {
+	MaxConnections  int
+	AllowedNetworks []string
+}
+
+// setDefaults implements iaas.argumentDefaulter
+func (o *EnhancedDBConfig) setDefaults() interface{} {
+	return &struct {
+		MaxConnections  int
+		AllowedNetworks []string
+	}{
+		MaxConnections:  o.GetMaxConnections(),
+		AllowedNetworks: o.GetAllowedNetworks(),
+	}
+}
+
+// GetMaxConnections returns value of MaxConnections
+func (o *EnhancedDBConfig) GetMaxConnections() int {
+	return o.MaxConnections
+}
+
+// SetMaxConnections sets value to MaxConnections
+func (o *EnhancedDBConfig) SetMaxConnections(v int) {
+	o.MaxConnections = v
+}
+
+// GetAllowedNetworks returns value of AllowedNetworks
+func (o *EnhancedDBConfig) GetAllowedNetworks() []string {
+	return o.AllowedNetworks
+}
+
+// SetAllowedNetworks sets value to AllowedNetworks
+func (o *EnhancedDBConfig) SetAllowedNetworks(v []string) {
+	o.AllowedNetworks = v
+}
+
+/*************************************************
+* EnhancedDBSetConfigRequest
+*************************************************/
+
+// EnhancedDBSetConfigRequest represents API parameter/response structure
+type EnhancedDBSetConfigRequest struct {
+	AllowedNetworks []string `mapconv:"EnhancedDB.AllowedNetworks"`
+}
+
+// setDefaults implements iaas.argumentDefaulter
+func (o *EnhancedDBSetConfigRequest) setDefaults() interface{} {
+	return &struct {
+		AllowedNetworks []string `mapconv:"EnhancedDB.AllowedNetworks"`
+		MaxConnections  int      `mapconv:"EnhancedDB.MaxConnections"`
+	}{
+		AllowedNetworks: o.GetAllowedNetworks(),
+		MaxConnections:  50,
+	}
+}
+
+// GetAllowedNetworks returns value of AllowedNetworks
+func (o *EnhancedDBSetConfigRequest) GetAllowedNetworks() []string {
+	return o.AllowedNetworks
+}
+
+// SetAllowedNetworks sets value to AllowedNetworks
+func (o *EnhancedDBSetConfigRequest) SetAllowedNetworks(v []string) {
+	o.AllowedNetworks = v
 }
 
 /*************************************************
@@ -20048,90 +20457,93 @@ func (o *PrivateHostPlan) SetAvailability(v types.EAvailability) {
 
 // ProxyLB represents API parameter/response structure
 type ProxyLB struct {
-	ID               types.ID
-	Name             string
-	Description      string
-	Tags             types.Tags
-	Availability     types.EAvailability
-	IconID           types.ID `mapconv:"Icon.ID"`
-	CreatedAt        time.Time
-	ModifiedAt       time.Time
-	Plan             types.EProxyLBPlan
-	HealthCheck      *ProxyLBHealthCheck   `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
-	SorryServer      *ProxyLBSorryServer   `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
-	BindPorts        []*ProxyLBBindPort    `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
-	Servers          []*ProxyLBServer      `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
-	Rules            []*ProxyLBRule        `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
-	LetsEncrypt      *ProxyLBACMESetting   `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
-	StickySession    *ProxyLBStickySession `mapconv:"Settings.ProxyLB.StickySession,recursive"`
-	Gzip             *ProxyLBGzip          `mapconv:"Settings.ProxyLB.Gzip,recursive"`
-	ProxyProtocol    *ProxyLBProxyProtocol `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
-	Syslog           *ProxyLBSyslog        `mapconv:"Settings.ProxyLB.Syslog,recursive"`
-	Timeout          *ProxyLBTimeout       `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
-	SettingsHash     string                `json:",omitempty" mapconv:",omitempty"`
-	UseVIPFailover   bool                  `mapconv:"Status.UseVIPFailover"`
-	Region           types.EProxyLBRegion  `mapconv:"Status.Region"`
-	ProxyNetworks    []string              `mapconv:"Status.ProxyNetworks"`
-	FQDN             string                `mapconv:"Status.FQDN"`
-	VirtualIPAddress string                `mapconv:"Status.VirtualIPAddress"`
+	ID                   types.ID
+	Name                 string
+	Description          string
+	Tags                 types.Tags
+	Availability         types.EAvailability
+	IconID               types.ID `mapconv:"Icon.ID"`
+	CreatedAt            time.Time
+	ModifiedAt           time.Time
+	Plan                 types.EProxyLBPlan
+	HealthCheck          *ProxyLBHealthCheck          `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
+	SorryServer          *ProxyLBSorryServer          `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
+	BindPorts            []*ProxyLBBindPort           `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
+	Servers              []*ProxyLBServer             `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
+	Rules                []*ProxyLBRule               `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
+	LetsEncrypt          *ProxyLBACMESetting          `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
+	StickySession        *ProxyLBStickySession        `mapconv:"Settings.ProxyLB.StickySession,recursive"`
+	Gzip                 *ProxyLBGzip                 `mapconv:"Settings.ProxyLB.Gzip,recursive"`
+	BackendHttpKeepAlive *ProxyLBBackendHttpKeepAlive `mapconv:"Settings.ProxyLB.BackendHttpKeepAlive,recursive"`
+	ProxyProtocol        *ProxyLBProxyProtocol        `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
+	Syslog               *ProxyLBSyslog               `mapconv:"Settings.ProxyLB.Syslog,recursive"`
+	Timeout              *ProxyLBTimeout              `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
+	SettingsHash         string                       `json:",omitempty" mapconv:",omitempty"`
+	UseVIPFailover       bool                         `mapconv:"Status.UseVIPFailover"`
+	Region               types.EProxyLBRegion         `mapconv:"Status.Region"`
+	ProxyNetworks        []string                     `mapconv:"Status.ProxyNetworks"`
+	FQDN                 string                       `mapconv:"Status.FQDN"`
+	VirtualIPAddress     string                       `mapconv:"Status.VirtualIPAddress"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *ProxyLB) setDefaults() interface{} {
 	return &struct {
-		ID               types.ID
-		Name             string
-		Description      string
-		Tags             types.Tags
-		Availability     types.EAvailability
-		IconID           types.ID `mapconv:"Icon.ID"`
-		CreatedAt        time.Time
-		ModifiedAt       time.Time
-		Plan             types.EProxyLBPlan
-		HealthCheck      *ProxyLBHealthCheck   `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
-		SorryServer      *ProxyLBSorryServer   `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
-		BindPorts        []*ProxyLBBindPort    `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
-		Servers          []*ProxyLBServer      `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
-		Rules            []*ProxyLBRule        `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
-		LetsEncrypt      *ProxyLBACMESetting   `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
-		StickySession    *ProxyLBStickySession `mapconv:"Settings.ProxyLB.StickySession,recursive"`
-		Gzip             *ProxyLBGzip          `mapconv:"Settings.ProxyLB.Gzip,recursive"`
-		ProxyProtocol    *ProxyLBProxyProtocol `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
-		Syslog           *ProxyLBSyslog        `mapconv:"Settings.ProxyLB.Syslog,recursive"`
-		Timeout          *ProxyLBTimeout       `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
-		SettingsHash     string                `json:",omitempty" mapconv:",omitempty"`
-		UseVIPFailover   bool                  `mapconv:"Status.UseVIPFailover"`
-		Region           types.EProxyLBRegion  `mapconv:"Status.Region"`
-		ProxyNetworks    []string              `mapconv:"Status.ProxyNetworks"`
-		FQDN             string                `mapconv:"Status.FQDN"`
-		VirtualIPAddress string                `mapconv:"Status.VirtualIPAddress"`
+		ID                   types.ID
+		Name                 string
+		Description          string
+		Tags                 types.Tags
+		Availability         types.EAvailability
+		IconID               types.ID `mapconv:"Icon.ID"`
+		CreatedAt            time.Time
+		ModifiedAt           time.Time
+		Plan                 types.EProxyLBPlan
+		HealthCheck          *ProxyLBHealthCheck          `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
+		SorryServer          *ProxyLBSorryServer          `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
+		BindPorts            []*ProxyLBBindPort           `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
+		Servers              []*ProxyLBServer             `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
+		Rules                []*ProxyLBRule               `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
+		LetsEncrypt          *ProxyLBACMESetting          `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
+		StickySession        *ProxyLBStickySession        `mapconv:"Settings.ProxyLB.StickySession,recursive"`
+		Gzip                 *ProxyLBGzip                 `mapconv:"Settings.ProxyLB.Gzip,recursive"`
+		BackendHttpKeepAlive *ProxyLBBackendHttpKeepAlive `mapconv:"Settings.ProxyLB.BackendHttpKeepAlive,recursive"`
+		ProxyProtocol        *ProxyLBProxyProtocol        `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
+		Syslog               *ProxyLBSyslog               `mapconv:"Settings.ProxyLB.Syslog,recursive"`
+		Timeout              *ProxyLBTimeout              `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
+		SettingsHash         string                       `json:",omitempty" mapconv:",omitempty"`
+		UseVIPFailover       bool                         `mapconv:"Status.UseVIPFailover"`
+		Region               types.EProxyLBRegion         `mapconv:"Status.Region"`
+		ProxyNetworks        []string                     `mapconv:"Status.ProxyNetworks"`
+		FQDN                 string                       `mapconv:"Status.FQDN"`
+		VirtualIPAddress     string                       `mapconv:"Status.VirtualIPAddress"`
 	}{
-		ID:               o.GetID(),
-		Name:             o.GetName(),
-		Description:      o.GetDescription(),
-		Tags:             o.GetTags(),
-		Availability:     o.GetAvailability(),
-		IconID:           o.GetIconID(),
-		CreatedAt:        o.GetCreatedAt(),
-		ModifiedAt:       o.GetModifiedAt(),
-		Plan:             o.GetPlan(),
-		HealthCheck:      o.GetHealthCheck(),
-		SorryServer:      o.GetSorryServer(),
-		BindPorts:        o.GetBindPorts(),
-		Servers:          o.GetServers(),
-		Rules:            o.GetRules(),
-		LetsEncrypt:      o.GetLetsEncrypt(),
-		StickySession:    o.GetStickySession(),
-		Gzip:             o.GetGzip(),
-		ProxyProtocol:    o.GetProxyProtocol(),
-		Syslog:           o.GetSyslog(),
-		Timeout:          o.GetTimeout(),
-		SettingsHash:     o.GetSettingsHash(),
-		UseVIPFailover:   o.GetUseVIPFailover(),
-		Region:           o.GetRegion(),
-		ProxyNetworks:    o.GetProxyNetworks(),
-		FQDN:             o.GetFQDN(),
-		VirtualIPAddress: o.GetVirtualIPAddress(),
+		ID:                   o.GetID(),
+		Name:                 o.GetName(),
+		Description:          o.GetDescription(),
+		Tags:                 o.GetTags(),
+		Availability:         o.GetAvailability(),
+		IconID:               o.GetIconID(),
+		CreatedAt:            o.GetCreatedAt(),
+		ModifiedAt:           o.GetModifiedAt(),
+		Plan:                 o.GetPlan(),
+		HealthCheck:          o.GetHealthCheck(),
+		SorryServer:          o.GetSorryServer(),
+		BindPorts:            o.GetBindPorts(),
+		Servers:              o.GetServers(),
+		Rules:                o.GetRules(),
+		LetsEncrypt:          o.GetLetsEncrypt(),
+		StickySession:        o.GetStickySession(),
+		Gzip:                 o.GetGzip(),
+		BackendHttpKeepAlive: o.GetBackendHttpKeepAlive(),
+		ProxyProtocol:        o.GetProxyProtocol(),
+		Syslog:               o.GetSyslog(),
+		Timeout:              o.GetTimeout(),
+		SettingsHash:         o.GetSettingsHash(),
+		UseVIPFailover:       o.GetUseVIPFailover(),
+		Region:               o.GetRegion(),
+		ProxyNetworks:        o.GetProxyNetworks(),
+		FQDN:                 o.GetFQDN(),
+		VirtualIPAddress:     o.GetVirtualIPAddress(),
 	}
 }
 
@@ -20343,6 +20755,16 @@ func (o *ProxyLB) GetGzip() *ProxyLBGzip {
 // SetGzip sets value to Gzip
 func (o *ProxyLB) SetGzip(v *ProxyLBGzip) {
 	o.Gzip = v
+}
+
+// GetBackendHttpKeepAlive returns value of BackendHttpKeepAlive
+func (o *ProxyLB) GetBackendHttpKeepAlive() *ProxyLBBackendHttpKeepAlive {
+	return o.BackendHttpKeepAlive
+}
+
+// SetBackendHttpKeepAlive sets value to BackendHttpKeepAlive
+func (o *ProxyLB) SetBackendHttpKeepAlive(v *ProxyLBBackendHttpKeepAlive) {
+	o.BackendHttpKeepAlive = v
 }
 
 // GetProxyProtocol returns value of ProxyProtocol
@@ -20752,6 +21174,7 @@ func (o *ProxyLBServer) SetEnabled(v bool) {
 type ProxyLBRule struct {
 	Host                         string
 	Path                         string
+	SourceIPs                    string
 	RequestHeaderName            string
 	RequestHeaderValue           string
 	RequestHeaderValueIgnoreCase bool
@@ -20770,6 +21193,7 @@ func (o *ProxyLBRule) setDefaults() interface{} {
 	return &struct {
 		Host                         string
 		Path                         string
+		SourceIPs                    string
 		RequestHeaderName            string
 		RequestHeaderValue           string
 		RequestHeaderValueIgnoreCase bool
@@ -20784,6 +21208,7 @@ func (o *ProxyLBRule) setDefaults() interface{} {
 	}{
 		Host:                         o.GetHost(),
 		Path:                         o.GetPath(),
+		SourceIPs:                    o.GetSourceIPs(),
 		RequestHeaderName:            o.GetRequestHeaderName(),
 		RequestHeaderValue:           o.GetRequestHeaderValue(),
 		RequestHeaderValueIgnoreCase: o.GetRequestHeaderValueIgnoreCase(),
@@ -20816,6 +21241,16 @@ func (o *ProxyLBRule) GetPath() string {
 // SetPath sets value to Path
 func (o *ProxyLBRule) SetPath(v string) {
 	o.Path = v
+}
+
+// GetSourceIPs returns value of SourceIPs
+func (o *ProxyLBRule) GetSourceIPs() string {
+	return o.SourceIPs
+}
+
+// SetSourceIPs sets value to SourceIPs
+func (o *ProxyLBRule) SetSourceIPs(v string) {
+	o.SourceIPs = v
 }
 
 // GetRequestHeaderName returns value of RequestHeaderName
@@ -21052,6 +21487,34 @@ func (o *ProxyLBGzip) SetEnabled(v bool) {
 }
 
 /*************************************************
+* ProxyLBBackendHttpKeepAlive
+*************************************************/
+
+// ProxyLBBackendHttpKeepAlive represents API parameter/response structure
+type ProxyLBBackendHttpKeepAlive struct {
+	Mode types.EProxyLBBackendHttpKeepAlive
+}
+
+// setDefaults implements iaas.argumentDefaulter
+func (o *ProxyLBBackendHttpKeepAlive) setDefaults() interface{} {
+	return &struct {
+		Mode types.EProxyLBBackendHttpKeepAlive
+	}{
+		Mode: o.GetMode(),
+	}
+}
+
+// GetMode returns value of Mode
+func (o *ProxyLBBackendHttpKeepAlive) GetMode() types.EProxyLBBackendHttpKeepAlive {
+	return o.Mode
+}
+
+// SetMode sets value to Mode
+func (o *ProxyLBBackendHttpKeepAlive) SetMode(v types.EProxyLBBackendHttpKeepAlive) {
+	o.Mode = v
+}
+
+/*************************************************
 * ProxyLBProxyProtocol
 *************************************************/
 
@@ -21160,68 +21623,71 @@ func (o *ProxyLBTimeout) SetInactiveSec(v int) {
 
 // ProxyLBCreateRequest represents API parameter/response structure
 type ProxyLBCreateRequest struct {
-	Plan           types.EProxyLBPlan
-	HealthCheck    *ProxyLBHealthCheck   `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
-	SorryServer    *ProxyLBSorryServer   `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
-	BindPorts      []*ProxyLBBindPort    `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
-	Servers        []*ProxyLBServer      `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
-	Rules          []*ProxyLBRule        `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
-	LetsEncrypt    *ProxyLBACMESetting   `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
-	StickySession  *ProxyLBStickySession `mapconv:"Settings.ProxyLB.StickySession,recursive"`
-	Timeout        *ProxyLBTimeout       `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
-	Gzip           *ProxyLBGzip          `mapconv:"Settings.ProxyLB.Gzip,recursive"`
-	ProxyProtocol  *ProxyLBProxyProtocol `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
-	Syslog         *ProxyLBSyslog        `mapconv:"Settings.ProxyLB.Syslog,recursive"`
-	UseVIPFailover bool                  `mapconv:"Status.UseVIPFailover"`
-	Region         types.EProxyLBRegion  `mapconv:"Status.Region"`
-	Name           string
-	Description    string
-	Tags           types.Tags
-	IconID         types.ID `mapconv:"Icon.ID"`
+	Plan                 types.EProxyLBPlan
+	HealthCheck          *ProxyLBHealthCheck          `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
+	SorryServer          *ProxyLBSorryServer          `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
+	BindPorts            []*ProxyLBBindPort           `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
+	Servers              []*ProxyLBServer             `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
+	Rules                []*ProxyLBRule               `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
+	LetsEncrypt          *ProxyLBACMESetting          `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
+	StickySession        *ProxyLBStickySession        `mapconv:"Settings.ProxyLB.StickySession,recursive"`
+	Timeout              *ProxyLBTimeout              `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
+	Gzip                 *ProxyLBGzip                 `mapconv:"Settings.ProxyLB.Gzip,recursive"`
+	BackendHttpKeepAlive *ProxyLBBackendHttpKeepAlive `mapconv:"Settings.ProxyLB.BackendHttpKeepAlive,recursive"`
+	ProxyProtocol        *ProxyLBProxyProtocol        `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
+	Syslog               *ProxyLBSyslog               `mapconv:"Settings.ProxyLB.Syslog,recursive"`
+	UseVIPFailover       bool                         `mapconv:"Status.UseVIPFailover"`
+	Region               types.EProxyLBRegion         `mapconv:"Status.Region"`
+	Name                 string
+	Description          string
+	Tags                 types.Tags
+	IconID               types.ID `mapconv:"Icon.ID"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *ProxyLBCreateRequest) setDefaults() interface{} {
 	return &struct {
-		Plan           types.EProxyLBPlan
-		HealthCheck    *ProxyLBHealthCheck   `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
-		SorryServer    *ProxyLBSorryServer   `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
-		BindPorts      []*ProxyLBBindPort    `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
-		Servers        []*ProxyLBServer      `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
-		Rules          []*ProxyLBRule        `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
-		LetsEncrypt    *ProxyLBACMESetting   `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
-		StickySession  *ProxyLBStickySession `mapconv:"Settings.ProxyLB.StickySession,recursive"`
-		Timeout        *ProxyLBTimeout       `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
-		Gzip           *ProxyLBGzip          `mapconv:"Settings.ProxyLB.Gzip,recursive"`
-		ProxyProtocol  *ProxyLBProxyProtocol `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
-		Syslog         *ProxyLBSyslog        `mapconv:"Settings.ProxyLB.Syslog,recursive"`
-		UseVIPFailover bool                  `mapconv:"Status.UseVIPFailover"`
-		Region         types.EProxyLBRegion  `mapconv:"Status.Region"`
-		Name           string
-		Description    string
-		Tags           types.Tags
-		IconID         types.ID `mapconv:"Icon.ID"`
-		Class          string   `mapconv:"Provider.Class"`
+		Plan                 types.EProxyLBPlan
+		HealthCheck          *ProxyLBHealthCheck          `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
+		SorryServer          *ProxyLBSorryServer          `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
+		BindPorts            []*ProxyLBBindPort           `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
+		Servers              []*ProxyLBServer             `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
+		Rules                []*ProxyLBRule               `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
+		LetsEncrypt          *ProxyLBACMESetting          `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
+		StickySession        *ProxyLBStickySession        `mapconv:"Settings.ProxyLB.StickySession,recursive"`
+		Timeout              *ProxyLBTimeout              `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
+		Gzip                 *ProxyLBGzip                 `mapconv:"Settings.ProxyLB.Gzip,recursive"`
+		BackendHttpKeepAlive *ProxyLBBackendHttpKeepAlive `mapconv:"Settings.ProxyLB.BackendHttpKeepAlive,recursive"`
+		ProxyProtocol        *ProxyLBProxyProtocol        `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
+		Syslog               *ProxyLBSyslog               `mapconv:"Settings.ProxyLB.Syslog,recursive"`
+		UseVIPFailover       bool                         `mapconv:"Status.UseVIPFailover"`
+		Region               types.EProxyLBRegion         `mapconv:"Status.Region"`
+		Name                 string
+		Description          string
+		Tags                 types.Tags
+		IconID               types.ID `mapconv:"Icon.ID"`
+		Class                string   `mapconv:"Provider.Class"`
 	}{
-		Plan:           o.GetPlan(),
-		HealthCheck:    o.GetHealthCheck(),
-		SorryServer:    o.GetSorryServer(),
-		BindPorts:      o.GetBindPorts(),
-		Servers:        o.GetServers(),
-		Rules:          o.GetRules(),
-		LetsEncrypt:    o.GetLetsEncrypt(),
-		StickySession:  o.GetStickySession(),
-		Timeout:        o.GetTimeout(),
-		Gzip:           o.GetGzip(),
-		ProxyProtocol:  o.GetProxyProtocol(),
-		Syslog:         o.GetSyslog(),
-		UseVIPFailover: o.GetUseVIPFailover(),
-		Region:         o.GetRegion(),
-		Name:           o.GetName(),
-		Description:    o.GetDescription(),
-		Tags:           o.GetTags(),
-		IconID:         o.GetIconID(),
-		Class:          "proxylb",
+		Plan:                 o.GetPlan(),
+		HealthCheck:          o.GetHealthCheck(),
+		SorryServer:          o.GetSorryServer(),
+		BindPorts:            o.GetBindPorts(),
+		Servers:              o.GetServers(),
+		Rules:                o.GetRules(),
+		LetsEncrypt:          o.GetLetsEncrypt(),
+		StickySession:        o.GetStickySession(),
+		Timeout:              o.GetTimeout(),
+		Gzip:                 o.GetGzip(),
+		BackendHttpKeepAlive: o.GetBackendHttpKeepAlive(),
+		ProxyProtocol:        o.GetProxyProtocol(),
+		Syslog:               o.GetSyslog(),
+		UseVIPFailover:       o.GetUseVIPFailover(),
+		Region:               o.GetRegion(),
+		Name:                 o.GetName(),
+		Description:          o.GetDescription(),
+		Tags:                 o.GetTags(),
+		IconID:               o.GetIconID(),
+		Class:                "proxylb",
 	}
 }
 
@@ -21323,6 +21789,16 @@ func (o *ProxyLBCreateRequest) GetGzip() *ProxyLBGzip {
 // SetGzip sets value to Gzip
 func (o *ProxyLBCreateRequest) SetGzip(v *ProxyLBGzip) {
 	o.Gzip = v
+}
+
+// GetBackendHttpKeepAlive returns value of BackendHttpKeepAlive
+func (o *ProxyLBCreateRequest) GetBackendHttpKeepAlive() *ProxyLBBackendHttpKeepAlive {
+	return o.BackendHttpKeepAlive
+}
+
+// SetBackendHttpKeepAlive sets value to BackendHttpKeepAlive
+func (o *ProxyLBCreateRequest) SetBackendHttpKeepAlive(v *ProxyLBBackendHttpKeepAlive) {
+	o.BackendHttpKeepAlive = v
 }
 
 // GetProxyProtocol returns value of ProxyProtocol
@@ -21431,60 +21907,63 @@ func (o *ProxyLBCreateRequest) SetIconID(v types.ID) {
 
 // ProxyLBUpdateRequest represents API parameter/response structure
 type ProxyLBUpdateRequest struct {
-	HealthCheck   *ProxyLBHealthCheck   `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
-	SorryServer   *ProxyLBSorryServer   `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
-	BindPorts     []*ProxyLBBindPort    `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
-	Servers       []*ProxyLBServer      `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
-	Rules         []*ProxyLBRule        `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
-	LetsEncrypt   *ProxyLBACMESetting   `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
-	StickySession *ProxyLBStickySession `mapconv:"Settings.ProxyLB.StickySession,recursive"`
-	Timeout       *ProxyLBTimeout       `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
-	Gzip          *ProxyLBGzip          `mapconv:"Settings.ProxyLB.Gzip,recursive"`
-	ProxyProtocol *ProxyLBProxyProtocol `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
-	Syslog        *ProxyLBSyslog        `mapconv:"Settings.ProxyLB.Syslog,recursive"`
-	SettingsHash  string                `json:",omitempty" mapconv:",omitempty"`
-	Name          string
-	Description   string
-	Tags          types.Tags
-	IconID        types.ID `mapconv:"Icon.ID"`
+	HealthCheck          *ProxyLBHealthCheck          `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
+	SorryServer          *ProxyLBSorryServer          `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
+	BindPorts            []*ProxyLBBindPort           `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
+	Servers              []*ProxyLBServer             `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
+	Rules                []*ProxyLBRule               `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
+	LetsEncrypt          *ProxyLBACMESetting          `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
+	StickySession        *ProxyLBStickySession        `mapconv:"Settings.ProxyLB.StickySession,recursive"`
+	Timeout              *ProxyLBTimeout              `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
+	Gzip                 *ProxyLBGzip                 `mapconv:"Settings.ProxyLB.Gzip,recursive"`
+	BackendHttpKeepAlive *ProxyLBBackendHttpKeepAlive `mapconv:"Settings.ProxyLB.BackendHttpKeepAlive,recursive"`
+	ProxyProtocol        *ProxyLBProxyProtocol        `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
+	Syslog               *ProxyLBSyslog               `mapconv:"Settings.ProxyLB.Syslog,recursive"`
+	SettingsHash         string                       `json:",omitempty" mapconv:",omitempty"`
+	Name                 string
+	Description          string
+	Tags                 types.Tags
+	IconID               types.ID `mapconv:"Icon.ID"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *ProxyLBUpdateRequest) setDefaults() interface{} {
 	return &struct {
-		HealthCheck   *ProxyLBHealthCheck   `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
-		SorryServer   *ProxyLBSorryServer   `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
-		BindPorts     []*ProxyLBBindPort    `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
-		Servers       []*ProxyLBServer      `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
-		Rules         []*ProxyLBRule        `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
-		LetsEncrypt   *ProxyLBACMESetting   `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
-		StickySession *ProxyLBStickySession `mapconv:"Settings.ProxyLB.StickySession,recursive"`
-		Timeout       *ProxyLBTimeout       `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
-		Gzip          *ProxyLBGzip          `mapconv:"Settings.ProxyLB.Gzip,recursive"`
-		ProxyProtocol *ProxyLBProxyProtocol `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
-		Syslog        *ProxyLBSyslog        `mapconv:"Settings.ProxyLB.Syslog,recursive"`
-		SettingsHash  string                `json:",omitempty" mapconv:",omitempty"`
-		Name          string
-		Description   string
-		Tags          types.Tags
-		IconID        types.ID `mapconv:"Icon.ID"`
+		HealthCheck          *ProxyLBHealthCheck          `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
+		SorryServer          *ProxyLBSorryServer          `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
+		BindPorts            []*ProxyLBBindPort           `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
+		Servers              []*ProxyLBServer             `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
+		Rules                []*ProxyLBRule               `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
+		LetsEncrypt          *ProxyLBACMESetting          `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
+		StickySession        *ProxyLBStickySession        `mapconv:"Settings.ProxyLB.StickySession,recursive"`
+		Timeout              *ProxyLBTimeout              `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
+		Gzip                 *ProxyLBGzip                 `mapconv:"Settings.ProxyLB.Gzip,recursive"`
+		BackendHttpKeepAlive *ProxyLBBackendHttpKeepAlive `mapconv:"Settings.ProxyLB.BackendHttpKeepAlive,recursive"`
+		ProxyProtocol        *ProxyLBProxyProtocol        `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
+		Syslog               *ProxyLBSyslog               `mapconv:"Settings.ProxyLB.Syslog,recursive"`
+		SettingsHash         string                       `json:",omitempty" mapconv:",omitempty"`
+		Name                 string
+		Description          string
+		Tags                 types.Tags
+		IconID               types.ID `mapconv:"Icon.ID"`
 	}{
-		HealthCheck:   o.GetHealthCheck(),
-		SorryServer:   o.GetSorryServer(),
-		BindPorts:     o.GetBindPorts(),
-		Servers:       o.GetServers(),
-		Rules:         o.GetRules(),
-		LetsEncrypt:   o.GetLetsEncrypt(),
-		StickySession: o.GetStickySession(),
-		Timeout:       o.GetTimeout(),
-		Gzip:          o.GetGzip(),
-		ProxyProtocol: o.GetProxyProtocol(),
-		Syslog:        o.GetSyslog(),
-		SettingsHash:  o.GetSettingsHash(),
-		Name:          o.GetName(),
-		Description:   o.GetDescription(),
-		Tags:          o.GetTags(),
-		IconID:        o.GetIconID(),
+		HealthCheck:          o.GetHealthCheck(),
+		SorryServer:          o.GetSorryServer(),
+		BindPorts:            o.GetBindPorts(),
+		Servers:              o.GetServers(),
+		Rules:                o.GetRules(),
+		LetsEncrypt:          o.GetLetsEncrypt(),
+		StickySession:        o.GetStickySession(),
+		Timeout:              o.GetTimeout(),
+		Gzip:                 o.GetGzip(),
+		BackendHttpKeepAlive: o.GetBackendHttpKeepAlive(),
+		ProxyProtocol:        o.GetProxyProtocol(),
+		Syslog:               o.GetSyslog(),
+		SettingsHash:         o.GetSettingsHash(),
+		Name:                 o.GetName(),
+		Description:          o.GetDescription(),
+		Tags:                 o.GetTags(),
+		IconID:               o.GetIconID(),
 	}
 }
 
@@ -21576,6 +22055,16 @@ func (o *ProxyLBUpdateRequest) GetGzip() *ProxyLBGzip {
 // SetGzip sets value to Gzip
 func (o *ProxyLBUpdateRequest) SetGzip(v *ProxyLBGzip) {
 	o.Gzip = v
+}
+
+// GetBackendHttpKeepAlive returns value of BackendHttpKeepAlive
+func (o *ProxyLBUpdateRequest) GetBackendHttpKeepAlive() *ProxyLBBackendHttpKeepAlive {
+	return o.BackendHttpKeepAlive
+}
+
+// SetBackendHttpKeepAlive sets value to BackendHttpKeepAlive
+func (o *ProxyLBUpdateRequest) SetBackendHttpKeepAlive(v *ProxyLBBackendHttpKeepAlive) {
+	o.BackendHttpKeepAlive = v
 }
 
 // GetProxyProtocol returns value of ProxyProtocol
@@ -21674,48 +22163,51 @@ func (o *ProxyLBUpdateRequest) SetIconID(v types.ID) {
 
 // ProxyLBUpdateSettingsRequest represents API parameter/response structure
 type ProxyLBUpdateSettingsRequest struct {
-	HealthCheck   *ProxyLBHealthCheck   `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
-	SorryServer   *ProxyLBSorryServer   `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
-	BindPorts     []*ProxyLBBindPort    `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
-	Servers       []*ProxyLBServer      `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
-	Rules         []*ProxyLBRule        `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
-	LetsEncrypt   *ProxyLBACMESetting   `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
-	StickySession *ProxyLBStickySession `mapconv:"Settings.ProxyLB.StickySession,recursive"`
-	Timeout       *ProxyLBTimeout       `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
-	Gzip          *ProxyLBGzip          `mapconv:"Settings.ProxyLB.Gzip,recursive"`
-	ProxyProtocol *ProxyLBProxyProtocol `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
-	Syslog        *ProxyLBSyslog        `mapconv:"Settings.ProxyLB.Syslog,recursive"`
-	SettingsHash  string                `json:",omitempty" mapconv:",omitempty"`
+	HealthCheck          *ProxyLBHealthCheck          `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
+	SorryServer          *ProxyLBSorryServer          `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
+	BindPorts            []*ProxyLBBindPort           `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
+	Servers              []*ProxyLBServer             `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
+	Rules                []*ProxyLBRule               `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
+	LetsEncrypt          *ProxyLBACMESetting          `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
+	StickySession        *ProxyLBStickySession        `mapconv:"Settings.ProxyLB.StickySession,recursive"`
+	Timeout              *ProxyLBTimeout              `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
+	Gzip                 *ProxyLBGzip                 `mapconv:"Settings.ProxyLB.Gzip,recursive"`
+	BackendHttpKeepAlive *ProxyLBBackendHttpKeepAlive `mapconv:"Settings.ProxyLB.BackendHttpKeepAlive,recursive"`
+	ProxyProtocol        *ProxyLBProxyProtocol        `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
+	Syslog               *ProxyLBSyslog               `mapconv:"Settings.ProxyLB.Syslog,recursive"`
+	SettingsHash         string                       `json:",omitempty" mapconv:",omitempty"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *ProxyLBUpdateSettingsRequest) setDefaults() interface{} {
 	return &struct {
-		HealthCheck   *ProxyLBHealthCheck   `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
-		SorryServer   *ProxyLBSorryServer   `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
-		BindPorts     []*ProxyLBBindPort    `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
-		Servers       []*ProxyLBServer      `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
-		Rules         []*ProxyLBRule        `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
-		LetsEncrypt   *ProxyLBACMESetting   `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
-		StickySession *ProxyLBStickySession `mapconv:"Settings.ProxyLB.StickySession,recursive"`
-		Timeout       *ProxyLBTimeout       `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
-		Gzip          *ProxyLBGzip          `mapconv:"Settings.ProxyLB.Gzip,recursive"`
-		ProxyProtocol *ProxyLBProxyProtocol `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
-		Syslog        *ProxyLBSyslog        `mapconv:"Settings.ProxyLB.Syslog,recursive"`
-		SettingsHash  string                `json:",omitempty" mapconv:",omitempty"`
+		HealthCheck          *ProxyLBHealthCheck          `mapconv:"Settings.ProxyLB.HealthCheck,recursive"`
+		SorryServer          *ProxyLBSorryServer          `mapconv:"Settings.ProxyLB.SorryServer,recursive"`
+		BindPorts            []*ProxyLBBindPort           `mapconv:"Settings.ProxyLB.[]BindPorts,recursive"`
+		Servers              []*ProxyLBServer             `mapconv:"Settings.ProxyLB.[]Servers,recursive"`
+		Rules                []*ProxyLBRule               `mapconv:"Settings.ProxyLB.[]Rules,recursive"`
+		LetsEncrypt          *ProxyLBACMESetting          `mapconv:"Settings.ProxyLB.LetsEncrypt,recursive"`
+		StickySession        *ProxyLBStickySession        `mapconv:"Settings.ProxyLB.StickySession,recursive"`
+		Timeout              *ProxyLBTimeout              `json:",omitempty" mapconv:"Settings.ProxyLB.Timeout,recursive,omitempty"`
+		Gzip                 *ProxyLBGzip                 `mapconv:"Settings.ProxyLB.Gzip,recursive"`
+		BackendHttpKeepAlive *ProxyLBBackendHttpKeepAlive `mapconv:"Settings.ProxyLB.BackendHttpKeepAlive,recursive"`
+		ProxyProtocol        *ProxyLBProxyProtocol        `mapconv:"Settings.ProxyLB.ProxyProtocol,recursive"`
+		Syslog               *ProxyLBSyslog               `mapconv:"Settings.ProxyLB.Syslog,recursive"`
+		SettingsHash         string                       `json:",omitempty" mapconv:",omitempty"`
 	}{
-		HealthCheck:   o.GetHealthCheck(),
-		SorryServer:   o.GetSorryServer(),
-		BindPorts:     o.GetBindPorts(),
-		Servers:       o.GetServers(),
-		Rules:         o.GetRules(),
-		LetsEncrypt:   o.GetLetsEncrypt(),
-		StickySession: o.GetStickySession(),
-		Timeout:       o.GetTimeout(),
-		Gzip:          o.GetGzip(),
-		ProxyProtocol: o.GetProxyProtocol(),
-		Syslog:        o.GetSyslog(),
-		SettingsHash:  o.GetSettingsHash(),
+		HealthCheck:          o.GetHealthCheck(),
+		SorryServer:          o.GetSorryServer(),
+		BindPorts:            o.GetBindPorts(),
+		Servers:              o.GetServers(),
+		Rules:                o.GetRules(),
+		LetsEncrypt:          o.GetLetsEncrypt(),
+		StickySession:        o.GetStickySession(),
+		Timeout:              o.GetTimeout(),
+		Gzip:                 o.GetGzip(),
+		BackendHttpKeepAlive: o.GetBackendHttpKeepAlive(),
+		ProxyProtocol:        o.GetProxyProtocol(),
+		Syslog:               o.GetSyslog(),
+		SettingsHash:         o.GetSettingsHash(),
 	}
 }
 
@@ -21807,6 +22299,16 @@ func (o *ProxyLBUpdateSettingsRequest) GetGzip() *ProxyLBGzip {
 // SetGzip sets value to Gzip
 func (o *ProxyLBUpdateSettingsRequest) SetGzip(v *ProxyLBGzip) {
 	o.Gzip = v
+}
+
+// GetBackendHttpKeepAlive returns value of BackendHttpKeepAlive
+func (o *ProxyLBUpdateSettingsRequest) GetBackendHttpKeepAlive() *ProxyLBBackendHttpKeepAlive {
+	return o.BackendHttpKeepAlive
+}
+
+// SetBackendHttpKeepAlive sets value to BackendHttpKeepAlive
+func (o *ProxyLBUpdateSettingsRequest) SetBackendHttpKeepAlive(v *ProxyLBBackendHttpKeepAlive) {
+	o.BackendHttpKeepAlive = v
 }
 
 // GetProxyProtocol returns value of ProxyProtocol
@@ -29164,6 +29666,7 @@ type VPCRouterSiteToSiteIPsecVPN struct {
 	ESP            *VPCRouterSiteToSiteIPsecVPNESP      `mapconv:",omitempty,recursive"`
 	EncryptionAlgo string
 	HashAlgo       string
+	DHGroup        string
 }
 
 // setDefaults implements iaas.argumentDefaulter
@@ -29174,12 +29677,14 @@ func (o *VPCRouterSiteToSiteIPsecVPN) setDefaults() interface{} {
 		ESP            *VPCRouterSiteToSiteIPsecVPNESP      `mapconv:",omitempty,recursive"`
 		EncryptionAlgo string
 		HashAlgo       string
+		DHGroup        string
 	}{
 		Config:         o.GetConfig(),
 		IKE:            o.GetIKE(),
 		ESP:            o.GetESP(),
 		EncryptionAlgo: o.GetEncryptionAlgo(),
 		HashAlgo:       o.GetHashAlgo(),
+		DHGroup:        o.GetDHGroup(),
 	}
 }
 
@@ -29231,6 +29736,16 @@ func (o *VPCRouterSiteToSiteIPsecVPN) GetHashAlgo() string {
 // SetHashAlgo sets value to HashAlgo
 func (o *VPCRouterSiteToSiteIPsecVPN) SetHashAlgo(v string) {
 	o.HashAlgo = v
+}
+
+// GetDHGroup returns value of DHGroup
+func (o *VPCRouterSiteToSiteIPsecVPN) GetDHGroup() string {
+	return o.DHGroup
+}
+
+// SetDHGroup sets value to DHGroup
+func (o *VPCRouterSiteToSiteIPsecVPN) SetDHGroup(v string) {
+	o.DHGroup = v
 }
 
 /*************************************************
@@ -30669,6 +31184,34 @@ func (o *VPCRouterLog) GetLog() string {
 // SetLog sets value to Log
 func (o *VPCRouterLog) SetLog(v string) {
 	o.Log = v
+}
+
+/*************************************************
+* VPCRouterPingResults
+*************************************************/
+
+// VPCRouterPingResults represents API parameter/response structure
+type VPCRouterPingResults struct {
+	Result []string
+}
+
+// setDefaults implements iaas.argumentDefaulter
+func (o *VPCRouterPingResults) setDefaults() interface{} {
+	return &struct {
+		Result []string
+	}{
+		Result: o.GetResult(),
+	}
+}
+
+// GetResult returns value of Result
+func (o *VPCRouterPingResults) GetResult() []string {
+	return o.Result
+}
+
+// SetResult sets value to Result
+func (o *VPCRouterPingResults) SetResult(v []string) {
+	o.Result = v
 }
 
 /*************************************************
