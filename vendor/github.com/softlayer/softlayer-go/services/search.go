@@ -83,7 +83,6 @@ func (r Search) Offset(offset int) Search {
 //
 // A collection of available object types and their properties can be retrieved by calling the [[SoftLayer_Search/getObjectTypes]] method.
 //
-//
 // #### Exact Match on Text Fields
 // To enforce an exact match on text fields, encapsulate the term in double quotes. For example, given a set of device host names:
 //
@@ -101,8 +100,6 @@ func (r Search) AdvancedSearch(searchString *string) (resp []datatypes.Container
 }
 
 // This method returns a collection of [[SoftLayer_Container_Search_ObjectType]] containers that specify which indexed object types and properties are exposed for the current user.  These object types can be used to discover searchable data and to create or validate object index search strings.
-//
-//
 //
 // Refer to the [[SoftLayer_Search/search]] and [[SoftLayer_Search/advancedSearch]] methods for information on using object types and properties in search strings.
 func (r Search) GetObjectTypes() (resp []datatypes.Container_Search_ObjectType, err error) {
@@ -125,7 +122,6 @@ func (r Search) GetObjectTypes() (resp []datatypes.Container_Search_ObjectType, 
 // <code>_objectType:-Type_4,Type_5 </code><i><code>(other search terms...)</code></i>
 //
 // A collection of available object types can be retrieved by calling the [[SoftLayer_Search/getObjectTypes]] method.
-//
 //
 // #### Exact Match on Text Fields
 // To enforce an exact match on text fields, encapsulate the term in double quotes. For example, given a set of device host names:

@@ -26,16 +26,16 @@ type PulsarMeta struct {
 // Meta contains information on an entity's metadata table. Metadata key/value
 // pairs are used by a record's filter pipeline during a dns query.
 // All values can be a feed id as well, indicating real-time updates of these values.
-// Structure/Precendence of metadata tables:
-//  - Record
-//    - Meta <- lowest precendence in filter
-//    - Region(s)
-//      - Meta <- middle precedence in filter chain
-//      - ...
-//    - Answer(s)
-//      - Meta <- highest precedence in filter chain
-//      - ...
-//    - ...
+// Structure/Precedence of metadata tables:
+//   - Record
+//   - Meta <- lowest precedence in filter
+//   - Region(s)
+//   - Meta <- middle precedence in filter chain
+//   - ...
+//   - Answer(s)
+//   - Meta <- highest precedence in filter chain
+//   - ...
+//   - ...
 type Meta struct {
 	// STATUS
 
@@ -151,6 +151,8 @@ type Meta struct {
 	// subdivisions must follow the ISO-3166-2 code for a country and subdivisions
 	// map[string]interface{} or FeedPtr.
 	Subdivisions interface{} `json:"subdivisions,omitempty"`
+
+	AdditionalMetadata interface{} `json:"additional_metadata,omitempty"`
 }
 
 // StringMap returns a map[string]interface{} representation of metadata (for use with terraform in nested structures)
@@ -313,6 +315,11 @@ func MetaFromMap(m map[string]interface{}) *Meta {
 			case "Note":
 				// If it's a Note, just pass the string without any type of parse.
 				fv.Set(reflect.ValueOf(v.(string)))
+			case "AdditionalMetadata":
+				var additional []map[string]interface{}
+				if err := json.Unmarshal([]byte(v.(string)), &additional); err == nil {
+					fv.Set(reflect.ValueOf(additional))
+				}
 			default:
 				fv.Set(reflect.ValueOf(ParseType(v.(string))))
 			}
@@ -508,6 +515,15 @@ func validatePulsar(v reflect.Value) error {
 	return nil
 }
 
+func validateAdditionalMetadata(v reflect.Value) error {
+	// API expects additional_metadata to be array of length 1
+	if v.Len() > 1 {
+		return fmt.Errorf("unexpected length of `%d`, expected 1", v.Len())
+	}
+
+	return nil
+}
+
 // checkFuncs is shorthand for returning a slice of functions that take a reflect.Value and return an error
 func checkFuncs(f ...func(v reflect.Value) error) []func(v reflect.Value) error {
 	return f
@@ -555,9 +571,10 @@ var validationMap = map[string]metaValidation{
 		func(v reflect.Value) error {
 			return validatePositiveNumber("Cost", v)
 		})},
-	"LowWatermark":  {kinds(reflect.Int), nil},
-	"HighWatermark": {kinds(reflect.Int), nil},
-	"Subdivisions":  {kinds(reflect.String, reflect.Map), nil},
+	"LowWatermark":       {kinds(reflect.Int), nil},
+	"HighWatermark":      {kinds(reflect.Int), nil},
+	"Subdivisions":       {kinds(reflect.String, reflect.Map), nil},
+	"AdditionalMetadata": {kinds(reflect.String, reflect.Slice), checkFuncs(validateAdditionalMetadata)},
 }
 
 // validate takes a field name, a reflect value, and metaValidation and validates the given field

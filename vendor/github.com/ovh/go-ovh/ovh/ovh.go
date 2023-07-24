@@ -11,9 +11,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"sync"
+	"strings"
+	"sync/atomic"
 	"time"
 )
+
+// getLocalTime is a function to be overwritten during the tests, it returns the time
+// on the the local machine
+var getLocalTime = time.Now
 
 // DefaultTimeout api requests after 180s
 const DefaultTimeout = 180 * time.Second
@@ -42,7 +47,7 @@ var Endpoints = map[string]string{
 
 // Errors
 var (
-	ErrAPIDown = errors.New("go-vh: the OVH API is down, it does't respond to /time anymore")
+	ErrAPIDown = errors.New("go-ovh: the OVH API is not reachable: failed to get /auth/time response")
 )
 
 // Client represents a client to call the OVH API
@@ -70,22 +75,23 @@ type Client struct {
 	// Ensures that the timeDelta function is only ran once
 	// sync.Once would consider init done, even in case of error
 	// hence a good old flag
-	timeDeltaMutex *sync.Mutex
-	timeDeltaDone  bool
-	timeDelta      time.Duration
-	Timeout        time.Duration
+	timeDelta atomic.Value
+
+	// Timeout configures the maximum duration to wait for an API requests to complete
+	Timeout time.Duration
+
+	// UserAgent configures the user-agent indication that will be sent in the requests to OVHcloud API
+	UserAgent string
 }
 
 // NewClient represents a new client to call the API
 func NewClient(endpoint, appKey, appSecret, consumerKey string) (*Client, error) {
 	client := Client{
-		AppKey:         appKey,
-		AppSecret:      appSecret,
-		ConsumerKey:    consumerKey,
-		Client:         &http.Client{},
-		timeDeltaMutex: &sync.Mutex{},
-		timeDeltaDone:  false,
-		Timeout:        time.Duration(DefaultTimeout),
+		AppKey:      appKey,
+		AppSecret:   appSecret,
+		ConsumerKey: consumerKey,
+		Client:      &http.Client{},
+		Timeout:     DefaultTimeout,
 	}
 
 	// Get and check the configuration
@@ -214,29 +220,22 @@ func (c *Client) DeleteUnAuthWithContext(ctx context.Context, url string, resTyp
 	return c.CallAPIWithContext(ctx, "DELETE", url, nil, resType, false)
 }
 
-// timeDelta returns the time  delta between the host and the remote API
+// timeDelta returns the time delta between the host and the remote API
 func (c *Client) getTimeDelta() (time.Duration, error) {
-
-	if !c.timeDeltaDone {
-		// Ensure only one thread is updating
-		c.timeDeltaMutex.Lock()
-
-		// Ensure that the mutex will be released on return
-		defer c.timeDeltaMutex.Unlock()
-
-		// Did we wait ? Maybe no more needed
-		if !c.timeDeltaDone {
-			ovhTime, err := c.getTime()
-			if err != nil {
-				return 0, err
-			}
-
-			c.timeDelta = time.Since(*ovhTime)
-			c.timeDeltaDone = true
-		}
+	d, ok := c.timeDelta.Load().(time.Duration)
+	if ok {
+		return d, nil
 	}
 
-	return c.timeDelta, nil
+	ovhTime, err := c.getTime()
+	if err != nil {
+		return 0, err
+	}
+
+	d = getLocalTime().Sub(*ovhTime)
+	c.timeDelta.Store(d)
+
+	return d, nil
 }
 
 // getTime t returns time from for a given api client endpoint
@@ -252,16 +251,15 @@ func (c *Client) getTime() (*time.Time, error) {
 	return &serverTime, nil
 }
 
-// getLocalTime is a function to be overwritten during the tests, it return the time
-// on the the local machine
-var getLocalTime = func() time.Time {
-	return time.Now()
-}
+// getTarget returns the URL to target given and endpoint and a path.
+// If the path starts with `/v1` or `/v2`, then remove the trailing `/1.0` from the endpoint.
+func getTarget(endpoint, path string) string {
+	// /1.0 + /v1/ or /1.0 + /v2/
+	if strings.HasSuffix(endpoint, "/1.0") && (strings.HasPrefix(path, "/v1/") || strings.HasPrefix(path, "/v2/")) {
+		return endpoint[:len(endpoint)-4] + path
+	}
 
-// getEndpointForSignature is a function to be overwritten during the tests, it returns a
-// the endpoint
-var getEndpointForSignature = func(c *Client) string {
-	return c.endpoint
+	return endpoint + path
 }
 
 // NewRequest returns a new HTTP request
@@ -276,7 +274,7 @@ func (c *Client) NewRequest(method, path string, reqBody interface{}, needAuth b
 		}
 	}
 
-	target := fmt.Sprintf("%s%s", c.endpoint, path)
+	target := getTarget(c.endpoint, path)
 	req, err := http.NewRequest(method, target, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
@@ -303,12 +301,11 @@ func (c *Client) NewRequest(method, path string, reqBody interface{}, needAuth b
 		req.Header.Add("X-Ovh-Consumer", c.ConsumerKey)
 
 		h := sha1.New()
-		h.Write([]byte(fmt.Sprintf("%s+%s+%s+%s%s+%s+%d",
+		h.Write([]byte(fmt.Sprintf("%s+%s+%s+%s+%s+%d",
 			c.AppSecret,
 			c.ConsumerKey,
 			method,
-			getEndpointForSignature(c),
-			path,
+			target,
 			body,
 			timestamp,
 		)))
@@ -317,6 +314,12 @@ func (c *Client) NewRequest(method, path string, reqBody interface{}, needAuth b
 
 	// Send the request with requested timeout
 	c.Client.Timeout = c.Timeout
+
+	if c.UserAgent != "" {
+		req.Header.Set("User-Agent", "github.com/ovh/go-ovh ("+c.UserAgent+")")
+	} else {
+		req.Header.Set("User-Agent", "github.com/ovh/go-ovh")
+	}
 
 	return req, nil
 }
@@ -369,7 +372,7 @@ func (c *Client) CallAPI(method, path string, reqBody, resType interface{}, need
 // - full serialized request body
 // - server current time (takes time delta into account)
 //
-// Context is used by http.Client to handle context cancelation
+// Context is used by http.Client to handle context cancelation.
 //
 // Call will automatically assemble the target url from the endpoint
 // configured in the client instance and the path argument. If the reqBody

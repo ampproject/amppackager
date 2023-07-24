@@ -1,4 +1,4 @@
-// Copyright 2021-2022 The sacloud/go-http authors
+// Copyright 2021-2023 The sacloud/go-http authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 package http
 
 import (
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -26,6 +28,8 @@ import (
 type TracingRoundTripper struct {
 	// Transport 親となるhttp.RoundTripper、nilの場合http.DefaultTransportが利用される
 	Transport http.RoundTripper
+	// OutputOnlyError trueの場合レスポンスのステータスコードが200番台の時はリクエスト/レスポンスのトレースを出力しない
+	OutputOnlyError bool
 }
 
 // RoundTrip http.RoundTripperの実装
@@ -34,16 +38,33 @@ func (r *TracingRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 		r.Transport = http.DefaultTransport
 	}
 
-	data, err := httputil.DumpRequest(req, true)
-	if err != nil {
-		return nil, err
+	var bodyBytes []byte
+	if req.Body != nil {
+		bb, err := io.ReadAll(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		bodyBytes = bb
+		req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	}
-	log.Printf("[TRACE] \trequest: %s %s\n==============================\n%s\n============================\n", req.Method, req.URL.String(), string(data))
 
 	res, err := r.Transport.RoundTrip(req)
 	if err != nil {
 		return nil, err
 	}
+
+	if r.OutputOnlyError && res.StatusCode < 300 {
+		return res, err
+	}
+
+	if req.Body != nil {
+		req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	}
+	data, err := httputil.DumpRequest(req, true)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("[TRACE] \trequest: %s %s\n==============================\n%s\n============================\n", req.Method, req.URL.String(), string(data))
 
 	data, err = httputil.DumpResponse(res, true)
 	if err != nil {

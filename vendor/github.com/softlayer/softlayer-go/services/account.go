@@ -554,7 +554,7 @@ func (r Account) GetBlockDeviceTemplateGroups() (resp []datatypes.Virtual_Guest_
 	return
 }
 
-// Retrieve The Bluemix account link associated with this SoftLayer account, if one exists.
+// Retrieve The Platform account link associated with this SoftLayer account, if one exists.
 func (r Account) GetBluemixAccountLink() (resp datatypes.Account_Link_Bluemix, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getBluemixAccountLink", nil, &r.Options, &resp)
 	return
@@ -667,7 +667,7 @@ func (r Account) GetDisablePaymentProcessingFlag() (resp bool, err error) {
 	return
 }
 
-// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Metric Tracking Object System and Legacy Data Warehouse. Each data entry objects contain ''dateTime'' and ''counter'' properties. ''dateTime'' property indicates the time that the disk usage data was measured and ''counter'' property holds the disk usage in bytes.
+// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Metric Tracking Object System and Legacy Data Warehouse. Each data entry objects contain ”dateTime” and ”counter” properties. ”dateTime” property indicates the time that the disk usage data was measured and ”counter” property holds the disk usage in bytes.
 func (r Account) GetDiskUsageMetricDataByDate(startDateTime *datatypes.Time, endDateTime *datatypes.Time) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
 	params := []interface{}{
 		startDateTime,
@@ -677,7 +677,7 @@ func (r Account) GetDiskUsageMetricDataByDate(startDateTime *datatypes.Time, end
 	return
 }
 
-// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Legacy Data Warehouse.  Each data entry objects contain ''dateTime'' and ''counter'' properties. ''dateTime'' property indicates the time that the disk usage data was measured and ''counter'' property holds the disk usage in bytes.
+// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Legacy Data Warehouse.  Each data entry objects contain ”dateTime” and ”counter” properties. ”dateTime” property indicates the time that the disk usage data was measured and ”counter” property holds the disk usage in bytes.
 func (r Account) GetDiskUsageMetricDataFromLegacyByDate(startDateTime *datatypes.Time, endDateTime *datatypes.Time) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
 	params := []interface{}{
 		startDateTime,
@@ -687,7 +687,7 @@ func (r Account) GetDiskUsageMetricDataFromLegacyByDate(startDateTime *datatypes
 	return
 }
 
-// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Metric Tracking Object System.  Each data entry object contains ''dateTime'' and ''counter'' properties.  ''dateTime'' property indicates the time that the disk usage data was measured and ''counter'' property holds the disk usage in bytes.
+// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Metric Tracking Object System.  Each data entry object contains ”dateTime” and ”counter” properties.  ”dateTime” property indicates the time that the disk usage data was measured and ”counter” property holds the disk usage in bytes.
 func (r Account) GetDiskUsageMetricDataFromMetricTrackingObjectSystemByDate(startDateTime *datatypes.Time, endDateTime *datatypes.Time) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
 	params := []interface{}{
 		startDateTime,
@@ -1040,9 +1040,27 @@ func (r Account) GetInProgressExternalAccountSetup() (resp datatypes.Account_Ext
 	return
 }
 
+// Retrieve Account attribute flag indicating internal cci host account.
+func (r Account) GetInternalCciHostAccountFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account", "getInternalCciHostAccountFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Account attribute flag indicating account creates internal image templates.
+func (r Account) GetInternalImageTemplateCreationFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account", "getInternalImageTemplateCreationFlag", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve
 func (r Account) GetInternalNotes() (resp []datatypes.Account_Note, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getInternalNotes", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Account attribute flag indicating restricted account.
+func (r Account) GetInternalRestrictionFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account", "getInternalRestrictionFlag", nil, &r.Options, &resp)
 	return
 }
 
@@ -1737,6 +1755,12 @@ func (r Account) GetReferralPartnerCommissionPending() (resp []datatypes.Contain
 	return
 }
 
+// Retrieve Flag indicating if the account was referred.
+func (r Account) GetReferredAccountFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account", "getReferredAccountFlag", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve If this is a account is a referral partner, the accounts this referral partner has referred
 func (r Account) GetReferredAccounts() (resp []datatypes.Account, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getReferredAccounts", nil, &r.Options, &resp)
@@ -1779,12 +1803,6 @@ func (r Account) GetReservedCapacityGroups() (resp []datatypes.Virtual_ReservedC
 	return
 }
 
-// Retrieve An account's associated top-level resource groups.
-func (r Account) GetResourceGroups() (resp []datatypes.Resource_Group, err error) {
-	err = r.Session.DoRequest("SoftLayer_Account", "getResourceGroups", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve All Routers that an accounts VLANs reside on
 func (r Account) GetRouters() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getRouters", nil, &r.Options, &resp)
@@ -1803,7 +1821,7 @@ func (r Account) GetSamlAuthentication() (resp datatypes.Account_Authentication_
 	return
 }
 
-// Retrieve All scale groups on this account.
+// Retrieve [DEPRECATED] All scale groups on this account.
 func (r Account) GetScaleGroups() (resp []datatypes.Scale_Group, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getScaleGroups", nil, &r.Options, &resp)
 	return
@@ -1929,6 +1947,12 @@ func (r Account) GetTechIncubatorProgramInfo(forNextBillCycle *bool) (resp datat
 		forNextBillCycle,
 	}
 	err = r.Session.DoRequest("SoftLayer_Account", "getTechIncubatorProgramInfo", params, &r.Options, &resp)
+	return
+}
+
+// Retrieve Account attribute flag indicating test account.
+func (r Account) GetTestAccountAttributeFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account", "getTestAccountAttributeFlag", nil, &r.Options, &resp)
 	return
 }
 
@@ -2133,6 +2157,15 @@ func (r Account) HourlyServerLimit() (resp int, err error) {
 	return
 }
 
+// Initiates Payer Authentication and provides data that is required for payer authentication enrollment and device data collection.
+func (r Account) InitiatePayerAuthentication(setupInformation *datatypes.Billing_Payment_Card_PayerAuthentication_Setup_Information) (resp datatypes.Billing_Payment_Card_PayerAuthentication_Setup, err error) {
+	params := []interface{}{
+		setupInformation,
+	}
+	err = r.Session.DoRequest("SoftLayer_Account", "initiatePayerAuthentication", params, &r.Options, &resp)
+	return
+}
+
 // no documentation yet
 func (r Account) IsActiveVmwareCustomer() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "isActiveVmwareCustomer", nil, &r.Options, &resp)
@@ -2256,7 +2289,7 @@ func (r Account) UpdateVpnUsersForResource(objectId *int, objectType *string) (r
 	return
 }
 
-// This method will validate the following account fields. Included are the allowed characters for each field.<br> <strong>Company Name (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parenthesis, exclamation point. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>First Name (required):</strong> alphabet, space, period, dash, comma, apostrophe. Maximum length: 30 characters.<br> <strong>Last Name (required):</strong> alphabet, space, period, dash, comma, apostrophe. Maximum length: 30 characters.<br> <strong>Email (required):</strong> Validates e-mail addresses against the syntax in RFC 822.<br> <strong>Address 1 (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parentheses. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>Address 2:</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parentheses. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>City (required):</strong> alphabet, numbers, space, period, dash, apostrophe, forward slash, comma, parenthesis. Maximum length: 100 characters.<br> <strong>State (required):</strong> Required if country is US, Brazil, Canada or India. Must be valid Alpha-2 ISO 3166-1 state code for that country.<br> <strong>Postal Code (required):</strong> alphabet, numbers, dash, space. Maximum length: 50 characters.<br> <strong>Country (required):</strong> alphabet, numbers. Must be valid Alpha-2 ISO 3166-1 country code.<br> <strong>Office Phone (required):</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 100 characters.<br> <strong>Alternate Phone:</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 100 characters.<br> <strong>Fax Phone:</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 20 characters.<br>
+// This method will validate the following account fields. Included are the allowed characters for each field.<br> <strong>Company Name (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parenthesis, exclamation point. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>First Name (required):</strong> alphabet, space, period, dash, comma, apostrophe. Maximum length: 30 characters.<br> <strong>Last Name (required):</strong> alphabet, space, period, dash, comma, apostrophe. Maximum length: 30 characters.<br> <strong>Email (required):</strong> Validates e-mail addresses against the syntax in RFC 822.<br> <strong>Address 1 (required):</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parentheses. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>Address 2:</strong> alphabet, numbers, space, period, dash, octothorpe, forward slash, comma, colon, at sign, ampersand, underscore, apostrophe, parentheses. Maximum length: 100 characters. (Note: may not contain an email address)<br> <strong>City (required):</strong> alphabet, numbers, space, period, dash, apostrophe, forward slash, comma, parenthesis. Maximum length: 100 characters.<br> <strong>State (required if country is US, Brazil, Canada or India):</strong> Must be valid Alpha-2 ISO 3166-1 state code for that country.<br> <strong>Postal Code (required if country is US or Canada):</strong> Accepted characters are alphabet, numbers, dash, space. Maximum length: 50 characters.<br> <strong>Country (required):</strong> alphabet, numbers. Must be valid Alpha-2 ISO 3166-1 country code.<br> <strong>Office Phone (required):</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 100 characters.<br> <strong>Alternate Phone:</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 100 characters.<br> <strong>Fax Phone:</strong> alphabet, numbers, space, period, dash, parenthesis, plus sign. Maximum length: 20 characters.<br>
 func (r Account) Validate(account *datatypes.Account) (resp []string, err error) {
 	params := []interface{}{
 		account,
@@ -2314,7 +2347,7 @@ func (r Account_Address) Offset(offset int) Account_Address {
 	return r
 }
 
-// Create a new address record. The ''typeId'', ''accountId'', ''description'', ''address1'', ''city'', ''state'', ''country'', and ''postalCode'' properties in the templateObject parameter are required properties and may not be null or empty. Users will be restricted to creating addresses for their account.
+// Create a new address record. The ”typeId”, ”accountId”, ”description”, ”address1”, ”city”, ”state”, ”country”, and ”postalCode” properties in the templateObject parameter are required properties and may not be null or empty. Users will be restricted to creating addresses for their account.
 func (r Account_Address) CreateObject(templateObject *datatypes.Account_Address) (resp datatypes.Account_Address, err error) {
 	params := []interface{}{
 		templateObject,
@@ -2602,7 +2635,7 @@ func (r Account_Agreement) GetTopLevelBillingItems() (resp []datatypes.Billing_I
 	return
 }
 
-// Account authentication has many different settings that can be set. This class allows the customer or employee to set these settigns.
+// Account authentication has many different settings that can be set. This class allows the customer or employee to set these settings.
 type Account_Authentication_Attribute struct {
 	Session *session.Session
 	Options sl.Options
@@ -3410,7 +3443,7 @@ func (r Account_Link_OpenStack) DeleteOSProject(projectId *string) (resp bool, e
 	return
 }
 
-// deleteObject permanently removes an account link and all of it's associated keystone data (including users for the associated project). '''This cannot be undone.''' Be wary of running this method. If you remove an account link in error you will need to re-create it by creating a new SoftLayer_Account_Link_OpenStack object.
+// deleteObject permanently removes an account link and all of it's associated keystone data (including users for the associated project). ”'This cannot be undone.”' Be wary of running this method. If you remove an account link in error you will need to re-create it by creating a new SoftLayer_Account_Link_OpenStack object.
 func (r Account_Link_OpenStack) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account_Link_OpenStack", "deleteObject", nil, &r.Options, &resp)
 	return
@@ -4638,11 +4671,6 @@ func (r Account_ProofOfConcept_Funding_Type) GetObject() (resp datatypes.Account
 	return
 }
 
-//
-//
-//
-//
-//
 type Account_Regional_Registry_Detail struct {
 	Session *session.Session
 	Options sl.Options
@@ -4752,7 +4780,7 @@ func (r Account_Regional_Registry_Detail) UpdateReferencedRegistrations() (resp 
 
 // Validates this person detail against all supported external registrars (APNIC/ARIN/RIPE). The validation uses the most restrictive rules ensuring that any person detail passing this validation would be acceptable to any supported registrar.
 //
-// The person detail properties are validated against - Non-emptiness - Minimum length - Maximum length - Maximum words - Supported characters - Format of data
+// # The person detail properties are validated against - Non-emptiness - Minimum length - Maximum length - Maximum words - Supported characters - Format of data
 //
 // If the person detail validation succeeds, then an empty list is returned indicating no errors were found and that this person detail would work against all three registrars during a subnet registration.
 //
@@ -5514,7 +5542,7 @@ func (r Account_Shipment_Tracking_Data) Offset(offset int) Account_Shipment_Trac
 	return r
 }
 
-// Create a new shipment tracking data. The ''shipmentId'', ''sequence'', and ''trackingData'' properties in the templateObject parameter are required parameters to create a tracking data record.
+// Create a new shipment tracking data. The ”shipmentId”, ”sequence”, and ”trackingData” properties in the templateObject parameter are required parameters to create a tracking data record.
 func (r Account_Shipment_Tracking_Data) CreateObject(templateObject *datatypes.Account_Shipment_Tracking_Data) (resp datatypes.Account_Shipment_Tracking_Data, err error) {
 	params := []interface{}{
 		templateObject,
@@ -5523,7 +5551,7 @@ func (r Account_Shipment_Tracking_Data) CreateObject(templateObject *datatypes.A
 	return
 }
 
-// Create a new shipment tracking data. The ''shipmentId'', ''sequence'', and ''trackingData'' properties of each templateObject in the templateObjects array are required parameters to create a tracking data record.
+// Create a new shipment tracking data. The ”shipmentId”, ”sequence”, and ”trackingData” properties of each templateObject in the templateObjects array are required parameters to create a tracking data record.
 func (r Account_Shipment_Tracking_Data) CreateObjects(templateObjects []datatypes.Account_Shipment_Tracking_Data) (resp []datatypes.Account_Shipment_Tracking_Data, err error) {
 	params := []interface{}{
 		templateObjects,

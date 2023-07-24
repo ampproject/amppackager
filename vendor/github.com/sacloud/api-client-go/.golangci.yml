@@ -8,7 +8,6 @@ issues:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - depguard
     - errcheck
     - exportloopref
@@ -26,7 +25,6 @@ linters:
     - typecheck
     - unconvert
     - unused
-    - varcheck
     - whitespace
 
   # don't enable:

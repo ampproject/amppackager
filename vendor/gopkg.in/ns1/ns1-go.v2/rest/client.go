@@ -7,12 +7,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"time"
 )
 
 const (
-	clientVersion = "2.6.5"
+	clientVersion = "2.7.6"
 
 	defaultEndpoint               = "https://api.nsone.net/v1/"
 	defaultShouldFollowPagination = true
@@ -22,6 +23,8 @@ const (
 	headerRateLimit     = "X-Ratelimit-Limit"
 	headerRateRemaining = "X-Ratelimit-Remaining"
 	headerRatePeriod    = "X-Ratelimit-Period"
+
+	defaultRateLimitWaitTime = time.Millisecond * 100
 )
 
 // Doer is a single method interface that allows a user to extend/augment an http.Client instance.
@@ -79,6 +82,8 @@ type Client struct {
 	Reservation   *ReservationService
 	OptionDef     *OptionDefService
 	TSIG          *TsigService
+	View          *DNSViewService
+	Network       *NetworkService
 }
 
 // NewClient constructs and returns a reference to an instantiated Client.
@@ -119,6 +124,8 @@ func NewClient(httpClient Doer, options ...func(*Client)) *Client {
 	c.Reservation = (*ReservationService)(&c.common)
 	c.OptionDef = (*OptionDefService)(&c.common)
 	c.TSIG = (*TsigService)(&c.common)
+	c.View = (*DNSViewService)(&c.common)
+	c.Network = (*NetworkService)(&c.common)
 
 	for _, option := range options {
 		option(c)
@@ -272,21 +279,27 @@ func CheckResponse(resp *http.Response) error {
 
 	restErr := &Error{Resp: resp}
 
-	b, err := ioutil.ReadAll(resp.Body)
+	msgBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	if len(b) == 0 {
+	if len(msgBody) == 0 {
 		return restErr
 	}
 
-	err = json.Unmarshal(b, restErr)
+	err = json.Unmarshal(msgBody, restErr)
 	if err != nil {
-		return err
+		restErr.Message = string(msgBody)
+		return restErr
 	}
 
 	return restErr
 }
+
+// Helper function for parsing API responses for a specific error.
+// Ideally this would take place in CheckResponse above rather than
+// in each caller.
+var resourceMissingMatch = regexp.MustCompile(` not found`).MatchString
 
 // RateLimitFunc is rate limiting strategy for the Client instance.
 type RateLimitFunc func(RateLimit)
@@ -307,6 +320,10 @@ func (rl RateLimit) PercentageLeft() int {
 
 // WaitTime returns the time.Duration ratio of Period to Limit
 func (rl RateLimit) WaitTime() time.Duration {
+	if rl.Limit == 0 || rl.Period == 0 {
+		// rate-limit headers missing or corrupt, punt
+		return defaultRateLimitWaitTime
+	}
 	return (time.Second * time.Duration(rl.Period)) / time.Duration(rl.Limit)
 }
 

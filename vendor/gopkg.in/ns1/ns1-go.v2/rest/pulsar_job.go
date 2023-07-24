@@ -8,20 +8,20 @@ import (
 	"gopkg.in/ns1/ns1-go.v2/rest/model/pulsar"
 )
 
-// JobsService handles 'pulsar/apps/APPID/jobs/JOBID' endpoint.
+// PulsarJobsService handles 'pulsar/apps/APPID/jobs/JOBID' endpoint.
 type PulsarJobsService service
 
 // List takes an Application ID and returns all Jobs inside said Application.
 //
 // NS1 API docs: https://ns1.com/api/#getlist-jobs-within-an-app
-func (s *PulsarJobsService) List(appId string) ([]*pulsar.PulsarJob, *http.Response, error) {
-	path := fmt.Sprintf("pulsar/apps/%s/jobs", appId)
+func (s *PulsarJobsService) List(appID string) ([]*pulsar.Job, *http.Response, error) {
+	path := fmt.Sprintf("pulsar/apps/%s/jobs", appID)
 	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	jl := []*pulsar.PulsarJob{}
+	jl := []*pulsar.Job{}
 	var resp *http.Response
 	resp, err = s.client.Do(req, &jl)
 	if err != nil {
@@ -40,21 +40,21 @@ func (s *PulsarJobsService) List(appId string) ([]*pulsar.PulsarJob, *http.Respo
 // Get takes an Application ID and Job Id and returns full configuration for a pulsar Job.
 //
 // NS1 API docs: https://ns1.com/api/#getview-job-details
-func (s *PulsarJobsService) Get(appId string, jobId string) (*pulsar.PulsarJob, *http.Response, error) {
-	path := fmt.Sprintf("pulsar/apps/%s/jobs/%s", appId, jobId)
+func (s *PulsarJobsService) Get(appID string, jobID string) (*pulsar.Job, *http.Response, error) {
+	path := fmt.Sprintf("pulsar/apps/%s/jobs/%s", appID, jobID)
 
 	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var job pulsar.PulsarJob
+	var job pulsar.Job
 
 	resp, err := s.client.Do(req, &job)
 	if err != nil {
 		switch errorType := err.(type) {
 		case *Error:
-			jobNotFound := fmt.Sprintf("pulsar job %s not found for appid %s", jobId, appId)
+			jobNotFound := fmt.Sprintf("pulsar job %s not found for appid %s", jobID, appID)
 			switch errorType.Message {
 			case jobNotFound:
 				return nil, resp, ErrJobMissing
@@ -72,7 +72,7 @@ func (s *PulsarJobsService) Get(appId string, jobId string) (*pulsar.PulsarJob, 
 // Create takes a *PulsarJob and an AppId and creates a new Pulsar Job in the specified Application with the specific name, typeid, host and url_path.
 //
 // NS1 API docs: https://ns1.com/api/#putcreate-a-pulsar-job
-func (s *PulsarJobsService) Create(j *pulsar.PulsarJob) (*http.Response, error) {
+func (s *PulsarJobsService) Create(j *pulsar.Job) (*http.Response, error) {
 	path := fmt.Sprintf("pulsar/apps/%s/jobs", j.AppID)
 
 	req, err := s.client.NewRequest("PUT", path, j)
@@ -99,7 +99,7 @@ func (s *PulsarJobsService) Create(j *pulsar.PulsarJob) (*http.Response, error) 
 //
 // Only the fields to be updated are required in the given job.
 // NS1 API docs: https://ns1.com/api/#postmodify-a-pulsar-job
-func (s *PulsarJobsService) Update(j *pulsar.PulsarJob) (*http.Response, error) {
+func (s *PulsarJobsService) Update(j *pulsar.Job) (*http.Response, error) {
 	path := fmt.Sprintf("pulsar/apps/%s/jobs/%s", j.AppID, j.JobID)
 
 	req, err := s.client.NewRequest("POST", path, j)
@@ -129,7 +129,7 @@ func (s *PulsarJobsService) Update(j *pulsar.PulsarJob) (*http.Response, error) 
 // Delete takes a appId and jobId and removes an existing Pulsar job .
 //
 // NS1 API docs: https://ns1.com/api/#deletedelete-a-pulsar-job
-func (s *PulsarJobsService) Delete(pulsarJob *pulsar.PulsarJob) (*http.Response, error) {
+func (s *PulsarJobsService) Delete(pulsarJob *pulsar.Job) (*http.Response, error) {
 	path := fmt.Sprintf("pulsar/apps/%s/jobs/%s", pulsarJob.AppID, pulsarJob.JobID)
 
 	req, err := s.client.NewRequest("DELETE", path, nil)

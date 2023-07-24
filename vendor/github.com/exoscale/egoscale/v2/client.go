@@ -4,11 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"reflect"
 	"runtime"
 	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 
 	"github.com/exoscale/egoscale/v2/api"
 	"github.com/exoscale/egoscale/v2/oapi"
@@ -27,16 +32,14 @@ var UserAgent = fmt.Sprintf("egoscale/%s (%s; %s/%s)",
 	runtime.GOOS,
 	runtime.GOARCH)
 
-// defaultTransport is the default HTTP client transport.
-type defaultTransport struct {
-	next http.RoundTripper
-}
-
-// RoundTrip executes a single HTTP transaction, returning a Response for the provided Request.
-func (t *defaultTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add("User-Agent", UserAgent)
-	return t.next.RoundTrip(req)
-}
+// defaultHTTPClient is HTTP client with retry logic.
+// Default retry configuration can be found in go-retryablehttp repo.
+var defaultHTTPClient = func() *http.Client {
+	rc := retryablehttp.NewClient()
+	// silence client by default
+	rc.Logger = log.New(io.Discard, "", 0)
+	return rc.StandardClient()
+}()
 
 // ClientOpt represents a function setting Exoscale API client option.
 type ClientOpt func(*Client) error
@@ -133,12 +136,16 @@ type Client struct {
 }
 
 // NewClient returns a new Exoscale API client, or an error if one couldn't be initialized.
+// Default HTTP client is [go-retryablehttp] with static retry configuration.
+// To change retry configuration, build new HTTP client and pass it using ClientOptWithHTTPClient.
+//
+// [go-retryablehttp]: https://github.com/hashicorp/go-retryablehttp
 func NewClient(apiKey, apiSecret string, opts ...ClientOpt) (*Client, error) {
 	client := Client{
 		apiKey:       apiKey,
 		apiSecret:    apiSecret,
 		apiEndpoint:  api.EndpointURL,
-		httpClient:   &http.Client{Transport: &defaultTransport{http.DefaultTransport}},
+		httpClient:   defaultHTTPClient,
 		timeout:      defaultTimeout,
 		pollInterval: defaultPollInterval,
 	}
@@ -176,6 +183,7 @@ func NewClient(apiKey, apiSecret string, opts ...ClientOpt) (*Client, error) {
 		oapi.WithHTTPClient(client.httpClient),
 		oapi.WithRequestEditorFn(
 			oapi.MultiRequestsEditor(
+				setUserAgent,
 				apiSecurityProvider.Intercept,
 				setEndpointFromContext,
 			),
@@ -204,13 +212,27 @@ func (c *Client) SetTrace(enabled bool) {
 	c.trace = enabled
 }
 
+// setUserAgent is an HTTP client request interceptor that adds the "User-Agent" header
+func setUserAgent(ctx context.Context, req *http.Request) error {
+	req.Header.Add("User-Agent", UserAgent)
+
+	return nil
+}
+
 // setEndpointFromContext is an HTTP client request interceptor that overrides the "Host" header
 // with information from a request endpoint optionally set in the context instance. If none is
-// found, the request is left untouched.
+// found or host is an IP address, the request is left untouched.
 func setEndpointFromContext(ctx context.Context, req *http.Request) error {
-	if v, ok := ctx.Value(api.ReqEndpoint{}).(api.ReqEndpoint); ok {
-		req.Host = v.Host()
-		req.URL.Host = v.Host()
+	h, _, err := net.SplitHostPort(req.Host)
+	if err != nil {
+		h = req.Host
+	}
+	if net.ParseIP(h) == nil {
+		v, ok := ctx.Value(api.ReqEndpoint{}).(api.ReqEndpoint)
+		if ok {
+			req.Host = v.Host()
+			req.URL.Host = v.Host()
+		}
 	}
 
 	return nil
@@ -219,15 +241,14 @@ func setEndpointFromContext(ctx context.Context, req *http.Request) error {
 // fetchFromIDs returns a list of API resources fetched from the specified list of IDs.
 // It is meant to be used with API resources implementing the getter interface, e.g.:
 //
-//     func (i Instance) get(ctx context.Context, client *Client, zone, id string) (interface{}, error) {
-//         return client.GetInstance(ctx, zone, id)
-//     }
+//	func (i Instance) get(ctx context.Context, client *Client, zone, id string) (interface{}, error) {
+//	    return client.GetInstance(ctx, zone, id)
+//	}
 //
-//     func (i *InstancePool) Instances(ctx context.Context) ([]*Instance, error) {
-//         res, err := i.c.fetchFromIDs(ctx, i.zone, i.InstanceIDs, new(Instance))
-//         return res.([]*Instance), err
-//     }
-//
+//	func (i *InstancePool) Instances(ctx context.Context) ([]*Instance, error) {
+//	    res, err := i.c.fetchFromIDs(ctx, i.zone, i.InstanceIDs, new(Instance))
+//	    return res.([]*Instance), err
+//	}
 func (c *Client) fetchFromIDs(ctx context.Context, zone string, ids []string, rt interface{}) (interface{}, error) {
 	if rt == nil {
 		return nil, errors.New("resource type must not be <nil>")

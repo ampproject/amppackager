@@ -21,6 +21,14 @@
 package datatypes
 
 // no documentation yet
+type Billing_Chargeback_Type struct {
+	Entity
+
+	// Chargeback Type key name.
+	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
+}
+
+// no documentation yet
 type Billing_Currency struct {
 	Entity
 
@@ -262,6 +270,9 @@ type Billing_Invoice struct {
 	// no documentation yet
 	BrandAtInvoiceCreation *Brand `json:"brandAtInvoiceCreation,omitempty" xmlrpc:"brandAtInvoiceCreation,omitempty"`
 
+	// Chargeback type for invoice.
+	ChargebackType *Billing_Chargeback_Type `json:"chargebackType,omitempty" xmlrpc:"chargebackType,omitempty"`
+
 	// The city portion of an address belonging to an account at the time an invoice is created.
 	City *string `json:"city,omitempty" xmlrpc:"city,omitempty"`
 
@@ -279,6 +290,9 @@ type Billing_Invoice struct {
 
 	// The date an invoice was created.
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
+
+	// Credit type detail identifier for this invoice.
+	CreditTypeDetailId *int `json:"creditTypeDetailId,omitempty" xmlrpc:"creditTypeDetailId,omitempty"`
 
 	// A flag that will reflect whether the detailed version of the pdf has been generated.
 	DetailedPdfGeneratedFlag *bool `json:"detailedPdfGeneratedFlag,omitempty" xmlrpc:"detailedPdfGeneratedFlag,omitempty"`
@@ -437,6 +451,9 @@ type Billing_Invoice_Item struct {
 
 	// The domain name of the invoiced item. This is only used on invoice items whose category is "server".
 	DomainName *string `json:"domainName,omitempty" xmlrpc:"domainName,omitempty"`
+
+	// The end date of the invoice item.
+	EndDate *Time `json:"endDate,omitempty" xmlrpc:"endDate,omitempty"`
 
 	// An Invoice Item's associated child invoice items, excluding some items with a $0.00 recurring fee. Only parent invoice items have associated children. For instance, a server invoice item may have associated children.
 	FilteredAssociatedChildren []Billing_Invoice_Item `json:"filteredAssociatedChildren,omitempty" xmlrpc:"filteredAssociatedChildren,omitempty"`
@@ -1341,9 +1358,6 @@ type Billing_Item_Ctc_Account struct {
 // The SoftLayer_Billing_Item_Big_Data_Cluster data type contains general information relating to a single SoftLayer billing item for a big data cluster.
 type Billing_Item_Gateway_Appliance_Cluster struct {
 	Billing_Item
-
-	// The resource for a resource group billing item.
-	Resource *Resource_Group `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
 }
 
 // The SoftLayer_Billing_Item_Hardware data type contains general information relating to a single SoftLayer billing item for hardware.
@@ -1554,7 +1568,6 @@ type Billing_Item_Network_Storage_Hub_Bandwidth struct {
 // * sov_sec_ip_addresses_priv (sov_sec_ip_addresses private only)
 // * sec_ip_addresses (old style, secondary ip addresses)
 //
-//
 // These item categories denote that the billing item has subnet information attached.
 type Billing_Item_Network_Subnet struct {
 	Billing_Item
@@ -1573,7 +1586,6 @@ type Billing_Item_Network_Subnet struct {
 // * global_ipv4
 // * global_ipv6
 //
-//
 // These item categories denote that the billing item has subnet information attached.
 type Billing_Item_Network_Subnet_IpAddress_Global struct {
 	Billing_Item_Network_Subnet
@@ -1589,7 +1601,6 @@ type Billing_Item_Network_Tunnel struct {
 
 // The SoftLayer_Billing_Item_Network_Vlan data type contains general information relating to a single SoftLayer billing item whose item category code is one of the following:
 // * network_vlan
-//
 //
 // These item categories denote that the billing item has network vlan information attached.
 type Billing_Item_Network_Vlan struct {
@@ -2330,6 +2341,9 @@ type Billing_Payment_Card_ChangeRequest struct {
 	// Please refer to https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/360668/Cardinal+Cruise+Hybrid and view section under "DFReferenceId / ReferenceId" to populate this property accordingly.
 	PayerAuthenticationEnrollmentReferenceId *string `json:"payerAuthenticationEnrollmentReferenceId,omitempty" xmlrpc:"payerAuthenticationEnrollmentReferenceId,omitempty"`
 
+	// The URL where the issuing bank will redirect.
+	PayerAuthenticationEnrollmentReturnUrl *string `json:"payerAuthenticationEnrollmentReturnUrl,omitempty" xmlrpc:"payerAuthenticationEnrollmentReturnUrl,omitempty"`
+
 	// "Continue with Consumer Authentication" decoded response JWT (JSON Web Token) after successful authentication. The response is part of the implementation of Cardinal Cruise Hybrid.
 	//
 	// Please refer to https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/360668/Cardinal+Cruise+Hybrid and view section under "Continue with Consumer Authentication" to populate this property accordingly based on the CCA response.
@@ -2462,6 +2476,9 @@ type Billing_Payment_Card_ManualPayment struct {
 	// Please refer to https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/360668/Cardinal+Cruise+Hybrid and view section under "DFReferenceId / ReferenceId" to populate this property accordingly.
 	PayerAuthenticationEnrollmentReferenceId *string `json:"payerAuthenticationEnrollmentReferenceId,omitempty" xmlrpc:"payerAuthenticationEnrollmentReferenceId,omitempty"`
 
+	// The URL where the issuing bank will redirect.
+	PayerAuthenticationEnrollmentReturnUrl *string `json:"payerAuthenticationEnrollmentReturnUrl,omitempty" xmlrpc:"payerAuthenticationEnrollmentReturnUrl,omitempty"`
+
 	// "Continue with Consumer Authentication" decoded response JWT (JSON Web Token) after successful authentication. The response is part of the implementation of Cardinal Cruise Hybrid.
 	//
 	// Please refer to https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/360668/Cardinal+Cruise+Hybrid and view section under "Continue with Consumer Authentication" to populate this property accordingly based on the CCA response.
@@ -2481,6 +2498,67 @@ type Billing_Payment_Card_ManualPayment struct {
 
 	// Describes the type of manual payment (PAYPAL or CREDIT_CARD).
 	Type *string `json:"type,omitempty" xmlrpc:"type,omitempty"`
+}
+
+// This datatype payer authentication setup
+type Billing_Payment_Card_PayerAuthentication_Setup struct {
+	Entity
+
+	// This is used to authenticate the customer with the authentication provider.
+	AccessToken *string `json:"accessToken,omitempty" xmlrpc:"accessToken,omitempty"`
+
+	// Location to send the authentication when you invoke device data collection.
+	DeviceDataCollectionUrl *string `json:"deviceDataCollectionUrl,omitempty" xmlrpc:"deviceDataCollectionUrl,omitempty"`
+
+	// This identifier indicates that the device data collection
+	ReferenceId *string `json:"referenceId,omitempty" xmlrpc:"referenceId,omitempty"`
+}
+
+// This is the datatype that needs to be populated and sent to SoftLayer_Account::initiatePayerAuthentication.
+type Billing_Payment_Card_PayerAuthentication_Setup_Information struct {
+	Entity
+
+	// The physical street address. Reserve information such as "apartment #123" or "Suite 2" for line 1.
+	BillingAddressLine1 *string `json:"billingAddressLine1,omitempty" xmlrpc:"billingAddressLine1,omitempty"`
+
+	// The second line in the address. Information such as suite number goes here.
+	BillingAddressLine2 *string `json:"billingAddressLine2,omitempty" xmlrpc:"billingAddressLine2,omitempty"`
+
+	// The city in which a customer's account resides.
+	BillingCity *string `json:"billingCity,omitempty" xmlrpc:"billingCity,omitempty"`
+
+	// The 2-character Country code for an account's address. (i.e. US)
+	BillingCountryCode *string `json:"billingCountryCode,omitempty" xmlrpc:"billingCountryCode,omitempty"`
+
+	// The email address associated with a customer account.
+	BillingEmail *string `json:"billingEmail,omitempty" xmlrpc:"billingEmail,omitempty"`
+
+	// The first name of the customer account owner.
+	BillingNameFirst *string `json:"billingNameFirst,omitempty" xmlrpc:"billingNameFirst,omitempty"`
+
+	// The last name of the customer account owner
+	BillingNameLast *string `json:"billingNameLast,omitempty" xmlrpc:"billingNameLast,omitempty"`
+
+	// The Zip or Postal Code for the billing address on an account.
+	BillingPostalCode *string `json:"billingPostalCode,omitempty" xmlrpc:"billingPostalCode,omitempty"`
+
+	// The State for the account.
+	BillingState *string `json:"billingState,omitempty" xmlrpc:"billingState,omitempty"`
+
+	// The credit card number to use.
+	CardAccountNumber *string `json:"cardAccountNumber,omitempty" xmlrpc:"cardAccountNumber,omitempty"`
+
+	// The payment card expiration month
+	CardExpirationMonth *int `json:"cardExpirationMonth,omitempty" xmlrpc:"cardExpirationMonth,omitempty"`
+
+	// The payment card expiration year
+	CardExpirationYear *int `json:"cardExpirationYear,omitempty" xmlrpc:"cardExpirationYear,omitempty"`
+
+	// The method key of the type payment issued
+	CardType *string `json:"cardType,omitempty" xmlrpc:"cardType,omitempty"`
+
+	// The credit card verification number
+	CreditCardVerificationNumber *string `json:"creditCardVerificationNumber,omitempty" xmlrpc:"creditCardVerificationNumber,omitempty"`
 }
 
 // The SoftLayer_Billing_Payment_Card_Transaction data type contains general information relating to attempted credit card transactions.

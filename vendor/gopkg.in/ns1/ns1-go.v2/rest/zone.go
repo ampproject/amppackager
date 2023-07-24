@@ -81,7 +81,9 @@ func (s *ZonesService) Create(z *dns.Zone) (*http.Response, error) {
 	if err != nil {
 		switch err.(type) {
 		case *Error:
-			if err.(*Error).Message == "zone already exists" {
+			if err.(*Error).Message == "zone already exists" ||
+				err.(*Error).Message == "invalid: FQDN already exists" ||
+				err.(*Error).Message == "invalid: FQDN already exists in the view" {
 				return resp, ErrZoneExists
 			}
 		}

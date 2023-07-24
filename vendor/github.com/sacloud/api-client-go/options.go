@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/api-client-go Authors
+// Copyright 2022-2023 The sacloud/api-client-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/sacloud/api-client-go/profile"
 	sacloudhttp "github.com/sacloud/go-http"
@@ -59,6 +60,8 @@ type Options struct {
 
 	// Trace HTTPリクエスト/レスポンスのトレースログ(ダンプ)出力
 	Trace bool
+	// TraceOnlyError HTTPリクエスト/レスポンスのトレースログ(ダンプ)出力で非200番台のレスポンス時のみ出力する
+	TraceOnlyError bool
 
 	// RequestCustomizers リクエスト前に*http.Requestのカスタマイズを行うためのfunc
 	RequestCustomizers []sacloudhttp.RequestCustomizer
@@ -97,14 +100,11 @@ func DefaultOption() (*Options, error) {
 // それも空の場合は通常のプロファイル処理(~/.usacloud/currentファイルから読み込み)される。
 // 同じ項目を複数箇所で指定していた場合、環境変数->プロファイルの順で上書きされたものが返される
 func DefaultOptionWithProfile(profileName string) (*Options, error) {
-	if profileName == "" {
-		profileName = envvar.StringFromEnvMulti([]string{"SAKURACLOUD_PROFILE", "USACLOUD_PROFILE"}, "")
-	}
 	fromProfile, err := OptionsFromProfile(profileName)
 	if err != nil {
 		return nil, err
 	}
-	return MergeOptions(OptionsFromEnv(), fromProfile, defaultOption), nil
+	return MergeOptions(defaultOption, OptionsFromEnv(), fromProfile), nil
 }
 
 var defaultOption = &Options{
@@ -161,6 +161,9 @@ func MergeOptions(opts ...*Options) *Options {
 		if opt.Trace {
 			merged.Trace = true
 		}
+		if opt.TraceOnlyError {
+			merged.TraceOnlyError = true
+		}
 		if len(opt.RequestCustomizers) > 0 {
 			merged.RequestCustomizers = opt.RequestCustomizers
 		}
@@ -190,13 +193,21 @@ func OptionsFromEnv() *Options {
 		RetryWaitMax: envvar.IntFromEnv("SAKURACLOUD_RETRY_WAIT_MAX", 0),
 		RetryWaitMin: envvar.IntFromEnv("SAKURACLOUD_RETRY_WAIT_MIN", 0),
 
-		Trace: envvar.StringFromEnv("SAKURACLOUD_TRACE", "") != "",
+		Trace:          envvar.StringFromEnv("SAKURACLOUD_TRACE", "") != "",
+		TraceOnlyError: strings.ToLower(envvar.StringFromEnv("SAKURACLOUD_TRACE", "")) == "error",
 	}
 }
 
 // OptionsFromProfile 指定のプロファイルからCallerOptionsを組み立てて返す
-// プロファイル名に空文字が指定された場合はカレントプロファイルが利用される
+//
+// プロファイルは引数を優先し、空の場合は環境変数`SAKURACLOUD_PROFILE`または`USACLOUD_PROFILE`が利用され、
+// それも空の場合は通常のプロファイル処理(~/.usacloud/currentファイルから読み込み)される。
 func OptionsFromProfile(profileName string) (*Options, error) {
+	// 引数がからの場合はまず環境変数から
+	if profileName == "" {
+		profileName = envvar.StringFromEnvMulti([]string{"SAKURACLOUD_PROFILE", "USACLOUD_PROFILE"}, "")
+	}
+	// それも空ならプロファイルのcurrentファイルから
 	if profileName == "" {
 		current, err := profile.CurrentName()
 		if err != nil {
@@ -221,7 +232,7 @@ func OptionsFromProfile(profileName string) (*Options, error) {
 		RetryWaitMax:         config.RetryWaitMax,
 		RetryWaitMin:         config.RetryWaitMin,
 		Trace:                config.EnableHTTPTrace(),
-
-		profileConfigValue: &config,
+		TraceOnlyError:       strings.ToLower(config.TraceMode) == "error",
+		profileConfigValue:   &config,
 	}, nil
 }

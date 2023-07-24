@@ -29,6 +29,6 @@ iaas-api-goは[sacloud/libsacloud v2](https://github.com/sacloud/libsacloud)の�
 
 ## License
 
-`sacloud/iaas-api-go` Copyright (C) 2022 [The sacloud/iaas-api-go Authors](AUTHORS).
+`sacloud/iaas-api-go` Copyright (C) 2022-2023 [The sacloud/iaas-api-go Authors](AUTHORS).
 
 This project is published under [Apache 2.0 License](LICENSE).

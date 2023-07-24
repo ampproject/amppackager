@@ -19,13 +19,13 @@ type Record struct {
 	Type            string `json:"type"`
 	Link            string `json:"link,omitempty"`
 	TTL             int    `json:"ttl,omitempty"`
-	Override_TTL    *bool  `json:"override_ttl,omitempty"`
+	OverrideTTL     *bool  `json:"override_ttl,omitempty"`
 	UseClientSubnet *bool  `json:"use_client_subnet,omitempty"`
 
 	// Answers must all be of the same type as the record.
 	Answers []*Answer `json:"answers"`
 	// The records' filter chain.
-	Filters []*filter.Filter `json:"filters"`
+	Filters []*filter.Filter `json:"filters,omitempty"`
 	// The records' regions.
 	Regions data.Regions `json:"regions,omitempty"`
 
@@ -39,7 +39,8 @@ type Record struct {
 	LocalTags []string `json:"local_tags,omitempty"` // Only relevant for DDI
 }
 
-func (r Record) String() string {
+// String returns the domain rtype in string format of record
+func (r *Record) String() string {
 	return fmt.Sprintf("%s %s", r.Domain, r.Type)
 }
 

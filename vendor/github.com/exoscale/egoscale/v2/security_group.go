@@ -153,7 +153,26 @@ func (c *Client) GetSecurityGroup(ctx context.Context, zone, id string) (*Securi
 func (c *Client) ListSecurityGroups(ctx context.Context, zone string) ([]*SecurityGroup, error) {
 	list := make([]*SecurityGroup, 0)
 
-	resp, err := c.ListSecurityGroupsWithResponse(apiv2.WithZone(ctx, zone))
+	resp, err := c.ListSecurityGroupsWithResponse(apiv2.WithZone(ctx, zone), &oapi.ListSecurityGroupsParams{})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.JSON200.SecurityGroups != nil {
+		for i := range *resp.JSON200.SecurityGroups {
+			list = append(list, securityGroupFromAPI(&(*resp.JSON200.SecurityGroups)[i]))
+		}
+	}
+
+	return list, nil
+}
+
+// FindSecurityGroups returns the list of existing Security Groups.
+// The `params` allows specifying standard filters.
+func (c *Client) FindSecurityGroups(ctx context.Context, zone string, params *oapi.ListSecurityGroupsParams) ([]*SecurityGroup, error) {
+	list := make([]*SecurityGroup, 0)
+
+	resp, err := c.ListSecurityGroupsWithResponse(apiv2.WithZone(ctx, zone), params)
 	if err != nil {
 		return nil, err
 	}

@@ -85,6 +85,7 @@ type AuthTag struct {
 	Value string `json:"value"`
 }
 
+// PermissionsRecord wraps a User's "permissions.record" attribute
 type PermissionsRecord struct {
 	Domain     string `json:"domain"`
 	Subdomains bool   `json:"include_subdomains"`

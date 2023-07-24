@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -1347,6 +1347,64 @@ func (o *AutoScaleOp) Status(ctx context.Context, id types.ID) (*AutoScaleStatus
 		return nil, err
 	}
 	return results.AutoScaleStatus, nil
+}
+
+// ScaleUp is API call
+func (o *AutoScaleOp) ScaleUp(ctx context.Context, id types.ID) error {
+	// build request URL
+	pathBuildParameter := map[string]interface{}{
+		"rootURL":    SakuraCloudAPIRoot,
+		"pathSuffix": o.PathSuffix,
+		"pathName":   o.PathName,
+		"zone":       APIDefaultZone,
+		"id":         id,
+	}
+
+	url, err := buildURL("{{.rootURL}}/{{.zone}}/{{.pathSuffix}}/{{.pathName}}/{{.id}}/autoscale/up", pathBuildParameter)
+	if err != nil {
+		return err
+	}
+	// build request body
+	var body interface{}
+
+	// do request
+	_, err = o.Client.Do(ctx, "PUT", url, body)
+	if err != nil {
+		return err
+	}
+
+	// build results
+
+	return nil
+}
+
+// ScaleDown is API call
+func (o *AutoScaleOp) ScaleDown(ctx context.Context, id types.ID) error {
+	// build request URL
+	pathBuildParameter := map[string]interface{}{
+		"rootURL":    SakuraCloudAPIRoot,
+		"pathSuffix": o.PathSuffix,
+		"pathName":   o.PathName,
+		"zone":       APIDefaultZone,
+		"id":         id,
+	}
+
+	url, err := buildURL("{{.rootURL}}/{{.zone}}/{{.pathSuffix}}/{{.pathName}}/{{.id}}/autoscale/down", pathBuildParameter)
+	if err != nil {
+		return err
+	}
+	// build request body
+	var body interface{}
+
+	// do request
+	_, err = o.Client.Do(ctx, "PUT", url, body)
+	if err != nil {
+		return err
+	}
+
+	// build results
+
+	return nil
 }
 
 /*************************************************
@@ -4658,6 +4716,73 @@ func (o *EnhancedDBOp) SetPassword(ctx context.Context, id types.ID, param *Enha
 	// build request body
 	var body interface{}
 	v, err := o.transformSetPasswordArgs(id, param)
+	if err != nil {
+		return err
+	}
+	body = v
+
+	// do request
+	_, err = o.Client.Do(ctx, "PUT", url, body)
+	if err != nil {
+		return err
+	}
+
+	// build results
+
+	return nil
+}
+
+// GetConfig is API call
+func (o *EnhancedDBOp) GetConfig(ctx context.Context, id types.ID) (*EnhancedDBConfig, error) {
+	// build request URL
+	pathBuildParameter := map[string]interface{}{
+		"rootURL":    SakuraCloudAPIRoot,
+		"pathSuffix": o.PathSuffix,
+		"pathName":   o.PathName,
+		"zone":       APIDefaultZone,
+		"id":         id,
+	}
+
+	url, err := buildURL("{{.rootURL}}/{{.zone}}/{{.pathSuffix}}/{{.pathName}}/{{.id}}/enhanceddb/config", pathBuildParameter)
+	if err != nil {
+		return nil, err
+	}
+	// build request body
+	var body interface{}
+
+	// do request
+	data, err := o.Client.Do(ctx, "GET", url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	// build results
+	results, err := o.transformGetConfigResults(data)
+	if err != nil {
+		return nil, err
+	}
+	return results.EnhancedDBConfig, nil
+}
+
+// SetConfig is API call
+func (o *EnhancedDBOp) SetConfig(ctx context.Context, id types.ID, param *EnhancedDBSetConfigRequest) error {
+	// build request URL
+	pathBuildParameter := map[string]interface{}{
+		"rootURL":    SakuraCloudAPIRoot,
+		"pathSuffix": o.PathSuffix,
+		"pathName":   o.PathName,
+		"zone":       APIDefaultZone,
+		"id":         id,
+		"param":      param,
+	}
+
+	url, err := buildURL("{{.rootURL}}/{{.zone}}/{{.pathSuffix}}/{{.pathName}}/{{.id}}/enhanceddb/config", pathBuildParameter)
+	if err != nil {
+		return err
+	}
+	// build request body
+	var body interface{}
+	v, err := o.transformSetConfigArgs(id, param)
 	if err != nil {
 		return err
 	}
@@ -13140,6 +13265,39 @@ func (o *VPCRouterOp) Logs(ctx context.Context, zone string, id types.ID) (*VPCR
 		return nil, err
 	}
 	return results.VPCRouterLog, nil
+}
+
+// Ping is API call
+func (o *VPCRouterOp) Ping(ctx context.Context, zone string, id types.ID, destination string) (*VPCRouterPingResults, error) {
+	// build request URL
+	pathBuildParameter := map[string]interface{}{
+		"rootURL":     SakuraCloudAPIRoot,
+		"pathSuffix":  o.PathSuffix,
+		"pathName":    o.PathName,
+		"zone":        zone,
+		"id":          id,
+		"destination": destination,
+	}
+
+	url, err := buildURL("{{.rootURL}}/{{.zone}}/{{.pathSuffix}}/{{.pathName}}/{{.id}}/vpcrouter/ping/{{.destination}}", pathBuildParameter)
+	if err != nil {
+		return nil, err
+	}
+	// build request body
+	var body interface{}
+
+	// do request
+	data, err := o.Client.Do(ctx, "POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	// build results
+	results, err := o.transformPingResults(data)
+	if err != nil {
+		return nil, err
+	}
+	return results.VPCRouterPingResults, nil
 }
 
 /*************************************************

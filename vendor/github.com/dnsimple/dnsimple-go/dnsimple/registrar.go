@@ -144,6 +144,23 @@ type DomainRegistrationResponse struct {
 	Data *DomainRegistration `json:"data"`
 }
 
+// GetDomainRegistration gets the details of an existing domain registration.
+//
+// See https://developer.dnsimple.com/v2/registrar/#getDomainRegistration
+func (s *RegistrarService) GetDomainRegistration(ctx context.Context, accountID string, domainName string, domainRegistrationID string) (*DomainRegistrationResponse, error) {
+	var err error
+	path := versioned(fmt.Sprintf("/%v/registrar/domains/%v/registrations/%v", accountID, domainName, domainRegistrationID))
+	res := &DomainRegistrationResponse{}
+
+	resp, err := s.client.get(ctx, path, res)
+	if err != nil {
+		return nil, err
+	}
+
+	res.HTTPResponse = resp
+	return res, nil
+}
+
 // RegisterDomainInput represents the attributes you can pass to a register API request.
 // Some attributes are mandatory.
 type RegisterDomainInput struct {
@@ -304,6 +321,23 @@ type DomainRenewal struct {
 type DomainRenewalResponse struct {
 	Response
 	Data *DomainRenewal `json:"data"`
+}
+
+// GetDomainRenewal gets the details of an existing domain renewal.
+//
+// See https://developer.dnsimple.com/v2/registrar/#getDomainRenewal
+func (s *RegistrarService) GetDomainRenewal(ctx context.Context, accountID string, domainName string, domainRenewalID string) (*DomainRenewalResponse, error) {
+	var err error
+	path := versioned(fmt.Sprintf("/%v/registrar/domains/%v/renewals/%v", accountID, domainName, domainRenewalID))
+	res := &DomainRenewalResponse{}
+
+	resp, err := s.client.get(ctx, path, res)
+	if err != nil {
+		return nil, err
+	}
+
+	res.HTTPResponse = resp
+	return res, nil
 }
 
 // RenewDomainInput represents the attributes you can pass to a renew API request.

@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ func (o *ESMEOp) randomName(strlen int) string {
 	charSetNumber := "012346789"
 	result := make([]byte, strlen)
 	for i := 0; i < strlen; i++ {
-		result[i] = charSetNumber[rand.Intn(len(charSetNumber))] // nolint:gosec
+		result[i] = charSetNumber[rand.Intn(len(charSetNumber))] //nolint:gosec
 	}
 	return string(result)
 }

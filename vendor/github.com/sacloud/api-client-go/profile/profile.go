@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/api-client-go Authors
+// Copyright 2022-2023 The sacloud/api-client-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -206,7 +206,7 @@ func EnableAPITrace(strTraceMode string) bool {
 	}
 
 	// TraceModeが"http"の場合はfalseにする(TraceMode=1などの場合はAPI/HTTP両方が有効になる)
-	if traceMode == EnableHTTPTraceWord {
+	if traceMode == EnableHTTPTraceWord || traceMode == "error" {
 		return false
 	}
 	return true

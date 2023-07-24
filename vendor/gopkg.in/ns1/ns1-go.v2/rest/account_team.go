@@ -45,7 +45,7 @@ func (s *TeamsService) Get(id string) (*account.Team, *http.Response, error) {
 	if err != nil {
 		switch err.(type) {
 		case *Error:
-			if err.(*Error).Message == "Unknown team id" {
+			if resourceMissingMatch(err.(*Error).Message) {
 				return nil, resp, ErrTeamMissing
 			}
 		}
@@ -123,7 +123,7 @@ func (s *TeamsService) Update(t *account.Team) (*http.Response, error) {
 	if err != nil {
 		switch err.(type) {
 		case *Error:
-			if err.(*Error).Message == "unknown team id" {
+			if resourceMissingMatch(err.(*Error).Message) {
 				return resp, ErrTeamMissing
 			}
 		}
@@ -148,7 +148,7 @@ func (s *TeamsService) Delete(id string) (*http.Response, error) {
 	if err != nil {
 		switch err.(type) {
 		case *Error:
-			if err.(*Error).Message == "unknown team id" {
+			if resourceMissingMatch(err.(*Error).Message) {
 				return resp, ErrTeamMissing
 			}
 		}

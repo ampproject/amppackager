@@ -200,6 +200,22 @@ func (c *Client) ListDatabaseServiceTypes(ctx context.Context, zone string) ([]*
 	return list, nil
 }
 
+// FindDatabaseService attempts to find a Database service by name
+func (c *Client) FindDatabaseService(ctx context.Context, zone, name string) (*DatabaseService, error) {
+	res, err := c.ListDatabaseServices(ctx, zone)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, d := range res {
+		if *d.Name == name {
+			return d, nil
+		}
+	}
+
+	return nil, apiv2.ErrNotFound
+}
+
 // ListDatabaseServices returns the list of Database Services.
 func (c *Client) ListDatabaseServices(ctx context.Context, zone string) ([]*DatabaseService, error) {
 	list := make([]*DatabaseService, 0)

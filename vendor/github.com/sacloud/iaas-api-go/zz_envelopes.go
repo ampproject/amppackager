@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -1093,6 +1093,19 @@ type enhancedDBUpdateResponseEnvelope struct {
 // enhancedDBSetPasswordRequestEnvelope is envelop of API request
 type enhancedDBSetPasswordRequestEnvelope struct {
 	CommonServiceItem *naked.EnhancedDBPasswordSettings `json:",omitempty"`
+}
+
+// enhancedDBGetConfigResponseEnvelope is envelop of API response
+type enhancedDBGetConfigResponseEnvelope struct {
+	IsOk    bool            `json:"is_ok,omitempty"` // is_ok項目
+	Success types.APIResult `json:",omitempty"`      // success項目
+
+	EnhancedDB *naked.EnhancedDBConfig `json:",omitempty"`
+}
+
+// enhancedDBSetConfigRequestEnvelope is envelop of API request
+type enhancedDBSetConfigRequestEnvelope struct {
+	CommonServiceItem *naked.EnhancedDBConfigSettings `json:",omitempty"`
 }
 
 // eSMEFindRequestEnvelope is envelop of API request
@@ -3154,6 +3167,14 @@ type vPCRouterLogsResponseEnvelope struct {
 	Success types.APIResult `json:",omitempty"`      // success項目
 
 	VPCRouter *naked.VPCRouterLog `json:",omitempty"`
+}
+
+// vPCRouterPingResponseEnvelope is envelop of API response
+type vPCRouterPingResponseEnvelope struct {
+	IsOk    bool            `json:"is_ok,omitempty"` // is_ok項目
+	Success types.APIResult `json:",omitempty"`      // success項目
+
+	VPCRouter *naked.VPCRouterPingResult `json:",omitempty"`
 }
 
 // zoneFindRequestEnvelope is envelop of API request

@@ -1,0 +1,17 @@
+language: go
+go:
+- 1.13
+before_install:
+- go get -u github.com/mattn/goveralls
+script:
+- go test -coverprofile=coverage.out | grep -E 'PASS|$'
+- goveralls -service=travis-ci -coverprofile=coverage.out
+git:
+  depth: 1
+notifications:
+  email: false
+  slack:
+    secure: Q5mzOSwNuCiD/S2M8FVKMeaQgJcWpWiqWmzzaAkFzIFYIwkUjjkyi1q4soAUKKOCEwBFWf0DkwVeRMZ9YGA3CXxYvjat14z4s3RrcMRlGy6aukaMEwJguv+zjdIsDFBYT+5aYR0k5CHXtm1OhghVCLwQ1tbfbzxzcnyM5fVb1JB+S/HXumckXtcE9DkfmlcpsNAlBfBP8qeXPRbpw4tLa4OQNNQpmWm6Y1FfIPqg//oq8ouRaU+CvhXmPdpvLdx5YSLgxrbccfHF12ew9KzdCjgdCekmYXLmBF30q8rNv5vffitYt2aWroJS9sZ54gEoFpxIDpZcCCisE4dhou2dK8uAA09WrTk8jMuBeqSnaWRLROwuaGaKpPMIWeeM6c3HYVQpD9/gj5BZW9xobq5TKp2jFtT8L7Ki4rAz75c0o/qyvqtC3sw3kgdBKIstsPPiFDGNLyZLaMmnOuNWMn6Zixm6pGVs3AZLnQHuXRIQ16kAZ7GffxKYi4/2OPUnkabsUonJeCCKI1nnGRKo0S0iNevLZS3V6GoCY2iTPI33xSX49RAGYRh4/YIfNB8hyctr0yaG4cm9FiOgeAtyfleSrmj6DKOn801ItXBcQmUegHPz2n4i4Z6eoOWJQWsBpGOppH86detIBqsrsYtHcxI07ke9/UCTqe/RU6c0YesCOU8=
+env:
+  global:
+  - GO111MODULE=on

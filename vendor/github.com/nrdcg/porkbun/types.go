@@ -44,6 +44,16 @@ func (a Status) Error() string {
 	return fmt.Sprintf("%s: %s", a.Status, a.Message)
 }
 
+// ServerError the API server error.
+type ServerError struct {
+	StatusCode int    `json:"statusCode"`
+	Message    string `json:"message,omitempty"`
+}
+
+func (a ServerError) Error() string {
+	return fmt.Sprintf("status: %d message: %s", a.StatusCode, a.Message)
+}
+
 // Record a DNS record.
 type Record struct {
 	ID      string `json:"id,omitempty"`

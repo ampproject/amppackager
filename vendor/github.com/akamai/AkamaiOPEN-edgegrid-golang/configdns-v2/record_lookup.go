@@ -3,9 +3,11 @@ package dnsv2
 import (
 	"encoding/hex"
 	"fmt"
+	"net"
+
 	"github.com/akamai/AkamaiOPEN-edgegrid-golang/client-v1"
 	edge "github.com/akamai/AkamaiOPEN-edgegrid-golang/edgegrid"
-	"net"
+
 	//"sort"
 	"strconv"
 	"strings"

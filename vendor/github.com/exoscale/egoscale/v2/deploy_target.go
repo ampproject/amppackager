@@ -19,7 +19,7 @@ type DeployTarget struct {
 func deployTargetFromAPI(d *oapi.DeployTarget, zone string) *DeployTarget {
 	return &DeployTarget{
 		Description: d.Description,
-		ID:          d.Id,
+		ID:          &d.Id,
 		Name:        d.Name,
 		Type:        (*string)(d.Type),
 		Zone:        &zone,

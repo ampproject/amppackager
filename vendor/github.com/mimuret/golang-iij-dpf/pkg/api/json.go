@@ -7,91 +7,110 @@ import (
 	"github.com/mimuret/golang-iij-dpf/pkg/meta"
 )
 
-var (
-	jsonAPIAdapter  JsonApiInterface  = &JsonAPIAdapter{}
-	jsonFileAdapter JsonFileInterface = &JsonAPIAdapter{}
-)
+var JSON = NewJSONAPIAdapter()
 
 func UnmarshalRead(bs []byte, o interface{}) error {
-	return jsonAPIAdapter.UnmarshalRead(bs, o)
+	return JSON.UnmarshalRead(bs, o)
 }
 
 func MarshalCreate(body interface{}) ([]byte, error) {
-	return jsonAPIAdapter.MarshalCreate(body)
+	return JSON.MarshalCreate(body)
 }
 
 func MarshalUpdate(body interface{}) ([]byte, error) {
-	return jsonAPIAdapter.MarshalUpdate(body)
+	return JSON.MarshalUpdate(body)
 }
 
 func MarshalApply(body interface{}) ([]byte, error) {
-	return jsonAPIAdapter.MarshalApply(body)
+	return JSON.MarshalApply(body)
 }
 
 func MarshalOutput(spec Spec) ([]byte, error) {
-	return jsonFileAdapter.MarshalOutput(spec)
+	return JSON.MarshalOutput(spec)
 }
 
 func UnMarshalInput(bs []byte, obj Object) error {
-	return jsonFileAdapter.UnMarshalInput(bs, obj)
+	return JSON.UnMarshalInput(bs, obj)
 }
 
-type JsonApiInterface interface {
+type JSONAPIInterface interface {
 	UnmarshalRead(bs []byte, o interface{}) error
 	MarshalCreate(body interface{}) ([]byte, error)
 	MarshalUpdate(body interface{}) ([]byte, error)
 	MarshalApply(body interface{}) ([]byte, error)
 }
 
-type JsonFileInterface interface {
+type JSONFileInterface interface {
 	MarshalOutput(spec Spec) ([]byte, error)
 	UnMarshalInput(bs []byte, obj Object) error
 }
 
-type JsonAPIAdapter struct{}
+type JSONAPIAdapter struct {
+	Read   jsoniter.API
+	Update jsoniter.API
+	Create jsoniter.API
+	Apply  jsoniter.API
+	JSON   jsoniter.API
+}
+
+func NewJSONAPIAdapter() *JSONAPIAdapter {
+	return &JSONAPIAdapter{
+		Read: jsoniter.Config{
+			EscapeHTML:             true,
+			SortMapKeys:            false,
+			ValidateJsonRawMessage: true,
+			OnlyTaggedField:        true,
+			TagKey:                 "read",
+		}.Froze(),
+		Create: jsoniter.Config{
+			EscapeHTML:             true,
+			SortMapKeys:            true,
+			ValidateJsonRawMessage: true,
+			OnlyTaggedField:        true,
+			TagKey:                 "create",
+		}.Froze(),
+		Update: jsoniter.Config{
+			EscapeHTML:             true,
+			SortMapKeys:            true,
+			ValidateJsonRawMessage: true,
+			OnlyTaggedField:        true,
+			TagKey:                 "update",
+		}.Froze(),
+		Apply: jsoniter.Config{
+			EscapeHTML:             true,
+			SortMapKeys:            true,
+			ValidateJsonRawMessage: true,
+			OnlyTaggedField:        true,
+			TagKey:                 "apply",
+		}.Froze(),
+		JSON: jsoniter.Config{
+			EscapeHTML:             true,
+			SortMapKeys:            true,
+			ValidateJsonRawMessage: true,
+			OnlyTaggedField:        false,
+			TagKey:                 "json",
+		}.Froze(),
+	}
+}
 
 // Unmarshal api response.
-func (j *JsonAPIAdapter) UnmarshalRead(bs []byte, o interface{}) error {
-	return jsoniter.Config{
-		EscapeHTML:             true,
-		SortMapKeys:            false,
-		ValidateJsonRawMessage: true,
-		OnlyTaggedField:        true,
-		TagKey:                 "read",
-	}.Froze().Unmarshal(bs, o)
+func (j *JSONAPIAdapter) UnmarshalRead(bs []byte, o interface{}) error {
+	return j.Read.Unmarshal(bs, o)
 }
 
 // Marshal for create request.
-func (j *JsonAPIAdapter) MarshalCreate(body interface{}) ([]byte, error) {
-	return jsoniter.Config{
-		EscapeHTML:             true,
-		SortMapKeys:            true,
-		ValidateJsonRawMessage: true,
-		OnlyTaggedField:        true,
-		TagKey:                 "create",
-	}.Froze().Marshal(body)
+func (j *JSONAPIAdapter) MarshalCreate(body interface{}) ([]byte, error) {
+	return j.Create.Marshal(body)
 }
 
 // Marshal for update request.
-func (j *JsonAPIAdapter) MarshalUpdate(body interface{}) ([]byte, error) {
-	return jsoniter.Config{
-		EscapeHTML:             true,
-		SortMapKeys:            true,
-		ValidateJsonRawMessage: true,
-		OnlyTaggedField:        true,
-		TagKey:                 "update",
-	}.Froze().Marshal(body)
+func (j *JSONAPIAdapter) MarshalUpdate(body interface{}) ([]byte, error) {
+	return j.Update.Marshal(body)
 }
 
 // Marshal for apply request.
-func (j *JsonAPIAdapter) MarshalApply(body interface{}) ([]byte, error) {
-	return jsoniter.Config{
-		EscapeHTML:             true,
-		SortMapKeys:            true,
-		ValidateJsonRawMessage: true,
-		OnlyTaggedField:        true,
-		TagKey:                 "apply",
-	}.Froze().Marshal(body)
+func (j *JSONAPIAdapter) MarshalApply(body interface{}) ([]byte, error) {
+	return j.Apply.Marshal(body)
 }
 
 // file format frame.
@@ -101,7 +120,7 @@ type OutputFrame struct {
 }
 
 // Marshal for file format.
-func (j *JsonAPIAdapter) MarshalOutput(spec Spec) ([]byte, error) {
+func (j *JSONAPIAdapter) MarshalOutput(spec Spec) ([]byte, error) {
 	t := reflect.TypeOf(spec)
 	t = t.Elem()
 	out := &OutputFrame{
@@ -111,26 +130,13 @@ func (j *JsonAPIAdapter) MarshalOutput(spec Spec) ([]byte, error) {
 		},
 		Resource: spec,
 	}
-	return jsoniter.Config{
-		EscapeHTML:             true,
-		SortMapKeys:            true,
-		ValidateJsonRawMessage: true,
-		OnlyTaggedField:        false,
-		TagKey:                 "json",
-	}.Froze().Marshal(out)
+	return j.JSON.Marshal(out)
 }
 
 // UnMarshal for file format.
-func (j *JsonAPIAdapter) UnMarshalInput(bs []byte, obj Object) error {
+func (j *JSONAPIAdapter) UnMarshalInput(bs []byte, obj Object) error {
 	out := &OutputFrame{
 		Resource: obj,
 	}
-
-	return jsoniter.Config{
-		EscapeHTML:             true,
-		SortMapKeys:            true,
-		ValidateJsonRawMessage: true,
-		OnlyTaggedField:        false,
-		TagKey:                 "json",
-	}.Froze().Unmarshal(bs, out)
+	return j.JSON.Unmarshal(bs, out)
 }

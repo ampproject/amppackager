@@ -333,6 +333,9 @@ type User_Customer struct {
 	// The expiration date for the user's password
 	PasswordExpireDate *Time `json:"passwordExpireDate,omitempty" xmlrpc:"passwordExpireDate,omitempty"`
 
+	// no documentation yet
+	PermissionCheckLikeMasterUserFlag *int `json:"permissionCheckLikeMasterUserFlag,omitempty" xmlrpc:"permissionCheckLikeMasterUserFlag,omitempty"`
+
 	// A count of a portal user's permissions. These permissions control that user's access to functions within the SoftLayer customer portal and API.
 	PermissionCount *uint `json:"permissionCount,omitempty" xmlrpc:"permissionCount,omitempty"`
 
@@ -574,19 +577,6 @@ type User_Customer_External_Binding_Attribute struct {
 	User_External_Binding_Attribute
 }
 
-// The SoftLayer_User_Customer_External_Binding_Phone data type contains information about an external binding that uses a phone call, SMS or mobile app for 2 form factor authentication. The external binding information is used when a SoftLayer customer logs into the SoftLayer customer portal or VPN to authenticate them against a trusted 3rd party, in this case using a mobile phone, mobile phone application or land-line phone.
-//
-// SoftLayer users with an active external binding will be prohibited from using the API for security reasons.
-type User_Customer_External_Binding_Phone struct {
-	User_Customer_External_Binding
-
-	// The current external binding status. It can be "ACTIVE" or "BLOCKED".
-	BindingStatus *string `json:"bindingStatus,omitempty" xmlrpc:"bindingStatus,omitempty"`
-
-	// no documentation yet
-	PinLength *string `json:"pinLength,omitempty" xmlrpc:"pinLength,omitempty"`
-}
-
 // The SoftLayer_User_Customer_External_Binding_Totp data type contains information about a single time-based one time password external binding.  The external binding information is used when a SoftLayer customer logs into the SoftLayer customer portal to authenticate them.
 //
 // The information provided by this external binding data type includes:
@@ -594,7 +584,6 @@ type User_Customer_External_Binding_Phone struct {
 // * The current state of the credential
 // ** Active
 // ** Inactive
-//
 //
 // SoftLayer users with an active external binding will be prohibited from using the API for security reasons.
 type User_Customer_External_Binding_Totp struct {
@@ -621,7 +610,6 @@ type User_Customer_External_Binding_Vendor struct {
 // ** Locked
 // * The credential's expiration date
 // * The last time the credential was updated
-//
 //
 // SoftLayer users with an active external binding will be prohibited from using the API for security reasons.
 type User_Customer_External_Binding_Verisign struct {
@@ -1099,8 +1087,6 @@ type User_Customer_Security_Answer struct {
 // Each SoftLayer User Customer instance is assigned a status code that determines how it's treated in the customer portal. This status is reflected in the SoftLayer_User_Customer_Status data type. Status differs from user permissions in that user status applies globally to the portal while user permissions are applied to specific portal functions.
 //
 // Note that a status of "PENDING" also has been added. This status is specific to users that are configured to use IBMid authentication. This would include some (not all) users on accounts that are linked to Platform Services (PaaS, formerly Bluemix) accounts, but is not limited to users in such accounts. Using IBMid authentication is optional for active users even if it is not required by the account type. PENDING status indicates that a relationship between an IBMid and a user is being set up but is not complete. To be complete, PENDING users need to perform an action ("accepting the invitation") before becoming an active user within IBM Cloud and/or IMS. PENDING is a system state, and can not be administered by users (including the account master user). SoftLayer Commercial is the only environment where IBMid and/or account linking are used.
-//
-//
 type User_Customer_Status struct {
 	Entity
 
@@ -1147,15 +1133,6 @@ type User_Employee struct {
 
 	// no documentation yet
 	LayoutProfiles []Layout_Profile `json:"layoutProfiles,omitempty" xmlrpc:"layoutProfiles,omitempty"`
-
-	// no documentation yet
-	MetricTrackingObject *Metric_Tracking_Object `json:"metricTrackingObject,omitempty" xmlrpc:"metricTrackingObject,omitempty"`
-
-	// A count of
-	SecurityLevelCount *uint `json:"securityLevelCount,omitempty" xmlrpc:"securityLevelCount,omitempty"`
-
-	// no documentation yet
-	SecurityLevels []Security_Level `json:"securityLevels,omitempty" xmlrpc:"securityLevels,omitempty"`
 
 	// no documentation yet
 	TicketActivities []Ticket_Activity `json:"ticketActivities,omitempty" xmlrpc:"ticketActivities,omitempty"`

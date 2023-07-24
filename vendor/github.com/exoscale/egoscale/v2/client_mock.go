@@ -686,6 +686,7 @@ func (m *oapiClientMock) ListQuotasWithResponse(
 
 func (m *oapiClientMock) ListSecurityGroupsWithResponse(
 	ctx context.Context,
+	params *oapi.ListSecurityGroupsParams,
 	reqEditors ...oapi.RequestEditorFn,
 ) (*oapi.ListSecurityGroupsResponse, error) {
 	args := m.Called(ctx, reqEditors)
@@ -1099,4 +1100,87 @@ func (m *oapiClientMock) UpdateDnsDomainRecordWithResponse(
 ) (*oapi.UpdateDnsDomainRecordResponse, error) {
 	args := m.Called(ctx, domainId, recordId, body, reqEditors)
 	return args.Get(0).(*oapi.UpdateDnsDomainRecordResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) GetReverseDnsInstanceWithResponse(
+	ctx context.Context,
+	id string,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.GetReverseDnsInstanceResponse, error) {
+	args := m.Called(ctx, id, reqEditors)
+	return args.Get(0).(*oapi.GetReverseDnsInstanceResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) DeleteReverseDnsInstanceWithResponse(
+	ctx context.Context,
+	id string,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.DeleteReverseDnsInstanceResponse, error) {
+	args := m.Called(ctx, id, reqEditors)
+	return args.Get(0).(*oapi.DeleteReverseDnsInstanceResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) UpdateReverseDnsInstanceWithResponse(
+	ctx context.Context,
+	id string,
+	body oapi.UpdateReverseDnsInstanceJSONRequestBody,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.UpdateReverseDnsInstanceResponse, error) {
+	args := m.Called(ctx, id, body, reqEditors)
+	return args.Get(0).(*oapi.UpdateReverseDnsInstanceResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) GetReverseDnsElasticIpWithResponse(
+	ctx context.Context,
+	id string,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.GetReverseDnsElasticIpResponse, error) {
+	args := m.Called(ctx, id, reqEditors)
+	return args.Get(0).(*oapi.GetReverseDnsElasticIpResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) DeleteReverseDnsElasticIpWithResponse(
+	ctx context.Context,
+	id string,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.DeleteReverseDnsElasticIpResponse, error) {
+	args := m.Called(ctx, id, reqEditors)
+	return args.Get(0).(*oapi.DeleteReverseDnsElasticIpResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) UpdateReverseDnsElasticIpWithResponse(
+	ctx context.Context,
+	id string,
+	body oapi.UpdateReverseDnsElasticIpJSONRequestBody,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.UpdateReverseDnsElasticIpResponse, error) {
+	args := m.Called(ctx, id, body, reqEditors)
+	return args.Get(0).(*oapi.UpdateReverseDnsElasticIpResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) StopDbaasRedisMigrationWithResponse(
+	ctx context.Context,
+	name oapi.DbaasServiceName,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.StopDbaasRedisMigrationResponse, error) {
+	args := m.Called(ctx, name, reqEditors)
+	return args.Get(0).(*oapi.StopDbaasRedisMigrationResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) StopDbaasPgMigrationWithResponse(
+	ctx context.Context,
+	name oapi.DbaasServiceName,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.StopDbaasPgMigrationResponse, error) {
+	args := m.Called(ctx, name, reqEditors)
+	return args.Get(0).(*oapi.StopDbaasPgMigrationResponse), args.Error(1)
+}
+
+func (m *oapiClientMock) StopDbaasMysqlMigrationWithResponse(
+	ctx context.Context,
+	name oapi.DbaasServiceName,
+	reqEditors ...oapi.RequestEditorFn,
+) (*oapi.StopDbaasMysqlMigrationResponse, error) {
+	args := m.Called(ctx, name, reqEditors)
+	return args.Get(0).(*oapi.StopDbaasMysqlMigrationResponse), args.Error(1)
 }

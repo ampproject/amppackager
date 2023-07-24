@@ -264,7 +264,7 @@ type Account struct {
 	// Private template group objects (parent and children) and the shared template group objects (parent only) for an account.
 	BlockDeviceTemplateGroups []Virtual_Guest_Block_Device_Template_Group `json:"blockDeviceTemplateGroups,omitempty" xmlrpc:"blockDeviceTemplateGroups,omitempty"`
 
-	// The Bluemix account link associated with this SoftLayer account, if one exists.
+	// The Platform account link associated with this SoftLayer account, if one exists.
 	BluemixAccountLink *Account_Link_Bluemix `json:"bluemixAccountLink,omitempty" xmlrpc:"bluemixAccountLink,omitempty"`
 
 	// Returns true if this account is linked to IBM Bluemix, false if not.
@@ -569,11 +569,20 @@ type Account struct {
 	// An in progress request to switch billing systems.
 	InProgressExternalAccountSetup *Account_External_Setup `json:"inProgressExternalAccountSetup,omitempty" xmlrpc:"inProgressExternalAccountSetup,omitempty"`
 
+	// Account attribute flag indicating internal cci host account.
+	InternalCciHostAccountFlag *bool `json:"internalCciHostAccountFlag,omitempty" xmlrpc:"internalCciHostAccountFlag,omitempty"`
+
+	// Account attribute flag indicating account creates internal image templates.
+	InternalImageTemplateCreationFlag *bool `json:"internalImageTemplateCreationFlag,omitempty" xmlrpc:"internalImageTemplateCreationFlag,omitempty"`
+
 	// A count of
 	InternalNoteCount *uint `json:"internalNoteCount,omitempty" xmlrpc:"internalNoteCount,omitempty"`
 
 	// no documentation yet
 	InternalNotes []Account_Note `json:"internalNotes,omitempty" xmlrpc:"internalNotes,omitempty"`
+
+	// Account attribute flag indicating restricted account.
+	InternalRestrictionFlag *bool `json:"internalRestrictionFlag,omitempty" xmlrpc:"internalRestrictionFlag,omitempty"`
 
 	// A count of an account's associated billing invoices.
 	InvoiceCount *uint `json:"invoiceCount,omitempty" xmlrpc:"invoiceCount,omitempty"`
@@ -807,6 +816,7 @@ type Account struct {
 	NextBillingPublicAllotmentHardwareBandwidthDetailCount *uint `json:"nextBillingPublicAllotmentHardwareBandwidthDetailCount,omitempty" xmlrpc:"nextBillingPublicAllotmentHardwareBandwidthDetailCount,omitempty"`
 
 	// DEPRECATED - This information can be pulled directly through tapping keys now - DEPRECATED. The allotments for this account and their servers for the next billing cycle. The public inbound and outbound bandwidth is calculated for each server in addition to the daily average network traffic since the last billing date.
+	// Deprecated: This function has been marked as deprecated.
 	NextBillingPublicAllotmentHardwareBandwidthDetails []Network_Bandwidth_Version1_Allotment `json:"nextBillingPublicAllotmentHardwareBandwidthDetails,omitempty" xmlrpc:"nextBillingPublicAllotmentHardwareBandwidthDetails,omitempty"`
 
 	// The pre-tax total amount exempt from incubator credit for the account's next invoice. This field is now deprecated and will soon be removed. Please update all references to instead use nextInvoiceTotalAmount
@@ -1044,6 +1054,7 @@ type Account struct {
 	PrivateAllotmentHardwareBandwidthDetailCount *uint `json:"privateAllotmentHardwareBandwidthDetailCount,omitempty" xmlrpc:"privateAllotmentHardwareBandwidthDetailCount,omitempty"`
 
 	// DEPRECATED - This information can be pulled directly through tapping keys now - DEPRECATED. The allotments for this account and their servers. The private inbound and outbound bandwidth is calculated for each server in addition to the daily average network traffic since the last billing date.
+	// Deprecated: This function has been marked as deprecated.
 	PrivateAllotmentHardwareBandwidthDetails []Network_Bandwidth_Version1_Allotment `json:"privateAllotmentHardwareBandwidthDetails,omitempty" xmlrpc:"privateAllotmentHardwareBandwidthDetails,omitempty"`
 
 	// A count of private and shared template group objects (parent only) for an account.
@@ -1077,6 +1088,7 @@ type Account struct {
 	PublicAllotmentHardwareBandwidthDetailCount *uint `json:"publicAllotmentHardwareBandwidthDetailCount,omitempty" xmlrpc:"publicAllotmentHardwareBandwidthDetailCount,omitempty"`
 
 	// DEPRECATED - This information can be pulled directly through tapping keys now - DEPRECATED. The allotments for this account and their servers. The public inbound and outbound bandwidth is calculated for each server in addition to the daily average network traffic since the last billing date.
+	// Deprecated: This function has been marked as deprecated.
 	PublicAllotmentHardwareBandwidthDetails []Network_Bandwidth_Version1_Allotment `json:"publicAllotmentHardwareBandwidthDetails,omitempty" xmlrpc:"publicAllotmentHardwareBandwidthDetails,omitempty"`
 
 	// A count of
@@ -1114,6 +1126,9 @@ type Account struct {
 
 	// A count of if this is a account is a referral partner, the accounts this referral partner has referred
 	ReferredAccountCount *uint `json:"referredAccountCount,omitempty" xmlrpc:"referredAccountCount,omitempty"`
+
+	// Flag indicating if the account was referred.
+	ReferredAccountFlag *bool `json:"referredAccountFlag,omitempty" xmlrpc:"referredAccountFlag,omitempty"`
 
 	// If this is a account is a referral partner, the accounts this referral partner has referred
 	ReferredAccounts []Account `json:"referredAccounts,omitempty" xmlrpc:"referredAccounts,omitempty"`
@@ -1154,12 +1169,6 @@ type Account struct {
 	// The reserved capacity groups owned by this account.
 	ReservedCapacityGroups []Virtual_ReservedCapacityGroup `json:"reservedCapacityGroups,omitempty" xmlrpc:"reservedCapacityGroups,omitempty"`
 
-	// A count of an account's associated top-level resource groups.
-	ResourceGroupCount *uint `json:"resourceGroupCount,omitempty" xmlrpc:"resourceGroupCount,omitempty"`
-
-	// An account's associated top-level resource groups.
-	ResourceGroups []Resource_Group `json:"resourceGroups,omitempty" xmlrpc:"resourceGroups,omitempty"`
-
 	// A count of all Routers that an accounts VLANs reside on
 	RouterCount *uint `json:"routerCount,omitempty" xmlrpc:"routerCount,omitempty"`
 
@@ -1176,10 +1185,11 @@ type Account struct {
 	// The SAML configuration for this account.
 	SamlAuthentication *Account_Authentication_Saml `json:"samlAuthentication,omitempty" xmlrpc:"samlAuthentication,omitempty"`
 
-	// A count of all scale groups on this account.
+	// A count of [DEPRECATED] All scale groups on this account.
 	ScaleGroupCount *uint `json:"scaleGroupCount,omitempty" xmlrpc:"scaleGroupCount,omitempty"`
 
-	// All scale groups on this account.
+	// [DEPRECATED] All scale groups on this account.
+	// Deprecated: This function has been marked as deprecated.
 	ScaleGroups []Scale_Group `json:"scaleGroups,omitempty" xmlrpc:"scaleGroups,omitempty"`
 
 	// A count of the secondary DNS records for a SoftLayer customer account.
@@ -1286,6 +1296,9 @@ type Account struct {
 
 	// no documentation yet
 	Tags []Tag `json:"tags,omitempty" xmlrpc:"tags,omitempty"`
+
+	// Account attribute flag indicating test account.
+	TestAccountAttributeFlag *bool `json:"testAccountAttributeFlag,omitempty" xmlrpc:"testAccountAttributeFlag,omitempty"`
 
 	// A count of an account's associated tickets.
 	TicketCount *uint `json:"ticketCount,omitempty" xmlrpc:"ticketCount,omitempty"`
@@ -1693,29 +1706,29 @@ type Account_Attribute_Type struct {
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 }
 
-// Account authentication has many different settings that can be set. This class allows the customer or employee to set these settigns.
+// Account authentication has many different settings that can be set. This class allows the customer or employee to set these settings.
 type Account_Authentication_Attribute struct {
 	Entity
 
 	// The SoftLayer customer account.
 	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
 
-	// The internal identifier of the SoftLayer customer account that is assigned an account authenction attribute.
+	// The internal identifier of the SoftLayer customer account that is assigned an account authentication attribute.
 	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
 
 	// The SoftLayer account authentication that has an attribute.
 	AuthenticationRecord *Account_Authentication_Saml `json:"authenticationRecord,omitempty" xmlrpc:"authenticationRecord,omitempty"`
 
-	// A SoftLayer account authenction attribute's internal identifier.
+	// A SoftLayer account authentication attribute's internal identifier.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
 	// The type of attribute assigned to a SoftLayer account authentication.
 	Type *Account_Authentication_Attribute_Type `json:"type,omitempty" xmlrpc:"type,omitempty"`
 
-	// The internal identifier of the type of attribute that a SoftLayer account authenction attribute belongs to.
+	// The internal identifier of the type of attribute that a SoftLayer account authentication attribute belongs to.
 	TypeId *int `json:"typeId,omitempty" xmlrpc:"typeId,omitempty"`
 
-	// A SoftLayer account authenction attribute's value.
+	// A SoftLayer account authentication attribute's value.
 	Value *string `json:"value,omitempty" xmlrpc:"value,omitempty"`
 }
 
@@ -2005,6 +2018,9 @@ type Account_Link struct {
 
 	// no documentation yet
 	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
+
+	// Authorization token that's included on linking calls.
+	AuthorizationToken *string `json:"authorizationToken,omitempty" xmlrpc:"authorizationToken,omitempty"`
 
 	// no documentation yet
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
@@ -2566,11 +2582,6 @@ type Account_ProofOfConcept_Funding_Type struct {
 	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
 }
 
-//
-//
-//
-//
-//
 type Account_Regional_Registry_Detail struct {
 	Entity
 

@@ -31,6 +31,7 @@ type Instance struct {
 	Name                 *string `req-for:"create"`
 	PrivateNetworkIDs    *[]string
 	PublicIPAddress      *net.IP
+	PublicIPAssignment   *string
 	SSHKey               *string
 	SecurityGroupIDs     *[]string
 	SnapshotIDs          *[]string
@@ -71,6 +72,15 @@ func ListInstancesByManagerType(v string) ListInstancesOpt {
 	return func(p *oapi.ListInstancesParams) {
 		if v != "" {
 			p.ManagerType = (*oapi.ListInstancesParamsManagerType)(&v)
+		}
+	}
+}
+
+// ListInstancesByIpAddress sets a Compute instances listing filter based on an IP Address.
+func ListInstancesByIpAddress(v string) ListInstancesOpt { //nolint:revive
+	return func(p *oapi.ListInstancesParams) {
+		if v != "" {
+			p.IpAddress = &v
 		}
 	}
 }
@@ -123,7 +133,7 @@ func instanceFromAPI(i *oapi.Instance, zone string) *Instance {
 		CreatedAt: i.CreatedAt,
 		DeployTargetID: func() (v *string) {
 			if i.DeployTarget != nil {
-				v = i.DeployTarget.Id
+				v = &i.DeployTarget.Id
 			}
 			return
 		}(),
@@ -187,6 +197,7 @@ func instanceFromAPI(i *oapi.Instance, zone string) *Instance {
 			}
 			return
 		}(),
+		PublicIPAssignment: (*string)(i.PublicIpAssignment),
 		SSHKey: func() (v *string) {
 			if i.SshKey != nil {
 				v = i.SshKey.Name
@@ -273,7 +284,9 @@ func (c *Client) AttachInstanceToPrivateNetwork(
 		opt(&body)
 	}
 
-	body.Instance = oapi.Instance{Id: instance.ID}
+	a := oapi.AttachInstanceToPrivateNetworkJSONBody{}
+	a.Instance.Id = instance.ID
+	body.Instance = a.Instance
 
 	resp, err := c.AttachInstanceToPrivateNetworkWithResponse(apiv2.WithZone(ctx, zone), *privateNetwork.ID, body)
 	if err != nil {
@@ -346,7 +359,7 @@ func (c *Client) CreateInstance(ctx context.Context, zone string, instance *Inst
 			}(),
 			DeployTarget: func() (v *oapi.DeployTarget) {
 				if instance.DeployTargetID != nil {
-					v = &oapi.DeployTarget{Id: instance.DeployTargetID}
+					v = &oapi.DeployTarget{Id: *instance.DeployTargetID}
 				}
 				return
 			}(),
@@ -359,7 +372,8 @@ func (c *Client) CreateInstance(ctx context.Context, zone string, instance *Inst
 				}
 				return
 			}(),
-			Name: instance.Name,
+			Name:               instance.Name,
+			PublicIpAssignment: (*oapi.PublicIpAssignment)(instance.PublicIPAssignment),
 			SecurityGroups: func() (v *[]oapi.SecurityGroup) {
 				if instance.SecurityGroupIDs != nil {
 					ids := make([]oapi.SecurityGroup, len(*instance.SecurityGroupIDs))
@@ -794,6 +808,19 @@ func (c *Client) StopInstance(ctx context.Context, zone string, instance *Instan
 	return nil
 }
 
+// RevealInstancePassword retrieves a recently started instance's root password if possible.
+func (c *Client) RevealInstancePassword(ctx context.Context, zone string, instance *Instance) (string, error) {
+	resp, err := c.RevealInstancePasswordWithResponse(apiv2.WithZone(ctx, zone), *instance.ID)
+	if err != nil {
+		return "", err
+	}
+	// If the password is unavailable, return an empty string
+	if resp.JSON200.Password == nil {
+		return "", nil
+	}
+	return *resp.JSON200.Password, nil
+}
+
 // UpdateInstance updates a Compute instance.
 func (c *Client) UpdateInstance(ctx context.Context, zone string, instance *Instance) error {
 	if err := validateOperationParams(instance, "update"); err != nil {
@@ -813,6 +840,62 @@ func (c *Client) UpdateInstance(ctx context.Context, zone string, instance *Inst
 			Name:     instance.Name,
 			UserData: instance.UserData,
 		})
+	if err != nil {
+		return err
+	}
+
+	_, err = oapi.NewPoller().
+		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
+		Poll(ctx, oapi.OperationPoller(c, zone, *resp.JSON200.Id))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetInstanceReverseDNS returns the Reverse DNS record corresponding to the specified Instance ID.
+func (c *Client) GetInstanceReverseDNS(ctx context.Context, zone, id string) (string, error) {
+	resp, err := c.GetReverseDnsInstanceWithResponse(apiv2.WithZone(ctx, zone), id)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.JSON200 == nil || resp.JSON200.DomainName == nil {
+		return "", apiv2.ErrNotFound
+	}
+
+	return string(*resp.JSON200.DomainName), nil
+}
+
+// DeleteInstanceReverseDNS deletes a Reverse DNS record of a Compute Instance.
+func (c *Client) DeleteInstanceReverseDNS(ctx context.Context, zone string, id string) error {
+	resp, err := c.DeleteReverseDnsInstanceWithResponse(apiv2.WithZone(ctx, zone), id)
+	if err != nil {
+		return err
+	}
+
+	_, err = oapi.NewPoller().
+		WithTimeout(c.timeout).
+		WithInterval(c.pollInterval).
+		Poll(ctx, oapi.OperationPoller(c, zone, *resp.JSON200.Id))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateInstanceReverseDNS updates a Reverse DNS record for a Compute Instance.
+func (c *Client) UpdateInstanceReverseDNS(ctx context.Context, zone, id, domain string) error {
+	resp, err := c.UpdateReverseDnsInstanceWithResponse(
+		apiv2.WithZone(ctx, zone),
+		id,
+		oapi.UpdateReverseDnsInstanceJSONRequestBody{
+			DomainName: &domain,
+		},
+	)
 	if err != nil {
 		return err
 	}

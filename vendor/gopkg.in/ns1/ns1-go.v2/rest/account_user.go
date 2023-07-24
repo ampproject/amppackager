@@ -45,7 +45,7 @@ func (s *UsersService) Get(username string) (*account.User, *http.Response, erro
 	if err != nil {
 		switch err.(type) {
 		case *Error:
-			if err.(*Error).Message == "Unknown user" {
+			if resourceMissingMatch(err.(*Error).Message) {
 				return nil, resp, ErrUserMissing
 			}
 		}

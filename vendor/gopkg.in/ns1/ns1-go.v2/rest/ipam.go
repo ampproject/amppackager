@@ -168,9 +168,9 @@ func (s *IPAMService) EditSubnet(addr *ipam.Address, parent bool) (newAddr, pare
 // of a subnet is done with the standard PUT route. (Eg. root address is a /24
 // and request for /29s will break it into 32 /29s)
 //
-//    - Only planned subnets can be split
-//    - Name and description will be unset on children
-//    - KVPS and options will be copied; tags will be inherited
+//   - Only planned subnets can be split
+//   - Name and description will be unset on children
+//   - KVPS and options will be copied; tags will be inherited
 //
 // NS1 API docs: https://ns1.com/api#postsplit-a-subnet
 func (s *IPAMService) SplitSubnet(id, prefix int) (rootAddr int, prefixIDs []int, resp *http.Response, err error) {

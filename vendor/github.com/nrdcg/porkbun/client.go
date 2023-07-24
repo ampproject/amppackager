@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -69,11 +69,11 @@ func (c *Client) Ping(ctx context.Context) (string, error) {
 
 // CreateRecord creates a DNS record.
 //
-//     name (optional): The subdomain for the record being created, not including the domain itself. Leave blank to create a record on the root domain. Use * to create a wildcard record.
-//     type: The type of record being created. Valid types are: A, MX, CNAME, ALIAS, TXT, NS, AAAA, SRV, TLSA, CAA
-//     content: The answer content for the record.
-//     ttl (optional): The time to live in seconds for the record. The minimum and the default is 300 seconds.
-//     prio (optional) The priority of the record for those that support it.
+//	name (optional): The subdomain for the record being created, not including the domain itself. Leave blank to create a record on the root domain. Use * to create a wildcard record.
+//	type: The type of record being created. Valid types are: A, MX, CNAME, ALIAS, TXT, NS, AAAA, SRV, TLSA, CAA
+//	content: The answer content for the record.
+//	ttl (optional): The time to live in seconds for the record. The minimum and the default is 300 seconds.
+//	prio (optional) The priority of the record for those that support it.
 func (c *Client) CreateRecord(ctx context.Context, domain string, record Record) (int, error) {
 	endpoint, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "dns", "create", domain))
 	if err != nil {
@@ -100,11 +100,11 @@ func (c *Client) CreateRecord(ctx context.Context, domain string, record Record)
 
 // EditRecord edits a DNS record.
 //
-//     name (optional): The subdomain for the record being created, not including the domain itself. Leave blank to create a record on the root domain. Use * to create a wildcard record.
-//     type: The type of record being created. Valid types are: A, MX, CNAME, ALIAS, TXT, NS, AAAA, SRV, TLSA, CAA
-//     content: The answer content for the record.
-//     ttl (optional): The time to live in seconds for the record. The minimum and the default is 300 seconds.
-//     prio (optional) The priority of the record for those that support it.
+//	name (optional): The subdomain for the record being created, not including the domain itself. Leave blank to create a record on the root domain. Use * to create a wildcard record.
+//	type: The type of record being created. Valid types are: A, MX, CNAME, ALIAS, TXT, NS, AAAA, SRV, TLSA, CAA
+//	content: The answer content for the record.
+//	ttl (optional): The time to live in seconds for the record. The minimum and the default is 300 seconds.
+//	prio (optional) The priority of the record for those that support it.
 func (c *Client) EditRecord(ctx context.Context, domain string, id int, record Record) error {
 	endpoint, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "dns", "edit", domain, strconv.Itoa(id)))
 	if err != nil {
@@ -203,13 +203,16 @@ func (c *Client) do(ctx context.Context, endpoint *url.URL, apiRequest interface
 
 	defer func() { _ = resp.Body.Close() }()
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%d: %s", resp.StatusCode, string(respBody))
+		return nil, &ServerError{
+			StatusCode: resp.StatusCode,
+			Message:    string(respBody),
+		}
 	}
 
 	return respBody, nil

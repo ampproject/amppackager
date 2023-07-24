@@ -707,16 +707,19 @@ type Virtual_Guest struct {
 	// The reserved capacity group instance the guest is associated with.
 	ReservedCapacityGroupInstance *Virtual_ReservedCapacityGroup_Instance `json:"reservedCapacityGroupInstance,omitempty" xmlrpc:"reservedCapacityGroupInstance,omitempty"`
 
-	// A count of collection of scale assets this guest corresponds to.
+	// A count of [DEPRECATED] Collection of scale assets this guest corresponds to.
 	ScaleAssetCount *uint `json:"scaleAssetCount,omitempty" xmlrpc:"scaleAssetCount,omitempty"`
 
-	// Collection of scale assets this guest corresponds to.
+	// [DEPRECATED] Collection of scale assets this guest corresponds to.
+	// Deprecated: This function has been marked as deprecated.
 	ScaleAssets []Scale_Asset `json:"scaleAssets,omitempty" xmlrpc:"scaleAssets,omitempty"`
 
-	// The scale member for this guest, if applicable.
+	// [DEPRECATED] The scale member for this guest, if applicable.
+	// Deprecated: This function has been marked as deprecated.
 	ScaleMember *Scale_Member_Virtual_Guest `json:"scaleMember,omitempty" xmlrpc:"scaleMember,omitempty"`
 
-	// Whether or not this guest is a member of a scale group and was automatically created as part of a scale group action.
+	// [DEPRECATED] Whether or not this guest is a member of a scale group and was automatically created as part of a scale group action.
+	// Deprecated: This function has been marked as deprecated.
 	ScaledFlag *bool `json:"scaledFlag,omitempty" xmlrpc:"scaledFlag,omitempty"`
 
 	// A count of a guest's vulnerability scan requests.
@@ -1082,8 +1085,6 @@ type Virtual_Guest_Block_Device_Template_Group_Accounts struct {
 // The virtual block device template group status data type represents the current status of the image template. Depending upon the status, the image template can be used for provisioning or reloading.
 //
 // For an operating system reload, the image template will need to have a status of 'Active' or 'Deprecated'. For a provision, the image template will need to have a status of 'Active'
-//
-//
 type Virtual_Guest_Block_Device_Template_Group_Status struct {
 	Entity
 
@@ -1359,12 +1360,6 @@ type Virtual_Host struct {
 	// A virtual host's associated account id
 	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
 
-	// Boolean flag indicating whether this virtualization platform gets billed per guest rather than at a fixed rate.
-	BilledPerGuestFlag *bool `json:"billedPerGuestFlag,omitempty" xmlrpc:"billedPerGuestFlag,omitempty"`
-
-	// Boolean flag indicating whether this virtualization platform gets billed per memory usage rather than at a fixed rate.
-	BilledPerMemoryUsageFlag *bool `json:"billedPerMemoryUsageFlag,omitempty" xmlrpc:"billedPerMemoryUsageFlag,omitempty"`
-
 	// The date a virtual host was created.
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
 
@@ -1373,12 +1368,6 @@ type Virtual_Host struct {
 
 	// The enabled flag specifies whether a virtual host can run guests.
 	EnabledFlag *int `json:"enabledFlag,omitempty" xmlrpc:"enabledFlag,omitempty"`
-
-	// A count of the guests associated with a virtual host.
-	GuestCount *uint `json:"guestCount,omitempty" xmlrpc:"guestCount,omitempty"`
-
-	// The guests associated with a virtual host.
-	Guests []Virtual_Guest `json:"guests,omitempty" xmlrpc:"guests,omitempty"`
 
 	// The hardware record which a virtual host resides on.
 	Hardware *Hardware_Server `json:"hardware,omitempty" xmlrpc:"hardware,omitempty"`

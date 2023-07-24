@@ -151,5 +151,5 @@ func (c *Count) GetCount() int32  { return c.Count }
 
 type AsyncResponse struct {
 	ResponseCommon `read:",inline"`
-	JobsUrl        string `read:"jobs_url"`
+	JobsURL        string `read:"jobs_url"`
 }

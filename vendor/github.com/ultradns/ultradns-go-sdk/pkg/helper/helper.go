@@ -2,29 +2,32 @@ package helper
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
-func AppendRootDot(zoneName string) string {
+func appendRootDot(zoneName string) string {
 	return fmt.Sprintf("%s.", zoneName)
 }
 
 func GetZoneFQDN(zoneName string) string {
+	result := zoneName
 	if len(zoneName) > 0 {
 		if lastChar := zoneName[len(zoneName)-1]; lastChar != '.' {
-			return AppendRootDot(zoneName)
+			result = appendRootDot(zoneName)
 		}
 	}
 
-	return zoneName
+	return strings.ToLower(result)
 }
 
 func GetOwnerFQDN(owner, zone string) string {
-	if !strings.Contains(GetZoneFQDN(owner), zone) {
-		return AppendRootDot(owner) + GetZoneFQDN(zone)
+	result := GetZoneFQDN(owner)
+	if !strings.Contains(GetZoneFQDN(owner), strings.ToLower(zone)) {
+		result = appendRootDot(owner) + GetZoneFQDN(zone)
 	}
 
-	return GetZoneFQDN(owner)
+	return strings.ToLower(result)
 }
 
 func GetRecordTypeFullString(key string) string {
@@ -118,4 +121,27 @@ func GetRecordTypeNumber(key string) string {
 	}
 
 	return rrTypes[key]
+}
+
+func GetAccountName(id string) string {
+	geoAccount := strings.Split(id, ":")
+	return geoAccount[1]
+}
+
+func GetAccountNameFromURI(uri string) string {
+	geoAccount := strings.Split(uri, "/")
+	return geoAccount[1]
+}
+
+func GetDirGroupURI(groupID, groupType string) string {
+	groupID = url.PathEscape(groupID)
+	groupData := strings.Split(groupID, ":")
+
+	return fmt.Sprintf("accounts/%s/dirgroups/%s/%s", groupData[1], groupType, groupData[0])
+}
+
+func GetDirGroupListURI(accountName, groupType string) string {
+	accountName = url.PathEscape(accountName)
+
+	return fmt.Sprintf("accounts/%s/dirgroups/%s", accountName, groupType)
 }

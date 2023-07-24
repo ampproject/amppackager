@@ -25,7 +25,7 @@ type Network struct {
 	Entity
 }
 
-// The SoftLayer_Network_Application_Delivery_Controller data type models a single instance of an application delivery controller. Local properties are read only, except for a ''notes'' property, which can be used to describe your application delivery controller service. The type's relational properties provide more information to the service's function and login information to the controller's backend management if advanced view is enabled.
+// The SoftLayer_Network_Application_Delivery_Controller data type models a single instance of an application delivery controller. Local properties are read only, except for a ”notes” property, which can be used to describe your application delivery controller service. The type's relational properties provide more information to the service's function and login information to the controller's backend management if advanced view is enabled.
 type Network_Application_Delivery_Controller struct {
 	Entity
 
@@ -211,10 +211,11 @@ type Network_Application_Delivery_Controller_LoadBalancer_Health_Check struct {
 	// no documentation yet
 	Notes *string `json:"notes,omitempty" xmlrpc:"notes,omitempty"`
 
-	// A count of collection of scale load balancers that use this health check.
+	// A count of [DEPRECATED] Collection of scale load balancers that use this health check.
 	ScaleLoadBalancerCount *uint `json:"scaleLoadBalancerCount,omitempty" xmlrpc:"scaleLoadBalancerCount,omitempty"`
 
-	// Collection of scale load balancers that use this health check.
+	// [DEPRECATED] Collection of scale load balancers that use this health check.
+	// Deprecated: This function has been marked as deprecated.
 	ScaleLoadBalancers []Scale_LoadBalancer `json:"scaleLoadBalancers,omitempty" xmlrpc:"scaleLoadBalancers,omitempty"`
 
 	// A count of
@@ -543,10 +544,11 @@ type Network_Application_Delivery_Controller_LoadBalancer_VirtualServer struct {
 	// no documentation yet
 	RoutingMethodId *int `json:"routingMethodId,omitempty" xmlrpc:"routingMethodId,omitempty"`
 
-	// A count of collection of scale load balancers this virtual server applies to.
+	// A count of [DEPRECATED] Collection of scale load balancers this virtual server applies to.
 	ScaleLoadBalancerCount *uint `json:"scaleLoadBalancerCount,omitempty" xmlrpc:"scaleLoadBalancerCount,omitempty"`
 
-	// Collection of scale load balancers this virtual server applies to.
+	// [DEPRECATED] Collection of scale load balancers this virtual server applies to.
+	// Deprecated: This function has been marked as deprecated.
 	ScaleLoadBalancers []Scale_LoadBalancer `json:"scaleLoadBalancers,omitempty" xmlrpc:"scaleLoadBalancers,omitempty"`
 
 	// A count of
@@ -769,7 +771,7 @@ type Network_Bandwidth_Version1_Allotment struct {
 	ManagedVirtualGuests []Virtual_Guest `json:"managedVirtualGuests,omitempty" xmlrpc:"managedVirtualGuests,omitempty"`
 
 	// A virtual rack's metric tracking object. This object records all periodic polled data available to this rack.
-	MetricTrackingObject *Metric_Tracking_Object_VirtualDedicatedRack `json:"metricTrackingObject,omitempty" xmlrpc:"metricTrackingObject,omitempty"`
+	MetricTrackingObject *Metric_Tracking_Object `json:"metricTrackingObject,omitempty" xmlrpc:"metricTrackingObject,omitempty"`
 
 	// The metric tracking object id for this allotment.
 	MetricTrackingObjectId *int `json:"metricTrackingObjectId,omitempty" xmlrpc:"metricTrackingObjectId,omitempty"`
@@ -869,12 +871,6 @@ type Network_Bandwidth_Version1_Usage struct {
 
 	// Bandwidth allotment detail for this hardware.
 	BandwidthAllotmentDetail *Network_Bandwidth_Version1_Allotment_Detail `json:"bandwidthAllotmentDetail,omitempty" xmlrpc:"bandwidthAllotmentDetail,omitempty"`
-
-	// Bandwidth usage details for this hardware.
-	BandwidthUsageDetail []Network_Bandwidth_Version1_Usage_Detail `json:"bandwidthUsageDetail,omitempty" xmlrpc:"bandwidthUsageDetail,omitempty"`
-
-	// A count of bandwidth usage details for this hardware.
-	BandwidthUsageDetailCount *uint `json:"bandwidthUsageDetailCount,omitempty" xmlrpc:"bandwidthUsageDetailCount,omitempty"`
 }
 
 // The SoftLayer_Network_Bandwidth_Version1_Usage_Detail data type contains specific information relating to bandwidth utilization at a specific point in time on a given network interface.
@@ -1119,6 +1115,9 @@ type Network_Component struct {
 	// The VLANs that are trunked to this network component.
 	NetworkVlanTrunks []Network_Component_Network_Vlan_Trunk `json:"networkVlanTrunks,omitempty" xmlrpc:"networkVlanTrunks,omitempty"`
 
+	// The viable trunking targets of this component. Viable targets include accessible VLANs in the same pod and network as this component, which are not already natively attached nor trunked to this component.
+	NetworkVlansTrunkable []Network_Vlan `json:"networkVlansTrunkable,omitempty" xmlrpc:"networkVlansTrunkable,omitempty"`
+
 	// A network component's port number. Most hardware has more than one network interface. The port property separates these interfaces. Use this in conjunction with the ''name'' property to identify a network component. For instance, the "eth0" interface on a server has the network component name "eth" and port 0.
 	Port *int `json:"port,omitempty" xmlrpc:"port,omitempty"`
 
@@ -1344,6 +1343,9 @@ type Network_Component_IpAddress struct {
 type Network_Component_Network_Vlan_Trunk struct {
 	Entity
 
+	// A value of '1' indicates the existence of an ongoing request to modify this trunk record.
+	IsUpdating *bool `json:"isUpdating,omitempty" xmlrpc:"isUpdating,omitempty"`
+
 	// The network component that the VLAN is being trunked to.
 	NetworkComponent *Network_Component `json:"networkComponent,omitempty" xmlrpc:"networkComponent,omitempty"`
 
@@ -1365,8 +1367,6 @@ type Network_Component_RemoteManagement struct {
 // The SoftLayer_Network_Component_Uplink_Hardware data type abstracts information related to network connections between SoftLayer hardware and SoftLayer network components.
 //
 // It is populated via triggers on the network_connection table (SoftLayer_Network_Connection), so you shouldn't have to delete or insert records into this table, ever.
-//
-//
 type Network_Component_Uplink_Hardware struct {
 	Entity
 
@@ -1796,6 +1796,20 @@ type Network_Gateway struct {
 }
 
 // no documentation yet
+type Network_Gateway_Licenses struct {
+	Entity
+
+	// no documentation yet
+	Employee *User_Employee `json:"employee,omitempty" xmlrpc:"employee,omitempty"`
+
+	// no documentation yet
+	ItemKeyName *string `json:"itemKeyName,omitempty" xmlrpc:"itemKeyName,omitempty"`
+
+	// no documentation yet
+	LicenseCategory *string `json:"licenseCategory,omitempty" xmlrpc:"licenseCategory,omitempty"`
+}
+
+// no documentation yet
 type Network_Gateway_Member struct {
 	Entity
 
@@ -1864,12 +1878,6 @@ type Network_Gateway_Member_Attribute struct {
 	// Password of the user name.
 	Password *string `json:"password,omitempty" xmlrpc:"password,omitempty"`
 
-	// no documentation yet
-	SshKey *Security_Ssh_Key `json:"sshKey,omitempty" xmlrpc:"sshKey,omitempty"`
-
-	// The SSH key id of key assigned to Gateway.
-	SshKeyId *int `json:"sshKeyId,omitempty" xmlrpc:"sshKeyId,omitempty"`
-
 	// Timestamp when this gateway member was last upgraded
 	UpgradedDate *Time `json:"upgradedDate,omitempty" xmlrpc:"upgradedDate,omitempty"`
 
@@ -1889,6 +1897,9 @@ type Network_Gateway_Member_Licenses struct {
 
 	// no documentation yet
 	ExpirationDate *Time `json:"expirationDate,omitempty" xmlrpc:"expirationDate,omitempty"`
+
+	// The gateway license record.
+	GatewayLicense *Network_Gateway_Licenses `json:"gatewayLicense,omitempty" xmlrpc:"gatewayLicense,omitempty"`
 
 	// The gateway member has these licenses.
 	GatewayMember *Network_Gateway_Member `json:"gatewayMember,omitempty" xmlrpc:"gatewayMember,omitempty"`
@@ -2128,10 +2139,6 @@ type Network_LBaaS_HealthMonitor struct {
 }
 
 // The SoftLayer_Network_LBaaS_L7HealthMonitor type presents a structure containing attributes of a health monitor object associated with a L7 pool instance. Note that the relationship between backend (L7 pool) and health monitor is 1-to-1, pools object associated with a health monitor must have the same pair of protocol and port. Example: frontend FA: http, 80   - backend BA: http, 3456 - healthmonitor HM_http3456 frontend FB: https, 443 - backend BB: http, 3456 - healthmonitor HM_http3456
-//
-//
-//
-//
 type Network_LBaaS_L7HealthMonitor struct {
 	Entity
 
@@ -2679,8 +2686,6 @@ type Network_LBaaS_PoolMembersHealth struct {
 }
 
 // The SoftLayer_Network_LBaaS_SSLCipher type presents a structure that contains attributes of load balancer cipher suites.
-//
-//
 type Network_LBaaS_SSLCipher struct {
 	Entity
 
@@ -3116,6 +3121,9 @@ type Network_Message_Delivery struct {
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
 
 	// no documentation yet
+	Guid *string `json:"guid,omitempty" xmlrpc:"guid,omitempty"`
+
+	// no documentation yet
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
 	// no documentation yet
@@ -3258,7 +3266,6 @@ type Network_Monitor_Version1_Query_Host struct {
 // There are two values on this object that are important:
 // # monitorLevel determines the highest level of SoftLayer_Network_Monitor_Version1_Query_Type object that can be placed in a monitoring instance on this server
 // # responseLevel determines the highest level of SoftLayer_Network_Monitor_Version1_Query_ResponseType object that can be placed in a monitoring instance on this server
-//
 //
 // Also note that the query type and response types are available through getAllQueryTypes and getAllResponseTypes, respectively.
 type Network_Monitor_Version1_Query_Host_Stratum struct {
@@ -3603,7 +3610,7 @@ type Network_Security_Scanner_Request struct {
 	// The date and time that the request was last modified.
 	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
 
-	// Flag whether the requestor owns the hardware the scan was run on. This flag will  return for hardware servers only, virtual servers will result in a null return even if you have  a request out for them.
+	// Flag whether the requestor owns the hardware the scan was run on. This flag will return for hardware servers only, virtual servers will result in a null return even if you have a request out for them.
 	RequestorOwnedFlag *bool `json:"requestorOwnedFlag,omitempty" xmlrpc:"requestorOwnedFlag,omitempty"`
 
 	// A security scan request's status.
@@ -3619,7 +3626,6 @@ type Network_Security_Scanner_Request struct {
 // *Scan Complete
 // *Scan Cancelled
 // *Generating Report.
-//
 //
 // The status of a vulnerability scan will change over the course of a scan's execution.
 type Network_Security_Scanner_Request_Status struct {
@@ -4018,6 +4024,9 @@ type Network_Storage struct {
 
 	// The name of the snapshot that this volume was duplicated from.
 	OriginalSnapshotName *string `json:"originalSnapshotName,omitempty" xmlrpc:"originalSnapshotName,omitempty"`
+
+	// Volume id of the origin volume from which this volume is been cloned.
+	OriginalVolumeId *int `json:"originalVolumeId,omitempty" xmlrpc:"originalVolumeId,omitempty"`
 
 	// The name of the volume that this volume was duplicated from.
 	OriginalVolumeName *string `json:"originalVolumeName,omitempty" xmlrpc:"originalVolumeName,omitempty"`
@@ -5923,10 +5932,8 @@ type Network_Subnet_Rwhois_Data struct {
 	State *string `json:"state,omitempty" xmlrpc:"state,omitempty"`
 }
 
-//
 // **DEPRECATED**
 // The SoftLayer_Network_Subnet_Swip_Transaction data type contains basic information tracked at SoftLayer to allow automation of Swip creation, update, and removal requests.  A specific transaction is attached to an accountId and a subnetId. This also contains a "Status Name" which tells the customer what the transaction is doing:
-//
 //
 // * REQUEST QUEUED:  Request is queued up to be sent to ARIN
 // * REQUEST SENT:  The email request has been sent to ARIN
@@ -6111,201 +6118,210 @@ type Network_Tunnel_Module_Context_Address_Translation struct {
 	Notes *string `json:"notes,omitempty" xmlrpc:"notes,omitempty"`
 }
 
-// The SoftLayer_Network_Vlan data type models a single VLAN within SoftLayer's public and private networks. a Virtual LAN is a structure that associates network interfaces on routers, switches, and servers in different locations to act as if they were on the same local network broadcast domain. VLANs are a central part of the SoftLayer network. They can determine how new IP subnets are routed and how individual servers communicate to each other.
+// VLANs comprise the fundamental segmentation model on the network, isolating customer networks from one another.
+//
+// VLANs are scoped to a single network, generally public or private, and a pod. Through association to a single VLAN, assigned subnets are routed on the network to provide IP address connectivity.
+//
+// Compute devices are associated to a single VLAN per active network, to which the Primary IP Address and containing Primary Subnet belongs. Additional VLANs may be associated to bare metal devices using VLAN trunking.
+//
+// [VLAN at Wikipedia](https://en.wikipedia.org/wiki/VLAN)
 type Network_Vlan struct {
 	Entity
 
-	// The SoftLayer customer account associated with a VLAN.
+	// The account this VLAN is associated with.
 	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
 
-	// The internal identifier of the SoftLayer customer account that a VLAN is associated with.
+	// The identifier of the account this VLAN is assigned to.
 	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
 
-	// A count of a VLAN's additional primary subnets. These are used to extend the number of servers attached to the VLAN by adding more ip addresses to the primary IP address pool.
+	// A count of the primary IPv4 subnets routed on this VLAN, excluding the primarySubnet.
 	AdditionalPrimarySubnetCount *uint `json:"additionalPrimarySubnetCount,omitempty" xmlrpc:"additionalPrimarySubnetCount,omitempty"`
 
-	// A VLAN's additional primary subnets. These are used to extend the number of servers attached to the VLAN by adding more ip addresses to the primary IP address pool.
+	// The primary IPv4 subnets routed on this VLAN, excluding the primarySubnet.
 	AdditionalPrimarySubnets []Network_Subnet `json:"additionalPrimarySubnets,omitempty" xmlrpc:"additionalPrimarySubnets,omitempty"`
 
-	// The gateway this VLAN is inside of.
+	// The gateway device this VLAN is associated with for routing purposes.
 	AttachedNetworkGateway *Network_Gateway `json:"attachedNetworkGateway,omitempty" xmlrpc:"attachedNetworkGateway,omitempty"`
 
-	// Whether or not this VLAN is inside a gateway.
+	// A value of '1' indicates this VLAN is associated with a gateway device for routing purposes.
 	AttachedNetworkGatewayFlag *bool `json:"attachedNetworkGatewayFlag,omitempty" xmlrpc:"attachedNetworkGatewayFlag,omitempty"`
 
-	// The inside VLAN record if this VLAN is inside a network gateway.
+	// The gateway device VLAN context this VLAN is associated with for routing purposes.
 	AttachedNetworkGatewayVlan *Network_Gateway_Vlan `json:"attachedNetworkGatewayVlan,omitempty" xmlrpc:"attachedNetworkGatewayVlan,omitempty"`
 
-	// The billing item for a network vlan.
+	// The billing item for this VLAN.
 	BillingItem *Billing_Item `json:"billingItem,omitempty" xmlrpc:"billingItem,omitempty"`
 
-	// A flag indicating that a network vlan is on a Hardware Firewall (Dedicated).
+	// The datacenter this VLAN is associated with.
+	Datacenter *Location `json:"datacenter,omitempty" xmlrpc:"datacenter,omitempty"`
+
+	// A value of '1' indicates this VLAN is associated with a firewall device. This does not include Hardware Firewalls.
 	DedicatedFirewallFlag *int `json:"dedicatedFirewallFlag,omitempty" xmlrpc:"dedicatedFirewallFlag,omitempty"`
 
-	// [DEPRECATED] The extension router that a VLAN is associated with.
+	// [DEPRECATED] The extension router that this VLAN is associated with.
 	// Deprecated: This function has been marked as deprecated.
 	ExtensionRouter *Hardware_Router `json:"extensionRouter,omitempty" xmlrpc:"extensionRouter,omitempty"`
 
-	// A count of a firewalled Vlan's network components.
+	// A count of the VSI network interfaces connected to this VLAN and associated with a Hardware Firewall.
 	FirewallGuestNetworkComponentCount *uint `json:"firewallGuestNetworkComponentCount,omitempty" xmlrpc:"firewallGuestNetworkComponentCount,omitempty"`
 
-	// A firewalled Vlan's network components.
+	// The VSI network interfaces connected to this VLAN and associated with a Hardware Firewall.
 	FirewallGuestNetworkComponents []Network_Component_Firewall `json:"firewallGuestNetworkComponents,omitempty" xmlrpc:"firewallGuestNetworkComponents,omitempty"`
 
-	// A count of a firewalled vlan's inbound/outbound interfaces.
+	// A count of the context for the firewall device associated with this VLAN.
 	FirewallInterfaceCount *uint `json:"firewallInterfaceCount,omitempty" xmlrpc:"firewallInterfaceCount,omitempty"`
 
-	// A firewalled vlan's inbound/outbound interfaces.
+	// The context for the firewall device associated with this VLAN.
 	FirewallInterfaces []Network_Firewall_Module_Context_Interface `json:"firewallInterfaces,omitempty" xmlrpc:"firewallInterfaces,omitempty"`
 
-	// A count of a firewalled Vlan's network components.
+	// A count of the uplinks of the hardware network interfaces connected natively to this VLAN and associated with a Hardware Firewall.
 	FirewallNetworkComponentCount *uint `json:"firewallNetworkComponentCount,omitempty" xmlrpc:"firewallNetworkComponentCount,omitempty"`
 
-	// A firewalled Vlan's network components.
+	// The uplinks of the hardware network interfaces connected natively to this VLAN and associated with a Hardware Firewall.
 	FirewallNetworkComponents []Network_Component_Firewall `json:"firewallNetworkComponents,omitempty" xmlrpc:"firewallNetworkComponents,omitempty"`
 
-	// A count of the currently running rule set of a firewalled VLAN.
+	// A count of the access rules for the firewall device associated with this VLAN.
 	FirewallRuleCount *uint `json:"firewallRuleCount,omitempty" xmlrpc:"firewallRuleCount,omitempty"`
 
-	// The currently running rule set of a firewalled VLAN.
+	// The access rules for the firewall device associated with this VLAN.
 	FirewallRules []Network_Vlan_Firewall_Rule `json:"firewallRules,omitempty" xmlrpc:"firewallRules,omitempty"`
 
-	// A human readable, unique identifier for a VLAN.
+	// A human readable, unique identifier for this VLAN.
 	FullyQualifiedName *string `json:"fullyQualifiedName,omitempty" xmlrpc:"fullyQualifiedName,omitempty"`
 
-	// A count of the networking components that are connected to a VLAN.
+	// A count of the VSI network interfaces connected to this VLAN.
 	GuestNetworkComponentCount *uint `json:"guestNetworkComponentCount,omitempty" xmlrpc:"guestNetworkComponentCount,omitempty"`
 
-	// The networking components that are connected to a VLAN.
+	// The VSI network interfaces connected to this VLAN.
 	GuestNetworkComponents []Virtual_Guest_Network_Component `json:"guestNetworkComponents,omitempty" xmlrpc:"guestNetworkComponents,omitempty"`
 
-	// All of the hardware that exists on a VLAN. Hardware is associated with a VLAN by its networking components.
+	// The hardware with network interfaces connected natively to this VLAN.
 	Hardware []Hardware `json:"hardware,omitempty" xmlrpc:"hardware,omitempty"`
 
-	// A count of all of the hardware that exists on a VLAN. Hardware is associated with a VLAN by its networking components.
+	// A count of the hardware with network interfaces connected natively to this VLAN.
 	HardwareCount *uint `json:"hardwareCount,omitempty" xmlrpc:"hardwareCount,omitempty"`
 
-	// no documentation yet
+	// A value of '1' indicates this VLAN is associated with a firewall device in a high availability configuration.
 	HighAvailabilityFirewallFlag *bool `json:"highAvailabilityFirewallFlag,omitempty" xmlrpc:"highAvailabilityFirewallFlag,omitempty"`
 
-	// A VLAN's internal identifier. This should not be confused with the ''vlanNumber'' property, which is used in network configuration.
+	// The unique identifier of this VLAN.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
-	// A flag indicating that a vlan can be assigned to a host that has local disk functionality.
+	// A value of '1' indicates this VLAN's pod has VSI local disk storage capability.
 	LocalDiskStorageCapabilityFlag *bool `json:"localDiskStorageCapabilityFlag,omitempty" xmlrpc:"localDiskStorageCapabilityFlag,omitempty"`
 
-	// The date a VLAN was last modified.
+	// The time this VLAN was last modified.
 	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
 
-	// The optional name for this VLAN
+	// The customer name for this VLAN.
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 
-	// The network in which this VLAN resides.
+	// [DEPRECATED] The network in which this VLAN resides.
+	// Deprecated: This function has been marked as deprecated.
 	Network *Network `json:"network,omitempty" xmlrpc:"network,omitempty"`
 
-	// A count of the networking components that are connected to a VLAN.
+	// A count of the hardware network interfaces connected natively to this VLAN.
 	NetworkComponentCount *uint `json:"networkComponentCount,omitempty" xmlrpc:"networkComponentCount,omitempty"`
 
-	// A count of the network components that are connected to this VLAN through a trunk.
+	// A count of the hardware network interfaces connected via trunk to this VLAN.
 	NetworkComponentTrunkCount *uint `json:"networkComponentTrunkCount,omitempty" xmlrpc:"networkComponentTrunkCount,omitempty"`
 
-	// The network components that are connected to this VLAN through a trunk.
+	// The hardware network interfaces connected via trunk to this VLAN.
 	NetworkComponentTrunks []Network_Component_Network_Vlan_Trunk `json:"networkComponentTrunks,omitempty" xmlrpc:"networkComponentTrunks,omitempty"`
 
-	// The networking components that are connected to a VLAN.
+	// The hardware network interfaces connected natively to this VLAN.
 	NetworkComponents []Network_Component `json:"networkComponents,omitempty" xmlrpc:"networkComponents,omitempty"`
 
-	// The viable trunking targets of this VLAN. Viable targets include accessible components of assigned hardware in the same pod and network as this VLAN, which are not already natively attached nor trunked.
+	// The viable hardware network interface trunking targets of this VLAN. Viable targets include accessible components of assigned hardware in the same pod and network as this VLAN, which are not already connected, either natively or trunked.
 	NetworkComponentsTrunkable []Network_Component `json:"networkComponentsTrunkable,omitempty" xmlrpc:"networkComponentsTrunkable,omitempty"`
 
-	// Identifier to denote whether a VLAN is used for public or private connectivity.
+	// The network that this VLAN is on, either PUBLIC or PRIVATE, if applicable.
 	NetworkSpace *string `json:"networkSpace,omitempty" xmlrpc:"networkSpace,omitempty"`
 
-	// The Hardware Firewall (Dedicated) for a network vlan.
+	// The firewall device associated with this VLAN.
 	NetworkVlanFirewall *Network_Vlan_Firewall `json:"networkVlanFirewall,omitempty" xmlrpc:"networkVlanFirewall,omitempty"`
 
-	// The note for this vlan.
+	// An internal description of this VLAN, if applicable.
 	Note *string `json:"note,omitempty" xmlrpc:"note,omitempty"`
 
-	// The primary router that a VLAN is associated with. Every SoftLayer VLAN is connected to more than one router for greater network redundancy.
+	// The router device that this VLAN is associated with.
 	PrimaryRouter *Hardware_Router `json:"primaryRouter,omitempty" xmlrpc:"primaryRouter,omitempty"`
 
-	// A VLAN's primary subnet. Each VLAN has at least one subnet, usually the subnet that is assigned to a server or new IP address block when it's purchased.
+	// A primary IPv4 subnet routed on this VLAN, if accessible.
 	PrimarySubnet *Network_Subnet `json:"primarySubnet,omitempty" xmlrpc:"primarySubnet,omitempty"`
 
-	// A count of
+	// A count of all primary subnets routed on this VLAN.
 	PrimarySubnetCount *uint `json:"primarySubnetCount,omitempty" xmlrpc:"primarySubnetCount,omitempty"`
 
-	// The internal identifier of the primary subnet addressed on a VLAN.
+	// The identifier of a primary IPv4 subnet routed on this VLAN.
 	PrimarySubnetId *int `json:"primarySubnetId,omitempty" xmlrpc:"primarySubnetId,omitempty"`
 
-	// A VLAN's primary IPv6 subnet. Some VLAN's may not have a primary IPv6 subnet.
+	// The primary IPv6 subnet routed on this VLAN, if IPv6 is enabled.
 	PrimarySubnetVersion6 *Network_Subnet `json:"primarySubnetVersion6,omitempty" xmlrpc:"primarySubnetVersion6,omitempty"`
 
-	// no documentation yet
+	// All primary subnets routed on this VLAN.
 	PrimarySubnets []Network_Subnet `json:"primarySubnets,omitempty" xmlrpc:"primarySubnets,omitempty"`
 
-	// A count of the gateways this VLAN is the private VLAN of.
+	// A count of the gateway devices with connectivity supported by this private VLAN.
 	PrivateNetworkGatewayCount *uint `json:"privateNetworkGatewayCount,omitempty" xmlrpc:"privateNetworkGatewayCount,omitempty"`
 
-	// The gateways this VLAN is the private VLAN of.
+	// The gateway devices with connectivity supported by this private VLAN.
 	PrivateNetworkGateways []Network_Gateway `json:"privateNetworkGateways,omitempty" xmlrpc:"privateNetworkGateways,omitempty"`
 
-	// A count of
+	// A count of iP addresses routed on this VLAN which are actively associated with network protections.
 	ProtectedIpAddressCount *uint `json:"protectedIpAddressCount,omitempty" xmlrpc:"protectedIpAddressCount,omitempty"`
 
-	// no documentation yet
+	// IP addresses routed on this VLAN which are actively associated with network protections.
 	ProtectedIpAddresses []Network_Subnet_IpAddress `json:"protectedIpAddresses,omitempty" xmlrpc:"protectedIpAddresses,omitempty"`
 
-	// A count of the gateways this VLAN is the public VLAN of.
+	// A count of the gateway devices with connectivity supported by this public VLAN.
 	PublicNetworkGatewayCount *uint `json:"publicNetworkGatewayCount,omitempty" xmlrpc:"publicNetworkGatewayCount,omitempty"`
 
-	// The gateways this VLAN is the public VLAN of.
+	// The gateway devices with connectivity supported by this public VLAN.
 	PublicNetworkGateways []Network_Gateway `json:"publicNetworkGateways,omitempty" xmlrpc:"publicNetworkGateways,omitempty"`
 
-	// A flag indicating that a vlan can be assigned to a host that has SAN disk functionality.
+	// A value of '1' indicates this VLAN's pod has VSI SAN disk storage capability.
 	SanStorageCapabilityFlag *bool `json:"sanStorageCapabilityFlag,omitempty" xmlrpc:"sanStorageCapabilityFlag,omitempty"`
 
-	// A count of collection of scale VLANs this VLAN applies to.
-	ScaleVlanCount *uint `json:"scaleVlanCount,omitempty" xmlrpc:"scaleVlanCount,omitempty"`
-
-	// Collection of scale VLANs this VLAN applies to.
+	// [DEPRECATED] The scale VLANs associated to this VLAN.
+	// Deprecated: This function has been marked as deprecated.
 	ScaleVlans []Scale_Network_Vlan `json:"scaleVlans,omitempty" xmlrpc:"scaleVlans,omitempty"`
 
-	// The secondary router that a VLAN is associated with. Every SoftLayer VLAN is connected to more than one router for greater network redundancy.
+	// [DEPRECATED] The secondary router device that this VLAN is associated with.
+	// Deprecated: This function has been marked as deprecated.
 	SecondaryRouter *Hardware `json:"secondaryRouter,omitempty" xmlrpc:"secondaryRouter,omitempty"`
 
-	// A count of the subnets that exist as secondary interfaces on a VLAN
+	// A count of all non-primary subnets routed on this VLAN.
 	SecondarySubnetCount *uint `json:"secondarySubnetCount,omitempty" xmlrpc:"secondarySubnetCount,omitempty"`
 
-	// The subnets that exist as secondary interfaces on a VLAN
+	// All non-primary subnets routed on this VLAN.
 	SecondarySubnets []Network_Subnet `json:"secondarySubnets,omitempty" xmlrpc:"secondarySubnets,omitempty"`
 
-	// A count of all of the subnets that exist as VLAN interfaces.
+	// A count of all subnets routed on this VLAN.
 	SubnetCount *uint `json:"subnetCount,omitempty" xmlrpc:"subnetCount,omitempty"`
 
-	// All of the subnets that exist as VLAN interfaces.
+	// All subnets routed on this VLAN.
 	Subnets []Network_Subnet `json:"subnets,omitempty" xmlrpc:"subnets,omitempty"`
 
-	// A count of references to all tags for this VLAN.
+	// A count of the tags associated to this VLAN.
 	TagReferenceCount *uint `json:"tagReferenceCount,omitempty" xmlrpc:"tagReferenceCount,omitempty"`
 
-	// References to all tags for this VLAN.
+	// The tags associated to this VLAN.
 	TagReferences []Tag_Reference `json:"tagReferences,omitempty" xmlrpc:"tagReferences,omitempty"`
 
-	// The number of primary IP addresses in a VLAN.
+	// The number of primary IPv4 addresses routed on this VLAN.
 	TotalPrimaryIpAddressCount *uint `json:"totalPrimaryIpAddressCount,omitempty" xmlrpc:"totalPrimaryIpAddressCount,omitempty"`
 
-	// The type of this VLAN.
+	// The type for this VLAN, with the following values: STANDARD, GATEWAY, INTERCONNECT
 	Type *Network_Vlan_Type `json:"type,omitempty" xmlrpc:"type,omitempty"`
 
-	// A count of all of the Virtual Servers that are connected to a VLAN.
+	// A count of the VSIs with network interfaces connected to this VLAN.
 	VirtualGuestCount *uint `json:"virtualGuestCount,omitempty" xmlrpc:"virtualGuestCount,omitempty"`
 
-	// All of the Virtual Servers that are connected to a VLAN.
+	// The VSIs with network interfaces connected to this VLAN.
 	VirtualGuests []Virtual_Guest `json:"virtualGuests,omitempty" xmlrpc:"virtualGuests,omitempty"`
 
-	// A VLAN's number as recorded within the SoftLayer network. This is configured directly on SoftLayer's networking equipment and should not be confused with a VLAN's ''id'' property.
+	// The number of this VLAN configured on the network.
 	VlanNumber *int `json:"vlanNumber,omitempty" xmlrpc:"vlanNumber,omitempty"`
 }
 

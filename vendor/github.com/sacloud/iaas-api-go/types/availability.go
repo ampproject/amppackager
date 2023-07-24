@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ var Availabilities = struct {
 	Uploading:    EAvailability("uploading"),
 	Failed:       EAvailability("failed"),
 	Migrating:    EAvailability("migrating"),
-	Transferring: EAvailability("transfering"), // nolint // 綴りが違うがさくらのクラウド側に合わせる(transferring)
+	Transferring: EAvailability("transfering"), //nolint // 綴りが違うがさくらのクラウド側に合わせる(transferring)
 	Discontinued: EAvailability("discontinued"),
 }
 

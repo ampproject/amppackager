@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -817,6 +817,13 @@ type enhancedDBUpdateResult struct {
 	IsOk bool `json:",omitempty"` // is_ok
 
 	EnhancedDB *EnhancedDB `json:",omitempty" mapconv:"CommonServiceItem,omitempty,recursive"`
+}
+
+// enhancedDBGetConfigResult represents the Result of API
+type enhancedDBGetConfigResult struct {
+	IsOk bool `json:",omitempty"` // is_ok
+
+	EnhancedDBConfig *EnhancedDBConfig `json:",omitempty" mapconv:"EnhancedDB,omitempty,recursive"`
 }
 
 // ESMEFindResult represents the Result of API
@@ -2283,6 +2290,13 @@ type vPCRouterLogsResult struct {
 	IsOk bool `json:",omitempty"` // is_ok
 
 	VPCRouterLog *VPCRouterLog `json:",omitempty" mapconv:"VPCRouter,omitempty,recursive"`
+}
+
+// vPCRouterPingResult represents the Result of API
+type vPCRouterPingResult struct {
+	IsOk bool `json:",omitempty"` // is_ok
+
+	VPCRouterPingResults *VPCRouterPingResults `json:",omitempty" mapconv:"VPCRouter,omitempty,recursive"`
 }
 
 // ZoneFindResult represents the Result of API

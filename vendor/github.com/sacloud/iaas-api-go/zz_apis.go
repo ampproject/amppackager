@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -77,6 +77,8 @@ type AutoScaleAPI interface {
 	UpdateSettings(ctx context.Context, id types.ID, param *AutoScaleUpdateSettingsRequest) (*AutoScale, error)
 	Delete(ctx context.Context, id types.ID) error
 	Status(ctx context.Context, id types.ID) (*AutoScaleStatus, error)
+	ScaleUp(ctx context.Context, id types.ID) error
+	ScaleDown(ctx context.Context, id types.ID) error
 }
 
 /*************************************************
@@ -256,6 +258,8 @@ type EnhancedDBAPI interface {
 	Update(ctx context.Context, id types.ID, param *EnhancedDBUpdateRequest) (*EnhancedDB, error)
 	Delete(ctx context.Context, id types.ID) error
 	SetPassword(ctx context.Context, id types.ID, param *EnhancedDBSetPasswordRequest) error
+	GetConfig(ctx context.Context, id types.ID) (*EnhancedDBConfig, error)
+	SetConfig(ctx context.Context, id types.ID, param *EnhancedDBSetConfigRequest) error
 }
 
 /*************************************************
@@ -725,6 +729,7 @@ type VPCRouterAPI interface {
 	MonitorInterface(ctx context.Context, zone string, id types.ID, index int, condition *MonitorCondition) (*InterfaceActivity, error)
 	Status(ctx context.Context, zone string, id types.ID) (*VPCRouterStatus, error)
 	Logs(ctx context.Context, zone string, id types.ID) (*VPCRouterLog, error)
+	Ping(ctx context.Context, zone string, id types.ID, destination string) (*VPCRouterPingResults, error)
 }
 
 /*************************************************

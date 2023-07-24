@@ -39,8 +39,16 @@ func (s *StatsService) getQPS(path string) (float32, *http.Response, error) {
 		return 0, nil, err
 	}
 
-	var r map[string]float32
-	resp, err := s.client.Do(req, &r)
+	var value struct {
+		/* by default unmartial will ignore any extra fields so we don't need these
+		Networks []struct {
+			Network int
+			Qps float32
+		}
+		*/
+		QPS float32
+	}
+	resp, err := s.client.Do(req, &value)
 
 	if err != nil {
 		switch err.(type) {
@@ -52,12 +60,7 @@ func (s *StatsService) getQPS(path string) (float32, *http.Response, error) {
 				return 0, nil, ErrRecordMissing
 			}
 		}
-		return 0, nil, err
+		return 0, resp, err
 	}
-
-	qps, ok := r["qps"]
-	if !ok {
-		return 0, nil, fmt.Errorf("could not find 'qps' key in returned data: %v", resp)
-	}
-	return qps, resp, nil
+	return value.QPS, resp, nil
 }

@@ -29,6 +29,21 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    # deprecated linters
+    - deadcode
+    - ifshort
+    - varcheck
+    - nosnakecase
+    ####################
+
+    - bodyclose
+    - contextcheck
+    - nilerr
+    - noctx
+    - rowserrcheck
+    - sqlclosecheck
+    - structcheck
+    - tparallel
     - vetshadow
     - errname
     - forcetypeassert
@@ -62,4 +77,7 @@ linters:
     - errorlint
     - cyclop
     - godot
+    - exhaustive
+    - depguard
+    - tagalign
   fast: false

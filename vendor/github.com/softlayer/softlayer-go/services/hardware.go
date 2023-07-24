@@ -96,271 +96,277 @@ func (r Hardware) CaptureImage(captureTemplate *datatypes.Container_Disk_Image_C
 	return
 }
 
-//
 // <style type="text/css">.create_object > li > div { padding-top: .5em; padding-bottom: .5em}</style>
 // createObject() enables the creation of servers on an account. This
 // method is a simplified alternative to interacting with the ordering system directly.
 //
-//
 // In order to create a server, a template object must be sent in with a few required
 // values.
 //
-//
 // When this method returns an order will have been placed for a server of the specified configuration.
-//
 //
 // To determine when the server is available you can poll the server via [[SoftLayer_Hardware/getObject|getObject]],
 // checking the <code>provisionDate</code> property.
 // When <code>provisionDate</code> is not null, the server will be ready. Be sure to use the <code>globalIdentifier</code>
 // as your initialization parameter.
 //
-//
 // <b>Warning:</b> Servers created via this method will incur charges on your account. For testing input parameters see [[SoftLayer_Hardware/generateOrderTemplate|generateOrderTemplate]].
-//
 //
 // <b>Input</b> - [[SoftLayer_Hardware (type)|SoftLayer_Hardware]]
 // <ul class="create_object">
-//     <li><code>hostname</code>
-//         <div>Hostname for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>domain</code>
-//         <div>Domain for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>processorCoreAmount</code>
-//         <div>The number of logical CPU cores to allocate.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>memoryCapacity</code>
-//         <div>The amount of memory to allocate in gigabytes.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>hourlyBillingFlag</code>
-//         <div>Specifies the billing type for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>operatingSystemReferenceCode</code>
-//         <div>An identifier for the operating system to provision the server with.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>datacenter.name</code>
-//         <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "datacenter": {
-//         "name": "dal05"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.maxSpeed</code>
-//         <div>Specifies the connection speed for the server's network components.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "maxSpeed": 1000
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.redundancyEnabledFlag</code>
-//         <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - bool</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "redundancyEnabledFlag": false
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>privateNetworkOnlyFlag</code>
-//         <div>Specifies whether or not the server only has access to the private network</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li>When true this flag specifies that a server is to only have access to the private network.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>primaryNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryNetworkComponent": {
-//         "networkVlan": {
-//             "id": 1
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryBackendNetworkComponent": {
-//         "networkVlan": {
-//             "id": 2
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>fixedConfigurationPreset.keyName</code>
-//         <div></div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
-//             <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "fixedConfigurationPreset": {
-//         "keyName": "SOME_KEY_NAME"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>userData.value</code>
-//         <div>Arbitrary data to be made available to the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
-//             <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
-//         </ul>
-//         <http title="Example">{
-//     "userData": [
-//         {
-//             "value": "someValue"
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>hardDrives</code>
-//         <div>Hard drive settings for the server</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - SoftLayer_Hardware_Component</li>
-//             <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
-//             <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
-//             <li>Each hard drive must specify the <code>capacity</code> property.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "hardDrives": [
-//         {
-//             "capacity": 500
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
-//         <div>SSH keys to install on the server upon provisioning.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
-//             <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
-//             <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
-//             <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
-//         </ul>
-//         <http title="Example">{
-//     "sshKeys": [
-//         {
-//             "id": 123
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>postInstallScriptUri</code>
-//         <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
+//
+//	    <li><code>hostname</code>
+//	        <div>Hostname for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>domain</code>
+//	        <div>Domain for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>processorCoreAmount</code>
+//	        <div>The number of logical CPU cores to allocate.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>memoryCapacity</code>
+//	        <div>The amount of memory to allocate in gigabytes.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>hourlyBillingFlag</code>
+//	        <div>Specifies the billing type for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>operatingSystemReferenceCode</code>
+//	        <div>An identifier for the operating system to provision the server with.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>datacenter.name</code>
+//	        <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "datacenter": {
+//	        "name": "dal05"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.maxSpeed</code>
+//	        <div>Specifies the connection speed for the server's network components.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "maxSpeed": 1000
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.redundancyEnabledFlag</code>
+//	        <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - bool</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "redundancyEnabledFlag": false
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>privateNetworkOnlyFlag</code>
+//	        <div>Specifies whether or not the server only has access to the private network</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li>When true this flag specifies that a server is to only have access to the private network.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>primaryNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 1
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryBackendNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 2
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>fixedConfigurationPreset.keyName</code>
+//	        <div></div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
+//	            <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "fixedConfigurationPreset": {
+//	        "keyName": "SOME_KEY_NAME"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>userData.value</code>
+//	        <div>Arbitrary data to be made available to the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
+//	            <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "userData": [
+//	        {
+//	            "value": "someValue"
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>hardDrives</code>
+//	        <div>Hard drive settings for the server</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - SoftLayer_Hardware_Component</li>
+//	            <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
+//	            <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
+//	            <li>Each hard drive must specify the <code>capacity</code> property.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "hardDrives": [
+//	        {
+//	            "capacity": 500
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
+//	        <div>SSH keys to install on the server upon provisioning.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
+//	            <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
+//	            <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
+//	            <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
+//	        </ul>
+//	        <http title="Example">{
+//	    "sshKeys": [
+//	        {
+//	            "id": 123
+//	        }
+//	    ]
+//	}</http>
+//
+//	    <br />
+//	</li>
+//	<li><code>postInstallScriptUri</code>
+//	    <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
+//	        <li><b>Optional</b></li>
+//	        <li><b>Type</b> - string</li>
+//	    </ul>
+//	    <br />
+//	</li>
+//
 // </ul>
 //
-//
 // <h1>REST Example</h1>
-// <http title="Request">curl -X POST -d '{
-//  "parameters":[
-//      {
-//          "hostname": "host1",
-//          "domain": "example.com",
-//          "processorCoreAmount": 2,
-//          "memoryCapacity": 2,
-//          "hourlyBillingFlag": true,
-//          "operatingSystemReferenceCode": "UBUNTU_LATEST"
-//      }
-//  ]
-// }' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
+//	<http title="Request">curl -X POST -d '{
+//	 "parameters":[
+//	     {
+//	         "hostname": "host1",
+//	         "domain": "example.com",
+//	         "processorCoreAmount": 2,
+//	         "memoryCapacity": 2,
+//	         "hourlyBillingFlag": true,
+//	         "operatingSystemReferenceCode": "UBUNTU_LATEST"
+//	     }
+//	 ]
+//	}' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
 // </http>
 // <http title="Response">HTTP/1.1 201 Created
 // Location: https://api.softlayer.com/rest/v3/SoftLayer_Hardware/f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5/getObject
 //
+//	{
+//	    "accountId": 232298,
+//	    "bareMetalInstanceFlag": null,
+//	    "domain": "example.com",
+//	    "hardwareStatusId": null,
+//	    "hostname": "host1",
+//	    "id": null,
+//	    "serviceProviderId": null,
+//	    "serviceProviderResourceId": null,
+//	    "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
+//	    "hourlyBillingFlag": true,
+//	    "memoryCapacity": 2,
+//	    "operatingSystemReferenceCode": "UBUNTU_LATEST",
+//	    "processorCoreAmount": 2
+//	}
 //
-// {
-//     "accountId": 232298,
-//     "bareMetalInstanceFlag": null,
-//     "domain": "example.com",
-//     "hardwareStatusId": null,
-//     "hostname": "host1",
-//     "id": null,
-//     "serviceProviderId": null,
-//     "serviceProviderResourceId": null,
-//     "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
-//     "hourlyBillingFlag": true,
-//     "memoryCapacity": 2,
-//     "operatingSystemReferenceCode": "UBUNTU_LATEST",
-//     "processorCoreAmount": 2
-// }
 // </http>
 func (r Hardware) CreateObject(templateObject *datatypes.Hardware) (resp datatypes.Hardware, err error) {
 	params := []interface{}{
@@ -370,7 +376,6 @@ func (r Hardware) CreateObject(templateObject *datatypes.Hardware) (resp datatyp
 	return
 }
 
-//
 // This method will cancel a server effective immediately. For servers billed hourly, the charges will stop immediately after the method returns.
 func (r Hardware) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "deleteObject", nil, &r.Options, &resp)
@@ -414,7 +419,7 @@ func (r Hardware) ExecuteRemoteScript(uri *string) (err error) {
 	return
 }
 
-// The '''findByIpAddress''' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
+// The ”'findByIpAddress”' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
 func (r Hardware) FindByIpAddress(ipAddress *string) (resp datatypes.Hardware, err error) {
 	params := []interface{}{
 		ipAddress,
@@ -423,12 +428,9 @@ func (r Hardware) FindByIpAddress(ipAddress *string) (resp datatypes.Hardware, e
 	return
 }
 
-//
 // Obtain an [[SoftLayer_Container_Product_Order_Hardware_Server (type)|order container]] that can be sent to [[SoftLayer_Product_Order/verifyOrder|verifyOrder]] or [[SoftLayer_Product_Order/placeOrder|placeOrder]].
 //
-//
 // This is primarily useful when there is a necessity to confirm the price which will be charged for an order.
-//
 //
 // See [[SoftLayer_Hardware/createObject|createObject]] for specifics on the requirements of the template object parameter.
 func (r Hardware) GenerateOrderTemplate(templateObject *datatypes.Hardware) (resp datatypes.Container_Product_Order, err error) {
@@ -523,7 +525,7 @@ func (r Hardware) GetAverageDailyPublicBandwidthUsage() (resp datatypes.Float64,
 	return
 }
 
-// The '''getBackendIncomingBandwidth''' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendIncomingBandwidth”' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware) GetBackendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -539,7 +541,7 @@ func (r Hardware) GetBackendNetworkComponents() (resp []datatypes.Network_Compon
 	return
 }
 
-// The '''getBackendOutgoingBandwidth''' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendOutgoingBandwidth”' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware) GetBackendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -621,9 +623,7 @@ func (r Hardware) GetContinuousDataProtectionSoftwareComponent() (resp datatypes
 	return
 }
 
-//
 // There are many options that may be provided while ordering a server, this method can be used to determine what these options are.
-//
 //
 // Detailed information on the return value can be found on the data type page for [[SoftLayer_Container_Hardware_Configuration (type)]].
 func (r Hardware) GetCreateObjectOptions() (resp datatypes.Container_Hardware_Configuration, err error) {
@@ -649,7 +649,7 @@ func (r Hardware) GetCurrentBillingTotal() (resp datatypes.Float64, err error) {
 	return
 }
 
-// The '''getDailyAverage''' method calculates the average daily network traffic used by the selected server. Using the required parameter ''dateTime'' to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
+// The ”'getDailyAverage”' method calculates the average daily network traffic used by the selected server. Using the required parameter ”dateTime” to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
 func (r Hardware) GetDailyAverage(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -713,7 +713,7 @@ func (r Hardware) GetDownstreamNetworkHardware() (resp []datatypes.Hardware, err
 	return
 }
 
-// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware.
+// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware. [DEPRECATED]
 func (r Hardware) GetDownstreamNetworkHardwareWithIncidents() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getDownstreamNetworkHardwareWithIncidents", nil, &r.Options, &resp)
 	return
@@ -755,7 +755,7 @@ func (r Hardware) GetFixedConfigurationPreset() (resp datatypes.Product_Package_
 	return
 }
 
-// The '''getFrontendIncomingBandwidth''' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ''dateTime'' parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendIncomingBandwidth”' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ”dateTime” parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware) GetFrontendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -771,7 +771,7 @@ func (r Hardware) GetFrontendNetworkComponents() (resp []datatypes.Network_Compo
 	return
 }
 
-// The '''getFrontendOutgoingBandwidth''' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ''dateTime'' parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendOutgoingBandwidth”' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ”dateTime” parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware) GetFrontendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -847,7 +847,7 @@ func (r Hardware) GetHostIpsSoftwareComponent() (resp datatypes.Software_Compone
 	return
 }
 
-// The '''getHourlyBandwidth''' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ''dateTime'' parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
+// The ”'getHourlyBandwidth”' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ”dateTime” parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
 //
 // '02/01/2008 0:00'
 //
@@ -936,7 +936,7 @@ func (r Hardware) GetMemoryCapacity() (resp uint, err error) {
 }
 
 // Retrieve A piece of hardware's metric tracking object.
-func (r Hardware) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object_HardwareServer, err error) {
+func (r Hardware) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getMetricTrackingObject", nil, &r.Options, &resp)
 	return
 }
@@ -1025,13 +1025,13 @@ func (r Hardware) GetNetworkMonitors() (resp []datatypes.Network_Monitor_Version
 	return
 }
 
-// Retrieve The value of a hardware's network status attribute.
+// Retrieve The value of a hardware's network status attribute. [DEPRECATED]
 func (r Hardware) GetNetworkStatus() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getNetworkStatus", nil, &r.Options, &resp)
 	return
 }
 
-// Retrieve The hardware's related network status attribute.
+// Retrieve The hardware's related network status attribute. [DEPRECATED]
 func (r Hardware) GetNetworkStatusAttribute() (resp datatypes.Hardware_Attribute, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getNetworkStatusAttribute", nil, &r.Options, &resp)
 	return
@@ -1261,7 +1261,7 @@ func (r Hardware) GetRouters() (resp []datatypes.Hardware, err error) {
 	return
 }
 
-// Retrieve Collection of scale assets this hardware corresponds to.
+// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
 func (r Hardware) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getScaleAssets", nil, &r.Options, &resp)
 	return
@@ -1273,25 +1273,25 @@ func (r Hardware) GetSecurityScanRequests() (resp []datatypes.Network_Security_S
 	return
 }
 
-// The '''getSensorData''' method retrieves a server's hardware state via its internal sensors. Remote sensor data is transmitted to the SoftLayer API by way of the server's remote management card. Sensor data measures various information, including system temperatures, voltages and other local server settings. Sensor data is cached for 30 second; calls made to this method for the same server within 30 seconds of each other will result in the same data being returned. To ensure that the data retrieved retrieves snapshot of varied data, make calls greater than 30 seconds apart.
+// The ”'getSensorData”' method retrieves a server's hardware state via its internal sensors. Remote sensor data is transmitted to the SoftLayer API by way of the server's remote management card. Sensor data measures various information, including system temperatures, voltages and other local server settings. Sensor data is cached for 30 second; calls made to this method for the same server within 30 seconds of each other will result in the same data being returned. To ensure that the data retrieved retrieves snapshot of varied data, make calls greater than 30 seconds apart.
 func (r Hardware) GetSensorData() (resp []datatypes.Container_RemoteManagement_SensorReading, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getSensorData", nil, &r.Options, &resp)
 	return
 }
 
-// The '''getSensorDataWithGraphs''' method retrieves the raw data returned from the server's remote management card. Along with raw data, graphs for the CPU and system temperatures and fan speeds are also returned. For more details on what information is returned, refer to the ''getSensorData'' method.
+// The ”'getSensorDataWithGraphs”' method retrieves the raw data returned from the server's remote management card. Along with raw data, graphs for the CPU and system temperatures and fan speeds are also returned. For more details on what information is returned, refer to the ”getSensorData” method.
 func (r Hardware) GetSensorDataWithGraphs() (resp datatypes.Container_RemoteManagement_SensorReadingsWithGraphs, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getSensorDataWithGraphs", nil, &r.Options, &resp)
 	return
 }
 
-// The '''getServerFanSpeedGraphs''' method retrieves the server's fan speeds and displays the speeds using tachometer graphs. data used to construct these graphs is retrieved from the server's remote management card. Each graph returned will have an associated title.
+// The ”'getServerFanSpeedGraphs”' method retrieves the server's fan speeds and displays the speeds using tachometer graphs. data used to construct these graphs is retrieved from the server's remote management card. Each graph returned will have an associated title.
 func (r Hardware) GetServerFanSpeedGraphs() (resp []datatypes.Container_RemoteManagement_Graphs_SensorSpeed, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getServerFanSpeedGraphs", nil, &r.Options, &resp)
 	return
 }
 
-// The '''getPowerState''' method retrieves the power state for the selected server. The server's power status is retrieved from its remote management card. This method returns "on", for a server that has been powered on, or "off" for servers powered off.
+// The ”'getPowerState”' method retrieves the power state for the selected server. The server's power status is retrieved from its remote management card. This method returns "on", for a server that has been powered on, or "off" for servers powered off.
 func (r Hardware) GetServerPowerState() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getServerPowerState", nil, &r.Options, &resp)
 	return
@@ -1303,7 +1303,7 @@ func (r Hardware) GetServerRoom() (resp datatypes.Location, err error) {
 	return
 }
 
-// The '''getServerTemperatureGraphs''' retrieves the server's temperatures and displays the various temperatures using thermometer graphs. Temperatures retrieved are CPU temperature(s) and system temperatures. Data used to construct the graphs is retrieved from the server's remote management card. All graphs returned will have an associated title.
+// The ”'getServerTemperatureGraphs”' retrieves the server's temperatures and displays the various temperatures using thermometer graphs. Temperatures retrieved are CPU temperature(s) and system temperatures. Data used to construct the graphs is retrieved from the server's remote management card. All graphs returned will have an associated title.
 func (r Hardware) GetServerTemperatureGraphs() (resp []datatypes.Container_RemoteManagement_Graphs_SensorTemperature, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getServerTemperatureGraphs", nil, &r.Options, &resp)
 	return
@@ -1357,7 +1357,6 @@ func (r Hardware) GetTopLevelLocation() (resp datatypes.Location, err error) {
 	return
 }
 
-//
 // This method will query transaction history for a piece of hardware.
 func (r Hardware) GetTransactionHistory() (resp []datatypes.Provisioning_Version1_Transaction_History, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getTransactionHistory", nil, &r.Options, &resp)
@@ -1373,6 +1372,12 @@ func (r Hardware) GetUpgradeItemPrices() (resp []datatypes.Product_Item_Price, e
 // Retrieve An account's associated upgrade request object, if any.
 func (r Hardware) GetUpgradeRequest() (resp datatypes.Product_Upgrade_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getUpgradeRequest", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A piece of hardware's active upgradeable physical components.
+func (r Hardware) GetUpgradeableActiveComponents() (resp []datatypes.Hardware_Component, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware", "getUpgradeableActiveComponents", nil, &r.Options, &resp)
 	return
 }
 
@@ -1442,13 +1447,13 @@ func (r Hardware) GetVirtualizationPlatform() (resp datatypes.Software_Component
 	return
 }
 
-// The '''importVirtualHost''' method attempts to import the host record for the virtualization platform running on a server.
+// The ”'importVirtualHost”' method attempts to import the host record for the virtualization platform running on a server.
 func (r Hardware) ImportVirtualHost() (resp datatypes.Virtual_Host, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "importVirtualHost", nil, &r.Options, &resp)
 	return
 }
 
-// The '''isPingable''' method issues a ping command to the selected server and returns the result of the ping command. This boolean return value displays ''true'' upon successful ping or ''false'' for a failed ping.
+// The ”'isPingable”' method issues a ping command to the selected server and returns the result of the ping command. This boolean return value displays ”true” upon successful ping or ”false” for a failed ping.
 func (r Hardware) IsPingable() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "isPingable", nil, &r.Options, &resp)
 	return
@@ -1460,11 +1465,9 @@ func (r Hardware) Ping() (resp string, err error) {
 	return
 }
 
-// The '''powerCycle''' method completes a power off and power on of the server successively in one command. The power cycle command is equivalent to unplugging the server from the power strip and then plugging the server back in. '''This method should only be used when all other options have been exhausted'''. Additional remote management commands may not be executed if this command was successfully issued within the last 20 minutes to avoid server failure. Remote management commands include:
+// The ”'powerCycle”' method completes a power off and power on of the server successively in one command. The power cycle command is equivalent to unplugging the server from the power strip and then plugging the server back in. ”'This method should only be used when all other options have been exhausted”'. Additional remote management commands may not be executed if this command was successfully issued within the last 20 minutes to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware) PowerCycle() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "powerCycle", nil, &r.Options, &resp)
 	return
@@ -1476,43 +1479,35 @@ func (r Hardware) PowerOff() (resp bool, err error) {
 	return
 }
 
-// The '''powerOn''' method powers on a server via its remote management card. This boolean return value returns ''true'' upon successful execution and ''false'' if unsuccessful. Other remote management commands may not be issued in this command was successfully completed within the last 20 minutes to avoid server failure. Remote management commands include:
+// The ”'powerOn”' method powers on a server via its remote management card. This boolean return value returns ”true” upon successful execution and ”false” if unsuccessful. Other remote management commands may not be issued in this command was successfully completed within the last 20 minutes to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware) PowerOn() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "powerOn", nil, &r.Options, &resp)
 	return
 }
 
-// The '''rebootDefault''' method attempts to reboot the server by issuing a soft reboot, or reset, command to the server's remote management card. if the reset attempt is unsuccessful, a power cycle command will be issued via the power strip. The power cycle command is equivalent to unplugging the server from the power strip and then plugging the server back in. If the reset was successful within the last 20 minutes, another remote management command cannot be completed to avoid server failure. Remote management commands include:
+// The ”'rebootDefault”' method attempts to reboot the server by issuing a soft reboot, or reset, command to the server's remote management card. if the reset attempt is unsuccessful, a power cycle command will be issued via the power strip. The power cycle command is equivalent to unplugging the server from the power strip and then plugging the server back in. If the reset was successful within the last 20 minutes, another remote management command cannot be completed to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware) RebootDefault() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "rebootDefault", nil, &r.Options, &resp)
 	return
 }
 
-// The '''rebootHard''' method reboots the server by issuing a cycle command to the server's remote management card. A hard reboot is equivalent to pressing the ''Reset'' button on a server - it is issued immediately and will not allow processes to shut down prior to the reboot. Completing a hard reboot may initiate system disk checks upon server reboot, causing the boot up to take longer than normally expected.
+// The ”'rebootHard”' method reboots the server by issuing a cycle command to the server's remote management card. A hard reboot is equivalent to pressing the ”Reset” button on a server - it is issued immediately and will not allow processes to shut down prior to the reboot. Completing a hard reboot may initiate system disk checks upon server reboot, causing the boot up to take longer than normally expected.
 //
 // Remote management commands are unable to be executed if a reboot has been issued successfully within the last 20 minutes to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware) RebootHard() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "rebootHard", nil, &r.Options, &resp)
 	return
 }
 
-// The '''rebootSoft''' method reboots the server by issuing a reset command to the server's remote management card via soft reboot. When executing a soft reboot, servers allow all processes to shut down completely before rebooting. Remote management commands are unable to be issued within 20 minutes of issuing a successful soft reboot in order to avoid server failure. Remote management commands include:
+// The ”'rebootSoft”' method reboots the server by issuing a reset command to the server's remote management card via soft reboot. When executing a soft reboot, servers allow all processes to shut down completely before rebooting. Remote management commands are unable to be issued within 20 minutes of issuing a successful soft reboot in order to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware) RebootSoft() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "rebootSoft", nil, &r.Options, &resp)
 	return
@@ -1873,6 +1868,12 @@ func (r Hardware_Component_Model) GetObject() (resp datatypes.Hardware_Component
 	return
 }
 
+// Retrieve
+func (r Hardware_Component_Model) GetQualifiedFirmwares() (resp []datatypes.Hardware_Component_Firmware, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Component_Model", "getQualifiedFirmwares", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve A motherboard's average reboot time.
 func (r Hardware_Component_Model) GetRebootTime() (resp datatypes.Hardware_Component_Motherboard_Reboot_Time, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Component_Model", "getRebootTime", nil, &r.Options, &resp)
@@ -1937,7 +1938,7 @@ func (r Hardware_Component_Partition_OperatingSystem) GetAllObjects() (resp []da
 	return
 }
 
-// The '''getByDescription''' method retrieves all possible partition templates based on the description (required parameter) entered when calling the method. The description is typically the operating system's name. Current recognized values include 'linux', 'windows', 'freebsd', and 'Debian'.
+// The ”'getByDescription”' method retrieves all possible partition templates based on the description (required parameter) entered when calling the method. The description is typically the operating system's name. Current recognized values include 'linux', 'windows', 'freebsd', and 'Debian'.
 func (r Hardware_Component_Partition_OperatingSystem) GetByDescription(description *string) (resp datatypes.Hardware_Component_Partition_OperatingSystem, err error) {
 	params := []interface{}{
 		description,
@@ -2101,271 +2102,277 @@ func (r Hardware_Router) CaptureImage(captureTemplate *datatypes.Container_Disk_
 	return
 }
 
-//
 // <style type="text/css">.create_object > li > div { padding-top: .5em; padding-bottom: .5em}</style>
 // createObject() enables the creation of servers on an account. This
 // method is a simplified alternative to interacting with the ordering system directly.
 //
-//
 // In order to create a server, a template object must be sent in with a few required
 // values.
 //
-//
 // When this method returns an order will have been placed for a server of the specified configuration.
-//
 //
 // To determine when the server is available you can poll the server via [[SoftLayer_Hardware/getObject|getObject]],
 // checking the <code>provisionDate</code> property.
 // When <code>provisionDate</code> is not null, the server will be ready. Be sure to use the <code>globalIdentifier</code>
 // as your initialization parameter.
 //
-//
 // <b>Warning:</b> Servers created via this method will incur charges on your account. For testing input parameters see [[SoftLayer_Hardware/generateOrderTemplate|generateOrderTemplate]].
-//
 //
 // <b>Input</b> - [[SoftLayer_Hardware (type)|SoftLayer_Hardware]]
 // <ul class="create_object">
-//     <li><code>hostname</code>
-//         <div>Hostname for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>domain</code>
-//         <div>Domain for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>processorCoreAmount</code>
-//         <div>The number of logical CPU cores to allocate.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>memoryCapacity</code>
-//         <div>The amount of memory to allocate in gigabytes.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>hourlyBillingFlag</code>
-//         <div>Specifies the billing type for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>operatingSystemReferenceCode</code>
-//         <div>An identifier for the operating system to provision the server with.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>datacenter.name</code>
-//         <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "datacenter": {
-//         "name": "dal05"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.maxSpeed</code>
-//         <div>Specifies the connection speed for the server's network components.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "maxSpeed": 1000
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.redundancyEnabledFlag</code>
-//         <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - bool</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "redundancyEnabledFlag": false
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>privateNetworkOnlyFlag</code>
-//         <div>Specifies whether or not the server only has access to the private network</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li>When true this flag specifies that a server is to only have access to the private network.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>primaryNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryNetworkComponent": {
-//         "networkVlan": {
-//             "id": 1
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryBackendNetworkComponent": {
-//         "networkVlan": {
-//             "id": 2
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>fixedConfigurationPreset.keyName</code>
-//         <div></div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
-//             <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "fixedConfigurationPreset": {
-//         "keyName": "SOME_KEY_NAME"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>userData.value</code>
-//         <div>Arbitrary data to be made available to the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
-//             <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
-//         </ul>
-//         <http title="Example">{
-//     "userData": [
-//         {
-//             "value": "someValue"
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>hardDrives</code>
-//         <div>Hard drive settings for the server</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - SoftLayer_Hardware_Component</li>
-//             <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
-//             <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
-//             <li>Each hard drive must specify the <code>capacity</code> property.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "hardDrives": [
-//         {
-//             "capacity": 500
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
-//         <div>SSH keys to install on the server upon provisioning.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
-//             <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
-//             <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
-//             <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
-//         </ul>
-//         <http title="Example">{
-//     "sshKeys": [
-//         {
-//             "id": 123
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>postInstallScriptUri</code>
-//         <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
+//
+//	    <li><code>hostname</code>
+//	        <div>Hostname for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>domain</code>
+//	        <div>Domain for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>processorCoreAmount</code>
+//	        <div>The number of logical CPU cores to allocate.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>memoryCapacity</code>
+//	        <div>The amount of memory to allocate in gigabytes.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>hourlyBillingFlag</code>
+//	        <div>Specifies the billing type for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>operatingSystemReferenceCode</code>
+//	        <div>An identifier for the operating system to provision the server with.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>datacenter.name</code>
+//	        <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "datacenter": {
+//	        "name": "dal05"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.maxSpeed</code>
+//	        <div>Specifies the connection speed for the server's network components.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "maxSpeed": 1000
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.redundancyEnabledFlag</code>
+//	        <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - bool</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "redundancyEnabledFlag": false
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>privateNetworkOnlyFlag</code>
+//	        <div>Specifies whether or not the server only has access to the private network</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li>When true this flag specifies that a server is to only have access to the private network.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>primaryNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 1
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryBackendNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 2
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>fixedConfigurationPreset.keyName</code>
+//	        <div></div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
+//	            <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "fixedConfigurationPreset": {
+//	        "keyName": "SOME_KEY_NAME"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>userData.value</code>
+//	        <div>Arbitrary data to be made available to the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
+//	            <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "userData": [
+//	        {
+//	            "value": "someValue"
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>hardDrives</code>
+//	        <div>Hard drive settings for the server</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - SoftLayer_Hardware_Component</li>
+//	            <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
+//	            <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
+//	            <li>Each hard drive must specify the <code>capacity</code> property.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "hardDrives": [
+//	        {
+//	            "capacity": 500
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
+//	        <div>SSH keys to install on the server upon provisioning.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
+//	            <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
+//	            <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
+//	            <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
+//	        </ul>
+//	        <http title="Example">{
+//	    "sshKeys": [
+//	        {
+//	            "id": 123
+//	        }
+//	    ]
+//	}</http>
+//
+//	    <br />
+//	</li>
+//	<li><code>postInstallScriptUri</code>
+//	    <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
+//	        <li><b>Optional</b></li>
+//	        <li><b>Type</b> - string</li>
+//	    </ul>
+//	    <br />
+//	</li>
+//
 // </ul>
 //
-//
 // <h1>REST Example</h1>
-// <http title="Request">curl -X POST -d '{
-//  "parameters":[
-//      {
-//          "hostname": "host1",
-//          "domain": "example.com",
-//          "processorCoreAmount": 2,
-//          "memoryCapacity": 2,
-//          "hourlyBillingFlag": true,
-//          "operatingSystemReferenceCode": "UBUNTU_LATEST"
-//      }
-//  ]
-// }' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
+//	<http title="Request">curl -X POST -d '{
+//	 "parameters":[
+//	     {
+//	         "hostname": "host1",
+//	         "domain": "example.com",
+//	         "processorCoreAmount": 2,
+//	         "memoryCapacity": 2,
+//	         "hourlyBillingFlag": true,
+//	         "operatingSystemReferenceCode": "UBUNTU_LATEST"
+//	     }
+//	 ]
+//	}' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
 // </http>
 // <http title="Response">HTTP/1.1 201 Created
 // Location: https://api.softlayer.com/rest/v3/SoftLayer_Hardware/f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5/getObject
 //
+//	{
+//	    "accountId": 232298,
+//	    "bareMetalInstanceFlag": null,
+//	    "domain": "example.com",
+//	    "hardwareStatusId": null,
+//	    "hostname": "host1",
+//	    "id": null,
+//	    "serviceProviderId": null,
+//	    "serviceProviderResourceId": null,
+//	    "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
+//	    "hourlyBillingFlag": true,
+//	    "memoryCapacity": 2,
+//	    "operatingSystemReferenceCode": "UBUNTU_LATEST",
+//	    "processorCoreAmount": 2
+//	}
 //
-// {
-//     "accountId": 232298,
-//     "bareMetalInstanceFlag": null,
-//     "domain": "example.com",
-//     "hardwareStatusId": null,
-//     "hostname": "host1",
-//     "id": null,
-//     "serviceProviderId": null,
-//     "serviceProviderResourceId": null,
-//     "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
-//     "hourlyBillingFlag": true,
-//     "memoryCapacity": 2,
-//     "operatingSystemReferenceCode": "UBUNTU_LATEST",
-//     "processorCoreAmount": 2
-// }
 // </http>
 func (r Hardware_Router) CreateObject(templateObject *datatypes.Hardware) (resp datatypes.Hardware, err error) {
 	params := []interface{}{
@@ -2375,7 +2382,6 @@ func (r Hardware_Router) CreateObject(templateObject *datatypes.Hardware) (resp 
 	return
 }
 
-//
 // This method will cancel a server effective immediately. For servers billed hourly, the charges will stop immediately after the method returns.
 func (r Hardware_Router) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "deleteObject", nil, &r.Options, &resp)
@@ -2419,7 +2425,7 @@ func (r Hardware_Router) ExecuteRemoteScript(uri *string) (err error) {
 	return
 }
 
-// The '''findByIpAddress''' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
+// The ”'findByIpAddress”' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
 func (r Hardware_Router) FindByIpAddress(ipAddress *string) (resp datatypes.Hardware, err error) {
 	params := []interface{}{
 		ipAddress,
@@ -2428,12 +2434,9 @@ func (r Hardware_Router) FindByIpAddress(ipAddress *string) (resp datatypes.Hard
 	return
 }
 
-//
 // Obtain an [[SoftLayer_Container_Product_Order_Hardware_Server (type)|order container]] that can be sent to [[SoftLayer_Product_Order/verifyOrder|verifyOrder]] or [[SoftLayer_Product_Order/placeOrder|placeOrder]].
 //
-//
 // This is primarily useful when there is a necessity to confirm the price which will be charged for an order.
-//
 //
 // See [[SoftLayer_Hardware/createObject|createObject]] for specifics on the requirements of the template object parameter.
 func (r Hardware_Router) GenerateOrderTemplate(templateObject *datatypes.Hardware) (resp datatypes.Container_Product_Order, err error) {
@@ -2528,7 +2531,7 @@ func (r Hardware_Router) GetAverageDailyPublicBandwidthUsage() (resp datatypes.F
 	return
 }
 
-// The '''getBackendIncomingBandwidth''' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendIncomingBandwidth”' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware_Router) GetBackendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -2544,7 +2547,7 @@ func (r Hardware_Router) GetBackendNetworkComponents() (resp []datatypes.Network
 	return
 }
 
-// The '''getBackendOutgoingBandwidth''' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendOutgoingBandwidth”' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware_Router) GetBackendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -2632,9 +2635,7 @@ func (r Hardware_Router) GetContinuousDataProtectionSoftwareComponent() (resp da
 	return
 }
 
-//
 // There are many options that may be provided while ordering a server, this method can be used to determine what these options are.
-//
 //
 // Detailed information on the return value can be found on the data type page for [[SoftLayer_Container_Hardware_Configuration (type)]].
 func (r Hardware_Router) GetCreateObjectOptions() (resp datatypes.Container_Hardware_Configuration, err error) {
@@ -2660,7 +2661,7 @@ func (r Hardware_Router) GetCurrentBillingTotal() (resp datatypes.Float64, err e
 	return
 }
 
-// The '''getDailyAverage''' method calculates the average daily network traffic used by the selected server. Using the required parameter ''dateTime'' to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
+// The ”'getDailyAverage”' method calculates the average daily network traffic used by the selected server. Using the required parameter ”dateTime” to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
 func (r Hardware_Router) GetDailyAverage(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -2724,7 +2725,7 @@ func (r Hardware_Router) GetDownstreamNetworkHardware() (resp []datatypes.Hardwa
 	return
 }
 
-// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware.
+// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware. [DEPRECATED]
 func (r Hardware_Router) GetDownstreamNetworkHardwareWithIncidents() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getDownstreamNetworkHardwareWithIncidents", nil, &r.Options, &resp)
 	return
@@ -2766,7 +2767,7 @@ func (r Hardware_Router) GetFixedConfigurationPreset() (resp datatypes.Product_P
 	return
 }
 
-// The '''getFrontendIncomingBandwidth''' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ''dateTime'' parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendIncomingBandwidth”' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ”dateTime” parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware_Router) GetFrontendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -2782,7 +2783,7 @@ func (r Hardware_Router) GetFrontendNetworkComponents() (resp []datatypes.Networ
 	return
 }
 
-// The '''getFrontendOutgoingBandwidth''' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ''dateTime'' parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendOutgoingBandwidth”' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ”dateTime” parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware_Router) GetFrontendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -2858,7 +2859,7 @@ func (r Hardware_Router) GetHostIpsSoftwareComponent() (resp datatypes.Software_
 	return
 }
 
-// The '''getHourlyBandwidth''' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ''dateTime'' parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
+// The ”'getHourlyBandwidth”' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ”dateTime” parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
 //
 // '02/01/2008 0:00'
 //
@@ -2953,7 +2954,7 @@ func (r Hardware_Router) GetMemoryCapacity() (resp uint, err error) {
 }
 
 // Retrieve A piece of hardware's metric tracking object.
-func (r Hardware_Router) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object_HardwareServer, err error) {
+func (r Hardware_Router) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getMetricTrackingObject", nil, &r.Options, &resp)
 	return
 }
@@ -3042,13 +3043,13 @@ func (r Hardware_Router) GetNetworkMonitors() (resp []datatypes.Network_Monitor_
 	return
 }
 
-// Retrieve The value of a hardware's network status attribute.
+// Retrieve The value of a hardware's network status attribute. [DEPRECATED]
 func (r Hardware_Router) GetNetworkStatus() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getNetworkStatus", nil, &r.Options, &resp)
 	return
 }
 
-// Retrieve The hardware's related network status attribute.
+// Retrieve The hardware's related network status attribute. [DEPRECATED]
 func (r Hardware_Router) GetNetworkStatusAttribute() (resp datatypes.Hardware_Attribute, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getNetworkStatusAttribute", nil, &r.Options, &resp)
 	return
@@ -3284,7 +3285,7 @@ func (r Hardware_Router) GetSanStorageCapabilityFlag() (resp bool, err error) {
 	return
 }
 
-// Retrieve Collection of scale assets this hardware corresponds to.
+// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
 func (r Hardware_Router) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getScaleAssets", nil, &r.Options, &resp)
 	return
@@ -3296,25 +3297,25 @@ func (r Hardware_Router) GetSecurityScanRequests() (resp []datatypes.Network_Sec
 	return
 }
 
-// The '''getSensorData''' method retrieves a server's hardware state via its internal sensors. Remote sensor data is transmitted to the SoftLayer API by way of the server's remote management card. Sensor data measures various information, including system temperatures, voltages and other local server settings. Sensor data is cached for 30 second; calls made to this method for the same server within 30 seconds of each other will result in the same data being returned. To ensure that the data retrieved retrieves snapshot of varied data, make calls greater than 30 seconds apart.
+// The ”'getSensorData”' method retrieves a server's hardware state via its internal sensors. Remote sensor data is transmitted to the SoftLayer API by way of the server's remote management card. Sensor data measures various information, including system temperatures, voltages and other local server settings. Sensor data is cached for 30 second; calls made to this method for the same server within 30 seconds of each other will result in the same data being returned. To ensure that the data retrieved retrieves snapshot of varied data, make calls greater than 30 seconds apart.
 func (r Hardware_Router) GetSensorData() (resp []datatypes.Container_RemoteManagement_SensorReading, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getSensorData", nil, &r.Options, &resp)
 	return
 }
 
-// The '''getSensorDataWithGraphs''' method retrieves the raw data returned from the server's remote management card. Along with raw data, graphs for the CPU and system temperatures and fan speeds are also returned. For more details on what information is returned, refer to the ''getSensorData'' method.
+// The ”'getSensorDataWithGraphs”' method retrieves the raw data returned from the server's remote management card. Along with raw data, graphs for the CPU and system temperatures and fan speeds are also returned. For more details on what information is returned, refer to the ”getSensorData” method.
 func (r Hardware_Router) GetSensorDataWithGraphs() (resp datatypes.Container_RemoteManagement_SensorReadingsWithGraphs, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getSensorDataWithGraphs", nil, &r.Options, &resp)
 	return
 }
 
-// The '''getServerFanSpeedGraphs''' method retrieves the server's fan speeds and displays the speeds using tachometer graphs. data used to construct these graphs is retrieved from the server's remote management card. Each graph returned will have an associated title.
+// The ”'getServerFanSpeedGraphs”' method retrieves the server's fan speeds and displays the speeds using tachometer graphs. data used to construct these graphs is retrieved from the server's remote management card. Each graph returned will have an associated title.
 func (r Hardware_Router) GetServerFanSpeedGraphs() (resp []datatypes.Container_RemoteManagement_Graphs_SensorSpeed, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getServerFanSpeedGraphs", nil, &r.Options, &resp)
 	return
 }
 
-// The '''getPowerState''' method retrieves the power state for the selected server. The server's power status is retrieved from its remote management card. This method returns "on", for a server that has been powered on, or "off" for servers powered off.
+// The ”'getPowerState”' method retrieves the power state for the selected server. The server's power status is retrieved from its remote management card. This method returns "on", for a server that has been powered on, or "off" for servers powered off.
 func (r Hardware_Router) GetServerPowerState() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getServerPowerState", nil, &r.Options, &resp)
 	return
@@ -3326,7 +3327,7 @@ func (r Hardware_Router) GetServerRoom() (resp datatypes.Location, err error) {
 	return
 }
 
-// The '''getServerTemperatureGraphs''' retrieves the server's temperatures and displays the various temperatures using thermometer graphs. Temperatures retrieved are CPU temperature(s) and system temperatures. Data used to construct the graphs is retrieved from the server's remote management card. All graphs returned will have an associated title.
+// The ”'getServerTemperatureGraphs”' retrieves the server's temperatures and displays the various temperatures using thermometer graphs. Temperatures retrieved are CPU temperature(s) and system temperatures. Data used to construct the graphs is retrieved from the server's remote management card. All graphs returned will have an associated title.
 func (r Hardware_Router) GetServerTemperatureGraphs() (resp []datatypes.Container_RemoteManagement_Graphs_SensorTemperature, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getServerTemperatureGraphs", nil, &r.Options, &resp)
 	return
@@ -3380,7 +3381,6 @@ func (r Hardware_Router) GetTopLevelLocation() (resp datatypes.Location, err err
 	return
 }
 
-//
 // This method will query transaction history for a piece of hardware.
 func (r Hardware_Router) GetTransactionHistory() (resp []datatypes.Provisioning_Version1_Transaction_History, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getTransactionHistory", nil, &r.Options, &resp)
@@ -3396,6 +3396,12 @@ func (r Hardware_Router) GetUpgradeItemPrices() (resp []datatypes.Product_Item_P
 // Retrieve An account's associated upgrade request object, if any.
 func (r Hardware_Router) GetUpgradeRequest() (resp datatypes.Product_Upgrade_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getUpgradeRequest", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A piece of hardware's active upgradeable physical components.
+func (r Hardware_Router) GetUpgradeableActiveComponents() (resp []datatypes.Hardware_Component, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getUpgradeableActiveComponents", nil, &r.Options, &resp)
 	return
 }
 
@@ -3465,13 +3471,13 @@ func (r Hardware_Router) GetVirtualizationPlatform() (resp datatypes.Software_Co
 	return
 }
 
-// The '''importVirtualHost''' method attempts to import the host record for the virtualization platform running on a server.
+// The ”'importVirtualHost”' method attempts to import the host record for the virtualization platform running on a server.
 func (r Hardware_Router) ImportVirtualHost() (resp datatypes.Virtual_Host, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "importVirtualHost", nil, &r.Options, &resp)
 	return
 }
 
-// The '''isPingable''' method issues a ping command to the selected server and returns the result of the ping command. This boolean return value displays ''true'' upon successful ping or ''false'' for a failed ping.
+// The ”'isPingable”' method issues a ping command to the selected server and returns the result of the ping command. This boolean return value displays ”true” upon successful ping or ”false” for a failed ping.
 func (r Hardware_Router) IsPingable() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "isPingable", nil, &r.Options, &resp)
 	return
@@ -3483,11 +3489,9 @@ func (r Hardware_Router) Ping() (resp string, err error) {
 	return
 }
 
-// The '''powerCycle''' method completes a power off and power on of the server successively in one command. The power cycle command is equivalent to unplugging the server from the power strip and then plugging the server back in. '''This method should only be used when all other options have been exhausted'''. Additional remote management commands may not be executed if this command was successfully issued within the last 20 minutes to avoid server failure. Remote management commands include:
+// The ”'powerCycle”' method completes a power off and power on of the server successively in one command. The power cycle command is equivalent to unplugging the server from the power strip and then plugging the server back in. ”'This method should only be used when all other options have been exhausted”'. Additional remote management commands may not be executed if this command was successfully issued within the last 20 minutes to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware_Router) PowerCycle() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "powerCycle", nil, &r.Options, &resp)
 	return
@@ -3499,43 +3503,35 @@ func (r Hardware_Router) PowerOff() (resp bool, err error) {
 	return
 }
 
-// The '''powerOn''' method powers on a server via its remote management card. This boolean return value returns ''true'' upon successful execution and ''false'' if unsuccessful. Other remote management commands may not be issued in this command was successfully completed within the last 20 minutes to avoid server failure. Remote management commands include:
+// The ”'powerOn”' method powers on a server via its remote management card. This boolean return value returns ”true” upon successful execution and ”false” if unsuccessful. Other remote management commands may not be issued in this command was successfully completed within the last 20 minutes to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware_Router) PowerOn() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "powerOn", nil, &r.Options, &resp)
 	return
 }
 
-// The '''rebootDefault''' method attempts to reboot the server by issuing a soft reboot, or reset, command to the server's remote management card. if the reset attempt is unsuccessful, a power cycle command will be issued via the power strip. The power cycle command is equivalent to unplugging the server from the power strip and then plugging the server back in. If the reset was successful within the last 20 minutes, another remote management command cannot be completed to avoid server failure. Remote management commands include:
+// The ”'rebootDefault”' method attempts to reboot the server by issuing a soft reboot, or reset, command to the server's remote management card. if the reset attempt is unsuccessful, a power cycle command will be issued via the power strip. The power cycle command is equivalent to unplugging the server from the power strip and then plugging the server back in. If the reset was successful within the last 20 minutes, another remote management command cannot be completed to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware_Router) RebootDefault() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "rebootDefault", nil, &r.Options, &resp)
 	return
 }
 
-// The '''rebootHard''' method reboots the server by issuing a cycle command to the server's remote management card. A hard reboot is equivalent to pressing the ''Reset'' button on a server - it is issued immediately and will not allow processes to shut down prior to the reboot. Completing a hard reboot may initiate system disk checks upon server reboot, causing the boot up to take longer than normally expected.
+// The ”'rebootHard”' method reboots the server by issuing a cycle command to the server's remote management card. A hard reboot is equivalent to pressing the ”Reset” button on a server - it is issued immediately and will not allow processes to shut down prior to the reboot. Completing a hard reboot may initiate system disk checks upon server reboot, causing the boot up to take longer than normally expected.
 //
 // Remote management commands are unable to be executed if a reboot has been issued successfully within the last 20 minutes to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware_Router) RebootHard() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "rebootHard", nil, &r.Options, &resp)
 	return
 }
 
-// The '''rebootSoft''' method reboots the server by issuing a reset command to the server's remote management card via soft reboot. When executing a soft reboot, servers allow all processes to shut down completely before rebooting. Remote management commands are unable to be issued within 20 minutes of issuing a successful soft reboot in order to avoid server failure. Remote management commands include:
+// The ”'rebootSoft”' method reboots the server by issuing a reset command to the server's remote management card via soft reboot. When executing a soft reboot, servers allow all processes to shut down completely before rebooting. Remote management commands are unable to be issued within 20 minutes of issuing a successful soft reboot in order to avoid server failure. Remote management commands include:
 //
 // rebootSoft rebootHard powerOn powerOff powerCycle
-//
-//
 func (r Hardware_Router) RebootSoft() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "rebootSoft", nil, &r.Options, &resp)
 	return
@@ -3704,12 +3700,13 @@ func (r Hardware_SecurityModule) CreateFirmwareReflashTransaction(ipmi *int, rai
 // You can launch firmware updates by selecting from your server list. It will bring your server offline for approximately 20 minutes while the updates are in progress.
 //
 // In the event of a hardware failure during this test our datacenter engineers will be notified of the problem automatically. They will then replace any failed components to bring your server back online, and will be contacting you to ensure that impact on your server is minimal.
-func (r Hardware_SecurityModule) CreateFirmwareUpdateTransaction(ipmi *int, raidController *int, bios *int, harddrive *int) (resp bool, err error) {
+func (r Hardware_SecurityModule) CreateFirmwareUpdateTransaction(ipmi *int, raidController *int, bios *int, harddrive *int, networkCard *int) (resp bool, err error) {
 	params := []interface{}{
 		ipmi,
 		raidController,
 		bios,
 		harddrive,
+		networkCard,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "createFirmwareUpdateTransaction", params, &r.Options, &resp)
 	return
@@ -3726,271 +3723,277 @@ func (r Hardware_SecurityModule) CreateHyperThreadingUpdateTransaction(disableHy
 	return
 }
 
-//
 // <style type="text/css">.create_object > li > div { padding-top: .5em; padding-bottom: .5em}</style>
 // createObject() enables the creation of servers on an account. This
 // method is a simplified alternative to interacting with the ordering system directly.
 //
-//
 // In order to create a server, a template object must be sent in with a few required
 // values.
 //
-//
 // When this method returns an order will have been placed for a server of the specified configuration.
-//
 //
 // To determine when the server is available you can poll the server via [[SoftLayer_Hardware/getObject|getObject]],
 // checking the <code>provisionDate</code> property.
 // When <code>provisionDate</code> is not null, the server will be ready. Be sure to use the <code>globalIdentifier</code>
 // as your initialization parameter.
 //
-//
 // <b>Warning:</b> Servers created via this method will incur charges on your account. For testing input parameters see [[SoftLayer_Hardware/generateOrderTemplate|generateOrderTemplate]].
-//
 //
 // <b>Input</b> - [[SoftLayer_Hardware (type)|SoftLayer_Hardware]]
 // <ul class="create_object">
-//     <li><code>hostname</code>
-//         <div>Hostname for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>domain</code>
-//         <div>Domain for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>processorCoreAmount</code>
-//         <div>The number of logical CPU cores to allocate.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>memoryCapacity</code>
-//         <div>The amount of memory to allocate in gigabytes.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>hourlyBillingFlag</code>
-//         <div>Specifies the billing type for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>operatingSystemReferenceCode</code>
-//         <div>An identifier for the operating system to provision the server with.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>datacenter.name</code>
-//         <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "datacenter": {
-//         "name": "dal05"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.maxSpeed</code>
-//         <div>Specifies the connection speed for the server's network components.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "maxSpeed": 1000
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.redundancyEnabledFlag</code>
-//         <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - bool</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "redundancyEnabledFlag": false
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>privateNetworkOnlyFlag</code>
-//         <div>Specifies whether or not the server only has access to the private network</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li>When true this flag specifies that a server is to only have access to the private network.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>primaryNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryNetworkComponent": {
-//         "networkVlan": {
-//             "id": 1
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryBackendNetworkComponent": {
-//         "networkVlan": {
-//             "id": 2
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>fixedConfigurationPreset.keyName</code>
-//         <div></div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
-//             <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "fixedConfigurationPreset": {
-//         "keyName": "SOME_KEY_NAME"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>userData.value</code>
-//         <div>Arbitrary data to be made available to the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
-//             <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
-//         </ul>
-//         <http title="Example">{
-//     "userData": [
-//         {
-//             "value": "someValue"
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>hardDrives</code>
-//         <div>Hard drive settings for the server</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - SoftLayer_Hardware_Component</li>
-//             <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
-//             <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
-//             <li>Each hard drive must specify the <code>capacity</code> property.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "hardDrives": [
-//         {
-//             "capacity": 500
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
-//         <div>SSH keys to install on the server upon provisioning.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
-//             <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
-//             <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
-//             <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
-//         </ul>
-//         <http title="Example">{
-//     "sshKeys": [
-//         {
-//             "id": 123
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>postInstallScriptUri</code>
-//         <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
+//
+//	    <li><code>hostname</code>
+//	        <div>Hostname for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>domain</code>
+//	        <div>Domain for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>processorCoreAmount</code>
+//	        <div>The number of logical CPU cores to allocate.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>memoryCapacity</code>
+//	        <div>The amount of memory to allocate in gigabytes.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>hourlyBillingFlag</code>
+//	        <div>Specifies the billing type for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>operatingSystemReferenceCode</code>
+//	        <div>An identifier for the operating system to provision the server with.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>datacenter.name</code>
+//	        <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "datacenter": {
+//	        "name": "dal05"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.maxSpeed</code>
+//	        <div>Specifies the connection speed for the server's network components.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "maxSpeed": 1000
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.redundancyEnabledFlag</code>
+//	        <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - bool</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "redundancyEnabledFlag": false
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>privateNetworkOnlyFlag</code>
+//	        <div>Specifies whether or not the server only has access to the private network</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li>When true this flag specifies that a server is to only have access to the private network.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>primaryNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 1
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryBackendNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 2
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>fixedConfigurationPreset.keyName</code>
+//	        <div></div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
+//	            <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "fixedConfigurationPreset": {
+//	        "keyName": "SOME_KEY_NAME"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>userData.value</code>
+//	        <div>Arbitrary data to be made available to the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
+//	            <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "userData": [
+//	        {
+//	            "value": "someValue"
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>hardDrives</code>
+//	        <div>Hard drive settings for the server</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - SoftLayer_Hardware_Component</li>
+//	            <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
+//	            <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
+//	            <li>Each hard drive must specify the <code>capacity</code> property.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "hardDrives": [
+//	        {
+//	            "capacity": 500
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
+//	        <div>SSH keys to install on the server upon provisioning.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
+//	            <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
+//	            <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
+//	            <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
+//	        </ul>
+//	        <http title="Example">{
+//	    "sshKeys": [
+//	        {
+//	            "id": 123
+//	        }
+//	    ]
+//	}</http>
+//
+//	    <br />
+//	</li>
+//	<li><code>postInstallScriptUri</code>
+//	    <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
+//	        <li><b>Optional</b></li>
+//	        <li><b>Type</b> - string</li>
+//	    </ul>
+//	    <br />
+//	</li>
+//
 // </ul>
 //
-//
 // <h1>REST Example</h1>
-// <http title="Request">curl -X POST -d '{
-//  "parameters":[
-//      {
-//          "hostname": "host1",
-//          "domain": "example.com",
-//          "processorCoreAmount": 2,
-//          "memoryCapacity": 2,
-//          "hourlyBillingFlag": true,
-//          "operatingSystemReferenceCode": "UBUNTU_LATEST"
-//      }
-//  ]
-// }' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
+//	<http title="Request">curl -X POST -d '{
+//	 "parameters":[
+//	     {
+//	         "hostname": "host1",
+//	         "domain": "example.com",
+//	         "processorCoreAmount": 2,
+//	         "memoryCapacity": 2,
+//	         "hourlyBillingFlag": true,
+//	         "operatingSystemReferenceCode": "UBUNTU_LATEST"
+//	     }
+//	 ]
+//	}' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
 // </http>
 // <http title="Response">HTTP/1.1 201 Created
 // Location: https://api.softlayer.com/rest/v3/SoftLayer_Hardware/f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5/getObject
 //
+//	{
+//	    "accountId": 232298,
+//	    "bareMetalInstanceFlag": null,
+//	    "domain": "example.com",
+//	    "hardwareStatusId": null,
+//	    "hostname": "host1",
+//	    "id": null,
+//	    "serviceProviderId": null,
+//	    "serviceProviderResourceId": null,
+//	    "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
+//	    "hourlyBillingFlag": true,
+//	    "memoryCapacity": 2,
+//	    "operatingSystemReferenceCode": "UBUNTU_LATEST",
+//	    "processorCoreAmount": 2
+//	}
 //
-// {
-//     "accountId": 232298,
-//     "bareMetalInstanceFlag": null,
-//     "domain": "example.com",
-//     "hardwareStatusId": null,
-//     "hostname": "host1",
-//     "id": null,
-//     "serviceProviderId": null,
-//     "serviceProviderResourceId": null,
-//     "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
-//     "hourlyBillingFlag": true,
-//     "memoryCapacity": 2,
-//     "operatingSystemReferenceCode": "UBUNTU_LATEST",
-//     "processorCoreAmount": 2
-// }
 // </http>
 func (r Hardware_SecurityModule) CreateObject(templateObject *datatypes.Hardware_SecurityModule) (resp datatypes.Hardware_SecurityModule, err error) {
 	params := []interface{}{
@@ -4010,7 +4013,6 @@ func (r Hardware_SecurityModule) CreatePostSoftwareInstallTransaction(installCod
 	return
 }
 
-//
 // This method will cancel a server effective immediately. For servers billed hourly, the charges will stop immediately after the method returns.
 func (r Hardware_SecurityModule) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "deleteObject", nil, &r.Options, &resp)
@@ -4063,7 +4065,7 @@ func (r Hardware_SecurityModule) ExecuteRemoteScript(uri *string) (err error) {
 	return
 }
 
-// The '''findByIpAddress''' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
+// The ”'findByIpAddress”' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
 func (r Hardware_SecurityModule) FindByIpAddress(ipAddress *string) (resp datatypes.Hardware, err error) {
 	params := []interface{}{
 		ipAddress,
@@ -4072,12 +4074,9 @@ func (r Hardware_SecurityModule) FindByIpAddress(ipAddress *string) (resp dataty
 	return
 }
 
-//
 // Obtain an [[SoftLayer_Container_Product_Order_Hardware_Server (type)|order container]] that can be sent to [[SoftLayer_Product_Order/verifyOrder|verifyOrder]] or [[SoftLayer_Product_Order/placeOrder|placeOrder]].
 //
-//
 // This is primarily useful when there is a necessity to confirm the price which will be charged for an order.
-//
 //
 // See [[SoftLayer_Hardware/createObject|createObject]] for specifics on the requirements of the template object parameter.
 func (r Hardware_SecurityModule) GenerateOrderTemplate(templateObject *datatypes.Hardware) (resp datatypes.Container_Product_Order, err error) {
@@ -4226,18 +4225,7 @@ func (r Hardware_SecurityModule) GetBackendBandwidthUsage(startDate *datatypes.T
 	return
 }
 
-// Use this method to return an array of private bandwidth utilization records between a given date range.
-// Deprecated: This function has been marked as deprecated.
-func (r Hardware_SecurityModule) GetBackendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getBackendBandwidthUse", params, &r.Options, &resp)
-	return
-}
-
-// The '''getBackendIncomingBandwidth''' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendIncomingBandwidth”' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware_SecurityModule) GetBackendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -4253,7 +4241,7 @@ func (r Hardware_SecurityModule) GetBackendNetworkComponents() (resp []datatypes
 	return
 }
 
-// The '''getBackendOutgoingBandwidth''' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendOutgoingBandwidth”' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware_SecurityModule) GetBackendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -4412,9 +4400,7 @@ func (r Hardware_SecurityModule) GetCost() (resp datatypes.Float64, err error) {
 	return
 }
 
-//
 // There are many options that may be provided while ordering a server, this method can be used to determine what these options are.
-//
 //
 // Detailed information on the return value can be found on the data type page for [[SoftLayer_Container_Hardware_Configuration (type)]].
 func (r Hardware_SecurityModule) GetCreateObjectOptions() (resp datatypes.Container_Hardware_Configuration, err error) {
@@ -4473,7 +4459,7 @@ func (r Hardware_SecurityModule) GetCustomerOwnedFlag() (resp bool, err error) {
 	return
 }
 
-// The '''getDailyAverage''' method calculates the average daily network traffic used by the selected server. Using the required parameter ''dateTime'' to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
+// The ”'getDailyAverage”' method calculates the average daily network traffic used by the selected server. Using the required parameter ”dateTime” to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
 func (r Hardware_SecurityModule) GetDailyAverage(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -4537,7 +4523,7 @@ func (r Hardware_SecurityModule) GetDownstreamNetworkHardware() (resp []datatype
 	return
 }
 
-// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware.
+// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware. [DEPRECATED]
 func (r Hardware_SecurityModule) GetDownstreamNetworkHardwareWithIncidents() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getDownstreamNetworkHardwareWithIncidents", nil, &r.Options, &resp)
 	return
@@ -4597,18 +4583,7 @@ func (r Hardware_SecurityModule) GetFrontendBandwidthUsage(startDate *datatypes.
 	return
 }
 
-// Use this method to return an array of public bandwidth utilization records between a given date range.
-// Deprecated: This function has been marked as deprecated.
-func (r Hardware_SecurityModule) GetFrontendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getFrontendBandwidthUse", params, &r.Options, &resp)
-	return
-}
-
-// The '''getFrontendIncomingBandwidth''' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ''dateTime'' parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendIncomingBandwidth”' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ”dateTime” parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware_SecurityModule) GetFrontendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -4624,7 +4599,7 @@ func (r Hardware_SecurityModule) GetFrontendNetworkComponents() (resp []datatype
 	return
 }
 
-// The '''getFrontendOutgoingBandwidth''' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ''dateTime'' parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendOutgoingBandwidth”' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ”dateTime” parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware_SecurityModule) GetFrontendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -4715,7 +4690,7 @@ func (r Hardware_SecurityModule) GetHostIpsSoftwareComponent() (resp datatypes.S
 	return
 }
 
-// The '''getHourlyBandwidth''' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ''dateTime'' parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
+// The ”'getHourlyBandwidth”' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ”dateTime” parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
 //
 // '02/01/2008 0:00'
 //
@@ -4857,7 +4832,7 @@ func (r Hardware_SecurityModule) GetMemoryCapacity() (resp uint, err error) {
 }
 
 // Retrieve A piece of hardware's metric tracking object.
-func (r Hardware_SecurityModule) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object_HardwareServer, err error) {
+func (r Hardware_SecurityModule) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getMetricTrackingObject", nil, &r.Options, &resp)
 	return
 }
@@ -4964,13 +4939,13 @@ func (r Hardware_SecurityModule) GetNetworkMonitors() (resp []datatypes.Network_
 	return
 }
 
-// Retrieve The value of a hardware's network status attribute.
+// Retrieve The value of a hardware's network status attribute. [DEPRECATED]
 func (r Hardware_SecurityModule) GetNetworkStatus() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getNetworkStatus", nil, &r.Options, &resp)
 	return
 }
 
-// Retrieve The hardware's related network status attribute.
+// Retrieve The hardware's related network status attribute. [DEPRECATED]
 func (r Hardware_SecurityModule) GetNetworkStatusAttribute() (resp datatypes.Hardware_Attribute, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getNetworkStatusAttribute", nil, &r.Options, &resp)
 	return
@@ -5188,7 +5163,6 @@ func (r Hardware_SecurityModule) GetPrivateVlan() (resp datatypes.Network_Vlan, 
 	return
 }
 
-//
 // *** DEPRECATED ***
 // Retrieve a backend network VLAN by searching for an IP address
 // Deprecated: This function has been marked as deprecated.
@@ -5389,7 +5363,7 @@ func (r Hardware_SecurityModule) GetRouters() (resp []datatypes.Hardware, err er
 	return
 }
 
-// Retrieve Collection of scale assets this hardware corresponds to.
+// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
 func (r Hardware_SecurityModule) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getScaleAssets", nil, &r.Options, &resp)
 	return
@@ -5503,7 +5477,6 @@ func (r Hardware_SecurityModule) GetTopLevelLocation() (resp datatypes.Location,
 	return
 }
 
-//
 // This method will query transaction history for a piece of hardware.
 func (r Hardware_SecurityModule) GetTransactionHistory() (resp []datatypes.Provisioning_Version1_Transaction_History, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getTransactionHistory", nil, &r.Options, &resp)
@@ -5525,6 +5498,12 @@ func (r Hardware_SecurityModule) GetUpgradeItemPrices() (resp []datatypes.Produc
 // Retrieve An account's associated upgrade request object, if any.
 func (r Hardware_SecurityModule) GetUpgradeRequest() (resp datatypes.Product_Upgrade_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getUpgradeRequest", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A piece of hardware's active upgradeable physical components.
+func (r Hardware_SecurityModule) GetUpgradeableActiveComponents() (resp []datatypes.Hardware_Component, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getUpgradeableActiveComponents", nil, &r.Options, &resp)
 	return
 }
 
@@ -5573,7 +5552,7 @@ func (r Hardware_SecurityModule) GetVirtualChassisSiblings() (resp []datatypes.H
 	return
 }
 
-// Retrieve A hardware server's virtual servers.
+// Retrieve [DEPRECATED] A hardware server's virtual servers.
 func (r Hardware_SecurityModule) GetVirtualGuests() (resp []datatypes.Virtual_Guest, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getVirtualGuests", nil, &r.Options, &resp)
 	return
@@ -5633,7 +5612,7 @@ func (r Hardware_SecurityModule) GetWindowsUpdateStatus() (resp datatypes.Contai
 	return
 }
 
-// The '''importVirtualHost''' method attempts to import the host record for the virtualization platform running on a server.
+// The ”'importVirtualHost”' method attempts to import the host record for the virtualization platform running on a server.
 func (r Hardware_SecurityModule) ImportVirtualHost() (resp datatypes.Virtual_Host, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "importVirtualHost", nil, &r.Options, &resp)
 	return
@@ -5663,7 +5642,7 @@ func (r Hardware_SecurityModule) IsPingable() (resp bool, err error) {
 	return
 }
 
-// Determine if the server runs any version of the Microsoft Windows operating systems. Return ''true'' if it does and ''false if otherwise.
+// Determine if the server runs any version of the Microsoft Windows operating systems. Return ”true” if it does and ”false if otherwise.
 func (r Hardware_SecurityModule) IsWindowsServer() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "isWindowsServer", nil, &r.Options, &resp)
 	return
@@ -5686,13 +5665,14 @@ func (r Hardware_SecurityModule) MassFirmwareReflash(hardwareIds []int, ipmi *bo
 // You can launch firmware updates by selecting from your server list. It will bring your server offline for approximately 20 minutes while the updates are in progress.
 //
 // In the event of a hardware failure during this test our datacenter engineers will be notified of the problem automatically. They will then replace any failed components to bring your server back online, and will be contacting you to ensure that impact on your server is minimal.
-func (r Hardware_SecurityModule) MassFirmwareUpdate(hardwareIds []int, ipmi *bool, raidController *bool, bios *bool, harddrive *bool) (resp []datatypes.Container_Hardware_Server_Request, err error) {
+func (r Hardware_SecurityModule) MassFirmwareUpdate(hardwareIds []int, ipmi *bool, raidController *bool, bios *bool, harddrive *bool, networkCard *bool) (resp []datatypes.Container_Hardware_Server_Request, err error) {
 	params := []interface{}{
 		hardwareIds,
 		ipmi,
 		raidController,
 		bios,
 		harddrive,
+		networkCard,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "massFirmwareUpdate", params, &r.Options, &resp)
 	return
@@ -5973,7 +5953,7 @@ func (r Hardware_SecurityModule) TestRaidAlertService() (resp bool, err error) {
 	return
 }
 
-// Attempt to toggle the IPMI interface.  If there is an active transaction on the server, it will throw an exception. This method creates a transaction to toggle the interface.  It is not instant.
+// Attempt to toggle the IPMI interface.  If there is an active transaction on the server, it will throw an exception. This method creates a job to toggle the interface.  It is not instant.
 func (r Hardware_SecurityModule) ToggleManagementInterface(enabled *bool) (resp bool, err error) {
 	params := []interface{}{
 		enabled,
@@ -6113,12 +6093,13 @@ func (r Hardware_SecurityModule750) CreateFirmwareReflashTransaction(ipmi *int, 
 // You can launch firmware updates by selecting from your server list. It will bring your server offline for approximately 20 minutes while the updates are in progress.
 //
 // In the event of a hardware failure during this test our datacenter engineers will be notified of the problem automatically. They will then replace any failed components to bring your server back online, and will be contacting you to ensure that impact on your server is minimal.
-func (r Hardware_SecurityModule750) CreateFirmwareUpdateTransaction(ipmi *int, raidController *int, bios *int, harddrive *int) (resp bool, err error) {
+func (r Hardware_SecurityModule750) CreateFirmwareUpdateTransaction(ipmi *int, raidController *int, bios *int, harddrive *int, networkCard *int) (resp bool, err error) {
 	params := []interface{}{
 		ipmi,
 		raidController,
 		bios,
 		harddrive,
+		networkCard,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "createFirmwareUpdateTransaction", params, &r.Options, &resp)
 	return
@@ -6135,271 +6116,277 @@ func (r Hardware_SecurityModule750) CreateHyperThreadingUpdateTransaction(disabl
 	return
 }
 
-//
 // <style type="text/css">.create_object > li > div { padding-top: .5em; padding-bottom: .5em}</style>
 // createObject() enables the creation of servers on an account. This
 // method is a simplified alternative to interacting with the ordering system directly.
 //
-//
 // In order to create a server, a template object must be sent in with a few required
 // values.
 //
-//
 // When this method returns an order will have been placed for a server of the specified configuration.
-//
 //
 // To determine when the server is available you can poll the server via [[SoftLayer_Hardware/getObject|getObject]],
 // checking the <code>provisionDate</code> property.
 // When <code>provisionDate</code> is not null, the server will be ready. Be sure to use the <code>globalIdentifier</code>
 // as your initialization parameter.
 //
-//
 // <b>Warning:</b> Servers created via this method will incur charges on your account. For testing input parameters see [[SoftLayer_Hardware/generateOrderTemplate|generateOrderTemplate]].
-//
 //
 // <b>Input</b> - [[SoftLayer_Hardware (type)|SoftLayer_Hardware]]
 // <ul class="create_object">
-//     <li><code>hostname</code>
-//         <div>Hostname for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>domain</code>
-//         <div>Domain for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>processorCoreAmount</code>
-//         <div>The number of logical CPU cores to allocate.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>memoryCapacity</code>
-//         <div>The amount of memory to allocate in gigabytes.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>hourlyBillingFlag</code>
-//         <div>Specifies the billing type for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>operatingSystemReferenceCode</code>
-//         <div>An identifier for the operating system to provision the server with.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>datacenter.name</code>
-//         <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "datacenter": {
-//         "name": "dal05"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.maxSpeed</code>
-//         <div>Specifies the connection speed for the server's network components.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "maxSpeed": 1000
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.redundancyEnabledFlag</code>
-//         <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - bool</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "redundancyEnabledFlag": false
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>privateNetworkOnlyFlag</code>
-//         <div>Specifies whether or not the server only has access to the private network</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li>When true this flag specifies that a server is to only have access to the private network.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>primaryNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryNetworkComponent": {
-//         "networkVlan": {
-//             "id": 1
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryBackendNetworkComponent": {
-//         "networkVlan": {
-//             "id": 2
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>fixedConfigurationPreset.keyName</code>
-//         <div></div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
-//             <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "fixedConfigurationPreset": {
-//         "keyName": "SOME_KEY_NAME"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>userData.value</code>
-//         <div>Arbitrary data to be made available to the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
-//             <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
-//         </ul>
-//         <http title="Example">{
-//     "userData": [
-//         {
-//             "value": "someValue"
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>hardDrives</code>
-//         <div>Hard drive settings for the server</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - SoftLayer_Hardware_Component</li>
-//             <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
-//             <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
-//             <li>Each hard drive must specify the <code>capacity</code> property.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "hardDrives": [
-//         {
-//             "capacity": 500
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
-//         <div>SSH keys to install on the server upon provisioning.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
-//             <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
-//             <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
-//             <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
-//         </ul>
-//         <http title="Example">{
-//     "sshKeys": [
-//         {
-//             "id": 123
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>postInstallScriptUri</code>
-//         <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
+//
+//	    <li><code>hostname</code>
+//	        <div>Hostname for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>domain</code>
+//	        <div>Domain for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>processorCoreAmount</code>
+//	        <div>The number of logical CPU cores to allocate.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>memoryCapacity</code>
+//	        <div>The amount of memory to allocate in gigabytes.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>hourlyBillingFlag</code>
+//	        <div>Specifies the billing type for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>operatingSystemReferenceCode</code>
+//	        <div>An identifier for the operating system to provision the server with.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>datacenter.name</code>
+//	        <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "datacenter": {
+//	        "name": "dal05"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.maxSpeed</code>
+//	        <div>Specifies the connection speed for the server's network components.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "maxSpeed": 1000
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.redundancyEnabledFlag</code>
+//	        <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - bool</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "redundancyEnabledFlag": false
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>privateNetworkOnlyFlag</code>
+//	        <div>Specifies whether or not the server only has access to the private network</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li>When true this flag specifies that a server is to only have access to the private network.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>primaryNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 1
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryBackendNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 2
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>fixedConfigurationPreset.keyName</code>
+//	        <div></div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
+//	            <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "fixedConfigurationPreset": {
+//	        "keyName": "SOME_KEY_NAME"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>userData.value</code>
+//	        <div>Arbitrary data to be made available to the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
+//	            <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "userData": [
+//	        {
+//	            "value": "someValue"
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>hardDrives</code>
+//	        <div>Hard drive settings for the server</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - SoftLayer_Hardware_Component</li>
+//	            <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
+//	            <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
+//	            <li>Each hard drive must specify the <code>capacity</code> property.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "hardDrives": [
+//	        {
+//	            "capacity": 500
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
+//	        <div>SSH keys to install on the server upon provisioning.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
+//	            <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
+//	            <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
+//	            <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
+//	        </ul>
+//	        <http title="Example">{
+//	    "sshKeys": [
+//	        {
+//	            "id": 123
+//	        }
+//	    ]
+//	}</http>
+//
+//	    <br />
+//	</li>
+//	<li><code>postInstallScriptUri</code>
+//	    <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
+//	        <li><b>Optional</b></li>
+//	        <li><b>Type</b> - string</li>
+//	    </ul>
+//	    <br />
+//	</li>
+//
 // </ul>
 //
-//
 // <h1>REST Example</h1>
-// <http title="Request">curl -X POST -d '{
-//  "parameters":[
-//      {
-//          "hostname": "host1",
-//          "domain": "example.com",
-//          "processorCoreAmount": 2,
-//          "memoryCapacity": 2,
-//          "hourlyBillingFlag": true,
-//          "operatingSystemReferenceCode": "UBUNTU_LATEST"
-//      }
-//  ]
-// }' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
+//	<http title="Request">curl -X POST -d '{
+//	 "parameters":[
+//	     {
+//	         "hostname": "host1",
+//	         "domain": "example.com",
+//	         "processorCoreAmount": 2,
+//	         "memoryCapacity": 2,
+//	         "hourlyBillingFlag": true,
+//	         "operatingSystemReferenceCode": "UBUNTU_LATEST"
+//	     }
+//	 ]
+//	}' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
 // </http>
 // <http title="Response">HTTP/1.1 201 Created
 // Location: https://api.softlayer.com/rest/v3/SoftLayer_Hardware/f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5/getObject
 //
+//	{
+//	    "accountId": 232298,
+//	    "bareMetalInstanceFlag": null,
+//	    "domain": "example.com",
+//	    "hardwareStatusId": null,
+//	    "hostname": "host1",
+//	    "id": null,
+//	    "serviceProviderId": null,
+//	    "serviceProviderResourceId": null,
+//	    "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
+//	    "hourlyBillingFlag": true,
+//	    "memoryCapacity": 2,
+//	    "operatingSystemReferenceCode": "UBUNTU_LATEST",
+//	    "processorCoreAmount": 2
+//	}
 //
-// {
-//     "accountId": 232298,
-//     "bareMetalInstanceFlag": null,
-//     "domain": "example.com",
-//     "hardwareStatusId": null,
-//     "hostname": "host1",
-//     "id": null,
-//     "serviceProviderId": null,
-//     "serviceProviderResourceId": null,
-//     "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
-//     "hourlyBillingFlag": true,
-//     "memoryCapacity": 2,
-//     "operatingSystemReferenceCode": "UBUNTU_LATEST",
-//     "processorCoreAmount": 2
-// }
 // </http>
 func (r Hardware_SecurityModule750) CreateObject(templateObject *datatypes.Hardware_SecurityModule750) (resp datatypes.Hardware_SecurityModule750, err error) {
 	params := []interface{}{
@@ -6419,7 +6406,6 @@ func (r Hardware_SecurityModule750) CreatePostSoftwareInstallTransaction(install
 	return
 }
 
-//
 // This method will cancel a server effective immediately. For servers billed hourly, the charges will stop immediately after the method returns.
 func (r Hardware_SecurityModule750) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "deleteObject", nil, &r.Options, &resp)
@@ -6472,7 +6458,7 @@ func (r Hardware_SecurityModule750) ExecuteRemoteScript(uri *string) (err error)
 	return
 }
 
-// The '''findByIpAddress''' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
+// The ”'findByIpAddress”' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
 func (r Hardware_SecurityModule750) FindByIpAddress(ipAddress *string) (resp datatypes.Hardware, err error) {
 	params := []interface{}{
 		ipAddress,
@@ -6481,12 +6467,9 @@ func (r Hardware_SecurityModule750) FindByIpAddress(ipAddress *string) (resp dat
 	return
 }
 
-//
 // Obtain an [[SoftLayer_Container_Product_Order_Hardware_Server (type)|order container]] that can be sent to [[SoftLayer_Product_Order/verifyOrder|verifyOrder]] or [[SoftLayer_Product_Order/placeOrder|placeOrder]].
 //
-//
 // This is primarily useful when there is a necessity to confirm the price which will be charged for an order.
-//
 //
 // See [[SoftLayer_Hardware/createObject|createObject]] for specifics on the requirements of the template object parameter.
 func (r Hardware_SecurityModule750) GenerateOrderTemplate(templateObject *datatypes.Hardware) (resp datatypes.Container_Product_Order, err error) {
@@ -6635,18 +6618,7 @@ func (r Hardware_SecurityModule750) GetBackendBandwidthUsage(startDate *datatype
 	return
 }
 
-// Use this method to return an array of private bandwidth utilization records between a given date range.
-// Deprecated: This function has been marked as deprecated.
-func (r Hardware_SecurityModule750) GetBackendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getBackendBandwidthUse", params, &r.Options, &resp)
-	return
-}
-
-// The '''getBackendIncomingBandwidth''' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendIncomingBandwidth”' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware_SecurityModule750) GetBackendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -6662,7 +6634,7 @@ func (r Hardware_SecurityModule750) GetBackendNetworkComponents() (resp []dataty
 	return
 }
 
-// The '''getBackendOutgoingBandwidth''' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendOutgoingBandwidth”' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware_SecurityModule750) GetBackendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -6821,9 +6793,7 @@ func (r Hardware_SecurityModule750) GetCost() (resp datatypes.Float64, err error
 	return
 }
 
-//
 // There are many options that may be provided while ordering a server, this method can be used to determine what these options are.
-//
 //
 // Detailed information on the return value can be found on the data type page for [[SoftLayer_Container_Hardware_Configuration (type)]].
 func (r Hardware_SecurityModule750) GetCreateObjectOptions() (resp datatypes.Container_Hardware_Configuration, err error) {
@@ -6882,7 +6852,7 @@ func (r Hardware_SecurityModule750) GetCustomerOwnedFlag() (resp bool, err error
 	return
 }
 
-// The '''getDailyAverage''' method calculates the average daily network traffic used by the selected server. Using the required parameter ''dateTime'' to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
+// The ”'getDailyAverage”' method calculates the average daily network traffic used by the selected server. Using the required parameter ”dateTime” to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
 func (r Hardware_SecurityModule750) GetDailyAverage(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -6946,7 +6916,7 @@ func (r Hardware_SecurityModule750) GetDownstreamNetworkHardware() (resp []datat
 	return
 }
 
-// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware.
+// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware. [DEPRECATED]
 func (r Hardware_SecurityModule750) GetDownstreamNetworkHardwareWithIncidents() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getDownstreamNetworkHardwareWithIncidents", nil, &r.Options, &resp)
 	return
@@ -7006,18 +6976,7 @@ func (r Hardware_SecurityModule750) GetFrontendBandwidthUsage(startDate *datatyp
 	return
 }
 
-// Use this method to return an array of public bandwidth utilization records between a given date range.
-// Deprecated: This function has been marked as deprecated.
-func (r Hardware_SecurityModule750) GetFrontendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getFrontendBandwidthUse", params, &r.Options, &resp)
-	return
-}
-
-// The '''getFrontendIncomingBandwidth''' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ''dateTime'' parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendIncomingBandwidth”' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ”dateTime” parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware_SecurityModule750) GetFrontendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -7033,7 +6992,7 @@ func (r Hardware_SecurityModule750) GetFrontendNetworkComponents() (resp []datat
 	return
 }
 
-// The '''getFrontendOutgoingBandwidth''' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ''dateTime'' parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendOutgoingBandwidth”' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ”dateTime” parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware_SecurityModule750) GetFrontendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -7124,7 +7083,7 @@ func (r Hardware_SecurityModule750) GetHostIpsSoftwareComponent() (resp datatype
 	return
 }
 
-// The '''getHourlyBandwidth''' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ''dateTime'' parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
+// The ”'getHourlyBandwidth”' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ”dateTime” parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
 //
 // '02/01/2008 0:00'
 //
@@ -7266,7 +7225,7 @@ func (r Hardware_SecurityModule750) GetMemoryCapacity() (resp uint, err error) {
 }
 
 // Retrieve A piece of hardware's metric tracking object.
-func (r Hardware_SecurityModule750) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object_HardwareServer, err error) {
+func (r Hardware_SecurityModule750) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getMetricTrackingObject", nil, &r.Options, &resp)
 	return
 }
@@ -7373,13 +7332,13 @@ func (r Hardware_SecurityModule750) GetNetworkMonitors() (resp []datatypes.Netwo
 	return
 }
 
-// Retrieve The value of a hardware's network status attribute.
+// Retrieve The value of a hardware's network status attribute. [DEPRECATED]
 func (r Hardware_SecurityModule750) GetNetworkStatus() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getNetworkStatus", nil, &r.Options, &resp)
 	return
 }
 
-// Retrieve The hardware's related network status attribute.
+// Retrieve The hardware's related network status attribute. [DEPRECATED]
 func (r Hardware_SecurityModule750) GetNetworkStatusAttribute() (resp datatypes.Hardware_Attribute, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getNetworkStatusAttribute", nil, &r.Options, &resp)
 	return
@@ -7597,7 +7556,6 @@ func (r Hardware_SecurityModule750) GetPrivateVlan() (resp datatypes.Network_Vla
 	return
 }
 
-//
 // *** DEPRECATED ***
 // Retrieve a backend network VLAN by searching for an IP address
 // Deprecated: This function has been marked as deprecated.
@@ -7798,7 +7756,7 @@ func (r Hardware_SecurityModule750) GetRouters() (resp []datatypes.Hardware, err
 	return
 }
 
-// Retrieve Collection of scale assets this hardware corresponds to.
+// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
 func (r Hardware_SecurityModule750) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getScaleAssets", nil, &r.Options, &resp)
 	return
@@ -7912,7 +7870,6 @@ func (r Hardware_SecurityModule750) GetTopLevelLocation() (resp datatypes.Locati
 	return
 }
 
-//
 // This method will query transaction history for a piece of hardware.
 func (r Hardware_SecurityModule750) GetTransactionHistory() (resp []datatypes.Provisioning_Version1_Transaction_History, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getTransactionHistory", nil, &r.Options, &resp)
@@ -7934,6 +7891,12 @@ func (r Hardware_SecurityModule750) GetUpgradeItemPrices() (resp []datatypes.Pro
 // Retrieve An account's associated upgrade request object, if any.
 func (r Hardware_SecurityModule750) GetUpgradeRequest() (resp datatypes.Product_Upgrade_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getUpgradeRequest", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A piece of hardware's active upgradeable physical components.
+func (r Hardware_SecurityModule750) GetUpgradeableActiveComponents() (resp []datatypes.Hardware_Component, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getUpgradeableActiveComponents", nil, &r.Options, &resp)
 	return
 }
 
@@ -7982,7 +7945,7 @@ func (r Hardware_SecurityModule750) GetVirtualChassisSiblings() (resp []datatype
 	return
 }
 
-// Retrieve A hardware server's virtual servers.
+// Retrieve [DEPRECATED] A hardware server's virtual servers.
 func (r Hardware_SecurityModule750) GetVirtualGuests() (resp []datatypes.Virtual_Guest, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getVirtualGuests", nil, &r.Options, &resp)
 	return
@@ -8042,7 +8005,7 @@ func (r Hardware_SecurityModule750) GetWindowsUpdateStatus() (resp datatypes.Con
 	return
 }
 
-// The '''importVirtualHost''' method attempts to import the host record for the virtualization platform running on a server.
+// The ”'importVirtualHost”' method attempts to import the host record for the virtualization platform running on a server.
 func (r Hardware_SecurityModule750) ImportVirtualHost() (resp datatypes.Virtual_Host, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "importVirtualHost", nil, &r.Options, &resp)
 	return
@@ -8072,7 +8035,7 @@ func (r Hardware_SecurityModule750) IsPingable() (resp bool, err error) {
 	return
 }
 
-// Determine if the server runs any version of the Microsoft Windows operating systems. Return ''true'' if it does and ''false if otherwise.
+// Determine if the server runs any version of the Microsoft Windows operating systems. Return ”true” if it does and ”false if otherwise.
 func (r Hardware_SecurityModule750) IsWindowsServer() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "isWindowsServer", nil, &r.Options, &resp)
 	return
@@ -8095,13 +8058,14 @@ func (r Hardware_SecurityModule750) MassFirmwareReflash(hardwareIds []int, ipmi 
 // You can launch firmware updates by selecting from your server list. It will bring your server offline for approximately 20 minutes while the updates are in progress.
 //
 // In the event of a hardware failure during this test our datacenter engineers will be notified of the problem automatically. They will then replace any failed components to bring your server back online, and will be contacting you to ensure that impact on your server is minimal.
-func (r Hardware_SecurityModule750) MassFirmwareUpdate(hardwareIds []int, ipmi *bool, raidController *bool, bios *bool, harddrive *bool) (resp []datatypes.Container_Hardware_Server_Request, err error) {
+func (r Hardware_SecurityModule750) MassFirmwareUpdate(hardwareIds []int, ipmi *bool, raidController *bool, bios *bool, harddrive *bool, networkCard *bool) (resp []datatypes.Container_Hardware_Server_Request, err error) {
 	params := []interface{}{
 		hardwareIds,
 		ipmi,
 		raidController,
 		bios,
 		harddrive,
+		networkCard,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "massFirmwareUpdate", params, &r.Options, &resp)
 	return
@@ -8382,7 +8346,7 @@ func (r Hardware_SecurityModule750) TestRaidAlertService() (resp bool, err error
 	return
 }
 
-// Attempt to toggle the IPMI interface.  If there is an active transaction on the server, it will throw an exception. This method creates a transaction to toggle the interface.  It is not instant.
+// Attempt to toggle the IPMI interface.  If there is an active transaction on the server, it will throw an exception. This method creates a job to toggle the interface.  It is not instant.
 func (r Hardware_SecurityModule750) ToggleManagementInterface(enabled *bool) (resp bool, err error) {
 	params := []interface{}{
 		enabled,
@@ -8522,12 +8486,13 @@ func (r Hardware_Server) CreateFirmwareReflashTransaction(ipmi *int, raidControl
 // You can launch firmware updates by selecting from your server list. It will bring your server offline for approximately 20 minutes while the updates are in progress.
 //
 // In the event of a hardware failure during this test our datacenter engineers will be notified of the problem automatically. They will then replace any failed components to bring your server back online, and will be contacting you to ensure that impact on your server is minimal.
-func (r Hardware_Server) CreateFirmwareUpdateTransaction(ipmi *int, raidController *int, bios *int, harddrive *int) (resp bool, err error) {
+func (r Hardware_Server) CreateFirmwareUpdateTransaction(ipmi *int, raidController *int, bios *int, harddrive *int, networkCard *int) (resp bool, err error) {
 	params := []interface{}{
 		ipmi,
 		raidController,
 		bios,
 		harddrive,
+		networkCard,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "createFirmwareUpdateTransaction", params, &r.Options, &resp)
 	return
@@ -8544,271 +8509,277 @@ func (r Hardware_Server) CreateHyperThreadingUpdateTransaction(disableHyperthrea
 	return
 }
 
-//
 // <style type="text/css">.create_object > li > div { padding-top: .5em; padding-bottom: .5em}</style>
 // createObject() enables the creation of servers on an account. This
 // method is a simplified alternative to interacting with the ordering system directly.
 //
-//
 // In order to create a server, a template object must be sent in with a few required
 // values.
 //
-//
 // When this method returns an order will have been placed for a server of the specified configuration.
-//
 //
 // To determine when the server is available you can poll the server via [[SoftLayer_Hardware/getObject|getObject]],
 // checking the <code>provisionDate</code> property.
 // When <code>provisionDate</code> is not null, the server will be ready. Be sure to use the <code>globalIdentifier</code>
 // as your initialization parameter.
 //
-//
 // <b>Warning:</b> Servers created via this method will incur charges on your account. For testing input parameters see [[SoftLayer_Hardware/generateOrderTemplate|generateOrderTemplate]].
-//
 //
 // <b>Input</b> - [[SoftLayer_Hardware (type)|SoftLayer_Hardware]]
 // <ul class="create_object">
-//     <li><code>hostname</code>
-//         <div>Hostname for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>domain</code>
-//         <div>Domain for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>processorCoreAmount</code>
-//         <div>The number of logical CPU cores to allocate.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>memoryCapacity</code>
-//         <div>The amount of memory to allocate in gigabytes.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>hourlyBillingFlag</code>
-//         <div>Specifies the billing type for the server.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>operatingSystemReferenceCode</code>
-//         <div>An identifier for the operating system to provision the server with.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>datacenter.name</code>
-//         <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
-//             <li><b>Required</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "datacenter": {
-//         "name": "dal05"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.maxSpeed</code>
-//         <div>Specifies the connection speed for the server's network components.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "maxSpeed": 1000
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>networkComponents.redundancyEnabledFlag</code>
-//         <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - bool</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
-//         </ul>
-//             <http title="Example">{
-//     "networkComponents": [
-//         {
-//             "redundancyEnabledFlag": false
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>privateNetworkOnlyFlag</code>
-//         <div>Specifies whether or not the server only has access to the private network</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - boolean</li>
-//             <li><b>Default</b> - <code>false</code></li>
-//             <li>When true this flag specifies that a server is to only have access to the private network.</li>
-//         </ul>
-//         <br />
-//     </li>
-//     <li><code>primaryNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryNetworkComponent": {
-//         "networkVlan": {
-//             "id": 1
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
-//         <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - int</li>
-//             <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
-//         </ul>
-//         <http title="Example">{
-//     "primaryBackendNetworkComponent": {
-//         "networkVlan": {
-//             "id": 2
-//         }
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>fixedConfigurationPreset.keyName</code>
-//         <div></div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
-//             <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "fixedConfigurationPreset": {
-//         "keyName": "SOME_KEY_NAME"
-//     }
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>userData.value</code>
-//         <div>Arbitrary data to be made available to the server.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//             <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
-//             <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
-//         </ul>
-//         <http title="Example">{
-//     "userData": [
-//         {
-//             "value": "someValue"
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>hardDrives</code>
-//         <div>Hard drive settings for the server</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - SoftLayer_Hardware_Component</li>
-//             <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
-//             <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
-//             <li>Each hard drive must specify the <code>capacity</code> property.</li>
-//             <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
-//         </ul>
-//         <http title="Example">{
-//     "hardDrives": [
-//         {
-//             "capacity": 500
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
-//         <div>SSH keys to install on the server upon provisioning.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
-//             <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
-//             <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
-//             <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
-//         </ul>
-//         <http title="Example">{
-//     "sshKeys": [
-//         {
-//             "id": 123
-//         }
-//     ]
-// }</http>
-//         <br />
-//     </li>
-//     <li><code>postInstallScriptUri</code>
-//         <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
-//             <li><b>Optional</b></li>
-//             <li><b>Type</b> - string</li>
-//         </ul>
-//         <br />
-//     </li>
+//
+//	    <li><code>hostname</code>
+//	        <div>Hostname for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>domain</code>
+//	        <div>Domain for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>processorCoreAmount</code>
+//	        <div>The number of logical CPU cores to allocate.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>memoryCapacity</code>
+//	        <div>The amount of memory to allocate in gigabytes.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>hourlyBillingFlag</code>
+//	        <div>Specifies the billing type for the server.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li>When true the server will be billed on hourly usage, otherwise it will be billed on a monthly basis.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>operatingSystemReferenceCode</code>
+//	        <div>An identifier for the operating system to provision the server with.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>datacenter.name</code>
+//	        <div>Specifies which datacenter the server is to be provisioned in.</div><ul>
+//	            <li><b>Required</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li>The <code>datacenter</code> property is a [[SoftLayer_Location (type)|location]] structure with the <code>name</code> field set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "datacenter": {
+//	        "name": "dal05"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.maxSpeed</code>
+//	        <div>Specifies the connection speed for the server's network components.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Default</b> - The highest available zero cost port speed will be used.</li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. The <code>maxSpeed</code> property must be set to specify the network uplink speed, in megabits per second, of the server.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "maxSpeed": 1000
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>networkComponents.redundancyEnabledFlag</code>
+//	        <div>Specifies whether or not the server's network components should be in redundancy groups.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - bool</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li><b>Description</b> - The <code>networkComponents</code> property is an array with a single [[SoftLayer_Network_Component (type)|network component]] structure. When the <code>redundancyEnabledFlag</code> property is true the server's network components will be in redundancy groups.</li>
+//	        </ul>
+//	            <http title="Example">{
+//	    "networkComponents": [
+//	        {
+//	            "redundancyEnabledFlag": false
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>privateNetworkOnlyFlag</code>
+//	        <div>Specifies whether or not the server only has access to the private network</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - boolean</li>
+//	            <li><b>Default</b> - <code>false</code></li>
+//	            <li>When true this flag specifies that a server is to only have access to the private network.</li>
+//	        </ul>
+//	        <br />
+//	    </li>
+//	    <li><code>primaryNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the frontend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the frontend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 1
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>primaryBackendNetworkComponent.networkVlan.id</code>
+//	        <div>Specifies the network vlan which is to be used for the backend interface of the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - int</li>
+//	            <li><b>Description</b> - The <code>primaryBackendNetworkComponent</code> property is a [[SoftLayer_Network_Component (type)|network component]] structure with the <code>networkVlan</code> property populated with a [[SoftLayer_Network_Vlan (type)|vlan]] structure. The <code>id</code> property must be set to specify the backend network vlan of the server.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "primaryBackendNetworkComponent": {
+//	        "networkVlan": {
+//	            "id": 2
+//	        }
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>fixedConfigurationPreset.keyName</code>
+//	        <div></div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>fixedConfigurationPreset</code> property is a [[SoftLayer_Product_Package_Preset (type)|fixed configuration preset]] structure. The <code>keyName</code> property must be set to specify preset to use.</li>
+//	            <li>If a fixed configuration preset is used <code>processorCoreAmount</code>, <code>memoryCapacity</code> and <code>hardDrives</code> properties must not be set.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "fixedConfigurationPreset": {
+//	        "keyName": "SOME_KEY_NAME"
+//	    }
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>userData.value</code>
+//	        <div>Arbitrary data to be made available to the server.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - string</li>
+//	            <li><b>Description</b> - The <code>userData</code> property is an array with a single [[SoftLayer_Hardware_Attribute (type)|attribute]] structure with the <code>value</code> property set to an arbitrary value.</li>
+//	            <li>This value can be retrieved via the [[SoftLayer_Resource_Metadata/getUserMetadata|getUserMetadata]] method from a request originating from the server. This is primarily useful for providing data to software that may be on the server and configured to execute upon first boot.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "userData": [
+//	        {
+//	            "value": "someValue"
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li><code>hardDrives</code>
+//	        <div>Hard drive settings for the server</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - SoftLayer_Hardware_Component</li>
+//	            <li><b>Default</b> - The largest available capacity for a zero cost primary disk will be used.</li>
+//	            <li><b>Description</b> - The <code>hardDrives</code> property is an array of [[SoftLayer_Hardware_Component (type)|hardware component]] structures.</i>
+//	            <li>Each hard drive must specify the <code>capacity</code> property.</li>
+//	            <li>See [[SoftLayer_Hardware/getCreateObjectOptions|getCreateObjectOptions]] for available options.</li>
+//	        </ul>
+//	        <http title="Example">{
+//	    "hardDrives": [
+//	        {
+//	            "capacity": 500
+//	        }
+//	    ]
+//	}</http>
+//
+//	        <br />
+//	    </li>
+//	    <li id="hardware-create-object-ssh-keys"><code>sshKeys</code>
+//	        <div>SSH keys to install on the server upon provisioning.</div><ul>
+//	            <li><b>Optional</b></li>
+//	            <li><b>Type</b> - array of [[SoftLayer_Security_Ssh_Key (type)|SoftLayer_Security_Ssh_Key]]</li>
+//	            <li><b>Description</b> - The <code>sshKeys</code> property is an array of [[SoftLayer_Security_Ssh_Key (type)|SSH Key]] structures with the <code>id</code> property set to the value of an existing SSH key.</li>
+//	            <li>To create a new SSH key, call [[SoftLayer_Security_Ssh_Key/createObject|createObject]] on the [[SoftLayer_Security_Ssh_Key]] service.</li>
+//	            <li>To obtain a list of existing SSH keys, call [[SoftLayer_Account/getSshKeys|getSshKeys]] on the [[SoftLayer_Account]] service.
+//	        </ul>
+//	        <http title="Example">{
+//	    "sshKeys": [
+//	        {
+//	            "id": 123
+//	        }
+//	    ]
+//	}</http>
+//
+//	    <br />
+//	</li>
+//	<li><code>postInstallScriptUri</code>
+//	    <div>Specifies the uri location of the script to be downloaded and run after installation is complete.</div><ul>
+//	        <li><b>Optional</b></li>
+//	        <li><b>Type</b> - string</li>
+//	    </ul>
+//	    <br />
+//	</li>
+//
 // </ul>
 //
-//
 // <h1>REST Example</h1>
-// <http title="Request">curl -X POST -d '{
-//  "parameters":[
-//      {
-//          "hostname": "host1",
-//          "domain": "example.com",
-//          "processorCoreAmount": 2,
-//          "memoryCapacity": 2,
-//          "hourlyBillingFlag": true,
-//          "operatingSystemReferenceCode": "UBUNTU_LATEST"
-//      }
-//  ]
-// }' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
+//	<http title="Request">curl -X POST -d '{
+//	 "parameters":[
+//	     {
+//	         "hostname": "host1",
+//	         "domain": "example.com",
+//	         "processorCoreAmount": 2,
+//	         "memoryCapacity": 2,
+//	         "hourlyBillingFlag": true,
+//	         "operatingSystemReferenceCode": "UBUNTU_LATEST"
+//	     }
+//	 ]
+//	}' https://api.softlayer.com/rest/v3/SoftLayer_Hardware.json
+//
 // </http>
 // <http title="Response">HTTP/1.1 201 Created
 // Location: https://api.softlayer.com/rest/v3/SoftLayer_Hardware/f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5/getObject
 //
+//	{
+//	    "accountId": 232298,
+//	    "bareMetalInstanceFlag": null,
+//	    "domain": "example.com",
+//	    "hardwareStatusId": null,
+//	    "hostname": "host1",
+//	    "id": null,
+//	    "serviceProviderId": null,
+//	    "serviceProviderResourceId": null,
+//	    "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
+//	    "hourlyBillingFlag": true,
+//	    "memoryCapacity": 2,
+//	    "operatingSystemReferenceCode": "UBUNTU_LATEST",
+//	    "processorCoreAmount": 2
+//	}
 //
-// {
-//     "accountId": 232298,
-//     "bareMetalInstanceFlag": null,
-//     "domain": "example.com",
-//     "hardwareStatusId": null,
-//     "hostname": "host1",
-//     "id": null,
-//     "serviceProviderId": null,
-//     "serviceProviderResourceId": null,
-//     "globalIdentifier": "f5a3fcff-db1d-4b7c-9fa0-0349e41c29c5",
-//     "hourlyBillingFlag": true,
-//     "memoryCapacity": 2,
-//     "operatingSystemReferenceCode": "UBUNTU_LATEST",
-//     "processorCoreAmount": 2
-// }
 // </http>
 func (r Hardware_Server) CreateObject(templateObject *datatypes.Hardware_Server) (resp datatypes.Hardware_Server, err error) {
 	params := []interface{}{
@@ -8828,7 +8799,6 @@ func (r Hardware_Server) CreatePostSoftwareInstallTransaction(installCodes []str
 	return
 }
 
-//
 // This method will cancel a server effective immediately. For servers billed hourly, the charges will stop immediately after the method returns.
 func (r Hardware_Server) DeleteObject() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "deleteObject", nil, &r.Options, &resp)
@@ -8881,7 +8851,7 @@ func (r Hardware_Server) ExecuteRemoteScript(uri *string) (err error) {
 	return
 }
 
-// The '''findByIpAddress''' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
+// The ”'findByIpAddress”' method finds hardware using its primary public or private IP address. IP addresses that have a secondary subnet tied to the hardware will not return the hardware. If no hardware is found, no errors are generated and no data is returned.
 func (r Hardware_Server) FindByIpAddress(ipAddress *string) (resp datatypes.Hardware, err error) {
 	params := []interface{}{
 		ipAddress,
@@ -8890,12 +8860,9 @@ func (r Hardware_Server) FindByIpAddress(ipAddress *string) (resp datatypes.Hard
 	return
 }
 
-//
 // Obtain an [[SoftLayer_Container_Product_Order_Hardware_Server (type)|order container]] that can be sent to [[SoftLayer_Product_Order/verifyOrder|verifyOrder]] or [[SoftLayer_Product_Order/placeOrder|placeOrder]].
 //
-//
 // This is primarily useful when there is a necessity to confirm the price which will be charged for an order.
-//
 //
 // See [[SoftLayer_Hardware/createObject|createObject]] for specifics on the requirements of the template object parameter.
 func (r Hardware_Server) GenerateOrderTemplate(templateObject *datatypes.Hardware) (resp datatypes.Container_Product_Order, err error) {
@@ -9044,18 +9011,7 @@ func (r Hardware_Server) GetBackendBandwidthUsage(startDate *datatypes.Time, end
 	return
 }
 
-// Use this method to return an array of private bandwidth utilization records between a given date range.
-// Deprecated: This function has been marked as deprecated.
-func (r Hardware_Server) GetBackendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getBackendBandwidthUse", params, &r.Options, &resp)
-	return
-}
-
-// The '''getBackendIncomingBandwidth''' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendIncomingBandwidth”' method retrieves the amount of incoming private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware_Server) GetBackendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -9071,7 +9027,7 @@ func (r Hardware_Server) GetBackendNetworkComponents() (resp []datatypes.Network
 	return
 }
 
-// The '''getBackendOutgoingBandwidth''' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
+// The ”'getBackendOutgoingBandwidth”' method retrieves the amount of outgoing private network traffic used between the given start date and end date parameters. When entering start and end dates, only the month, day and year are used to calculate bandwidth totals - the time (HH:MM:SS) is ignored and defaults to midnight. The amount of bandwidth retrieved is measured in gigabytes.
 func (r Hardware_Server) GetBackendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -9230,9 +9186,7 @@ func (r Hardware_Server) GetCost() (resp datatypes.Float64, err error) {
 	return
 }
 
-//
 // There are many options that may be provided while ordering a server, this method can be used to determine what these options are.
-//
 //
 // Detailed information on the return value can be found on the data type page for [[SoftLayer_Container_Hardware_Configuration (type)]].
 func (r Hardware_Server) GetCreateObjectOptions() (resp datatypes.Container_Hardware_Configuration, err error) {
@@ -9291,7 +9245,7 @@ func (r Hardware_Server) GetCustomerOwnedFlag() (resp bool, err error) {
 	return
 }
 
-// The '''getDailyAverage''' method calculates the average daily network traffic used by the selected server. Using the required parameter ''dateTime'' to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
+// The ”'getDailyAverage”' method calculates the average daily network traffic used by the selected server. Using the required parameter ”dateTime” to enter a start and end date, the user retrieves this average, measure in gigabytes (GB) for the specified date range. When entering parameters, only the month, day and year are required - time entries are omitted as this method defaults the time to midnight in order to account for the entire day.
 func (r Hardware_Server) GetDailyAverage(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -9355,7 +9309,7 @@ func (r Hardware_Server) GetDownstreamNetworkHardware() (resp []datatypes.Hardwa
 	return
 }
 
-// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware.
+// Retrieve All network hardware with monitoring warnings or errors that are downstream from the selected piece of hardware. [DEPRECATED]
 func (r Hardware_Server) GetDownstreamNetworkHardwareWithIncidents() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getDownstreamNetworkHardwareWithIncidents", nil, &r.Options, &resp)
 	return
@@ -9415,18 +9369,7 @@ func (r Hardware_Server) GetFrontendBandwidthUsage(startDate *datatypes.Time, en
 	return
 }
 
-// Use this method to return an array of public bandwidth utilization records between a given date range.
-// Deprecated: This function has been marked as deprecated.
-func (r Hardware_Server) GetFrontendBandwidthUse(startDate *datatypes.Time, endDate *datatypes.Time) (resp []datatypes.Network_Bandwidth_Version1_Usage_Detail, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getFrontendBandwidthUse", params, &r.Options, &resp)
-	return
-}
-
-// The '''getFrontendIncomingBandwidth''' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ''dateTime'' parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendIncomingBandwidth”' method retrieves the amount of incoming public network traffic used by a server between the given start and end date parameters. When entering the ”dateTime” parameter, only the month, day and year of the start and end dates are required - the time (hour, minute and second) are set to midnight by default and cannot be changed. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware_Server) GetFrontendIncomingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -9442,7 +9385,7 @@ func (r Hardware_Server) GetFrontendNetworkComponents() (resp []datatypes.Networ
 	return
 }
 
-// The '''getFrontendOutgoingBandwidth''' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ''dateTime'' parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
+// The ”'getFrontendOutgoingBandwidth”' method retrieves the amount of outgoing public network traffic used by a server between the given start and end date parameters. The ”dateTime” parameter requires only the day, month and year to be entered - the time (hour, minute and second) are set to midnight be default in order to gather the data for the entire start and end date indicated in the parameter. The amount of bandwidth retrieved is measured in gigabytes (GB).
 func (r Hardware_Server) GetFrontendOutgoingBandwidth(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Float64, err error) {
 	params := []interface{}{
 		startDate,
@@ -9533,7 +9476,7 @@ func (r Hardware_Server) GetHostIpsSoftwareComponent() (resp datatypes.Software_
 	return
 }
 
-// The '''getHourlyBandwidth''' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ''dateTime'' parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
+// The ”'getHourlyBandwidth”' method retrieves all bandwidth updates hourly for the specified hardware. Because the potential number of data points can become excessive, the method limits the user to obtain data in 24-hour intervals. The required ”dateTime” parameter is used as the starting point for the query and will be calculated for the 24-hour period starting with the specified date and time. For example, entering a parameter of
 //
 // '02/01/2008 0:00'
 //
@@ -9675,7 +9618,7 @@ func (r Hardware_Server) GetMemoryCapacity() (resp uint, err error) {
 }
 
 // Retrieve A piece of hardware's metric tracking object.
-func (r Hardware_Server) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object_HardwareServer, err error) {
+func (r Hardware_Server) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getMetricTrackingObject", nil, &r.Options, &resp)
 	return
 }
@@ -9782,13 +9725,13 @@ func (r Hardware_Server) GetNetworkMonitors() (resp []datatypes.Network_Monitor_
 	return
 }
 
-// Retrieve The value of a hardware's network status attribute.
+// Retrieve The value of a hardware's network status attribute. [DEPRECATED]
 func (r Hardware_Server) GetNetworkStatus() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getNetworkStatus", nil, &r.Options, &resp)
 	return
 }
 
-// Retrieve The hardware's related network status attribute.
+// Retrieve The hardware's related network status attribute. [DEPRECATED]
 func (r Hardware_Server) GetNetworkStatusAttribute() (resp datatypes.Hardware_Attribute, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getNetworkStatusAttribute", nil, &r.Options, &resp)
 	return
@@ -10006,7 +9949,6 @@ func (r Hardware_Server) GetPrivateVlan() (resp datatypes.Network_Vlan, err erro
 	return
 }
 
-//
 // *** DEPRECATED ***
 // Retrieve a backend network VLAN by searching for an IP address
 // Deprecated: This function has been marked as deprecated.
@@ -10207,7 +10149,7 @@ func (r Hardware_Server) GetRouters() (resp []datatypes.Hardware, err error) {
 	return
 }
 
-// Retrieve Collection of scale assets this hardware corresponds to.
+// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
 func (r Hardware_Server) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getScaleAssets", nil, &r.Options, &resp)
 	return
@@ -10321,7 +10263,6 @@ func (r Hardware_Server) GetTopLevelLocation() (resp datatypes.Location, err err
 	return
 }
 
-//
 // This method will query transaction history for a piece of hardware.
 func (r Hardware_Server) GetTransactionHistory() (resp []datatypes.Provisioning_Version1_Transaction_History, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getTransactionHistory", nil, &r.Options, &resp)
@@ -10343,6 +10284,12 @@ func (r Hardware_Server) GetUpgradeItemPrices() (resp []datatypes.Product_Item_P
 // Retrieve An account's associated upgrade request object, if any.
 func (r Hardware_Server) GetUpgradeRequest() (resp datatypes.Product_Upgrade_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getUpgradeRequest", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A piece of hardware's active upgradeable physical components.
+func (r Hardware_Server) GetUpgradeableActiveComponents() (resp []datatypes.Hardware_Component, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getUpgradeableActiveComponents", nil, &r.Options, &resp)
 	return
 }
 
@@ -10391,7 +10338,7 @@ func (r Hardware_Server) GetVirtualChassisSiblings() (resp []datatypes.Hardware,
 	return
 }
 
-// Retrieve A hardware server's virtual servers.
+// Retrieve [DEPRECATED] A hardware server's virtual servers.
 func (r Hardware_Server) GetVirtualGuests() (resp []datatypes.Virtual_Guest, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getVirtualGuests", nil, &r.Options, &resp)
 	return
@@ -10451,7 +10398,7 @@ func (r Hardware_Server) GetWindowsUpdateStatus() (resp datatypes.Container_Util
 	return
 }
 
-// The '''importVirtualHost''' method attempts to import the host record for the virtualization platform running on a server.
+// The ”'importVirtualHost”' method attempts to import the host record for the virtualization platform running on a server.
 func (r Hardware_Server) ImportVirtualHost() (resp datatypes.Virtual_Host, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "importVirtualHost", nil, &r.Options, &resp)
 	return
@@ -10481,7 +10428,7 @@ func (r Hardware_Server) IsPingable() (resp bool, err error) {
 	return
 }
 
-// Determine if the server runs any version of the Microsoft Windows operating systems. Return ''true'' if it does and ''false if otherwise.
+// Determine if the server runs any version of the Microsoft Windows operating systems. Return ”true” if it does and ”false if otherwise.
 func (r Hardware_Server) IsWindowsServer() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "isWindowsServer", nil, &r.Options, &resp)
 	return
@@ -10504,13 +10451,14 @@ func (r Hardware_Server) MassFirmwareReflash(hardwareIds []int, ipmi *bool, raid
 // You can launch firmware updates by selecting from your server list. It will bring your server offline for approximately 20 minutes while the updates are in progress.
 //
 // In the event of a hardware failure during this test our datacenter engineers will be notified of the problem automatically. They will then replace any failed components to bring your server back online, and will be contacting you to ensure that impact on your server is minimal.
-func (r Hardware_Server) MassFirmwareUpdate(hardwareIds []int, ipmi *bool, raidController *bool, bios *bool, harddrive *bool) (resp []datatypes.Container_Hardware_Server_Request, err error) {
+func (r Hardware_Server) MassFirmwareUpdate(hardwareIds []int, ipmi *bool, raidController *bool, bios *bool, harddrive *bool, networkCard *bool) (resp []datatypes.Container_Hardware_Server_Request, err error) {
 	params := []interface{}{
 		hardwareIds,
 		ipmi,
 		raidController,
 		bios,
 		harddrive,
+		networkCard,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "massFirmwareUpdate", params, &r.Options, &resp)
 	return
@@ -10791,7 +10739,7 @@ func (r Hardware_Server) TestRaidAlertService() (resp bool, err error) {
 	return
 }
 
-// Attempt to toggle the IPMI interface.  If there is an active transaction on the server, it will throw an exception. This method creates a transaction to toggle the interface.  It is not instant.
+// Attempt to toggle the IPMI interface.  If there is an active transaction on the server, it will throw an exception. This method creates a job to toggle the interface.  It is not instant.
 func (r Hardware_Server) ToggleManagementInterface(enabled *bool) (resp bool, err error) {
 	params := []interface{}{
 		enabled,

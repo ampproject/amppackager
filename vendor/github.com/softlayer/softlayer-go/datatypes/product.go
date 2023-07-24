@@ -1265,9 +1265,6 @@ type Product_Package struct {
 	// The regional locations that a package is available in.
 	Regions []Location_Region `json:"regions,omitempty" xmlrpc:"regions,omitempty"`
 
-	// The resource group template that describes a multi-server solution. (Deprecated)
-	ResourceGroupTemplate *Resource_Group_Template `json:"resourceGroupTemplate,omitempty" xmlrpc:"resourceGroupTemplate,omitempty"`
-
 	// This currently contains no information but is here for future use.
 	SubDescription *string `json:"subDescription,omitempty" xmlrpc:"subDescription,omitempty"`
 
@@ -1436,8 +1433,6 @@ type Product_Package_Locations struct {
 // This datatype describes the item categories that are required for each package to be ordered. For instance, for package 2, there will be many required categories. When submitting an order for a server, there must be at most 1 price for each category whose "isRequired" is set. Examples of required categories: - server - ram - bandwidth - disk0
 //
 // There are others, but these are the main ones. For each required category, a SoftLayer_Product_Item_Price must be chosen that is valid for the package.
-//
-//
 type Product_Package_Order_Configuration struct {
 	Entity
 
@@ -1827,7 +1822,7 @@ type Product_Package_Server_Option struct {
 	Value *string `json:"value,omitempty" xmlrpc:"value,omitempty"`
 }
 
-// The [[SoftLayer_Product_Package_Type]] object indicates the type for a service offering (package). The type can be used to filter packages. For example, if you are looking for the package representing virtual servers, you can filter on the type's key name of '''VIRTUAL_SERVER_INSTANCE'''. For bare metal servers by core or CPU, filter on '''BARE_METAL_CORE''' or '''BARE_METAL_CPU''', respectively.
+// The [[SoftLayer_Product_Package_Type]] object indicates the type for a service offering (package). The type can be used to filter packages. For example, if you are looking for the package representing virtual servers, you can filter on the type's key name of ”'VIRTUAL_SERVER_INSTANCE”'. For bare metal servers by core or CPU, filter on ”'BARE_METAL_CORE”' or ”'BARE_METAL_CPU”', respectively.
 type Product_Package_Type struct {
 	Entity
 

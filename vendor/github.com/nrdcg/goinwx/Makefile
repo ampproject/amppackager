@@ -1,6 +1,4 @@
-.PHONY: default clean check test fmt
-
-GOFILES := $(shell go list -f '{{range $$index, $$element := .GoFiles}}{{$$.Dir}}/{{$$element}}{{"\n"}}{{end}}' ./... | grep -v '/vendor/')
+.PHONY: default clean check test
 
 default: clean check test build
 
@@ -12,9 +10,6 @@ clean:
 
 build:
 	go build
-
-fmt:
-	gofmt -s -l -w $(GOFILES)
 
 check:
 	golangci-lint run

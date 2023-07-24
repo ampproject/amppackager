@@ -1,4 +1,4 @@
-// Copyright 2022 The sacloud/iaas-api-go Authors
+// Copyright 2022-2023 The sacloud/iaas-api-go Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -2755,6 +2755,49 @@ func (o *EnhancedDBOp) transformSetPasswordArgs(id types.ID, param *EnhancedDBSe
 	}
 
 	v := &enhancedDBSetPasswordRequestEnvelope{}
+	if err := mapconv.ConvertTo(args, v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+func (o *EnhancedDBOp) transformGetConfigResults(data []byte) (*enhancedDBGetConfigResult, error) {
+	nakedResponse := &enhancedDBGetConfigResponseEnvelope{}
+	if err := json.Unmarshal(data, nakedResponse); err != nil {
+		return nil, err
+	}
+
+	results := &enhancedDBGetConfigResult{}
+	if err := mapconv.ConvertFrom(nakedResponse, results); err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func (o *EnhancedDBOp) transformSetConfigArgs(id types.ID, param *EnhancedDBSetConfigRequest) (*enhancedDBSetConfigRequestEnvelope, error) {
+	if id == types.ID(int64(0)) {
+		id = types.ID(int64(0))
+	}
+	var arg0 interface{} = id
+	if v, ok := arg0.(argumentDefaulter); ok {
+		arg0 = v.setDefaults()
+	}
+	if param == nil {
+		param = &EnhancedDBSetConfigRequest{}
+	}
+	var arg1 interface{} = param
+	if v, ok := arg1.(argumentDefaulter); ok {
+		arg1 = v.setDefaults()
+	}
+	args := &struct {
+		Arg0 interface{}
+		Arg1 interface{} `mapconv:"CommonServiceItem,recursive"`
+	}{
+		Arg0: arg0,
+		Arg1: arg1,
+	}
+
+	v := &enhancedDBSetConfigRequestEnvelope{}
 	if err := mapconv.ConvertTo(args, v); err != nil {
 		return nil, err
 	}
@@ -8020,6 +8063,19 @@ func (o *VPCRouterOp) transformLogsResults(data []byte) (*vPCRouterLogsResult, e
 	}
 
 	results := &vPCRouterLogsResult{}
+	if err := mapconv.ConvertFrom(nakedResponse, results); err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func (o *VPCRouterOp) transformPingResults(data []byte) (*vPCRouterPingResult, error) {
+	nakedResponse := &vPCRouterPingResponseEnvelope{}
+	if err := json.Unmarshal(data, nakedResponse); err != nil {
+		return nil, err
+	}
+
+	results := &vPCRouterPingResult{}
 	if err := mapconv.ConvertFrom(nakedResponse, results); err != nil {
 		return nil, err
 	}

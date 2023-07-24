@@ -4,11 +4,11 @@ BIN_DIR := $(GOPATH)/bin
 INTEGRATION_DIR := ./test/integration
 FIXTURES_DIR    := $(INTEGRATION_DIR)/fixtures
 
-TEST_TIMEOUT := 2h
+TEST_TIMEOUT := 5h
 
 SKIP_DOCKER       ?= 0
 GOLANGCILINT      := golangci-lint
-GOLANGCILINT_IMG  := golangci/golangci-lint:v1.46.2-alpine
+GOLANGCILINT_IMG  := golangci/golangci-lint:latest
 GOLANGCILINT_ARGS := run
 
 LINODE_URL := https://api.linode.com/

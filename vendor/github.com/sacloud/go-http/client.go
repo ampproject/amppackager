@@ -1,4 +1,4 @@
-// Copyright 2021-2022 The sacloud/go-http authors
+// Copyright 2021-2023 The sacloud/go-http authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ var (
 	DefaultRetryMax = 10
 
 	// DefaultRetryWaitMin デフォルトのリトライ間隔(最小)
-	DefaultRetryWaitMin = 1 * time.Second // nolint
+	DefaultRetryWaitMin = 1 * time.Second
 
 	// DefaultRetryWaitMax デフォルトのリトライ間隔(最大)
 	DefaultRetryWaitMax = 64 * time.Second
