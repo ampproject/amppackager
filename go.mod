@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/WICG/webpackage v0.0.0-20220803071451-c614114481ed
-	github.com/ampproject/amphtml v0.0.0-20230724160754-6d9c7f320eec
-	github.com/go-acme/lego/v4 v4.13.2
+	github.com/ampproject/amphtml v0.0.0-20230731052951-768ff7da635c
+	github.com/go-acme/lego/v4 v4.13.3
 	github.com/gofrs/flock v0.8.1
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.5.9
@@ -19,7 +19,7 @@ require (
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 	golang.org/x/crypto v0.11.0
 	golang.org/x/net v0.12.0
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.57.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
 
@@ -146,7 +146,9 @@ require (
 	golang.org/x/tools v0.10.0 // indirect
 	google.golang.org/api v0.114.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
+	google.golang.org/genproto v0.0.0-20230526161137-0005af68ea54 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230525234035-dd9d682886f9 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/ns1/ns1-go.v2 v2.7.6 // indirect

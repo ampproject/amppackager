@@ -136,7 +136,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20230724160754-6d9c7f320eec
+# github.com/ampproject/amphtml v0.0.0-20230731052951-768ff7da635c
 ## explicit
 github.com/ampproject/amphtml/validator
 # github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129
@@ -239,7 +239,7 @@ github.com/fsnotify/fsnotify
 # github.com/ghodss/yaml v1.0.0
 ## explicit
 github.com/ghodss/yaml
-# github.com/go-acme/lego/v4 v4.13.2
+# github.com/go-acme/lego/v4 v4.13.3
 ## explicit; go 1.19
 github.com/go-acme/lego/v4/acme
 github.com/go-acme/lego/v4/acme/api
@@ -1076,16 +1076,21 @@ google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
+# google.golang.org/genproto v0.0.0-20230526161137-0005af68ea54
+## explicit; go 1.19
+google.golang.org/genproto/googleapis/type/dayofweek
+google.golang.org/genproto/googleapis/type/timeofday
+google.golang.org/genproto/internal
+# google.golang.org/genproto/googleapis/api v0.0.0-20230525234035-dd9d682886f9
 ## explicit; go 1.19
 google.golang.org/genproto/googleapis/api
 google.golang.org/genproto/googleapis/api/annotations
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19
+## explicit; go 1.19
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
-google.golang.org/genproto/googleapis/type/dayofweek
-google.golang.org/genproto/googleapis/type/timeofday
-# google.golang.org/grpc v1.56.2
+# google.golang.org/grpc v1.57.0
 ## explicit; go 1.17
 google.golang.org/grpc
 google.golang.org/grpc/attributes
