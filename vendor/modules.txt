@@ -136,7 +136,7 @@ github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses
 github.com/aliyun/alibaba-cloud-sdk-go/sdk/utils
 github.com/aliyun/alibaba-cloud-sdk-go/services/alidns
-# github.com/ampproject/amphtml v0.0.0-20230804215307-0aa80220a68f
+# github.com/ampproject/amphtml v0.0.0-20230821083212-810089b9378c
 ## explicit
 github.com/ampproject/amphtml/validator
 # github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129
