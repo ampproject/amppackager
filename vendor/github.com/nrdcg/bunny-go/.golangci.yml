@@ -1,0 +1,27 @@
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - errcheck
+    - exportloopref
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - prealloc
+    - revive
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unused
+
+build-tags:
+  - integrationtest
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/nrdcg/bunny-go
+
+issues:
+  exclude-use-default: false

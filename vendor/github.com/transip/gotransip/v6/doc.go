@@ -116,6 +116,7 @@ these are subpackages under the gotransip package:
 	test.Repository
 	traffic.Repository
 	vps.BigstorageRepository
+	vps.BlockstorageRepository
 	vps.PrivateNetworkRepository
 	vps.Repository
 

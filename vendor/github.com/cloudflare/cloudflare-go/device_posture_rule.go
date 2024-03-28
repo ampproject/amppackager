@@ -2,20 +2,23 @@ package cloudflare
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/goccy/go-json"
 )
 
 // DevicePostureIntegrationConfig contains authentication information
 // for a device posture integration.
 type DevicePostureIntegrationConfig struct {
-	ClientID     string `json:"client_id,omitempty"`
-	ClientSecret string `json:"client_secret,omitempty"`
-	AuthUrl      string `json:"auth_url,omitempty"`
-	ApiUrl       string `json:"api_url,omitempty"`
-	ClientKey    string `json:"client_key,omitempty"`
-	CustomerID   string `json:"customer_id,omitempty"`
+	ClientID           string `json:"client_id,omitempty"`
+	ClientSecret       string `json:"client_secret,omitempty"`
+	AuthUrl            string `json:"auth_url,omitempty"`
+	ApiUrl             string `json:"api_url,omitempty"`
+	ClientKey          string `json:"client_key,omitempty"`
+	CustomerID         string `json:"customer_id,omitempty"`
+	AccessClientID     string `json:"access_client_id,omitempty"`
+	AccessClientSecret string `json:"access_client_secret,omitempty"`
 }
 
 // DevicePostureIntegration represents a device posture integration.
@@ -178,14 +181,23 @@ type DevicePostureRuleInput struct {
 	Os               string   `json:"os,omitempty"`
 	OsDistroName     string   `json:"os_distro_name,omitempty"`
 	OsDistroRevision string   `json:"os_distro_revision,omitempty"`
+	OSVersionExtra   string   `json:"os_version_extra,omitempty"`
 	Operator         string   `json:"operator,omitempty"`
 	Domain           string   `json:"domain,omitempty"`
 	ComplianceStatus string   `json:"compliance_status,omitempty"`
 	ConnectionID     string   `json:"connection_id,omitempty"`
 	IssueCount       string   `json:"issue_count,omitempty"`
 	CountOperator    string   `json:"countOperator,omitempty"`
-	TotalScore       string   `json:"total_score,omitempty"`
+	TotalScore       int      `json:"total_score,omitempty"`
 	ScoreOperator    string   `json:"scoreOperator,omitempty"`
+	CertificateID    string   `json:"certificate_id,omitempty"`
+	CommonName       string   `json:"cn,omitempty"`
+	ActiveThreats    int      `json:"active_threats,omitempty"`
+	NetworkStatus    string   `json:"network_status,omitempty"`
+	Infected         bool     `json:"infected,omitempty"`
+	IsActive         bool     `json:"is_active,omitempty"`
+	EidLastSeen      string   `json:"eid_last_seen,omitempty"`
+	RiskLevel        string   `json:"risk_level,omitempty"`
 }
 
 // DevicePostureRuleListResponse represents the response from the list

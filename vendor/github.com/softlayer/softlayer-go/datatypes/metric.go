@@ -70,6 +70,9 @@ type Metric_Tracking_Object_Bandwidth_Summary struct {
 	// The metric tracking id for this resource.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
+	// The amount of inbound bandwidth (measured in gigabytes) currently used this billing period
+	InboundBandwidthAmount *Float64 `json:"inboundBandwidthAmount,omitempty" xmlrpc:"inboundBandwidthAmount,omitempty"`
+
 	// The amount of outbound bandwidth (measured in gigabytes) currently used this billing period
 	OutboundBandwidthAmount *Float64 `json:"outboundBandwidthAmount,omitempty" xmlrpc:"outboundBandwidthAmount,omitempty"`
 

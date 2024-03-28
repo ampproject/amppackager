@@ -7,6 +7,7 @@ package linodego
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -23,7 +24,7 @@ type PageOptions struct {
 }
 
 // ListOptions are the pagination and filtering (TODO) parameters for endpoints
-//nolint
+// nolint
 type ListOptions struct {
 	*PageOptions
 	PageSize int    `json:"page_size"`
@@ -53,7 +54,7 @@ func (l ListOptions) Hash() (string, error) {
 
 	h.Write(data)
 
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func applyListOptionsToRequest(opts *ListOptions, req *resty.Request) error {

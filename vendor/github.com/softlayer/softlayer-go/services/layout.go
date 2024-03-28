@@ -296,7 +296,7 @@ func (r Layout_Profile_Containers) Offset(offset int) Layout_Profile_Containers 
 }
 
 // no documentation yet
-func (r Layout_Profile_Containers) CreateObject(templateObject *datatypes.Layout_Profile_Containers) (resp bool, err error) {
+func (r Layout_Profile_Containers) CreateObject(templateObject *datatypes.Layout_Profile_Containers) (resp datatypes.Layout_Profile_Containers, err error) {
 	params := []interface{}{
 		templateObject,
 	}

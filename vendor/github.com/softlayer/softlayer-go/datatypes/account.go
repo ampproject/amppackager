@@ -264,6 +264,9 @@ type Account struct {
 	// Private template group objects (parent and children) and the shared template group objects (parent only) for an account.
 	BlockDeviceTemplateGroups []Virtual_Guest_Block_Device_Template_Group `json:"blockDeviceTemplateGroups,omitempty" xmlrpc:"blockDeviceTemplateGroups,omitempty"`
 
+	// no documentation yet
+	BluemixAccountId *string `json:"bluemixAccountId,omitempty" xmlrpc:"bluemixAccountId,omitempty"`
+
 	// The Platform account link associated with this SoftLayer account, if one exists.
 	BluemixAccountLink *Account_Link_Bluemix `json:"bluemixAccountLink,omitempty" xmlrpc:"bluemixAccountLink,omitempty"`
 
@@ -353,6 +356,7 @@ type Account struct {
 	DomainRegistrationCount *uint `json:"domainRegistrationCount,omitempty" xmlrpc:"domainRegistrationCount,omitempty"`
 
 	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	DomainRegistrations []Dns_Domain_Registration `json:"domainRegistrations,omitempty" xmlrpc:"domainRegistrations,omitempty"`
 
 	// The DNS domains associated with an account.
@@ -665,10 +669,11 @@ type Account struct {
 	// An account's latest recurring pending invoice.
 	LatestRecurringPendingInvoice *Billing_Invoice `json:"latestRecurringPendingInvoice,omitempty" xmlrpc:"latestRecurringPendingInvoice,omitempty"`
 
-	// A count of the legacy bandwidth allotments for an account.
+	// A count of [DEPRECATED] The legacy bandwidth allotments for an account.
 	LegacyBandwidthAllotmentCount *uint `json:"legacyBandwidthAllotmentCount,omitempty" xmlrpc:"legacyBandwidthAllotmentCount,omitempty"`
 
-	// The legacy bandwidth allotments for an account.
+	// [DEPRECATED] The legacy bandwidth allotments for an account.
+	// Deprecated: This function has been marked as deprecated.
 	LegacyBandwidthAllotments []Network_Bandwidth_Version1_Allotment `json:"legacyBandwidthAllotments,omitempty" xmlrpc:"legacyBandwidthAllotments,omitempty"`
 
 	// The total capacity of Legacy iSCSI Volumes on an account, in GB.
@@ -703,6 +708,10 @@ type Account struct {
 
 	// An account's media transfer service requests.
 	MediaDataTransferRequests []Account_Media_Data_Transfer_Request `json:"mediaDataTransferRequests,omitempty" xmlrpc:"mediaDataTransferRequests,omitempty"`
+
+	// [DEPRECATED] - An accounts metric tracking object. This object records all periodic polled data available to this account.
+	// Deprecated: This function has been marked as deprecated.
+	MetricTrackingObject *Metric_Tracking_Object `json:"metricTrackingObject,omitempty" xmlrpc:"metricTrackingObject,omitempty"`
 
 	// Flag indicating whether this account is restricted to the IBM Cloud portal.
 	MigratedToIbmCloudPortalFlag *bool `json:"migratedToIbmCloudPortalFlag,omitempty" xmlrpc:"migratedToIbmCloudPortalFlag,omitempty"`
@@ -1185,13 +1194,6 @@ type Account struct {
 	// The SAML configuration for this account.
 	SamlAuthentication *Account_Authentication_Saml `json:"samlAuthentication,omitempty" xmlrpc:"samlAuthentication,omitempty"`
 
-	// A count of [DEPRECATED] All scale groups on this account.
-	ScaleGroupCount *uint `json:"scaleGroupCount,omitempty" xmlrpc:"scaleGroupCount,omitempty"`
-
-	// [DEPRECATED] All scale groups on this account.
-	// Deprecated: This function has been marked as deprecated.
-	ScaleGroups []Scale_Group `json:"scaleGroups,omitempty" xmlrpc:"scaleGroups,omitempty"`
-
 	// A count of the secondary DNS records for a SoftLayer customer account.
 	SecondaryDomainCount *uint `json:"secondaryDomainCount,omitempty" xmlrpc:"secondaryDomainCount,omitempty"`
 
@@ -1318,12 +1320,6 @@ type Account struct {
 	// A count of tickets closed today associated with an account.
 	TicketsClosedTodayCount *uint `json:"ticketsClosedTodayCount,omitempty" xmlrpc:"ticketsClosedTodayCount,omitempty"`
 
-	// A count of an account's associated Transcode account.
-	TranscodeAccountCount *uint `json:"transcodeAccountCount,omitempty" xmlrpc:"transcodeAccountCount,omitempty"`
-
-	// An account's associated Transcode account.
-	TranscodeAccounts []Network_Media_Transcode_Account `json:"transcodeAccounts,omitempty" xmlrpc:"transcodeAccounts,omitempty"`
-
 	// A count of an account's associated upgrade requests.
 	UpgradeRequestCount *uint `json:"upgradeRequestCount,omitempty" xmlrpc:"upgradeRequestCount,omitempty"`
 
@@ -1342,7 +1338,7 @@ type Account struct {
 	// Stored security certificates that are not expired (ie. SSL)
 	ValidSecurityCertificates []Security_Certificate `json:"validSecurityCertificates,omitempty" xmlrpc:"validSecurityCertificates,omitempty"`
 
-	// Return 0 if vpn updates are currently in progress on this account otherwise 1.
+	// DEPRECATED - Return 0 if VDR updates are currently in progress on this account otherwise 1.
 	VdrUpdatesInProgressFlag *bool `json:"vdrUpdatesInProgressFlag,omitempty" xmlrpc:"vdrUpdatesInProgressFlag,omitempty"`
 
 	// A count of the bandwidth pooling for this account.
@@ -1839,6 +1835,50 @@ type Account_Authentication_Saml struct {
 	SingleSignOnUrl *string `json:"singleSignOnUrl,omitempty" xmlrpc:"singleSignOnUrl,omitempty"`
 }
 
+// Represents a request to migrate an account to the owned brand.
+type Account_Brand_Migration_Request struct {
+	Entity
+
+	// no documentation yet
+	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
+
+	// ID of the [[SoftLayer_Account]].
+	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
+
+	// Timestamp of when the request was created.
+	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
+
+	// no documentation yet
+	DestinationBrand *Brand `json:"destinationBrand,omitempty" xmlrpc:"destinationBrand,omitempty"`
+
+	// ID of the target [[SoftLayer_Brand]].
+	DestinationBrandId *int `json:"destinationBrandId,omitempty" xmlrpc:"destinationBrandId,omitempty"`
+
+	// ID of the request.
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// Timestamp of when the migration will happen, or happened in the past.
+	MigrationDate *Time `json:"migrationDate,omitempty" xmlrpc:"migrationDate,omitempty"`
+
+	// Timestamp of when the request was last modified.
+	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
+
+	// no documentation yet
+	SourceBrand *Brand `json:"sourceBrand,omitempty" xmlrpc:"sourceBrand,omitempty"`
+
+	// ID of the source [[SoftLayer_Brand]].
+	SourceBrandId *int `json:"sourceBrandId,omitempty" xmlrpc:"sourceBrandId,omitempty"`
+
+	// Status of the request.
+	Status *string `json:"status,omitempty" xmlrpc:"status,omitempty"`
+
+	// If present, a message giving more details of the current status.
+	StatusMessage *string `json:"statusMessage,omitempty" xmlrpc:"statusMessage,omitempty"`
+
+	// no documentation yet
+	User *User_Customer `json:"user,omitempty" xmlrpc:"user,omitempty"`
+}
+
 // Contains business partner details associated with an account. Country Enterprise Identifier (CEID), Channel ID, Segment ID and Reseller Level.
 type Account_Business_Partner struct {
 	Entity
@@ -2006,6 +2046,11 @@ type Account_Historical_Report struct {
 
 // no documentation yet
 type Account_Internal_Ibm struct {
+	Entity
+}
+
+// no documentation yet
+type Account_Internal_Ibm_CostRecovery_Validator struct {
 	Entity
 }
 
@@ -2455,17 +2500,6 @@ type Account_Password_Type struct {
 
 	// A description of the use for the account username/password combination.
 	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-}
-
-// no documentation yet
-type Account_PersonalData_RemoveRequestReview struct {
-	Entity
-
-	// no documentation yet
-	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
-
-	// no documentation yet
-	ApprovedFlag *Account_PersonalData_RemoveRequestReview `json:"approvedFlag,omitempty" xmlrpc:"approvedFlag,omitempty"`
 }
 
 // no documentation yet

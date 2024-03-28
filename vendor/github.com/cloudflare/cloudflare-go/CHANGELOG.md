@@ -1,4 +1,377 @@
-## 0.71.0 (Unreleased)
+## 0.87.0 (Unreleased)
+
+## 0.86.0 (January 17, 2024)
+
+ENHANCEMENTS:
+
+* access_application: Add support for default_relay_state in saas apps ([#1477](https://github.com/cloudflare/cloudflare-go/issues/1477))
+* zaraz: Add support for CRUD APIs ([#1474](https://github.com/cloudflare/cloudflare-go/issues/1474))
+
+DEPENDENCIES:
+
+* deps: bumps github.com/cloudflare/circl from 1.3.3 to 1.3.7 ([#1475](https://github.com/cloudflare/cloudflare-go/issues/1475))
+* deps: bumps golang.org/x/net from 0.19.0 to 0.20.0 ([#1476](https://github.com/cloudflare/cloudflare-go/issues/1476))
+
+## 0.85.0 (January 3rd, 2024)
+
+DEPENDENCIES:
+
+* deps: bumps github.com/go-git/go-git/v5 from 5.4.2 to 5.11.0 ([#1470](https://github.com/cloudflare/cloudflare-go/issues/1470))
+* deps: bumps github.com/urfave/cli/v2 from 2.26.0 to 2.27.0 ([#1471](https://github.com/cloudflare/cloudflare-go/issues/1471))
+* deps: bumps github.com/urfave/cli/v2 from 2.27.0 to 2.27.1 ([#1472](https://github.com/cloudflare/cloudflare-go/issues/1472))
+
+## 0.84.0 (December 20th, 2023)
+
+ENHANCEMENTS:
+
+* access_group: Add support for email lists ([#1445](https://github.com/cloudflare/cloudflare-go/issues/1445))
+* device_posture_rules: add support for Access client fields in device posture integrations ([#1464](https://github.com/cloudflare/cloudflare-go/issues/1464))
+* page_shield: added support for page shield ([#1459](https://github.com/cloudflare/cloudflare-go/issues/1459))
+
+DEPENDENCIES:
+
+* deps: bumps actions/setup-go from 4 to 5 ([#1460](https://github.com/cloudflare/cloudflare-go/issues/1460))
+* deps: bumps github/codeql-action from 2 to 3 ([#1462](https://github.com/cloudflare/cloudflare-go/issues/1462))
+* deps: bumps golang.org/x/crypto from 0.14.0 to 0.17.0 ([#1466](https://github.com/cloudflare/cloudflare-go/issues/1466))
+
+## 0.83.0 (December 6th, 2023)
+
+ENHANCEMENTS:
+
+* cloudflare: Add ResultInfo to RawResponse ([#1453](https://github.com/cloudflare/cloudflare-go/issues/1453))
+* devices_policy: add fields for Opt-In Split Tunnel Overlapping IPs feature. ([#1454](https://github.com/cloudflare/cloudflare-go/issues/1454))
+* stream: Add ScheduledDeletion to StreamCreateVideoParameters ([#1457](https://github.com/cloudflare/cloudflare-go/issues/1457))
+* stream: Add ScheduledDeletion to StreamUploadFromURLParameters ([#1457](https://github.com/cloudflare/cloudflare-go/issues/1457))
+* stream: Add ScheduledDeletion to StreamVideo ([#1457](https://github.com/cloudflare/cloudflare-go/issues/1457))
+* stream: Add ScheduledDeletion to StreamVideoCreate ([#1457](https://github.com/cloudflare/cloudflare-go/issues/1457))
+* worker_bindings: Fixing form element name for d1 binding ([#1450](https://github.com/cloudflare/cloudflare-go/issues/1450))
+* worker_bindings: add support for `d1` bindings ([#1446](https://github.com/cloudflare/cloudflare-go/issues/1446))
+
+DEPENDENCIES:
+
+* deps: bumps github.com/urfave/cli/v2 from 2.25.7 to 2.26.0 ([#1456](https://github.com/cloudflare/cloudflare-go/issues/1456))
+* deps: bumps golang.org/x/net from 0.18.0 to 0.19.0 ([#1452](https://github.com/cloudflare/cloudflare-go/issues/1452))
+* deps: bumps golang.org/x/time from 0.4.0 to 0.5.0 ([#1449](https://github.com/cloudflare/cloudflare-go/issues/1449))
+
+## 0.82.0 (November 22nd, 2023)
+
+ENHANCEMENTS:
+
+* ip_access_rules: Add ListIPAccessRules() to list IP Access Rules ([#1428](https://github.com/cloudflare/cloudflare-go/issues/1428))
+* load_balancing: add healthy field to LoadBalancerPool ([#1442](https://github.com/cloudflare/cloudflare-go/issues/1442))
+
+BUG FIXES:
+
+* load_balancing: Add support for virtual network id in origins ([#1441](https://github.com/cloudflare/cloudflare-go/issues/1441))
+* per_hostname_tls_setting: use `buildURI` for defining the query parameters when sorting ([#1440](https://github.com/cloudflare/cloudflare-go/issues/1440))
+
+DEPENDENCIES:
+
+* deps: bumps github.com/hashicorp/go-retryablehttp from 0.7.4 to 0.7.5 ([#1438](https://github.com/cloudflare/cloudflare-go/issues/1438))
+* deps: bumps golang.org/x/net from 0.17.0 to 0.18.0 ([#1439](https://github.com/cloudflare/cloudflare-go/issues/1439))
+
+## 0.81.0 (November 8th, 2023)
+
+BREAKING CHANGES:
+
+* devices_policy: `CreateDeviceSettingsPolicy` is updated with method signatures matching the library conventions ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `DeleteDeviceSettingsPolicy` is updated with method signatures matching the library conventions ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `DeviceClientCertificates` is renamed to `DeviceClientCertificates` ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `GetDefaultDeviceSettingsPolicy` is updated with method signatures matching the library conventions ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `GetDeviceClientCertificatesZone` is renamed to `GetDeviceClientCertificates` with updated method signatures ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `GetDeviceClientCertificates` is updated with method signatures matching the library conventions ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `GetDeviceSettingsPolicy` is updated with method signatures matching the library conventions ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `UpdateDefaultDeviceSettingsPolicy` is updated with method signatures matching the library conventions ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `UpdateDeviceClientCertificatesZone` is renamed to `UpdateDeviceClientCertificates` with updated method signatures ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* devices_policy: `UpdateDeviceSettingsPolicy` is updated with method signatures matching the library conventions ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+
+ENHANCEMENTS:
+
+* access_seats: Add UpdateAccessUserSeat() to list IP Access Rules ([#1427](https://github.com/cloudflare/cloudflare-go/issues/1427))
+* access_user: Add GetAccessUserActiveSessions() to get all active sessions for a Access/Zero-Trust user. ([#1427](https://github.com/cloudflare/cloudflare-go/issues/1427))
+* access_user: Add GetAccessUserFailedLogins() to get all failed login attempts for a Access/Zero-Trust user. ([#1427](https://github.com/cloudflare/cloudflare-go/issues/1427))
+* access_user: Add GetAccessUserLastSeenIdentity() to get last seen identity for a Access/Zero-Trust user. ([#1427](https://github.com/cloudflare/cloudflare-go/issues/1427))
+* access_user: Add GetAccessUserSingleActiveSession() to get an active session for a Access/Zero-Trust user. ([#1427](https://github.com/cloudflare/cloudflare-go/issues/1427))
+* access_user: Add ListAccessUsers() to get a list of users for a Access/Zero-Trust account. ([#1427](https://github.com/cloudflare/cloudflare-go/issues/1427))
+* devices_policy: Add support for listing device settings policies ([#1433](https://github.com/cloudflare/cloudflare-go/issues/1433))
+* teams_rules: Add support for resolver policies ([#1436](https://github.com/cloudflare/cloudflare-go/issues/1436))
+
+DEPENDENCIES:
+
+* deps: bumps golang.org/x/time from 0.3.0 to 0.4.0 ([#1434](https://github.com/cloudflare/cloudflare-go/issues/1434))
+
+## 0.80.0 (October 25th, 2023)
+
+BREAKING CHANGES:
+
+* teams: `BrowserIsolation.UrlBrowserIsolationEnabled` has changed from `bool` to `*bool` to meet the library conventions ([#1424](https://github.com/cloudflare/cloudflare-go/issues/1424))
+
+ENHANCEMENTS:
+
+* access_application: Add support for app launcher customization fields ([#1407](https://github.com/cloudflare/cloudflare-go/issues/1407))
+* api_shield_schema: Add support for Get/Update API Shield Operation Schema Validation Settings ([#1422](https://github.com/cloudflare/cloudflare-go/issues/1422))
+* api_shield_schema: Add support for Get/Update API Shield Schema Validation Settings ([#1418](https://github.com/cloudflare/cloudflare-go/issues/1418))
+* teams: Add support for body_scanning (Enhanced File Detection) in teams account configuration ([#1423](https://github.com/cloudflare/cloudflare-go/issues/1423))
+* load_balancing: extend documentation for least_connections steering policy ([#1414](https://github.com/cloudflare/cloudflare-go/issues/1414))
+* teams: Add `non_identity_enabled` boolean in browser isolation settings ([#1424](https://github.com/cloudflare/cloudflare-go/issues/1424))
+
+DEPENDENCIES:
+
+* deps: bumps golang.org/x/net from 0.7.0 to 0.17.0 ([#1421](https://github.com/cloudflare/cloudflare-go/issues/1421))
+
+## 0.79.0 (October 11th, 2023)
+
+ENHANCEMENTS:
+
+* access_organization: Add support for session_duration ([#1415](https://github.com/cloudflare/cloudflare-go/issues/1415))
+* access_policy: Add support for session_duration ([#1415](https://github.com/cloudflare/cloudflare-go/issues/1415))
+
+ENHANCEMENTS:
+
+* api_shield_discovery: Add support for Get/Patch API Shield API Discovery Operations ([#1413](https://github.com/cloudflare/cloudflare-go/issues/1413))
+* api_shield_schema: Add support for managing schemas for API Shield Schema Validation 2.0 ([#1406](https://github.com/cloudflare/cloudflare-go/issues/1406))
+* d1: adds support for d1 ([#1417](https://github.com/cloudflare/cloudflare-go/issues/1417))
+* teams: Add `audit_ssh_settings` endpoints ([#1419](https://github.com/cloudflare/cloudflare-go/issues/1419))
+
+BUG FIXES:
+
+* custom_nameservers: change `NSSet` from string to int to match API response ([#1410](https://github.com/cloudflare/cloudflare-go/issues/1410))
+* observatory: fix double url encoding ([#1412](https://github.com/cloudflare/cloudflare-go/issues/1412))
+
+DEPENDENCIES:
+
+* deps: bumps golang.org/x/net from 0.15.0 to 0.16.0 ([#1416](https://github.com/cloudflare/cloudflare-go/issues/1416))
+* deps: bumps golang.org/x/net from 0.16.0 to 0.17.0 ([#1420](https://github.com/cloudflare/cloudflare-go/issues/1420))
+
+## 0.78.0 (September 27th, 2023)
+
+BREAKING CHANGES:
+
+* account_role: `AccountRole` has been renamed to `GetAccountRole` to align with the updated method conventions ([#1405](https://github.com/cloudflare/cloudflare-go/issues/1405))
+* account_role: `AccountRoles` has been renamed to `ListAccountRoles` to align with the updated method conventions ([#1405](https://github.com/cloudflare/cloudflare-go/issues/1405))
+
+ENHANCEMENTS:
+
+* access_application: Add support for tags ([#1403](https://github.com/cloudflare/cloudflare-go/issues/1403))
+* access_tag: Add support for tags ([#1403](https://github.com/cloudflare/cloudflare-go/issues/1403))
+* list_item: allow filtering by search term, cursor and per page attributes ([#1409](https://github.com/cloudflare/cloudflare-go/issues/1409))
+* observatory: add support for observatory API ([#1401](https://github.com/cloudflare/cloudflare-go/issues/1401))
+
+BUG FIXES:
+
+* account_role: autopaginate all available results instead of a static number ([#1405](https://github.com/cloudflare/cloudflare-go/issues/1405))
+* semgrep: Improved IPv4 validation by implementing a new pattern to handle cases where non-IPv4 addresses were previously accepted. ([#1382](https://github.com/cloudflare/cloudflare-go/issues/1382))
+
+DEPENDENCIES:
+
+* deps: bumps codecov/codecov-action from 3 to 4 ([#1402](https://github.com/cloudflare/cloudflare-go/issues/1402))
+
+## 0.77.0 (September 13th, 2023)
+
+ENHANCEMENTS:
+
+* access_identity_provider: add support for email_claim_name and authorization_server_id ([#1390](https://github.com/cloudflare/cloudflare-go/issues/1390))
+* access_identity_provider: add support for ping_env_id ([#1391](https://github.com/cloudflare/cloudflare-go/issues/1391))
+* dcv_delegation: add GET for DCV Delegation UUID ([#1384](https://github.com/cloudflare/cloudflare-go/issues/1384))
+* streams: adds support to initiate tus upload ([#1359](https://github.com/cloudflare/cloudflare-go/issues/1359))
+* tunnel: add support for `include_prefix`, `exclude_prefix` in list operations ([#1385](https://github.com/cloudflare/cloudflare-go/issues/1385))
+
+BUG FIXES:
+
+* dns: keep comments when calling UpdateDNSRecord with zero values of UpdateDNSRecordParams ([#1393](https://github.com/cloudflare/cloudflare-go/issues/1393))
+
+DEPENDENCIES:
+
+* deps: bumps actions/checkout from 3 to 4 ([#1387](https://github.com/cloudflare/cloudflare-go/issues/1387))
+* deps: bumps golang.org/x/net from 0.14.0 to 0.15.0 ([#1389](https://github.com/cloudflare/cloudflare-go/issues/1389))
+* deps: bumps goreleaser/goreleaser-action from 4.4.0 to 4.6.0 ([#1388](https://github.com/cloudflare/cloudflare-go/issues/1388))
+* deps: bumps goreleaser/goreleaser-action from 4.6.0 to 5.0.0 ([#1396](https://github.com/cloudflare/cloudflare-go/issues/1396))
+
+## 0.76.0 (August 30th, 2023)
+
+BREAKING CHANGES:
+
+* images: Renamed Image struct "Metadata" field to "Meta" ([#1379](https://github.com/cloudflare/cloudflare-go/issues/1379))
+
+ENHANCEMENTS:
+
+* access_application: added custom_non_identity_deny_url ([#1373](https://github.com/cloudflare/cloudflare-go/issues/1373))
+* load_balancer_monitor: add support for `consecutive_up`, `consecutive_down` ([#1380](https://github.com/cloudflare/cloudflare-go/issues/1380))
+* workers: Add support for retrieving and uploading only script content. ([#1361](https://github.com/cloudflare/cloudflare-go/issues/1361))
+* workers: Add support for retrieving and uploading only script metadata. ([#1361](https://github.com/cloudflare/cloudflare-go/issues/1361))
+* workers: allow namespaced scripts to be used as Worker tail consumers ([#1377](https://github.com/cloudflare/cloudflare-go/issues/1377))
+
+BUG FIXES:
+
+* access_application: Use autopaginate flag as expected ([#1372](https://github.com/cloudflare/cloudflare-go/issues/1372))
+* access_ca_certificate: Use autopaginate flag as expected ([#1372](https://github.com/cloudflare/cloudflare-go/issues/1372))
+* access_group: Use autopaginate flag as expected ([#1372](https://github.com/cloudflare/cloudflare-go/issues/1372))
+* access_mutual_tls_certifcate: Use autopaginate flag as expected ([#1372](https://github.com/cloudflare/cloudflare-go/issues/1372))
+* access_policy: Use autopaginate flag as expected ([#1372](https://github.com/cloudflare/cloudflare-go/issues/1372))
+* images: Fix issue parsing Image Details from API due to incorrect struct json field ([#1379](https://github.com/cloudflare/cloudflare-go/issues/1379))
+* pagination: Will look at `total_count` and `per_page` to calculate `total_pages` if `total_pages` is zero ([#1372](https://github.com/cloudflare/cloudflare-go/issues/1372))
+
+## 0.75.0 (August 16th, 2023)
+
+BREAKING CHANGES:
+
+* cloudflare: `Raw` method now returns a RawResponse rather than the raw JSON `Result` message ([#1355](https://github.com/cloudflare/cloudflare-go/issues/1355))
+* rulesets: Rename `RulesetPhaseRateLimit` to `RulesetPhaseHTTPRatelimit`, to match the phase name ([#1367](https://github.com/cloudflare/cloudflare-go/issues/1367))
+* rulesets: Rename `RulesetPhaseSuperBotFightMode` to `RulesetPhaseHTTPRequestSBFM`, to match the phase name ([#1367](https://github.com/cloudflare/cloudflare-go/issues/1367))
+
+NOTES:
+
+* rulesets: Remove non-existent `allow` action ([#1367](https://github.com/cloudflare/cloudflare-go/issues/1367))
+* rulesets: Remove non-existent `http_request_main` phase ([#1367](https://github.com/cloudflare/cloudflare-go/issues/1367))
+* rulesets: Remove non-public `http_response_headers_transform_managed` and `http_request_late_transform_managed` phases ([#1367](https://github.com/cloudflare/cloudflare-go/issues/1367))
+
+ENHANCEMENTS:
+
+* access_group: add auth_context group ruletype ([#1344](https://github.com/cloudflare/cloudflare-go/issues/1344))
+* access_identity_provider: add attr conditional_access_enabled ([#1344](https://github.com/cloudflare/cloudflare-go/issues/1344))
+* access_identity_provider: add auth context list/put endpoint ([#1344](https://github.com/cloudflare/cloudflare-go/issues/1344))
+* access_service_token: add support for managing `Duration` ([#1347](https://github.com/cloudflare/cloudflare-go/issues/1347))
+* bot_management: add support for bot_management API ([#1363](https://github.com/cloudflare/cloudflare-go/issues/1363))
+* cloudflare: swap `encoding/json` for `github.com/goccy/go-json` ([#1360](https://github.com/cloudflare/cloudflare-go/issues/1360))
+* device_posture_rule: support eid_last_seen and risk_level and correct total_score for Tanium posture rule ([#1366](https://github.com/cloudflare/cloudflare-go/issues/1366))
+* per_hostname_tls_settings: add support for managing hostname level TLS settings ([#1356](https://github.com/cloudflare/cloudflare-go/issues/1356))
+* rulesets: Add the `ddos_mitigation` action ([#1367](https://github.com/cloudflare/cloudflare-go/issues/1367))
+* waiting_room: add support for `queueing_status_code` ([#1357](https://github.com/cloudflare/cloudflare-go/issues/1357))
+* web_analytics: add support for web_analytics API ([#1348](https://github.com/cloudflare/cloudflare-go/issues/1348))
+* workers: add support for tagging Worker scripts ([#1368](https://github.com/cloudflare/cloudflare-go/issues/1368))
+* zone_hold: add support for zone hold API ([#1365](https://github.com/cloudflare/cloudflare-go/issues/1365))
+
+BUG FIXES:
+
+* cache_purge: don't escape HTML entity values in URLs for cache keys ([#1360](https://github.com/cloudflare/cloudflare-go/issues/1360))
+
+DEPENDENCIES:
+
+* deps: bumps golang.org/x/net from 0.12.0 to 0.13.0 ([#1353](https://github.com/cloudflare/cloudflare-go/issues/1353))
+* deps: bumps golang.org/x/net from 0.13.0 to 0.14.0 ([#1362](https://github.com/cloudflare/cloudflare-go/issues/1362))
+* deps: bumps goreleaser/goreleaser-action from 4.3.0 to 4.4.0 ([#1369](https://github.com/cloudflare/cloudflare-go/issues/1369))
+
+## 0.74.0 (August 2nd, 2023)
+
+ENHANCEMENTS:
+
+* access_application: Add support for custom pages ([#1343](https://github.com/cloudflare/cloudflare-go/issues/1343))
+* access_custom_page: Add support for custom pages ([#1343](https://github.com/cloudflare/cloudflare-go/issues/1343))
+* access_organization: add support for custom pages ([#1343](https://github.com/cloudflare/cloudflare-go/issues/1343))
+* rulesets: Remove internal-only schema kind ([#1346](https://github.com/cloudflare/cloudflare-go/issues/1346))
+* rulesets: Remove some request parameters that are not allowed or have no effect ([#1346](https://github.com/cloudflare/cloudflare-go/issues/1346))
+* rulesets: Update API reference links ([#1346](https://github.com/cloudflare/cloudflare-go/issues/1346))
+* teams-accounts: Adds support for protocol detection ([#1340](https://github.com/cloudflare/cloudflare-go/issues/1340))
+* workers: Add `pipeline_hash` field to Workers script response struct. ([#1330](https://github.com/cloudflare/cloudflare-go/issues/1330))
+* workers: Add support for declaring arbitrary bindings with UnsafeBinding. ([#1330](https://github.com/cloudflare/cloudflare-go/issues/1330))
+* workers: Add support for uploading scripts to a Workers for Platforms namespace. ([#1330](https://github.com/cloudflare/cloudflare-go/issues/1330))
+* workers: Add support for uploading workers with Workers for Platforms namespace bindings. ([#1330](https://github.com/cloudflare/cloudflare-go/issues/1330))
+
+BUG FIXES:
+
+* flarectl: allow for create or update to actually create the record ([#1341](https://github.com/cloudflare/cloudflare-go/issues/1341))
+* load_balancing: Fix pool creation with MinimumOrigins set to 0 ([#1338](https://github.com/cloudflare/cloudflare-go/issues/1338))
+* workers: Fix namespace dispatch upload API path ([#1345](https://github.com/cloudflare/cloudflare-go/issues/1345))
+
+## 0.73.0 (July 19th, 2023)
+
+BREAKING CHANGES:
+
+* pages_deployment: add support for auto pagination ([#1264](https://github.com/cloudflare/cloudflare-go/issues/1264))
+* pages_deployment: change DeletePagesDeploymentParams to contain all parameters ([#1264](https://github.com/cloudflare/cloudflare-go/issues/1264))
+* pages_project: change to use ResourceContainer for account ID ([#1264](https://github.com/cloudflare/cloudflare-go/issues/1264))
+* pages_project: rename PagesProject to GetPagesProject ([#1264](https://github.com/cloudflare/cloudflare-go/issues/1264))
+* rulesets: `CreateAccountRuleset` is removed in favour of `CreateRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `CreateZoneRuleset` is removed in favour of `CreateRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `DeleteAccountRuleset` is removed in favour of `DeleteRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `DeleteZoneRuleset` is removed in favour of `DeleteRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `GetAccountRulesetPhase` is removed in favour of `GetEntrypointRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `GetAccountRuleset` is removed in favour of `GetRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `GetZoneRulesetPhase` is removed in favour of `GetEntrypointRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `GetZoneRuleset` is removed in favour of `GetRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `UpdateAccountRulesetPhase` is removed in favour of `UpdateEntrypointRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `UpdateAccountRuleset` is removed in favour of `UpdateRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `UpdateZoneRulesetPhase` is removed in favour of `UpdateEntrypointRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+* rulesets: `UpdateZoneRuleset` is removed in favour of `UpdateRuleset` ([#1333](https://github.com/cloudflare/cloudflare-go/issues/1333))
+
+ENHANCEMENTS:
+
+* device_posture_rule: support active_threats, network_status, infected, and is_active for sentinelone_s2s posture rule ([#1339](https://github.com/cloudflare/cloudflare-go/issues/1339))
+* device_posture_rule: support certificate_id and cn for client_certificate posture rule ([#1339](https://github.com/cloudflare/cloudflare-go/issues/1339))
+* images: adds ability to upload image by url ([#1335](https://github.com/cloudflare/cloudflare-go/issues/1335))
+* load_balancing: support header session affinity policy ([#1302](https://github.com/cloudflare/cloudflare-go/issues/1302))
+* zone: Added `GetRegionalTieredCache` and `UpdateRegionalTieredCache` to allow setting Regional Tiered Cache for a zone. ([#1336](https://github.com/cloudflare/cloudflare-go/issues/1336))
+
+DEPENDENCIES:
+
+* deps: bumps golang.org/x/net from 0.11.0 to 0.12.0 ([#1328](https://github.com/cloudflare/cloudflare-go/issues/1328))
+
+## 0.72.0 (July 5th, 2023)
+
+BREAKING CHANGES:
+
+* logpush: `CheckAccountLogpushDestinationExists` is removed in favour of `CheckLogpushDestinationExists` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `CheckZoneLogpushDestinationExists` is removed in favour of `CheckLogpushDestinationExists` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `CreateAccountLogpushJob` is removed in favour of `CreateLogpushJob` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `CreateZoneLogpushJob` is removed in favour of `CreateLogpushJob` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `DeleteAccountLogpushJob` is removed in favour of `DeleteLogpushJob` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `DeleteZoneLogpushJob` is removed in favour of `DeleteLogpushJob` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `GetAccountLogpushFields` is removed in favour of `GetLogpushFields` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `GetAccountLogpushJob` is removed in favour of `GetLogpushJob` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `GetAccountLogpushOwnershipChallenge` is removed in favour of `GetLogpushOwnershipChallenge` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `GetZoneLogpushFields` is removed in favour of `GetLogpushFields` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `GetZoneLogpushJob` is removed in favour of `GetLogpushJob` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `GetZoneLogpushOwnershipChallenge` is removed in favour of `GetLogpushOwnershipChallenge` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `ListAccountLogpushJobsForDataset` is removed in favour of `ListLogpushJobsForDataset` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `ListAccountLogpushJobs` is removed in favour of `ListLogpushJobs` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `ListZoneLogpushJobsForDataset` is removed in favour of `ListLogpushJobsForDataset` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `ListZoneLogpushJobs` is removed in favour of `ListLogpushJobs` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `UpdateAccountLogpushJob` is removed in favour of `UpdateLogpushJob` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `UpdateZoneLogpushJob` is removed in favour of `UpdateLogpushJob` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `ValidateAccountLogpushOwnershipChallenge` is removed in favour of `ValidateLogpushOwnershipChallenge` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: `ValidateZoneLogpushOwnershipChallenge` is removed in favour of `ValidateLogpushOwnershipChallenge` with `ResourceContainer` method parameter ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+* logpush: all methods are updated to use the newer client conventions for method signatures ([#1326](https://github.com/cloudflare/cloudflare-go/issues/1326))
+
+ENHANCEMENTS:
+
+* resource_container: expose `Type` on `*ResourceContainer` to explicitly denote what type of resource it is instead of inferring from `Level`. ([#1325](https://github.com/cloudflare/cloudflare-go/issues/1325))
+
+## 0.71.0 (July 5th, 2023)
+
+BREAKING CHANGES:
+
+* access_application: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_ca_certificate: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_group: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_identity_provider: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_mutual_tls_certificates: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_organization: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_policy: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_service_tokens: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_user_token: refactor methods to use `ResourceContainer` instead of dedicated account/zone methods ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* images: renamed `BaseImage` to `GetBaseImage` to match library conventions ([#1322](https://github.com/cloudflare/cloudflare-go/issues/1322))
+* images: renamed `ImageDetails` to `GetImage` to match library conventions ([#1322](https://github.com/cloudflare/cloudflare-go/issues/1322))
+* images: renamed `ImagesStats` to `GetImagesStats` to match library conventions ([#1322](https://github.com/cloudflare/cloudflare-go/issues/1322))
+* images: updated method signatures of `DeleteImage` to match newer conventions and standards ([#1322](https://github.com/cloudflare/cloudflare-go/issues/1322))
+* images: updated method signatures of `ListImages` to match newer conventions and standards ([#1322](https://github.com/cloudflare/cloudflare-go/issues/1322))
+* images: updated method signatures of `UpdateImage` to match newer conventions and standards ([#1322](https://github.com/cloudflare/cloudflare-go/issues/1322))
+* images: updated method signatures of `UploadImage` to match newer conventions and standards ([#1322](https://github.com/cloudflare/cloudflare-go/issues/1322))
+
+ENHANCEMENTS:
+
+* access_application: add support for auto pagination ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_ca_certificate: add support for auto pagination ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_group: add support for auto pagination ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_identity_provider: add support for auto pagination ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_mutual_tls_certificates: add support for auto pagination ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* access_policy: add support for auto pagination ([#1319](https://github.com/cloudflare/cloudflare-go/issues/1319))
+* device_posture_rule: support os_version_extra ([#1316](https://github.com/cloudflare/cloudflare-go/issues/1316))
+* images: adds support for v2 when uploading images directly ([#1322](https://github.com/cloudflare/cloudflare-go/issues/1322))
+* workers: Add ability to specify tail Workers in script metadata ([#1317](https://github.com/cloudflare/cloudflare-go/issues/1317))
+
+DEPENDENCIES:
+
+* deps: bumps dependabot/fetch-metadata from 1.5.1 to 1.6.0 ([#1320](https://github.com/cloudflare/cloudflare-go/issues/1320))
 
 ## 0.70.0 (June 21st, 2023)
 

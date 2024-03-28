@@ -46,7 +46,7 @@ func (s *NameserverService) Check(domain string, nameservers []string) (*Nameser
 }
 
 // Info gets information.
-func (s *NameserverService) Info(request *NameserverInfoRequest) (*NamserverInfoResponse, error) {
+func (s *NameserverService) Info(request *NameserverInfoRequest) (*NameserverInfoResponse, error) {
 	req := s.client.NewRequest(methodNameserverInfo, structs.Map(request))
 
 	resp, err := s.client.Do(req)
@@ -54,7 +54,7 @@ func (s *NameserverService) Info(request *NameserverInfoRequest) (*NamserverInfo
 		return nil, err
 	}
 
-	result := NamserverInfoResponse{}
+	result := NameserverInfoResponse{}
 	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,8 @@ func (s *NameserverService) Info(request *NameserverInfoRequest) (*NamserverInfo
 }
 
 // List lists nameservers for a domain.
-func (s *NameserverService) List(domain string) (*NamserverListResponse, error) {
+// Deprecated: use ListWithParams instead.
+func (s *NameserverService) List(domain string) (*NameserverListResponse, error) {
 	requestMap := map[string]interface{}{
 		"domain": "*",
 		"wide":   2,
@@ -81,7 +82,32 @@ func (s *NameserverService) List(domain string) (*NamserverListResponse, error) 
 		return nil, err
 	}
 
-	result := NamserverListResponse{}
+	result := NameserverListResponse{}
+	err = mapstructure.Decode(resp, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// ListWithParams lists nameservers for a domain.
+func (s *NameserverService) ListWithParams(request *NameserverListRequest) (*NameserverListResponse, error) {
+	if request == nil {
+		return nil, errors.New("request can't be nil")
+	}
+
+	requestMap := structs.Map(request)
+	requestMap["wide"] = "2"
+
+	req := s.client.NewRequest(methodNameserverList, requestMap)
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := NameserverListResponse{}
 	err = mapstructure.Decode(resp, &result)
 	if err != nil {
 		return nil, err
@@ -161,7 +187,7 @@ func (s *NameserverService) DeleteRecord(recID int) error {
 
 // FindRecordByID search a DNS record by ID.
 func (s *NameserverService) FindRecordByID(recID int) (*NameserverRecord, *NameserverDomain, error) {
-	listResp, err := s.client.Nameservers.List("")
+	listResp, err := s.client.Nameservers.ListWithParams(&NameserverListRequest{})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -184,8 +210,8 @@ func (s *NameserverService) FindRecordByID(recID int) (*NameserverRecord, *Names
 
 // NameserverCheckResponse API model.
 type NameserverCheckResponse struct {
-	Details []string
-	Status  string
+	Details []string `mapstructure:"details"`
+	Status  string   `mapstructure:"status"`
 }
 
 // NameserverRecordRequest API model.
@@ -197,6 +223,7 @@ type NameserverRecordRequest struct {
 	Name                   string `structs:"name,omitempty"`
 	TTL                    int    `structs:"ttl,omitempty"`
 	Priority               int    `structs:"prio,omitempty"`
+	URLAppend              bool   `structs:"urlAppend,omitempty"`
 	URLRedirectType        string `structs:"urlRedirectType,omitempty"`
 	URLRedirectTitle       string `structs:"urlRedirectTitle,omitempty"`
 	URLRedirectDescription string `structs:"urlRedirectDescription,omitempty"`
@@ -234,7 +261,11 @@ type NameserverInfoRequest struct {
 }
 
 // NamserverInfoResponse API model.
-type NamserverInfoResponse struct {
+// Deprecated: Use NameserverInfoResponse instead.
+type NamserverInfoResponse = NameserverInfoResponse
+
+// NameserverInfoResponse API model.
+type NameserverInfoResponse struct {
 	RoID          int                `mapstructure:"roId"`
 	Domain        string             `mapstructure:"domain"`
 	Type          string             `mapstructure:"type"`
@@ -260,6 +291,7 @@ type NameserverRecord struct {
 	Content                string `mapstructure:"content"`
 	TTL                    int    `mapstructure:"TTL"`
 	Priority               int    `mapstructure:"prio"`
+	URLAppend              bool   `mapstructure:"urlAppend,omitempty"`
 	URLRedirectType        string `mapstructure:"urlRedirectType"`
 	URLRedirectTitle       string `mapstructure:"urlRedirectTitle"`
 	URLRedirectDescription string `mapstructure:"urlRedirectDescription"`
@@ -267,9 +299,21 @@ type NameserverRecord struct {
 	URLRedirectFavIcon     string `mapstructure:"urlRedirectFavIcon"`
 }
 
+// NameserverListRequest API model.
+type NameserverListRequest struct {
+	Domain    string `structs:"domain,omitempty"`
+	Wide      int    `structs:"wide,omitempty"`
+	Page      int    `structs:"page,omitempty"`
+	PageLimit int    `structs:"pagelimit,omitempty"`
+}
+
 // NamserverListResponse API model.
-type NamserverListResponse struct {
-	Count   int
+// Deprecated: Use NameserverListResponse instead.
+type NamserverListResponse = NameserverListResponse
+
+// NameserverListResponse API model.
+type NameserverListResponse struct {
+	Count   int                `mapstructure:"count"`
 	Domains []NameserverDomain `mapstructure:"domains"`
 }
 

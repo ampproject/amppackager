@@ -446,6 +446,9 @@ type Billing_Invoice_Item struct {
 	// The date the invoice item was created.
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
 
+	// This is the DPart for invoice item.
+	DPart *string `json:"dPart,omitempty" xmlrpc:"dPart,omitempty"`
+
 	// The item description for this invoice item.
 	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
 
@@ -514,6 +517,9 @@ type Billing_Invoice_Item struct {
 
 	// An invoice item's one-time tax amount. This does not include any child invoice items.
 	OneTimeTaxAmount *Float64 `json:"oneTimeTaxAmount,omitempty" xmlrpc:"oneTimeTaxAmount,omitempty"`
+
+	// This is the package id for this invoice item.
+	PackageId *int `json:"packageId,omitempty" xmlrpc:"packageId,omitempty"`
 
 	// Every item tied to a server should have a parent invoice item which is the server line item. This is how we associate items to a server.
 	Parent *Billing_Invoice_Item `json:"parent,omitempty" xmlrpc:"parent,omitempty"`
@@ -1025,6 +1031,9 @@ type Billing_Item struct {
 	// The package under which this billing item was sold. A Package is the general grouping of products as seen on our order forms.
 	Package *Product_Package `json:"package,omitempty" xmlrpc:"package,omitempty"`
 
+	// This is the package id for this billing item.
+	PackageId *int `json:"packageId,omitempty" xmlrpc:"packageId,omitempty"`
+
 	// A billing item's parent item. If a billing item has no parent item then this value is null.
 	Parent *Billing_Item `json:"parent,omitempty" xmlrpc:"parent,omitempty"`
 
@@ -1278,6 +1287,9 @@ type Billing_Item_Chronicle struct {
 	CycleStartDate *Time `json:"cycleStartDate,omitempty" xmlrpc:"cycleStartDate,omitempty"`
 
 	// no documentation yet
+	DPart *string `json:"dPart,omitempty" xmlrpc:"dPart,omitempty"`
+
+	// no documentation yet
 	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
 
 	// no documentation yet
@@ -1321,6 +1333,9 @@ type Billing_Item_Chronicle struct {
 
 	// no documentation yet
 	OneTimeFee *Float64 `json:"oneTimeFee,omitempty" xmlrpc:"oneTimeFee,omitempty"`
+
+	// no documentation yet
+	PackageId *int `json:"packageId,omitempty" xmlrpc:"packageId,omitempty"`
 
 	// no documentation yet
 	ParentId *int `json:"parentId,omitempty" xmlrpc:"parentId,omitempty"`

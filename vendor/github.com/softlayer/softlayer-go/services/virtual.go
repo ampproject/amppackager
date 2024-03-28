@@ -1259,24 +1259,6 @@ func (r Virtual_Guest) GetCurrentBillingTotal() (resp datatypes.Float64, err err
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Virtual_Guest) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve bandwidth graph by date.
-func (r Virtual_Guest) GetCustomMetricDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getCustomMetricDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve The datacenter that a virtual guest resides in.
 func (r Virtual_Guest) GetDatacenter() (resp datatypes.Location, err error) {
 	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getDatacenter", nil, &r.Options, &resp)
@@ -1742,24 +1724,6 @@ func (r Virtual_Guest) GetReservedCapacityGroupInstance() (resp datatypes.Virtua
 // Retrieve the reverse domain records associated with this server.
 func (r Virtual_Guest) GetReverseDomainRecords() (resp []datatypes.Dns_Domain, err error) {
 	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getReverseDomainRecords", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Collection of scale assets this guest corresponds to.
-func (r Virtual_Guest) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getScaleAssets", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] The scale member for this guest, if applicable.
-func (r Virtual_Guest) GetScaleMember() (resp datatypes.Scale_Member_Virtual_Guest, err error) {
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getScaleMember", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Whether or not this guest is a member of a scale group and was automatically created as part of a scale group action.
-func (r Virtual_Guest) GetScaledFlag() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getScaledFlag", nil, &r.Options, &resp)
 	return
 }
 

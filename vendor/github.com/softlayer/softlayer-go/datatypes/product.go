@@ -213,6 +213,9 @@ type Product_Item struct {
 	// Detailed product description
 	LongDescription *string `json:"longDescription,omitempty" xmlrpc:"longDescription,omitempty"`
 
+	// Indicates whether an item is a M.2 disk controller.
+	M2ControllerFlag *bool `json:"m2ControllerFlag,omitempty" xmlrpc:"m2ControllerFlag,omitempty"`
+
 	// Indicates whether an item is a M.2 drive.
 	M2DriveFlag *bool `json:"m2DriveFlag,omitempty" xmlrpc:"m2DriveFlag,omitempty"`
 
@@ -269,6 +272,12 @@ type Product_Item struct {
 
 	// The unique identifier of the SoftLayer_Software_Description tied to this item.
 	SoftwareDescriptionId *int `json:"softwareDescriptionId,omitempty" xmlrpc:"softwareDescriptionId,omitempty"`
+
+	// The total number of cores for a speed select server product.
+	SpeedSelectServerCoreCount *string `json:"speedSelectServerCoreCount,omitempty" xmlrpc:"speedSelectServerCoreCount,omitempty"`
+
+	// Indicates a speed select server item.
+	SpeedSelectServerFlag *bool `json:"speedSelectServerFlag,omitempty" xmlrpc:"speedSelectServerFlag,omitempty"`
 
 	// An item's tax category, if applicable.
 	TaxCategory *Product_Item_Tax_Category `json:"taxCategory,omitempty" xmlrpc:"taxCategory,omitempty"`

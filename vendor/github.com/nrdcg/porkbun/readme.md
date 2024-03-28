@@ -1,4 +1,4 @@
-# Go library for accessing the Porkdun API
+# Go library for accessing the Porkbun API
 
 [![Build Status](https://github.com/nrdcg/porkbun/workflows/Main/badge.svg?branch=master)](https://github.com/nrdcg/porkbun/actions)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/nrdcg/porkbun)](https://pkg.go.dev/github.com/nrdcg/porkbun)
