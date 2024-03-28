@@ -408,6 +408,15 @@ func (r Brand) IsPlatformServicesBrand() (resp bool, err error) {
 	return
 }
 
+// Will attempt to migrate an external account to the brand in context.
+func (r Brand) MigrateExternalAccount(accountId *int) (resp datatypes.Account_Brand_Migration_Request, err error) {
+	params := []interface{}{
+		accountId,
+	}
+	err = r.Session.DoRequest("SoftLayer_Brand", "migrateExternalAccount", params, &r.Options, &resp)
+	return
+}
+
 // Reactivate an account associated with this Brand.  Anything that would disqualify the account from being reactivated will cause an exception to be raised.
 func (r Brand) ReactivateAccount(accountId *int) (err error) {
 	var resp datatypes.Void

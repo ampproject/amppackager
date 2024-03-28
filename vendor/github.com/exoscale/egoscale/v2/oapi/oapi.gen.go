@@ -154,15 +154,7 @@ const (
 
 	DnsDomainRecordTypeCAA DnsDomainRecordType = "CAA"
 
-	DnsDomainRecordTypeCDNSKEY DnsDomainRecordType = "CDNSKEY"
-
-	DnsDomainRecordTypeCDS DnsDomainRecordType = "CDS"
-
 	DnsDomainRecordTypeCNAME DnsDomainRecordType = "CNAME"
-
-	DnsDomainRecordTypeDNSKEY DnsDomainRecordType = "DNSKEY"
-
-	DnsDomainRecordTypeDS DnsDomainRecordType = "DS"
 
 	DnsDomainRecordTypeHINFO DnsDomainRecordType = "HINFO"
 
@@ -173,8 +165,6 @@ const (
 	DnsDomainRecordTypeNS DnsDomainRecordType = "NS"
 
 	DnsDomainRecordTypePOOL DnsDomainRecordType = "POOL"
-
-	DnsDomainRecordTypePTR DnsDomainRecordType = "PTR"
 
 	DnsDomainRecordTypeSOA DnsDomainRecordType = "SOA"
 
@@ -227,9 +217,9 @@ const (
 const (
 	EnumIntegrationTypesDatasource EnumIntegrationTypes = "datasource"
 
-	EnumIntegrationTypesMetrics EnumIntegrationTypes = "metrics"
+	EnumIntegrationTypesLogs EnumIntegrationTypes = "logs"
 
-	EnumIntegrationTypesReadReplica EnumIntegrationTypes = "read_replica"
+	EnumIntegrationTypesMetrics EnumIntegrationTypes = "metrics"
 )
 
 // Defines values for EnumKafkaAuthMethod.
@@ -353,6 +343,23 @@ const (
 	IamServicePolicyRuleActionDeny IamServicePolicyRuleAction = "deny"
 )
 
+// Defines values for InstancePoolState.
+const (
+	InstancePoolStateCreating InstancePoolState = "creating"
+
+	InstancePoolStateDestroying InstancePoolState = "destroying"
+
+	InstancePoolStateRunning InstancePoolState = "running"
+
+	InstancePoolStateScalingDown InstancePoolState = "scaling-down"
+
+	InstancePoolStateScalingUp InstancePoolState = "scaling-up"
+
+	InstancePoolStateSuspended InstancePoolState = "suspended"
+
+	InstancePoolStateUpdating InstancePoolState = "updating"
+)
+
 // Defines values for InstanceState.
 const (
 	InstanceStateDestroyed InstanceState = "destroyed"
@@ -372,21 +379,6 @@ const (
 	InstanceStateStopped InstanceState = "stopped"
 
 	InstanceStateStopping InstanceState = "stopping"
-)
-
-// Defines values for InstancePoolState.
-const (
-	InstancePoolStateCreating InstancePoolState = "creating"
-
-	InstancePoolStateDestroying InstancePoolState = "destroying"
-
-	InstancePoolStateRunning InstancePoolState = "running"
-
-	InstancePoolStateScalingDown InstancePoolState = "scaling-down"
-
-	InstancePoolStateScalingUp InstancePoolState = "scaling-up"
-
-	InstancePoolStateSuspended InstancePoolState = "suspended"
 )
 
 // Defines values for InstanceTypeFamily.
@@ -633,6 +625,8 @@ const (
 
 	SksNodepoolStateRunning SksNodepoolState = "running"
 
+	SksNodepoolStateScaling SksNodepoolState = "scaling"
+
 	SksNodepoolStateUpdating SksNodepoolState = "updating"
 )
 
@@ -799,6 +793,9 @@ type DbaasBackupConfig struct {
 	RecoveryMode *string `json:"recovery-mode,omitempty"`
 }
 
+// DbaasDatabaseName defines model for dbaas-database-name.
+type DbaasDatabaseName string
+
 // DbaasIntegration defines model for dbaas-integration.
 type DbaasIntegration struct {
 	// Description of the integration
@@ -927,6 +924,9 @@ type DbaasMigrationStatus struct {
 	Status *string `json:"status,omitempty"`
 }
 
+// DbaasMysqlDatabaseName defines model for dbaas-mysql-database-name.
+type DbaasMysqlDatabaseName string
+
 // Automatic maintenance settings
 type DbaasNodeState struct {
 	// Name of the service node
@@ -973,30 +973,23 @@ type DbaasNodeStateProgressUpdate struct {
 // Key identifying this phase
 type DbaasNodeStateProgressUpdatePhase string
 
-// DbaasOpensearchAcl defines model for dbaas-opensearch-acl.
-type DbaasOpensearchAcl struct {
-	Rules    *[]DbaasOpensearchRule `json:"rules,omitempty"`
-	Username *DbaasUserUsername     `json:"username,omitempty"`
-}
-
 // DbaasOpensearchAclConfig defines model for dbaas-opensearch-acl-config.
 type DbaasOpensearchAclConfig struct {
 	// Enable OpenSearch ACLs. When disabled authenticated service users have unrestricted access.
-	AclEnabled *bool                `json:"acl-enabled,omitempty"`
-	Acls       *DbaasOpensearchAcls `json:"acls,omitempty"`
+	AclEnabled *bool `json:"acl-enabled,omitempty"`
+
+	// List of OpenSearch ACLs
+	Acls *[]struct {
+		Rules *[]struct {
+			// OpenSearch index pattern
+			Index      string                        `json:"index"`
+			Permission *EnumOpensearchRulePermission `json:"permission,omitempty"`
+		} `json:"rules,omitempty"`
+		Username *DbaasUserUsername `json:"username,omitempty"`
+	} `json:"acls,omitempty"`
 
 	// Enable to enforce index rules in a limited fashion for requests that use the _mget, _msearch, and _bulk APIs
 	ExtendedAclEnabled *bool `json:"extended-acl-enabled,omitempty"`
-}
-
-// DbaasOpensearchAcls defines model for dbaas-opensearch-acls.
-type DbaasOpensearchAcls []DbaasOpensearchAcl
-
-// DbaasOpensearchRule defines model for dbaas-opensearch-rule.
-type DbaasOpensearchRule struct {
-	// OpenSearch index pattern
-	Index      *string                       `json:"index,omitempty"`
-	Permission *EnumOpensearchRulePermission `json:"permission,omitempty"`
 }
 
 // DbaasPgDatabaseName defines model for dbaas-pg-database-name.
@@ -1092,6 +1085,9 @@ type DbaasServiceCommon struct {
 
 	// Service last update timestamp (ISO 8601)
 	UpdatedAt *time.Time `json:"updated-at,omitempty"`
+
+	// The zone where the service is running
+	Zone *string `json:"zone,omitempty"`
 }
 
 // DbaasServiceGrafana defines model for dbaas-service-grafana.
@@ -1183,6 +1179,9 @@ type DbaasServiceGrafana struct {
 
 	// Grafana version
 	Version *string `json:"version,omitempty"`
+
+	// The zone where the service is running
+	Zone *string `json:"zone,omitempty"`
 }
 
 // DbaasServiceKafka defines model for dbaas-service-kafka.
@@ -1305,6 +1304,9 @@ type DbaasServiceKafka struct {
 
 	// Kafka version
 	Version *string `json:"version,omitempty"`
+
+	// The zone where the service is running
+	Zone *string `json:"zone,omitempty"`
 }
 
 // DbaasServiceLogs defines model for dbaas-service-logs.
@@ -1374,6 +1376,9 @@ type DbaasServiceMysql struct {
 	// Service creation timestamp (ISO 8601)
 	CreatedAt *time.Time `json:"created-at,omitempty"`
 
+	// List of MySQL databases
+	Databases *[]DbaasMysqlDatabaseName `json:"databases,omitempty"`
+
 	// TODO UNIT disk space for data storage
 	DiskSize *int64 `json:"disk-size,omitempty"`
 
@@ -1432,6 +1437,9 @@ type DbaasServiceMysql struct {
 
 	// MySQL version
 	Version *string `json:"version,omitempty"`
+
+	// The zone where the service is running
+	Zone *string `json:"zone,omitempty"`
 }
 
 // DbaasServiceName defines model for dbaas-service-name.
@@ -1590,6 +1598,9 @@ type DbaasServiceOpensearch struct {
 
 	// OpenSearch version
 	Version *string `json:"version,omitempty"`
+
+	// The zone where the service is running
+	Zone *string `json:"zone,omitempty"`
 }
 
 // Deletion sorting algorithm
@@ -1628,16 +1639,16 @@ type DbaasServicePg struct {
 		Params *[]struct {
 			AdditionalProperties map[string]string `json:"-"`
 		} `json:"params,omitempty"`
-		Standby *[]string                 `json:"standby,omitempty"`
-		Syncing *[]map[string]interface{} `json:"syncing,omitempty"`
-		Uri     *[]string                 `json:"uri,omitempty"`
+		Standby *[]string `json:"standby,omitempty"`
+		Syncing *[]string `json:"syncing,omitempty"`
+		Uri     *[]string `json:"uri,omitempty"`
 	} `json:"connection-info,omitempty"`
 
 	// PostgreSQL PGBouncer connection pools
 	ConnectionPools *[]struct {
 		// Connection URI for the DB pool
 		ConnectionUri string              `json:"connection-uri"`
-		Database      DbaasPgDatabaseName `json:"database"`
+		Database      DbaasDatabaseName   `json:"database"`
 		Mode          EnumPgPoolMode      `json:"mode"`
 		Name          DbaasPgPoolName     `json:"name"`
 		Size          DbaasPgPoolSize     `json:"size"`
@@ -1648,7 +1659,7 @@ type DbaasServicePg struct {
 	CreatedAt *time.Time `json:"created-at,omitempty"`
 
 	// List of PostgreSQL databases
-	Databases *[]DbaasPgDatabaseName `json:"databases,omitempty"`
+	Databases *[]DbaasDatabaseName `json:"databases,omitempty"`
 
 	// TODO UNIT disk space for data storage
 	DiskSize *int64 `json:"disk-size,omitempty"`
@@ -1733,6 +1744,9 @@ type DbaasServicePg struct {
 
 	// Sets the maximum amount of memory to be used by a query operation (such as a sort or hash table) before writing to temporary disk files, in MB. Default is 1MB + 0.075% of total RAM (up to 32MB).
 	WorkMem *int64 `json:"work-mem,omitempty"`
+
+	// The zone where the service is running
+	Zone *string `json:"zone,omitempty"`
 }
 
 // DbaasServiceRedis defines model for dbaas-service-redis.
@@ -1832,6 +1846,9 @@ type DbaasServiceRedis struct {
 
 	// Redis version
 	Version *string `json:"version,omitempty"`
+
+	// The zone where the service is running
+	Zone *string `json:"zone,omitempty"`
 }
 
 // DBaaS service
@@ -2227,10 +2244,8 @@ type Instance struct {
 	SshKey *SshKey `json:"ssh-key,omitempty"`
 
 	// Instance SSH Keys
-	SshKeys *[]SshKey `json:"ssh-keys,omitempty"`
-
-	// Instance state
-	State *InstanceState `json:"state,omitempty"`
+	SshKeys *[]SshKey      `json:"ssh-keys,omitempty"`
+	State   *InstanceState `json:"state,omitempty"`
 
 	// Instance template
 	Template *Template `json:"template,omitempty"`
@@ -2238,9 +2253,6 @@ type Instance struct {
 	// Instance Cloud-init user-data (base64 encoded)
 	UserData *string `json:"user-data,omitempty"`
 }
-
-// Instance state
-type InstanceState string
 
 // Instance password
 type InstancePassword struct {
@@ -2318,6 +2330,15 @@ type InstancePool struct {
 
 // Instance Pool state
 type InstancePoolState string
+
+// InstanceState defines model for instance-state.
+type InstanceState string
+
+// Target Instance
+type InstanceTarget struct {
+	// Instance ID
+	Id *string `json:"id,omitempty"`
+}
 
 // Compute instance type
 type InstanceType struct {
@@ -2451,7 +2472,7 @@ type LoadBalancerServiceStrategy string
 
 // Load Balancer Service healthcheck
 type LoadBalancerServiceHealthcheck struct {
-	// Healthcheck interval (default: 10)
+	// Healthcheck interval (default: 10). Must be greater than or equal to Timeout
 	Interval *int64 `json:"interval,omitempty"`
 
 	// Healthcheck mode
@@ -2463,13 +2484,13 @@ type LoadBalancerServiceHealthcheck struct {
 	// Number of retries before considering a Service failed
 	Retries *int64 `json:"retries,omitempty"`
 
-	// Healthcheck timeout value (default: 2)
+	// Healthcheck timeout value (default: 2). Must be lower than or equal to Interval
 	Timeout *int64 `json:"timeout,omitempty"`
 
 	// SNI domain for HTTPS healthchecks
 	TlsSni *string `json:"tls-sni,omitempty"`
 
-	// Healthcheck URI
+	// An endpoint to use for the HTTP healthcheck, e.g. '/status'
 	Uri *string `json:"uri,omitempty"`
 }
 
@@ -2750,7 +2771,10 @@ type SksNodepool struct {
 
 	// Compute instance type
 	InstanceType *InstanceType `json:"instance-type,omitempty"`
-	Labels       *Labels       `json:"labels,omitempty"`
+
+	// Kubelet image GC options
+	KubeletImageGc *KubeletImageGc `json:"kubelet-image-gc,omitempty"`
+	Labels         *Labels         `json:"labels,omitempty"`
 
 	// Nodepool name
 	Name *string `json:"name,omitempty"`
@@ -2990,16 +3014,6 @@ type CreateDbaasServiceGrafanaJSONBody struct {
 	// Grafana specific settings
 	GrafanaSettings *map[string]interface{} `json:"grafana-settings,omitempty"`
 
-	// Service integrations to enable for the service. Some integration types affect how a service is created and they must be provided as part of the creation call instead of being defined later.
-	Integrations *[]struct {
-		DestService *DbaasServiceName `json:"dest-service,omitempty"`
-
-		// Integration settings
-		Settings      *map[string]interface{} `json:"settings,omitempty"`
-		SourceService *DbaasServiceName       `json:"source-service,omitempty"`
-		Type          EnumIntegrationTypes    `json:"type"`
-	} `json:"integrations,omitempty"`
-
 	// Allowed CIDR address blocks for incoming connections
 	IpFilter *[]string `json:"ip-filter,omitempty"`
 
@@ -3051,10 +3065,8 @@ type UpdateDbaasServiceGrafanaJSONBodyMaintenanceDow string
 
 // CreateDbaasIntegrationJSONBody defines parameters for CreateDbaasIntegration.
 type CreateDbaasIntegrationJSONBody struct {
-	DestService DbaasServiceName `json:"dest-service"`
-
-	// Integration type
-	IntegrationType string `json:"integration-type"`
+	DestService     DbaasServiceName     `json:"dest-service"`
+	IntegrationType EnumIntegrationTypes `json:"integration-type"`
 
 	// Integration settings
 	Settings      *map[string]interface{} `json:"settings,omitempty"`
@@ -3077,16 +3089,6 @@ type CreateDbaasServiceKafkaJSONBody struct {
 		// Enable SASL authentication
 		Sasl *bool `json:"sasl,omitempty"`
 	} `json:"authentication-methods,omitempty"`
-
-	// Service integrations to enable for the service. Some integration types affect how a service is created and they must be provided as part of the creation call instead of being defined later.
-	Integrations *[]struct {
-		DestService *DbaasServiceName `json:"dest-service,omitempty"`
-
-		// Integration settings
-		Settings      *map[string]interface{} `json:"settings,omitempty"`
-		SourceService *DbaasServiceName       `json:"source-service,omitempty"`
-		Type          EnumIntegrationTypes    `json:"type"`
-	} `json:"integrations,omitempty"`
 
 	// Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
 	IpFilter *[]string `json:"ip-filter,omitempty"`
@@ -3223,14 +3225,16 @@ type CreateDbaasServiceMysqlJSONBody struct {
 	BinlogRetentionPeriod *int64            `json:"binlog-retention-period,omitempty"`
 	ForkFromService       *DbaasServiceName `json:"fork-from-service,omitempty"`
 
-	// Service integrations to enable for the service. Some integration types affect how a service is created and they must be provided as part of the creation call instead of being defined later.
+	// Service integrations to be enabled when creating the service.
 	Integrations *[]struct {
 		DestService *DbaasServiceName `json:"dest-service,omitempty"`
 
 		// Integration settings
 		Settings      *map[string]interface{} `json:"settings,omitempty"`
 		SourceService *DbaasServiceName       `json:"source-service,omitempty"`
-		Type          EnumIntegrationTypes    `json:"type"`
+
+		// Integration type
+		Type CreateDbaasServiceMysqlJSONBodyIntegrationsType `json:"type"`
 	} `json:"integrations,omitempty"`
 
 	// Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
@@ -3285,6 +3289,9 @@ type CreateDbaasServiceMysqlJSONBody struct {
 	// MySQL major version
 	Version *string `json:"version,omitempty"`
 }
+
+// CreateDbaasServiceMysqlJSONBodyIntegrationsType defines parameters for CreateDbaasServiceMysql.
+type CreateDbaasServiceMysqlJSONBodyIntegrationsType string
 
 // CreateDbaasServiceMysqlJSONBodyMaintenanceDow defines parameters for CreateDbaasServiceMysql.
 type CreateDbaasServiceMysqlJSONBodyMaintenanceDow string
@@ -3352,6 +3359,11 @@ type UpdateDbaasServiceMysqlJSONBody struct {
 // UpdateDbaasServiceMysqlJSONBodyMaintenanceDow defines parameters for UpdateDbaasServiceMysql.
 type UpdateDbaasServiceMysqlJSONBodyMaintenanceDow string
 
+// CreateDbaasMysqlDatabaseJSONBody defines parameters for CreateDbaasMysqlDatabase.
+type CreateDbaasMysqlDatabaseJSONBody struct {
+	DatabaseName DbaasDatabaseName `json:"database-name"`
+}
+
 // CreateDbaasMysqlUserJSONBody defines parameters for CreateDbaasMysqlUser.
 type CreateDbaasMysqlUserJSONBody struct {
 	Authentication *EnumMysqlAuthenticationPlugin `json:"authentication,omitempty"`
@@ -3391,16 +3403,6 @@ type CreateDbaasServiceOpensearchJSONBody struct {
 		// The number of primary shards that an index should have.
 		NumberOfShards *int64 `json:"number-of-shards,omitempty"`
 	} `json:"index-template,omitempty"`
-
-	// Service integrations to enable for the service. Some integration types affect how a service is created and they must be provided as part of the creation call instead of being defined later.
-	Integrations *[]struct {
-		DestService *DbaasServiceName `json:"dest-service,omitempty"`
-
-		// Integration settings
-		Settings      *map[string]interface{} `json:"settings,omitempty"`
-		SourceService *DbaasServiceName       `json:"source-service,omitempty"`
-		Type          EnumIntegrationTypes    `json:"type"`
-	} `json:"integrations,omitempty"`
 
 	// Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
 	IpFilter *[]string `json:"ip-filter,omitempty"`
@@ -3518,6 +3520,9 @@ type UpdateDbaasServiceOpensearchJSONBody struct {
 
 	// Service is protected against termination and powering off
 	TerminationProtection *bool `json:"termination-protection,omitempty"`
+
+	// Version
+	Version *string `json:"version,omitempty"`
 }
 
 // UpdateDbaasServiceOpensearchJSONBodyIndexPatternsSortingAlgorithm defines parameters for UpdateDbaasServiceOpensearch.
@@ -3555,14 +3560,16 @@ type CreateDbaasServicePgJSONBody struct {
 	} `json:"backup-schedule,omitempty"`
 	ForkFromService *DbaasServiceName `json:"fork-from-service,omitempty"`
 
-	// Service integrations to enable for the service. Some integration types affect how a service is created and they must be provided as part of the creation call instead of being defined later.
+	// Service integrations to be enabled when creating the service.
 	Integrations *[]struct {
 		DestService *DbaasServiceName `json:"dest-service,omitempty"`
 
 		// Integration settings
 		Settings      *map[string]interface{} `json:"settings,omitempty"`
 		SourceService *DbaasServiceName       `json:"source-service,omitempty"`
-		Type          EnumIntegrationTypes    `json:"type"`
+
+		// Integration type
+		Type CreateDbaasServicePgJSONBodyIntegrationsType `json:"type"`
 	} `json:"integrations,omitempty"`
 
 	// Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
@@ -3634,6 +3641,9 @@ type CreateDbaasServicePgJSONBody struct {
 	// Sets the maximum amount of memory to be used by a query operation (such as a sort or hash table) before writing to temporary disk files, in MB. Default is 1MB + 0.075% of total RAM (up to 32MB).
 	WorkMem *int64 `json:"work-mem,omitempty"`
 }
+
+// CreateDbaasServicePgJSONBodyIntegrationsType defines parameters for CreateDbaasServicePg.
+type CreateDbaasServicePgJSONBodyIntegrationsType string
 
 // CreateDbaasServicePgJSONBodyMaintenanceDow defines parameters for CreateDbaasServicePg.
 type CreateDbaasServicePgJSONBodyMaintenanceDow string
@@ -3708,6 +3718,9 @@ type UpdateDbaasServicePgJSONBody struct {
 	TimescaledbSettings *map[string]interface{} `json:"timescaledb-settings,omitempty"`
 	Variant             *EnumPgVariant          `json:"variant,omitempty"`
 
+	// Version
+	Version *string `json:"version,omitempty"`
+
 	// Sets the maximum amount of memory to be used by a query operation (such as a sort or hash table) before writing to temporary disk files, in MB. Default is 1MB + 0.075% of total RAM (up to 32MB).
 	WorkMem *int64 `json:"work-mem,omitempty"`
 }
@@ -3717,7 +3730,7 @@ type UpdateDbaasServicePgJSONBodyMaintenanceDow string
 
 // CreateDbaasPgConnectionPoolJSONBody defines parameters for CreateDbaasPgConnectionPool.
 type CreateDbaasPgConnectionPoolJSONBody struct {
-	DatabaseName DbaasPgDatabaseName  `json:"database-name"`
+	DatabaseName DbaasDatabaseName    `json:"database-name"`
 	Mode         *EnumPgPoolMode      `json:"mode,omitempty"`
 	Name         DbaasPgPoolName      `json:"name"`
 	Size         *DbaasPgPoolSize     `json:"size,omitempty"`
@@ -3726,10 +3739,21 @@ type CreateDbaasPgConnectionPoolJSONBody struct {
 
 // UpdateDbaasPgConnectionPoolJSONBody defines parameters for UpdateDbaasPgConnectionPool.
 type UpdateDbaasPgConnectionPoolJSONBody struct {
-	DatabaseName *DbaasPgDatabaseName `json:"database-name,omitempty"`
+	DatabaseName *DbaasDatabaseName   `json:"database-name,omitempty"`
 	Mode         *EnumPgPoolMode      `json:"mode,omitempty"`
 	Size         *DbaasPgPoolSize     `json:"size,omitempty"`
 	Username     *DbaasPgPoolUsername `json:"username,omitempty"`
+}
+
+// CreateDbaasPgDatabaseJSONBody defines parameters for CreateDbaasPgDatabase.
+type CreateDbaasPgDatabaseJSONBody struct {
+	DatabaseName DbaasDatabaseName `json:"database-name"`
+
+	// Default string sort order (LC_COLLATE) for PostgreSQL database
+	LcCollate *string `json:"lc-collate,omitempty"`
+
+	// Default character classification (LC_CTYPE) for PostgreSQL database
+	LcCtype *string `json:"lc-ctype,omitempty"`
 }
 
 // CreateDbaasPostgresUserJSONBody defines parameters for CreateDbaasPostgresUser.
@@ -3748,19 +3772,18 @@ type ResetDbaasPostgresUserPasswordJSONBody struct {
 	Password *DbaasUserPassword `json:"password,omitempty"`
 }
 
+// CreateDbaasPgUpgradeCheckJSONBody defines parameters for CreateDbaasPgUpgradeCheck.
+type CreateDbaasPgUpgradeCheckJSONBody struct {
+	// Target version for upgrade
+	TargetVersion CreateDbaasPgUpgradeCheckJSONBodyTargetVersion `json:"target-version"`
+}
+
+// CreateDbaasPgUpgradeCheckJSONBodyTargetVersion defines parameters for CreateDbaasPgUpgradeCheck.
+type CreateDbaasPgUpgradeCheckJSONBodyTargetVersion string
+
 // CreateDbaasServiceRedisJSONBody defines parameters for CreateDbaasServiceRedis.
 type CreateDbaasServiceRedisJSONBody struct {
 	ForkFromService *DbaasServiceName `json:"fork-from-service,omitempty"`
-
-	// Service integrations to enable for the service. Some integration types affect how a service is created and they must be provided as part of the creation call instead of being defined later.
-	Integrations *[]struct {
-		DestService *DbaasServiceName `json:"dest-service,omitempty"`
-
-		// Integration settings
-		Settings      *map[string]interface{} `json:"settings,omitempty"`
-		SourceService *DbaasServiceName       `json:"source-service,omitempty"`
-		Type          EnumIntegrationTypes    `json:"type"`
-	} `json:"integrations,omitempty"`
 
 	// Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'
 	IpFilter *[]string `json:"ip-filter,omitempty"`
@@ -3969,14 +3992,14 @@ type ResetElasticIpFieldParamsField string
 
 // AttachInstanceToElasticIpJSONBody defines parameters for AttachInstanceToElasticIp.
 type AttachInstanceToElasticIpJSONBody struct {
-	// Instance
-	Instance Instance `json:"instance"`
+	// Target Instance
+	Instance InstanceTarget `json:"instance"`
 }
 
 // DetachInstanceFromElasticIpJSONBody defines parameters for DetachInstanceFromElasticIp.
 type DetachInstanceFromElasticIpJSONBody struct {
-	// Instance
-	Instance Instance `json:"instance"`
+	// Target Instance
+	Instance InstanceTarget `json:"instance"`
 }
 
 // ListEventsParams defines parameters for ListEvents.
@@ -3993,7 +4016,7 @@ type CreateIamRoleJSONBody struct {
 	// IAM Role description
 	Description *string `json:"description,omitempty"`
 
-	// Make IAM Role editable (default: true)
+	// Sets if the IAM Role Policy is editable or not (default: true). This setting cannot be changed after creation
 	Editable *bool   `json:"editable,omitempty"`
 	Labels   *Labels `json:"labels,omitempty"`
 
@@ -4263,9 +4286,12 @@ type CreateLoadBalancerJSONBody struct {
 
 // UpdateLoadBalancerJSONBody defines parameters for UpdateLoadBalancer.
 type UpdateLoadBalancerJSONBody struct {
-	Description *string `json:"description"`
+	// Load Balancer description
+	Description *string `json:"description,omitempty"`
 	Labels      *Labels `json:"labels,omitempty"`
-	Name        *string `json:"name,omitempty"`
+
+	// Load Balancer name
+	Name *string `json:"name,omitempty"`
 }
 
 // AddServiceToLoadBalancerJSONBody defines parameters for AddServiceToLoadBalancer.
@@ -4304,7 +4330,7 @@ type AddServiceToLoadBalancerJSONBodyStrategy string
 // UpdateLoadBalancerServiceJSONBody defines parameters for UpdateLoadBalancerService.
 type UpdateLoadBalancerServiceJSONBody struct {
 	// Load Balancer Service description
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 
 	// Load Balancer Service healthcheck
 	Healthcheck *LoadBalancerServiceHealthcheck `json:"healthcheck,omitempty"`
@@ -4546,11 +4572,14 @@ type UpdateSksClusterJSONBody struct {
 	AutoUpgrade *bool `json:"auto-upgrade,omitempty"`
 
 	// Cluster description
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	Labels      *Labels `json:"labels,omitempty"`
 
 	// Cluster name
 	Name *string `json:"name,omitempty"`
+
+	// SKS Cluster OpenID config map
+	Oidc *SksOidc `json:"oidc,omitempty"`
 }
 
 // UpdateSksClusterJSONBodyAddons defines parameters for UpdateSksCluster.
@@ -4612,7 +4641,7 @@ type UpdateSksNodepoolJSONBody struct {
 	DeployTarget *DeployTarget `json:"deploy-target,omitempty"`
 
 	// Nodepool description
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 
 	// Nodepool instances disk size in GB
 	DiskSize *int64 `json:"disk-size,omitempty"`
@@ -4801,6 +4830,9 @@ type CreateDbaasServiceMysqlJSONRequestBody CreateDbaasServiceMysqlJSONBody
 // UpdateDbaasServiceMysqlJSONRequestBody defines body for UpdateDbaasServiceMysql for application/json ContentType.
 type UpdateDbaasServiceMysqlJSONRequestBody UpdateDbaasServiceMysqlJSONBody
 
+// CreateDbaasMysqlDatabaseJSONRequestBody defines body for CreateDbaasMysqlDatabase for application/json ContentType.
+type CreateDbaasMysqlDatabaseJSONRequestBody CreateDbaasMysqlDatabaseJSONBody
+
 // CreateDbaasMysqlUserJSONRequestBody defines body for CreateDbaasMysqlUser for application/json ContentType.
 type CreateDbaasMysqlUserJSONRequestBody CreateDbaasMysqlUserJSONBody
 
@@ -4834,6 +4866,9 @@ type CreateDbaasPgConnectionPoolJSONRequestBody CreateDbaasPgConnectionPoolJSONB
 // UpdateDbaasPgConnectionPoolJSONRequestBody defines body for UpdateDbaasPgConnectionPool for application/json ContentType.
 type UpdateDbaasPgConnectionPoolJSONRequestBody UpdateDbaasPgConnectionPoolJSONBody
 
+// CreateDbaasPgDatabaseJSONRequestBody defines body for CreateDbaasPgDatabase for application/json ContentType.
+type CreateDbaasPgDatabaseJSONRequestBody CreateDbaasPgDatabaseJSONBody
+
 // CreateDbaasPostgresUserJSONRequestBody defines body for CreateDbaasPostgresUser for application/json ContentType.
 type CreateDbaasPostgresUserJSONRequestBody CreateDbaasPostgresUserJSONBody
 
@@ -4842,6 +4877,9 @@ type UpdateDbaasPostgresAllowReplicationJSONRequestBody UpdateDbaasPostgresAllow
 
 // ResetDbaasPostgresUserPasswordJSONRequestBody defines body for ResetDbaasPostgresUserPassword for application/json ContentType.
 type ResetDbaasPostgresUserPasswordJSONRequestBody ResetDbaasPostgresUserPasswordJSONBody
+
+// CreateDbaasPgUpgradeCheckJSONRequestBody defines body for CreateDbaasPgUpgradeCheck for application/json ContentType.
+type CreateDbaasPgUpgradeCheckJSONRequestBody CreateDbaasPgUpgradeCheckJSONBody
 
 // CreateDbaasServiceRedisJSONRequestBody defines body for CreateDbaasServiceRedis for application/json ContentType.
 type CreateDbaasServiceRedisJSONRequestBody CreateDbaasServiceRedisJSONBody
@@ -5520,6 +5558,14 @@ type ClientInterface interface {
 	// StopDbaasMysqlMigration request
 	StopDbaasMysqlMigration(ctx context.Context, name DbaasServiceName, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateDbaasMysqlDatabase request with any body
+	CreateDbaasMysqlDatabaseWithBody(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateDbaasMysqlDatabase(ctx context.Context, serviceName DbaasServiceName, body CreateDbaasMysqlDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteDbaasMysqlDatabase request
+	DeleteDbaasMysqlDatabase(ctx context.Context, serviceName DbaasServiceName, databaseName DbaasMysqlDatabaseName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateDbaasMysqlUser request with any body
 	CreateDbaasMysqlUserWithBody(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5608,6 +5654,14 @@ type ClientInterface interface {
 
 	UpdateDbaasPgConnectionPool(ctx context.Context, serviceName DbaasServiceName, connectionPoolName DbaasPgPoolName, body UpdateDbaasPgConnectionPoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateDbaasPgDatabase request with any body
+	CreateDbaasPgDatabaseWithBody(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateDbaasPgDatabase(ctx context.Context, serviceName DbaasServiceName, body CreateDbaasPgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteDbaasPgDatabase request
+	DeleteDbaasPgDatabase(ctx context.Context, serviceName DbaasServiceName, databaseName DbaasPgDatabaseName, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateDbaasPostgresUser request with any body
 	CreateDbaasPostgresUserWithBody(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -5625,6 +5679,11 @@ type ClientInterface interface {
 	ResetDbaasPostgresUserPasswordWithBody(ctx context.Context, serviceName DbaasServiceName, username DbaasUserUsername, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ResetDbaasPostgresUserPassword(ctx context.Context, serviceName DbaasServiceName, username DbaasUserUsername, body ResetDbaasPostgresUserPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateDbaasPgUpgradeCheck request with any body
+	CreateDbaasPgUpgradeCheckWithBody(ctx context.Context, service DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateDbaasPgUpgradeCheck(ctx context.Context, service DbaasServiceName, body CreateDbaasPgUpgradeCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteDbaasServiceRedis request
 	DeleteDbaasServiceRedis(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -5884,6 +5943,9 @@ type ClientInterface interface {
 	ResetInstanceWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ResetInstance(ctx context.Context, id string, body ResetInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResetInstancePassword request
+	ResetInstancePassword(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResizeInstanceDisk request with any body
 	ResizeInstanceDiskWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -6935,6 +6997,42 @@ func (c *Client) StopDbaasMysqlMigration(ctx context.Context, name DbaasServiceN
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateDbaasMysqlDatabaseWithBody(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDbaasMysqlDatabaseRequestWithBody(c.Server, serviceName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDbaasMysqlDatabase(ctx context.Context, serviceName DbaasServiceName, body CreateDbaasMysqlDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDbaasMysqlDatabaseRequest(c.Server, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteDbaasMysqlDatabase(ctx context.Context, serviceName DbaasServiceName, databaseName DbaasMysqlDatabaseName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteDbaasMysqlDatabaseRequest(c.Server, serviceName, databaseName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateDbaasMysqlUserWithBody(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateDbaasMysqlUserRequestWithBody(c.Server, serviceName, contentType, body)
 	if err != nil {
@@ -7331,6 +7429,42 @@ func (c *Client) UpdateDbaasPgConnectionPool(ctx context.Context, serviceName Db
 	return c.Client.Do(req)
 }
 
+func (c *Client) CreateDbaasPgDatabaseWithBody(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDbaasPgDatabaseRequestWithBody(c.Server, serviceName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDbaasPgDatabase(ctx context.Context, serviceName DbaasServiceName, body CreateDbaasPgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDbaasPgDatabaseRequest(c.Server, serviceName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteDbaasPgDatabase(ctx context.Context, serviceName DbaasServiceName, databaseName DbaasPgDatabaseName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteDbaasPgDatabaseRequest(c.Server, serviceName, databaseName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) CreateDbaasPostgresUserWithBody(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateDbaasPostgresUserRequestWithBody(c.Server, serviceName, contentType, body)
 	if err != nil {
@@ -7405,6 +7539,30 @@ func (c *Client) ResetDbaasPostgresUserPasswordWithBody(ctx context.Context, ser
 
 func (c *Client) ResetDbaasPostgresUserPassword(ctx context.Context, serviceName DbaasServiceName, username DbaasUserUsername, body ResetDbaasPostgresUserPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResetDbaasPostgresUserPasswordRequest(c.Server, serviceName, username, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDbaasPgUpgradeCheckWithBody(ctx context.Context, service DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDbaasPgUpgradeCheckRequestWithBody(c.Server, service, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDbaasPgUpgradeCheck(ctx context.Context, service DbaasServiceName, body CreateDbaasPgUpgradeCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDbaasPgUpgradeCheckRequest(c.Server, service, body)
 	if err != nil {
 		return nil, err
 	}
@@ -8533,6 +8691,18 @@ func (c *Client) ResetInstanceWithBody(ctx context.Context, id string, contentTy
 
 func (c *Client) ResetInstance(ctx context.Context, id string, body ResetInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewResetInstanceRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResetInstancePassword(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResetInstancePasswordRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -11671,6 +11841,94 @@ func NewStopDbaasMysqlMigrationRequest(server string, name DbaasServiceName) (*h
 	return req, nil
 }
 
+// NewCreateDbaasMysqlDatabaseRequest calls the generic CreateDbaasMysqlDatabase builder with application/json body
+func NewCreateDbaasMysqlDatabaseRequest(server string, serviceName DbaasServiceName, body CreateDbaasMysqlDatabaseJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateDbaasMysqlDatabaseRequestWithBody(server, serviceName, "application/json", bodyReader)
+}
+
+// NewCreateDbaasMysqlDatabaseRequestWithBody generates requests for CreateDbaasMysqlDatabase with any type of body
+func NewCreateDbaasMysqlDatabaseRequestWithBody(server string, serviceName DbaasServiceName, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service-name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/dbaas-mysql/%s/database", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteDbaasMysqlDatabaseRequest generates requests for DeleteDbaasMysqlDatabase
+func NewDeleteDbaasMysqlDatabaseRequest(server string, serviceName DbaasServiceName, databaseName DbaasMysqlDatabaseName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service-name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "database-name", runtime.ParamLocationPath, databaseName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/dbaas-mysql/%s/database/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateDbaasMysqlUserRequest calls the generic CreateDbaasMysqlUser builder with application/json body
 func NewCreateDbaasMysqlUserRequest(server string, serviceName DbaasServiceName, body CreateDbaasMysqlUserJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -12604,6 +12862,94 @@ func NewUpdateDbaasPgConnectionPoolRequestWithBody(server string, serviceName Db
 	return req, nil
 }
 
+// NewCreateDbaasPgDatabaseRequest calls the generic CreateDbaasPgDatabase builder with application/json body
+func NewCreateDbaasPgDatabaseRequest(server string, serviceName DbaasServiceName, body CreateDbaasPgDatabaseJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateDbaasPgDatabaseRequestWithBody(server, serviceName, "application/json", bodyReader)
+}
+
+// NewCreateDbaasPgDatabaseRequestWithBody generates requests for CreateDbaasPgDatabase with any type of body
+func NewCreateDbaasPgDatabaseRequestWithBody(server string, serviceName DbaasServiceName, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service-name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/dbaas-postgres/%s/database", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteDbaasPgDatabaseRequest generates requests for DeleteDbaasPgDatabase
+func NewDeleteDbaasPgDatabaseRequest(server string, serviceName DbaasServiceName, databaseName DbaasPgDatabaseName) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service-name", runtime.ParamLocationPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "database-name", runtime.ParamLocationPath, databaseName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/dbaas-postgres/%s/database/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewCreateDbaasPostgresUserRequest calls the generic CreateDbaasPostgresUser builder with application/json body
 func NewCreateDbaasPostgresUserRequest(server string, serviceName DbaasServiceName, body CreateDbaasPostgresUserJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -12791,6 +13137,53 @@ func NewResetDbaasPostgresUserPasswordRequestWithBody(server string, serviceName
 	}
 
 	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateDbaasPgUpgradeCheckRequest calls the generic CreateDbaasPgUpgradeCheck builder with application/json body
+func NewCreateDbaasPgUpgradeCheckRequest(server string, service DbaasServiceName, body CreateDbaasPgUpgradeCheckJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateDbaasPgUpgradeCheckRequestWithBody(server, service, "application/json", bodyReader)
+}
+
+// NewCreateDbaasPgUpgradeCheckRequestWithBody generates requests for CreateDbaasPgUpgradeCheck with any type of body
+func NewCreateDbaasPgUpgradeCheckRequestWithBody(server string, service DbaasServiceName, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service", runtime.ParamLocationPath, service)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/dbaas-postgres/%s/upgrade-check", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -15485,6 +15878,40 @@ func NewResetInstanceRequestWithBody(server string, id string, contentType strin
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewResetInstancePasswordRequest generates requests for ResetInstancePassword
+func NewResetInstancePasswordRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/instance/%s:reset-password", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -19060,6 +19487,14 @@ type ClientWithResponsesInterface interface {
 	// StopDbaasMysqlMigration request
 	StopDbaasMysqlMigrationWithResponse(ctx context.Context, name DbaasServiceName, reqEditors ...RequestEditorFn) (*StopDbaasMysqlMigrationResponse, error)
 
+	// CreateDbaasMysqlDatabase request with any body
+	CreateDbaasMysqlDatabaseWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasMysqlDatabaseResponse, error)
+
+	CreateDbaasMysqlDatabaseWithResponse(ctx context.Context, serviceName DbaasServiceName, body CreateDbaasMysqlDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDbaasMysqlDatabaseResponse, error)
+
+	// DeleteDbaasMysqlDatabase request
+	DeleteDbaasMysqlDatabaseWithResponse(ctx context.Context, serviceName DbaasServiceName, databaseName DbaasMysqlDatabaseName, reqEditors ...RequestEditorFn) (*DeleteDbaasMysqlDatabaseResponse, error)
+
 	// CreateDbaasMysqlUser request with any body
 	CreateDbaasMysqlUserWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasMysqlUserResponse, error)
 
@@ -19148,6 +19583,14 @@ type ClientWithResponsesInterface interface {
 
 	UpdateDbaasPgConnectionPoolWithResponse(ctx context.Context, serviceName DbaasServiceName, connectionPoolName DbaasPgPoolName, body UpdateDbaasPgConnectionPoolJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDbaasPgConnectionPoolResponse, error)
 
+	// CreateDbaasPgDatabase request with any body
+	CreateDbaasPgDatabaseWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasPgDatabaseResponse, error)
+
+	CreateDbaasPgDatabaseWithResponse(ctx context.Context, serviceName DbaasServiceName, body CreateDbaasPgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDbaasPgDatabaseResponse, error)
+
+	// DeleteDbaasPgDatabase request
+	DeleteDbaasPgDatabaseWithResponse(ctx context.Context, serviceName DbaasServiceName, databaseName DbaasPgDatabaseName, reqEditors ...RequestEditorFn) (*DeleteDbaasPgDatabaseResponse, error)
+
 	// CreateDbaasPostgresUser request with any body
 	CreateDbaasPostgresUserWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasPostgresUserResponse, error)
 
@@ -19165,6 +19608,11 @@ type ClientWithResponsesInterface interface {
 	ResetDbaasPostgresUserPasswordWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, username DbaasUserUsername, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResetDbaasPostgresUserPasswordResponse, error)
 
 	ResetDbaasPostgresUserPasswordWithResponse(ctx context.Context, serviceName DbaasServiceName, username DbaasUserUsername, body ResetDbaasPostgresUserPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*ResetDbaasPostgresUserPasswordResponse, error)
+
+	// CreateDbaasPgUpgradeCheck request with any body
+	CreateDbaasPgUpgradeCheckWithBodyWithResponse(ctx context.Context, service DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasPgUpgradeCheckResponse, error)
+
+	CreateDbaasPgUpgradeCheckWithResponse(ctx context.Context, service DbaasServiceName, body CreateDbaasPgUpgradeCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDbaasPgUpgradeCheckResponse, error)
 
 	// DeleteDbaasServiceRedis request
 	DeleteDbaasServiceRedisWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DeleteDbaasServiceRedisResponse, error)
@@ -19424,6 +19872,9 @@ type ClientWithResponsesInterface interface {
 	ResetInstanceWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResetInstanceResponse, error)
 
 	ResetInstanceWithResponse(ctx context.Context, id string, body ResetInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*ResetInstanceResponse, error)
+
+	// ResetInstancePassword request
+	ResetInstancePasswordWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ResetInstancePasswordResponse, error)
 
 	// ResizeInstanceDisk request with any body
 	ResizeInstanceDiskWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResizeInstanceDiskResponse, error)
@@ -20777,6 +21228,50 @@ func (r StopDbaasMysqlMigrationResponse) StatusCode() int {
 	return 0
 }
 
+type CreateDbaasMysqlDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Operation
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDbaasMysqlDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDbaasMysqlDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteDbaasMysqlDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Operation
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteDbaasMysqlDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteDbaasMysqlDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateDbaasMysqlUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -21261,6 +21756,50 @@ func (r UpdateDbaasPgConnectionPoolResponse) StatusCode() int {
 	return 0
 }
 
+type CreateDbaasPgDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Operation
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDbaasPgDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDbaasPgDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteDbaasPgDatabaseResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Operation
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteDbaasPgDatabaseResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteDbaasPgDatabaseResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type CreateDbaasPostgresUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -21343,6 +21882,28 @@ func (r ResetDbaasPostgresUserPasswordResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResetDbaasPostgresUserPasswordResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateDbaasPgUpgradeCheckResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DbaasTask
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDbaasPgUpgradeCheckResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDbaasPgUpgradeCheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -22378,7 +22939,7 @@ func (r ListEventsResponse) StatusCode() int {
 type GetIamOrganizationPolicyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]IamPolicy
+	JSON200      *IamPolicy
 }
 
 // Status returns HTTPResponse.Status
@@ -23037,6 +23598,28 @@ func (r ResetInstanceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ResetInstanceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResetInstancePasswordResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Operation
+}
+
+// Status returns HTTPResponse.Status
+func (r ResetInstancePasswordResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResetInstancePasswordResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -25431,6 +26014,32 @@ func (c *ClientWithResponses) StopDbaasMysqlMigrationWithResponse(ctx context.Co
 	return ParseStopDbaasMysqlMigrationResponse(rsp)
 }
 
+// CreateDbaasMysqlDatabaseWithBodyWithResponse request with arbitrary body returning *CreateDbaasMysqlDatabaseResponse
+func (c *ClientWithResponses) CreateDbaasMysqlDatabaseWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasMysqlDatabaseResponse, error) {
+	rsp, err := c.CreateDbaasMysqlDatabaseWithBody(ctx, serviceName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDbaasMysqlDatabaseResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateDbaasMysqlDatabaseWithResponse(ctx context.Context, serviceName DbaasServiceName, body CreateDbaasMysqlDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDbaasMysqlDatabaseResponse, error) {
+	rsp, err := c.CreateDbaasMysqlDatabase(ctx, serviceName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDbaasMysqlDatabaseResponse(rsp)
+}
+
+// DeleteDbaasMysqlDatabaseWithResponse request returning *DeleteDbaasMysqlDatabaseResponse
+func (c *ClientWithResponses) DeleteDbaasMysqlDatabaseWithResponse(ctx context.Context, serviceName DbaasServiceName, databaseName DbaasMysqlDatabaseName, reqEditors ...RequestEditorFn) (*DeleteDbaasMysqlDatabaseResponse, error) {
+	rsp, err := c.DeleteDbaasMysqlDatabase(ctx, serviceName, databaseName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteDbaasMysqlDatabaseResponse(rsp)
+}
+
 // CreateDbaasMysqlUserWithBodyWithResponse request with arbitrary body returning *CreateDbaasMysqlUserResponse
 func (c *ClientWithResponses) CreateDbaasMysqlUserWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasMysqlUserResponse, error) {
 	rsp, err := c.CreateDbaasMysqlUserWithBody(ctx, serviceName, contentType, body, reqEditors...)
@@ -25717,6 +26326,32 @@ func (c *ClientWithResponses) UpdateDbaasPgConnectionPoolWithResponse(ctx contex
 	return ParseUpdateDbaasPgConnectionPoolResponse(rsp)
 }
 
+// CreateDbaasPgDatabaseWithBodyWithResponse request with arbitrary body returning *CreateDbaasPgDatabaseResponse
+func (c *ClientWithResponses) CreateDbaasPgDatabaseWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasPgDatabaseResponse, error) {
+	rsp, err := c.CreateDbaasPgDatabaseWithBody(ctx, serviceName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDbaasPgDatabaseResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateDbaasPgDatabaseWithResponse(ctx context.Context, serviceName DbaasServiceName, body CreateDbaasPgDatabaseJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDbaasPgDatabaseResponse, error) {
+	rsp, err := c.CreateDbaasPgDatabase(ctx, serviceName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDbaasPgDatabaseResponse(rsp)
+}
+
+// DeleteDbaasPgDatabaseWithResponse request returning *DeleteDbaasPgDatabaseResponse
+func (c *ClientWithResponses) DeleteDbaasPgDatabaseWithResponse(ctx context.Context, serviceName DbaasServiceName, databaseName DbaasPgDatabaseName, reqEditors ...RequestEditorFn) (*DeleteDbaasPgDatabaseResponse, error) {
+	rsp, err := c.DeleteDbaasPgDatabase(ctx, serviceName, databaseName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteDbaasPgDatabaseResponse(rsp)
+}
+
 // CreateDbaasPostgresUserWithBodyWithResponse request with arbitrary body returning *CreateDbaasPostgresUserResponse
 func (c *ClientWithResponses) CreateDbaasPostgresUserWithBodyWithResponse(ctx context.Context, serviceName DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasPostgresUserResponse, error) {
 	rsp, err := c.CreateDbaasPostgresUserWithBody(ctx, serviceName, contentType, body, reqEditors...)
@@ -25775,6 +26410,23 @@ func (c *ClientWithResponses) ResetDbaasPostgresUserPasswordWithResponse(ctx con
 		return nil, err
 	}
 	return ParseResetDbaasPostgresUserPasswordResponse(rsp)
+}
+
+// CreateDbaasPgUpgradeCheckWithBodyWithResponse request with arbitrary body returning *CreateDbaasPgUpgradeCheckResponse
+func (c *ClientWithResponses) CreateDbaasPgUpgradeCheckWithBodyWithResponse(ctx context.Context, service DbaasServiceName, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDbaasPgUpgradeCheckResponse, error) {
+	rsp, err := c.CreateDbaasPgUpgradeCheckWithBody(ctx, service, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDbaasPgUpgradeCheckResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateDbaasPgUpgradeCheckWithResponse(ctx context.Context, service DbaasServiceName, body CreateDbaasPgUpgradeCheckJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDbaasPgUpgradeCheckResponse, error) {
+	rsp, err := c.CreateDbaasPgUpgradeCheck(ctx, service, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDbaasPgUpgradeCheckResponse(rsp)
 }
 
 // DeleteDbaasServiceRedisWithResponse request returning *DeleteDbaasServiceRedisResponse
@@ -26598,6 +27250,15 @@ func (c *ClientWithResponses) ResetInstanceWithResponse(ctx context.Context, id 
 		return nil, err
 	}
 	return ParseResetInstanceResponse(rsp)
+}
+
+// ResetInstancePasswordWithResponse request returning *ResetInstancePasswordResponse
+func (c *ClientWithResponses) ResetInstancePasswordWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*ResetInstancePasswordResponse, error) {
+	rsp, err := c.ResetInstancePassword(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResetInstancePasswordResponse(rsp)
 }
 
 // ResizeInstanceDiskWithBodyWithResponse request with arbitrary body returning *ResizeInstanceDiskResponse
@@ -28837,6 +29498,58 @@ func ParseStopDbaasMysqlMigrationResponse(rsp *http.Response) (*StopDbaasMysqlMi
 	return response, nil
 }
 
+// ParseCreateDbaasMysqlDatabaseResponse parses an HTTP response from a CreateDbaasMysqlDatabaseWithResponse call
+func ParseCreateDbaasMysqlDatabaseResponse(rsp *http.Response) (*CreateDbaasMysqlDatabaseResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDbaasMysqlDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Operation
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteDbaasMysqlDatabaseResponse parses an HTTP response from a DeleteDbaasMysqlDatabaseWithResponse call
+func ParseDeleteDbaasMysqlDatabaseResponse(rsp *http.Response) (*DeleteDbaasMysqlDatabaseResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteDbaasMysqlDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Operation
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateDbaasMysqlUserResponse parses an HTTP response from a CreateDbaasMysqlUserWithResponse call
 func ParseCreateDbaasMysqlUserResponse(rsp *http.Response) (*CreateDbaasMysqlUserResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -29409,6 +30122,58 @@ func ParseUpdateDbaasPgConnectionPoolResponse(rsp *http.Response) (*UpdateDbaasP
 	return response, nil
 }
 
+// ParseCreateDbaasPgDatabaseResponse parses an HTTP response from a CreateDbaasPgDatabaseWithResponse call
+func ParseCreateDbaasPgDatabaseResponse(rsp *http.Response) (*CreateDbaasPgDatabaseResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDbaasPgDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Operation
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteDbaasPgDatabaseResponse parses an HTTP response from a DeleteDbaasPgDatabaseWithResponse call
+func ParseDeleteDbaasPgDatabaseResponse(rsp *http.Response) (*DeleteDbaasPgDatabaseResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteDbaasPgDatabaseResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Operation
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseCreateDbaasPostgresUserResponse parses an HTTP response from a CreateDbaasPostgresUserWithResponse call
 func ParseCreateDbaasPostgresUserResponse(rsp *http.Response) (*CreateDbaasPostgresUserResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -29503,6 +30268,32 @@ func ParseResetDbaasPostgresUserPasswordResponse(rsp *http.Response) (*ResetDbaa
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Operation
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateDbaasPgUpgradeCheckResponse parses an HTTP response from a CreateDbaasPgUpgradeCheckWithResponse call
+func ParseCreateDbaasPgUpgradeCheckResponse(rsp *http.Response) (*CreateDbaasPgUpgradeCheckResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDbaasPgUpgradeCheckResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DbaasTask
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -30718,7 +31509,7 @@ func ParseGetIamOrganizationPolicyResponse(rsp *http.Response) (*GetIamOrganizat
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []IamPolicy
+		var dest IamPolicy
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -31474,6 +32265,32 @@ func ParseResetInstanceResponse(rsp *http.Response) (*ResetInstanceResponse, err
 	}
 
 	response := &ResetInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Operation
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResetInstancePasswordResponse parses an HTTP response from a ResetInstancePasswordWithResponse call
+func ParseResetInstancePasswordResponse(rsp *http.Response) (*ResetInstancePasswordResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResetInstancePasswordResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

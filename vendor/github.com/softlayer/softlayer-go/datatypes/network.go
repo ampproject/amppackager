@@ -59,6 +59,9 @@ type Network_Application_Delivery_Controller struct {
 	// An application delivery controller's unique identifier
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
 
+	// The total public inbound bandwidth for the current billing cycle.
+	InboundPublicBandwidthUsage *Float64 `json:"inboundPublicBandwidthUsage,omitempty" xmlrpc:"inboundPublicBandwidthUsage,omitempty"`
+
 	// The date in which the license for this application delivery controller will expire.
 	LicenseExpirationDate *Time `json:"licenseExpirationDate,omitempty" xmlrpc:"licenseExpirationDate,omitempty"`
 
@@ -210,13 +213,6 @@ type Network_Application_Delivery_Controller_LoadBalancer_Health_Check struct {
 
 	// no documentation yet
 	Notes *string `json:"notes,omitempty" xmlrpc:"notes,omitempty"`
-
-	// A count of [DEPRECATED] Collection of scale load balancers that use this health check.
-	ScaleLoadBalancerCount *uint `json:"scaleLoadBalancerCount,omitempty" xmlrpc:"scaleLoadBalancerCount,omitempty"`
-
-	// [DEPRECATED] Collection of scale load balancers that use this health check.
-	// Deprecated: This function has been marked as deprecated.
-	ScaleLoadBalancers []Scale_LoadBalancer `json:"scaleLoadBalancers,omitempty" xmlrpc:"scaleLoadBalancers,omitempty"`
 
 	// A count of
 	ServiceCount *uint `json:"serviceCount,omitempty" xmlrpc:"serviceCount,omitempty"`
@@ -544,13 +540,6 @@ type Network_Application_Delivery_Controller_LoadBalancer_VirtualServer struct {
 	// no documentation yet
 	RoutingMethodId *int `json:"routingMethodId,omitempty" xmlrpc:"routingMethodId,omitempty"`
 
-	// A count of [DEPRECATED] Collection of scale load balancers this virtual server applies to.
-	ScaleLoadBalancerCount *uint `json:"scaleLoadBalancerCount,omitempty" xmlrpc:"scaleLoadBalancerCount,omitempty"`
-
-	// [DEPRECATED] Collection of scale load balancers this virtual server applies to.
-	// Deprecated: This function has been marked as deprecated.
-	ScaleLoadBalancers []Scale_LoadBalancer `json:"scaleLoadBalancers,omitempty" xmlrpc:"scaleLoadBalancers,omitempty"`
-
 	// A count of
 	ServiceGroupCount *uint `json:"serviceGroupCount,omitempty" xmlrpc:"serviceGroupCount,omitempty"`
 
@@ -658,7 +647,7 @@ type Network_Bandwidth_Version1_Allocation struct {
 	Amount *Float64 `json:"amount,omitempty" xmlrpc:"amount,omitempty"`
 
 	// Billing item associated with this hardware allocation.
-	BillingItem *Billing_Item_Hardware `json:"billingItem,omitempty" xmlrpc:"billingItem,omitempty"`
+	BillingItem *Billing_Item `json:"billingItem,omitempty" xmlrpc:"billingItem,omitempty"`
 
 	// Internal ID associated with this allocation.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
@@ -829,10 +818,11 @@ type Network_Bandwidth_Version1_Allotment_Detail struct {
 	// Bandwidth Pool associated with this detail.
 	BandwidthAllotmentId *int `json:"bandwidthAllotmentId,omitempty" xmlrpc:"bandwidthAllotmentId,omitempty"`
 
-	// Bandwidth used.
+	// DEPRECATED - Bandwidth used.
+	// Deprecated: This function has been marked as deprecated.
 	BandwidthUsage []Network_Bandwidth_Version1_Usage `json:"bandwidthUsage,omitempty" xmlrpc:"bandwidthUsage,omitempty"`
 
-	// A count of bandwidth used.
+	// A count of dEPRECATED - Bandwidth used.
 	BandwidthUsageCount *uint `json:"bandwidthUsageCount,omitempty" xmlrpc:"bandwidthUsageCount,omitempty"`
 
 	// Beginning this date the bandwidth allotment is active.
@@ -883,7 +873,8 @@ type Network_Bandwidth_Version1_Usage_Detail struct {
 	// Outgoing bandwidth utilization .
 	AmountOut *Float64 `json:"amountOut,omitempty" xmlrpc:"amountOut,omitempty"`
 
-	// In and out bandwidth utilization for a specified time stamp.
+	// DEPRECATED - In and out bandwidth utilization for a specified time stamp.
+	// Deprecated: This function has been marked as deprecated.
 	BandwidthUsage *Network_Bandwidth_Version1_Usage `json:"bandwidthUsage,omitempty" xmlrpc:"bandwidthUsage,omitempty"`
 
 	// Describes this bandwidth utilization record as on the public or private network interface.
@@ -1667,6 +1658,9 @@ type Network_Firewall_Update_Request_Rule struct {
 	// The action that this update request rule is to take [permit or deny].
 	Action *string `json:"action,omitempty" xmlrpc:"action,omitempty"`
 
+	// The bypassRuleValidation is used for bypassing the rule validation
+	BypassRuleValidation *bool `json:"bypassRuleValidation,omitempty" xmlrpc:"bypassRuleValidation,omitempty"`
+
 	// The destination IP address considered for determining rule application.
 	DestinationIpAddress *string `json:"destinationIpAddress,omitempty" xmlrpc:"destinationIpAddress,omitempty"`
 
@@ -1758,6 +1752,9 @@ type Network_Gateway struct {
 	// A gateway's network space. Currently, only 'private'  or 'both' is allowed. When this value is 'private', it is a backend gateway only. Otherwise, it is a gateway for both frontend and backend traffic.
 	NetworkSpace *string `json:"networkSpace,omitempty" xmlrpc:"networkSpace,omitempty"`
 
+	// A manufacturer of the gateway os.  This could be different from the manufacturer of the bare metal server os if the gateway is a VM.
+	OsManufacturer *string `json:"osManufacturer,omitempty" xmlrpc:"osManufacturer,omitempty"`
+
 	// The private gateway IP address.
 	PrivateIpAddress *Network_Subnet_IpAddress `json:"privateIpAddress,omitempty" xmlrpc:"privateIpAddress,omitempty"`
 
@@ -1816,6 +1813,12 @@ type Network_Gateway_Member struct {
 	// The attributes for this member.
 	Attributes *Network_Gateway_Member_Attribute `json:"attributes,omitempty" xmlrpc:"attributes,omitempty"`
 
+	// The gateway software description for the member.
+	GatewaySoftwareDescription *Software_Description `json:"gatewaySoftwareDescription,omitempty" xmlrpc:"gatewaySoftwareDescription,omitempty"`
+
+	// no documentation yet
+	GatewaySoftwareId *int `json:"gatewaySoftwareId,omitempty" xmlrpc:"gatewaySoftwareId,omitempty"`
+
 	// The device for this member.
 	Hardware *Hardware `json:"hardware,omitempty" xmlrpc:"hardware,omitempty"`
 
@@ -1845,6 +1848,9 @@ type Network_Gateway_Member struct {
 
 	// The priority for this gateway member. This is set internally and cannot be provided on create.
 	Priority *int `json:"priority,omitempty" xmlrpc:"priority,omitempty"`
+
+	// The public gateway IP address.
+	PublicIpAddress *Network_Subnet_IpAddress `json:"publicIpAddress,omitempty" xmlrpc:"publicIpAddress,omitempty"`
 }
 
 // no documentation yet
@@ -1860,8 +1866,8 @@ type Network_Gateway_Member_Attribute struct {
 	// Indicates if the member has been upgraded.
 	IsUpgraded *int `json:"isUpgraded,omitempty" xmlrpc:"isUpgraded,omitempty"`
 
-	// The previous vSRX version of the gateway software
-	LastvSRXVersion *string `json:"lastvSRXVersion,omitempty" xmlrpc:"lastvSRXVersion,omitempty"`
+	// The previous version of the gateway software
+	LastVersion *string `json:"lastVersion,omitempty" xmlrpc:"lastVersion,omitempty"`
 
 	// Timestamp for the expiration date of the license key
 	LicenseExpirationDate *Time `json:"licenseExpirationDate,omitempty" xmlrpc:"licenseExpirationDate,omitempty"`
@@ -1886,6 +1892,9 @@ type Network_Gateway_Member_Attribute struct {
 
 	// The vSRX version of the gateway software
 	VSRXVersion *string `json:"vSRXVersion,omitempty" xmlrpc:"vSRXVersion,omitempty"`
+
+	// The version of the gateway software
+	Version *string `json:"version,omitempty" xmlrpc:"version,omitempty"`
 
 	// Precheck Warning code for Version / License Unsupported for member.
 	WarningCode *int `json:"warningCode,omitempty" xmlrpc:"warningCode,omitempty"`
@@ -2471,6 +2480,35 @@ type Network_LBaaS_LoadBalancer struct {
 	Uuid *string `json:"uuid,omitempty" xmlrpc:"uuid,omitempty"`
 }
 
+// This class represents the load balancers appliances, ie virtual servers, on which the actual load balancer service is running. The relationship between load balancer and appliance is 1-to-N with N=2 for beta and very likely N=3 for post beta. Note that this class is for internal use only.
+type Network_LBaaS_LoadBalancerAppliance struct {
+	Entity
+
+	// no documentation yet
+	ComputeId *int `json:"computeId,omitempty" xmlrpc:"computeId,omitempty"`
+
+	// no documentation yet
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// no documentation yet
+	LoadBalancerId *int `json:"loadBalancerId,omitempty" xmlrpc:"loadBalancerId,omitempty"`
+
+	// no documentation yet
+	OperatingStatus *string `json:"operatingStatus,omitempty" xmlrpc:"operatingStatus,omitempty"`
+
+	// no documentation yet
+	PrivateIp *string `json:"privateIp,omitempty" xmlrpc:"privateIp,omitempty"`
+
+	// no documentation yet
+	ProvisioningStatus *string `json:"provisioningStatus,omitempty" xmlrpc:"provisioningStatus,omitempty"`
+
+	// no documentation yet
+	PublicIp *string `json:"publicIp,omitempty" xmlrpc:"publicIp,omitempty"`
+
+	// no documentation yet
+	UnregisteredAt *Time `json:"unregisteredAt,omitempty" xmlrpc:"unregisteredAt,omitempty"`
+}
+
 // SoftLayer_Network_LBaaS_LoadBalancerHealthMonitorConfiguration specifies the check method to be used for health monitoring backend members.
 type Network_LBaaS_LoadBalancerHealthMonitorConfiguration struct {
 	Entity
@@ -2977,131 +3015,6 @@ type Network_Logging_Syslog struct {
 
 	// If this is an aggregation of syslog events, this property shows the total events.
 	TotalEvents *int `json:"totalEvents,omitempty" xmlrpc:"totalEvents,omitempty"`
-}
-
-// The SoftLayer_Network_Media_Transcode_Account contains information regarding a transcode account.
-type Network_Media_Transcode_Account struct {
-	Entity
-
-	// The SoftLayer account information
-	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
-
-	// The internal identifier of a SoftLayer account
-	AccountId *int `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
-
-	// The created date
-	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
-
-	// The internal identifier of a transcode account
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// The last modified date
-	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
-
-	// A count of transcode jobs
-	TranscodeJobCount *uint `json:"transcodeJobCount,omitempty" xmlrpc:"transcodeJobCount,omitempty"`
-
-	// Transcode jobs
-	TranscodeJobs []Network_Media_Transcode_Job `json:"transcodeJobs,omitempty" xmlrpc:"transcodeJobs,omitempty"`
-}
-
-// The SoftLayer_Network_Media_Transcode_Job contains information regarding a transcode job such as input file, output format, user id and so on.
-type Network_Media_Transcode_Job struct {
-	Entity
-
-	// The auto-deletion duration in seconds.  This value determines how long the input file will be kept on the storage.
-	AutoDeleteDuration *int `json:"autoDeleteDuration,omitempty" xmlrpc:"autoDeleteDuration,omitempty"`
-
-	// The size of an input file in byte
-	ByteIn *int `json:"byteIn,omitempty" xmlrpc:"byteIn,omitempty"`
-
-	// The created date
-	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
-
-	// no documentation yet
-	History []Network_Media_Transcode_Job_History `json:"history,omitempty" xmlrpc:"history,omitempty"`
-
-	// A count of
-	HistoryCount *uint `json:"historyCount,omitempty" xmlrpc:"historyCount,omitempty"`
-
-	// The internal identifier of a transcode job
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// The input file name
-	InputFile *string `json:"inputFile,omitempty" xmlrpc:"inputFile,omitempty"`
-
-	// The last modified date
-	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
-
-	// The name of a transcode job
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-
-	// The output file name
-	OutputFile *string `json:"outputFile,omitempty" xmlrpc:"outputFile,omitempty"`
-
-	// The transcode service account
-	TranscodeAccount *Network_Media_Transcode_Account `json:"transcodeAccount,omitempty" xmlrpc:"transcodeAccount,omitempty"`
-
-	// The internal identifier of SoftLayer account
-	TranscodeAccountId *int `json:"transcodeAccountId,omitempty" xmlrpc:"transcodeAccountId,omitempty"`
-
-	// The unique id of a transcode job
-	TranscodeJobGuid *string `json:"transcodeJobGuid,omitempty" xmlrpc:"transcodeJobGuid,omitempty"`
-
-	// The unique id of a pre-defined output format
-	TranscodePresetGuid *string `json:"transcodePresetGuid,omitempty" xmlrpc:"transcodePresetGuid,omitempty"`
-
-	// The name of a transcode output preset
-	TranscodePresetName *string `json:"transcodePresetName,omitempty" xmlrpc:"transcodePresetName,omitempty"`
-
-	// The status information of a transcode job
-	TranscodeStatus *Network_Media_Transcode_Job_Status `json:"transcodeStatus,omitempty" xmlrpc:"transcodeStatus,omitempty"`
-
-	// The internal identifier of a transcode status
-	TranscodeStatusId *int `json:"transcodeStatusId,omitempty" xmlrpc:"transcodeStatusId,omitempty"`
-
-	// The status of a transcode job
-	TranscodeStatusName *string `json:"transcodeStatusName,omitempty" xmlrpc:"transcodeStatusName,omitempty"`
-
-	// The SoftLayer user that created the transcode job
-	User *User_Customer `json:"user,omitempty" xmlrpc:"user,omitempty"`
-
-	// The internal identifier of the user who created a transcode job
-	UserId *int `json:"userId,omitempty" xmlrpc:"userId,omitempty"`
-
-	// Watermark to apply to job
-	Watermark *Container_Network_Media_Transcode_Job_Watermark `json:"watermark,omitempty" xmlrpc:"watermark,omitempty"`
-}
-
-// no documentation yet
-type Network_Media_Transcode_Job_History struct {
-	Entity
-
-	// The creation date
-	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
-
-	// The note created by system
-	PublicNotes *string `json:"publicNotes,omitempty" xmlrpc:"publicNotes,omitempty"`
-
-	// The internal identifier of a transcode job
-	TranscodeJobId *int `json:"transcodeJobId,omitempty" xmlrpc:"transcodeJobId,omitempty"`
-
-	// The status of a transcode job
-	TranscodeStatusName *string `json:"transcodeStatusName,omitempty" xmlrpc:"transcodeStatusName,omitempty"`
-}
-
-// The SoftLayer_Network_Media_Transcode_Job_Status contains information on a transcode job status.
-type Network_Media_Transcode_Job_Status struct {
-	Entity
-
-	// The description of a transcode job status
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// The internal identifier of a transcode job status
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// The status name
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 }
 
 // no documentation yet
@@ -4692,35 +4605,6 @@ type Network_Storage_Iscsi struct {
 	Network_Storage
 }
 
-// The iscsi EqualLogic Version 3 data type provides access to additional information about an iscsi volume such as the available snapshot reserve space.
-type Network_Storage_Iscsi_EqualLogic_Version3 struct {
-	Network_Storage_Iscsi
-}
-
-// An iscsi replicant receives incoming data from an associated iscsi volume.  While the replicant is not in failover mode it will not be mountable.  Upon failover the replicant can be mounted and used as a normal volume.  It is suggested to only do this as part of a disaster recovery plan.
-type Network_Storage_Iscsi_EqualLogic_Version3_Replicant struct {
-	Network_Storage_Iscsi_EqualLogic_Version3
-
-	// When a replicant is in the process of synchronizing with the parent volume this flag will be true.
-	FailbackInProgressFlag *bool `json:"failbackInProgressFlag,omitempty" xmlrpc:"failbackInProgressFlag,omitempty"`
-
-	// The volume name for an iscsi replicant.
-	VolumeName *string `json:"volumeName,omitempty" xmlrpc:"volumeName,omitempty"`
-}
-
-// An iscsi snapshot is a point-in-time view of the data on an associated iscsi volume. Iscsi snapshots use a copy-on-write technology to minimize the amount of snapshot space used. When a snapshot is initially created it will use no snapshot space. At the time data changes on a volume which existed when a snapshot was created the original data will be saved in the associated volume's snapshot reserve space.
-//
-// As a snapshot is created offline it must be set mountable in order to mount it via an iscsi initiator service.
-type Network_Storage_Iscsi_EqualLogic_Version3_Snapshot struct {
-	Network_Storage_Iscsi_EqualLogic_Version3
-
-	// If applicable, the schedule which was executed to create a snapshot.
-	CreationSchedule *Network_Storage_Schedule `json:"creationSchedule,omitempty" xmlrpc:"creationSchedule,omitempty"`
-
-	// The volume name for an iscsi snapshot.
-	VolumeName *string `json:"volumeName,omitempty" xmlrpc:"volumeName,omitempty"`
-}
-
 // no documentation yet
 type Network_Storage_Iscsi_OS_Type struct {
 	Entity
@@ -5683,6 +5567,91 @@ type Network_Subnet_IpAddress_Global struct {
 	TypeId *int `json:"typeId,omitempty" xmlrpc:"typeId,omitempty"`
 }
 
+// Describes an IP address assigned to a resource on your network.
+//
+// Details on the associated resource are also provided, described below. Details include the resource's type, unique identifier, name, fully qualified name, and context, the contents of which depends on the resource's type. If the fully qualified name is not included for a resource type below, the resource's name will apply.
+//
+// The following resource types and associated dependent properties are supported:
+//
+// * <b>HARDWARE</b>: A [Bare Metal Server](/reference/datatypes/SoftLayer_Hardware_Server)
+//
+// -- <i>resourceName</i>: The hostname of the server.
+//
+// -- <i>resourceFullyQualifiedName</i>: The fully qualified domain name of the server.
+//
+// -- <i>resourceContext</i>: The name of the network component or network component group assigned to the IP address, <i>e.g. eth0/2</i>.
+//
+// * <b>GUEST</b>: A [Virtual Server Instance](/reference/datatypes/SoftLayer_Virtual_Guest)
+//
+// -- <i>resourceName</i>: The hostname of the guest.
+//
+// -- <i>resourceFullyQualifiedName</i>: The fully qualified domain name of the guest.
+//
+// -- <i>resourceContext</i>: The name of the virtual network component assigned to the IP address, <i>e.g. eth0</i>.
+//
+// * <b>GATEWAY</b>: A [Network Gateway](/reference/datatypes/SoftLayer_Network_Gateway)
+//
+// -- <i>resourceName</i>: The name of the gateway.
+//
+// -- <i>resourceContext</i>: Either the term "virtual" to indicate a gateway IP address, or the name of the network component or network component group assigned to the IP address followed by the id-value of the [Bare Metal Server](/reference/datatypes/SoftLayer_Hardware_Server) gateway member surrounded by '<', '>', <i>e.g. eth1/3<123456></i>.
+//
+// - <b>FIREWALL_MULTIVLAN</b>: A [Multi-VLAN Firewall](/reference/datatypes/SoftLayer_Network_Vlan_Firewall)
+//
+// -- <i>resourceName</i>: The name of the firewall.
+//
+// -- <i>resourceContext</i>: The term "virtual" to indicate a firewall IP address.
+//
+// - <b>LBAAS</b>: A [Cloud Load Balancer](/reference/datatypes/SoftLayer_Network_LBaaS_LoadBalancer)
+//
+// -- <i>resourceName</i>: The name of the load balancer.
+//
+// -- <i>resourceFullyQualifiedName</i>: The full DNS address of the load balancer.
+//
+// -- <i>resourceContext</i>: The term "ephemeral" to indicate a currently assigned IP address, subject to change. Users are strongly encouraged to access the service by the fully qualified DNS name and not the underlying IP addresses. The UUID of the load balancer is also provided, surrounded by '<' and '>', e.g. ephemeral<84f0affb-0d5e-40f1-ad87-a92d6544936a>
+//
+// - <b>NETSCALER_VPX</b>: A [Netscaler VPX Load Balancer](/reference/datatypes/SoftLayer_Network_Application_Delivery_Controller)
+//
+// -- <i>resourceName</i>: The hostname of the load balancer.
+//
+// -- <i>resourceFullyQualifiedName</i>: The fully qualified domain name of the load balancer.
+//
+// -- <i>resourceContext</i>: Either the term "nsip" to indicate the management IP address, or the name of the network component assigned to the IP address followed by the id-value of the [Virtual Server Instance](/reference/datatypes/SoftLayer_Virtual_Guest) load balancer host surrounded by '<', '>', <i>e.g. eth1<123456></i>.
+//
+// - <b>NETSCALER_MPX</b>: A [Netscaler MPX Load Balancer](/reference/datatypes/SoftLayer_Hardware_LoadBalancer)
+//
+// -- <i>resourceName</i>: The hostname of the load balancer.
+//
+// -- <i>resourceFullyQualifiedName</i>: The fully qualified domain name of the load balancer.
+//
+// -- <i>resourceContext</i>: The name of the network component or network component group assigned to the IP address, <i>e.g. eth0/2</i>.
+type Network_Subnet_IpAddress_UsageDetail struct {
+	Entity
+
+	// The IP address.
+	IpAddress *string `json:"ipAddress,omitempty" xmlrpc:"ipAddress,omitempty"`
+
+	// The unique identifier of the IP address record.
+	IpAddressId *int `json:"ipAddressId,omitempty" xmlrpc:"ipAddressId,omitempty"`
+
+	// A description of the resource IP address assignment.
+	ResourceContext *string `json:"resourceContext,omitempty" xmlrpc:"resourceContext,omitempty"`
+
+	// The fully qualified name of the assigned resource.
+	ResourceFullyQualifiedName *string `json:"resourceFullyQualifiedName,omitempty" xmlrpc:"resourceFullyQualifiedName,omitempty"`
+
+	// The unique identifier of the assigned resource.
+	ResourceId *int `json:"resourceId,omitempty" xmlrpc:"resourceId,omitempty"`
+
+	// The name of the assigned resource.
+	ResourceName *string `json:"resourceName,omitempty" xmlrpc:"resourceName,omitempty"`
+
+	// The type of the assigned resource.
+	ResourceType *string `json:"resourceType,omitempty" xmlrpc:"resourceType,omitempty"`
+
+	// The unique identifier of the subnet the IP address belongs to.
+	SubnetId *int `json:"subnetId,omitempty" xmlrpc:"subnetId,omitempty"`
+}
+
 // The SoftLayer_Network_Subnet_IpAddress data type contains general information relating to a single SoftLayer IPv6 address.
 type Network_Subnet_IpAddress_Version6 struct {
 	Network_Subnet_IpAddress
@@ -6216,10 +6185,6 @@ type Network_Vlan struct {
 	// The customer name for this VLAN.
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 
-	// [DEPRECATED] The network in which this VLAN resides.
-	// Deprecated: This function has been marked as deprecated.
-	Network *Network `json:"network,omitempty" xmlrpc:"network,omitempty"`
-
 	// A count of the hardware network interfaces connected natively to this VLAN.
 	NetworkComponentCount *uint `json:"networkComponentCount,omitempty" xmlrpc:"networkComponentCount,omitempty"`
 
@@ -6243,6 +6208,9 @@ type Network_Vlan struct {
 
 	// An internal description of this VLAN, if applicable.
 	Note *string `json:"note,omitempty" xmlrpc:"note,omitempty"`
+
+	// The pod this VLAN is associated with.
+	PodName *string `json:"podName,omitempty" xmlrpc:"podName,omitempty"`
 
 	// The router device that this VLAN is associated with.
 	PrimaryRouter *Hardware_Router `json:"primaryRouter,omitempty" xmlrpc:"primaryRouter,omitempty"`
@@ -6282,10 +6250,6 @@ type Network_Vlan struct {
 
 	// A value of '1' indicates this VLAN's pod has VSI SAN disk storage capability.
 	SanStorageCapabilityFlag *bool `json:"sanStorageCapabilityFlag,omitempty" xmlrpc:"sanStorageCapabilityFlag,omitempty"`
-
-	// [DEPRECATED] The scale VLANs associated to this VLAN.
-	// Deprecated: This function has been marked as deprecated.
-	ScaleVlans []Scale_Network_Vlan `json:"scaleVlans,omitempty" xmlrpc:"scaleVlans,omitempty"`
 
 	// [DEPRECATED] The secondary router device that this VLAN is associated with.
 	// Deprecated: This function has been marked as deprecated.

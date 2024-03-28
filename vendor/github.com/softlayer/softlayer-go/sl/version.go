@@ -32,7 +32,7 @@ type VersionInfo struct {
 var Version = VersionInfo{
 	Major: 1,
 	Minor: 1,
-	Patch: 0,
+	Patch: 3,
 	Pre:   "",
 }
 

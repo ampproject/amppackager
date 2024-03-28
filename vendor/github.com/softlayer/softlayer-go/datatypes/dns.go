@@ -104,7 +104,7 @@ type Dns_Domain_Registration struct {
 	ServiceProviderId *int `json:"serviceProviderId,omitempty" xmlrpc:"serviceProviderId,omitempty"`
 }
 
-// SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status models the state of the registrant. Here are the following status codes:
+// [DEPRECATED] SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status models the state of the registrant. Here are the following status codes:
 //
 // *”'Admin Reviewing”': The registrant data has been submitted and being reviewed by compliance team.
 // *”'Pending”': The verification process has been inititated, and verification email will be sent.
@@ -128,7 +128,7 @@ type Dns_Domain_Registration_Registrant_Verification_Status struct {
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 }
 
-// SoftLayer_Dns_Domain_Registration_Status models the state of domain name. Here are the following status codes:
+// [DEPRECATED] SoftLayer_Dns_Domain_Registration_Status models the state of domain name. Here are the following status codes:
 //
 // *”'Active”': This domain name is active.
 // *”'Pending Owner Approval”': Pending owner approval for completion of transfer.

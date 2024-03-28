@@ -370,16 +370,6 @@ func (r Account) GetAffiliateId() (resp string, err error) {
 	return
 }
 
-// Returns URL uptime data for your account
-func (r Account) GetAggregatedUptimeGraph(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getAggregatedUptimeGraph", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve The billing items that will be on an account's next invoice.
 func (r Account) GetAllBillingItems() (resp []datatypes.Billing_Item, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getAllBillingItems", nil, &r.Options, &resp)
@@ -554,6 +544,12 @@ func (r Account) GetBlockDeviceTemplateGroups() (resp []datatypes.Virtual_Guest_
 	return
 }
 
+// Retrieve
+func (r Account) GetBluemixAccountId() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account", "getBluemixAccountId", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve The Platform account link associated with this SoftLayer account, if one exists.
 func (r Account) GetBluemixAccountLink() (resp datatypes.Account_Link_Bluemix, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getBluemixAccountLink", nil, &r.Options, &resp)
@@ -614,26 +610,6 @@ func (r Account) GetClosedTickets() (resp []datatypes.Ticket, err error) {
 	return
 }
 
-// This method returns a SoftLayer_Container_Account_Graph_Outputs containing a base64 string PNG image. The optional parameter, detailedGraph, can be passed to get a more detailed graph.
-// Deprecated: This function has been marked as deprecated.
-func (r Account) GetCurrentBackupStatisticsGraph(detailedGraph *bool) (resp datatypes.Container_Account_Graph_Outputs, err error) {
-	params := []interface{}{
-		detailedGraph,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getCurrentBackupStatisticsGraph", params, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-// Deprecated: This function has been marked as deprecated.
-func (r Account) GetCurrentTicketStatisticsGraph(detailedGraph *bool) (resp datatypes.Container_Account_Graph_Outputs, err error) {
-	params := []interface{}{
-		detailedGraph,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getCurrentTicketStatisticsGraph", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve the user record of the user calling the SoftLayer API.
 func (r Account) GetCurrentUser() (resp datatypes.User_Customer, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getCurrentUser", nil, &r.Options, &resp)
@@ -664,47 +640,6 @@ func (r Account) GetDedicatedHostsForImageTemplate(imageTemplateId *int) (resp [
 // Retrieve A flag indicating whether payments are processed for this account.
 func (r Account) GetDisablePaymentProcessingFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getDisablePaymentProcessingFlag", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Metric Tracking Object System and Legacy Data Warehouse. Each data entry objects contain ”dateTime” and ”counter” properties. ”dateTime” property indicates the time that the disk usage data was measured and ”counter” property holds the disk usage in bytes.
-func (r Account) GetDiskUsageMetricDataByDate(startDateTime *datatypes.Time, endDateTime *datatypes.Time) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
-	params := []interface{}{
-		startDateTime,
-		endDateTime,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getDiskUsageMetricDataByDate", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Legacy Data Warehouse.  Each data entry objects contain ”dateTime” and ”counter” properties. ”dateTime” property indicates the time that the disk usage data was measured and ”counter” property holds the disk usage in bytes.
-func (r Account) GetDiskUsageMetricDataFromLegacyByDate(startDateTime *datatypes.Time, endDateTime *datatypes.Time) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
-	params := []interface{}{
-		startDateTime,
-		endDateTime,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getDiskUsageMetricDataFromLegacyByDate", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve disk usage data on a [[SoftLayer_Virtual_Guest|Cloud Computing Instance]] image for the time range you provide from the Metric Tracking Object System.  Each data entry object contains ”dateTime” and ”counter” properties.  ”dateTime” property indicates the time that the disk usage data was measured and ”counter” property holds the disk usage in bytes.
-func (r Account) GetDiskUsageMetricDataFromMetricTrackingObjectSystemByDate(startDateTime *datatypes.Time, endDateTime *datatypes.Time) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
-	params := []interface{}{
-		startDateTime,
-		endDateTime,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getDiskUsageMetricDataFromMetricTrackingObjectSystemByDate", params, &r.Options, &resp)
-	return
-}
-
-// [DEPRECATED] JpGraph has been removed, so this method is no longer functional.
-// Deprecated: This function has been marked as deprecated.
-func (r Account) GetDiskUsageMetricImageByDate(startDateTime *datatypes.Time, endDateTime *datatypes.Time) (resp datatypes.Container_Account_Graph_Outputs, err error) {
-	params := []interface{}{
-		startDateTime,
-		endDateTime,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getDiskUsageMetricImageByDate", params, &r.Options, &resp)
 	return
 }
 
@@ -753,18 +688,6 @@ func (r Account) GetEvaultMasterUsers() (resp []datatypes.Account_Password, err 
 // Retrieve An account's associated EVault storage volumes.
 func (r Account) GetEvaultNetworkStorage() (resp []datatypes.Network_Storage, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getEvaultNetworkStorage", nil, &r.Options, &resp)
-	return
-}
-
-// This method will return a PDF of the specified report, with the specified period within the start and end dates. The pdfType must be one of 'snapshot', or 'historical'. Possible historicalType parameters are 'monthly', 'yearly', and 'quarterly'. Start and end dates should be in ISO 8601 date format.
-func (r Account) GetExecutiveSummaryPdf(pdfType *string, historicalType *string, startDate *string, endDate *string) (resp []byte, err error) {
-	params := []interface{}{
-		pdfType,
-		historicalType,
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getExecutiveSummaryPdf", params, &r.Options, &resp)
 	return
 }
 
@@ -951,47 +874,6 @@ func (r Account) GetHasR1softBareMetalRestorePluginFlag() (resp bool, err error)
 	return
 }
 
-// no documentation yet
-func (r Account) GetHistoricalBackupGraph(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Container_Account_Graph_Outputs, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getHistoricalBackupGraph", params, &r.Options, &resp)
-	return
-}
-
-// [DEPRECATED] This method will return a SoftLayer_Container_Account_Graph_Outputs object containing a base64 string PNG image of a line graph of bandwidth statistics given the start and end dates. The start and end dates should be valid ISO 8601 date formatted strings.
-// Deprecated: This function has been marked as deprecated.
-func (r Account) GetHistoricalBandwidthGraph(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Container_Account_Graph_Outputs, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getHistoricalBandwidthGraph", params, &r.Options, &resp)
-	return
-}
-
-// Given the start and end dates, this method will return a pie chart of ticket statistics in the form of SoftLayer_Container_Account_Graph_Outputs object with a base64 PNG string. If an error occurs the graphError parameter will be populated. Possible errors include: SoftLayer_Exception_Public Thrown if an invalid start or end date is provided. SoftLayer_Exception Thrown if there is an error connecting to HBase. SoftLayer_Exception Thrown if there is no data available for the specified date range. SoftLayer_Exception Thrown if there is an error retrieving data or generating the graph.
-func (r Account) GetHistoricalTicketGraph(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Container_Account_Graph_Outputs, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getHistoricalTicketGraph", params, &r.Options, &resp)
-	return
-}
-
-// The graph image is returned as a base64 PNG string. Start and end dates should be formatted using the ISO 8601 date standard. If there is an error retrieving graph data or generating the graph string a graphError attribute will be returned. The graphError attribute may contain any of the following error messages: SoftLayer_Exception_Public Thrown if an invalid start or end date is provided. SoftLayer_Exception Thrown if there is an error connecting to HBase. SoftLayer_Exception Thrown if there is no data available for the specified date range. SoftLayer_Exception Thrown if there is an error retrieving data or generating the graph.
-func (r Account) GetHistoricalUptimeGraph(startDate *datatypes.Time, endDate *datatypes.Time) (resp datatypes.Container_Account_Graph_Outputs, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account", "getHistoricalUptimeGraph", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve An account's associated hourly bare metal server objects.
 func (r Account) GetHourlyBareMetalInstances() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getHourlyBareMetalInstances", nil, &r.Options, &resp)
@@ -1164,7 +1046,7 @@ func (r Account) GetLatestRecurringPendingInvoice() (resp datatypes.Billing_Invo
 	return
 }
 
-// Retrieve The legacy bandwidth allotments for an account.
+// Retrieve [DEPRECATED] The legacy bandwidth allotments for an account.
 func (r Account) GetLegacyBandwidthAllotments() (resp []datatypes.Network_Bandwidth_Version1_Allotment, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getLegacyBandwidthAllotments", nil, &r.Options, &resp)
 	return
@@ -1209,6 +1091,12 @@ func (r Account) GetMasterUser() (resp datatypes.User_Customer, err error) {
 // Retrieve An account's media transfer service requests.
 func (r Account) GetMediaDataTransferRequests() (resp []datatypes.Account_Media_Data_Transfer_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getMediaDataTransferRequests", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve [DEPRECATED] - An accounts metric tracking object. This object records all periodic polled data available to this account.
+func (r Account) GetMetricTrackingObject() (resp datatypes.Metric_Tracking_Object, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account", "getMetricTrackingObject", nil, &r.Options, &resp)
 	return
 }
 
@@ -1821,12 +1709,6 @@ func (r Account) GetSamlAuthentication() (resp datatypes.Account_Authentication_
 	return
 }
 
-// Retrieve [DEPRECATED] All scale groups on this account.
-func (r Account) GetScaleGroups() (resp []datatypes.Scale_Group, err error) {
-	err = r.Session.DoRequest("SoftLayer_Account", "getScaleGroups", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve The secondary DNS records for a SoftLayer customer account.
 func (r Account) GetSecondaryDomains() (resp []datatypes.Dns_Secondary, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getSecondaryDomains", nil, &r.Options, &resp)
@@ -1980,12 +1862,6 @@ func (r Account) GetTicketsClosedToday() (resp []datatypes.Ticket, err error) {
 	return
 }
 
-// Retrieve An account's associated Transcode account.
-func (r Account) GetTranscodeAccounts() (resp []datatypes.Network_Media_Transcode_Account, err error) {
-	err = r.Session.DoRequest("SoftLayer_Account", "getTranscodeAccounts", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve An account's associated upgrade requests.
 func (r Account) GetUpgradeRequests() (resp []datatypes.Product_Upgrade_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getUpgradeRequests", nil, &r.Options, &resp)
@@ -2010,7 +1886,7 @@ func (r Account) GetValidSecurityCertificates() (resp []datatypes.Security_Certi
 	return
 }
 
-// Retrieve Return 0 if vpn updates are currently in progress on this account otherwise 1.
+// Retrieve DEPRECATED - Return 0 if VDR updates are currently in progress on this account otherwise 1.
 func (r Account) GetVdrUpdatesInProgressFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account", "getVdrUpdatesInProgressFlag", nil, &r.Options, &resp)
 	return
@@ -2233,6 +2109,16 @@ func (r Account) RequestManualPaymentUsingCreditCardOnFile(amount *string, payWi
 		note,
 	}
 	err = r.Session.DoRequest("SoftLayer_Account", "requestManualPaymentUsingCreditCardOnFile", params, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Account) SaveInternalCostRecovery(costRecoveryContainer *datatypes.Container_Account_Internal_Ibm_CostRecovery) (err error) {
+	var resp datatypes.Void
+	params := []interface{}{
+		costRecoveryContainer,
+	}
+	err = r.Session.DoRequest("SoftLayer_Account", "saveInternalCostRecovery", params, &r.Options, &resp)
 	return
 }
 
@@ -2839,6 +2725,76 @@ func (r Account_Authentication_Saml) GetObject() (resp datatypes.Account_Authent
 	return
 }
 
+// Represents a request to migrate an account to the owned brand.
+type Account_Brand_Migration_Request struct {
+	Session *session.Session
+	Options sl.Options
+}
+
+// GetAccountBrandMigrationRequestService returns an instance of the Account_Brand_Migration_Request SoftLayer service
+func GetAccountBrandMigrationRequestService(sess *session.Session) Account_Brand_Migration_Request {
+	return Account_Brand_Migration_Request{Session: sess}
+}
+
+func (r Account_Brand_Migration_Request) Id(id int) Account_Brand_Migration_Request {
+	r.Options.Id = &id
+	return r
+}
+
+func (r Account_Brand_Migration_Request) Mask(mask string) Account_Brand_Migration_Request {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r Account_Brand_Migration_Request) Filter(filter string) Account_Brand_Migration_Request {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r Account_Brand_Migration_Request) Limit(limit int) Account_Brand_Migration_Request {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r Account_Brand_Migration_Request) Offset(offset int) Account_Brand_Migration_Request {
+	r.Options.Offset = &offset
+	return r
+}
+
+// Retrieve
+func (r Account_Brand_Migration_Request) GetAccount() (resp datatypes.Account, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account_Brand_Migration_Request", "getAccount", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Account_Brand_Migration_Request) GetDestinationBrand() (resp datatypes.Brand, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account_Brand_Migration_Request", "getDestinationBrand", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Account_Brand_Migration_Request) GetObject() (resp datatypes.Account_Brand_Migration_Request, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account_Brand_Migration_Request", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Account_Brand_Migration_Request) GetSourceBrand() (resp datatypes.Brand, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account_Brand_Migration_Request", "getSourceBrand", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Account_Brand_Migration_Request) GetUser() (resp datatypes.User_Customer, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account_Brand_Migration_Request", "getUser", nil, &r.Options, &resp)
+	return
+}
+
 // Contains business partner details associated with an account. Country Enterprise Identifier (CEID), Channel ID, Segment ID and Reseller Level.
 type Account_Business_Partner struct {
 	Session *session.Session
@@ -3102,17 +3058,6 @@ func (r Account_Historical_Report) Offset(offset int) Account_Historical_Report 
 }
 
 // no documentation yet
-func (r Account_Historical_Report) GetAccountHostUptimeGraphData(startDate *string, endDate *string, accountId *int) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-		accountId,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account_Historical_Report", "getAccountHostUptimeGraphData", params, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
 // Deprecated: This function has been marked as deprecated.
 func (r Account_Historical_Report) GetAccountHostUptimeSummary(startDateTime *string, endDateTime *string, accountId *int) (resp datatypes.Container_Account_Historical_Summary, err error) {
 	params := []interface{}{
@@ -3121,17 +3066,6 @@ func (r Account_Historical_Report) GetAccountHostUptimeSummary(startDateTime *st
 		accountId,
 	}
 	err = r.Session.DoRequest("SoftLayer_Account_Historical_Report", "getAccountHostUptimeSummary", params, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Account_Historical_Report) GetAccountUrlUptimeGraphData(startDate *string, endDate *string, accountId *int) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		startDate,
-		endDate,
-		accountId,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account_Historical_Report", "getAccountUrlUptimeGraphData", params, &r.Options, &resp)
 	return
 }
 
@@ -3249,6 +3183,12 @@ func (r Account_Internal_Ibm) GetAuthorizationUrl(requestId *int) (resp string, 
 }
 
 // no documentation yet
+func (r Account_Internal_Ibm) GetBmsCountries() (resp []datatypes.BMS_Container_Country, err error) {
+	err = r.Session.DoRequest("SoftLayer_Account_Internal_Ibm", "getBmsCountries", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
 func (r Account_Internal_Ibm) GetBmsCountryList() (resp []string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Account_Internal_Ibm", "getBmsCountryList", nil, &r.Options, &resp)
 	return
@@ -3312,6 +3252,66 @@ func (r Account_Internal_Ibm) RequestAccount(requestContainer *datatypes.Contain
 		requestContainer,
 	}
 	err = r.Session.DoRequest("SoftLayer_Account_Internal_Ibm", "requestAccount", params, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+type Account_Internal_Ibm_CostRecovery_Validator struct {
+	Session *session.Session
+	Options sl.Options
+}
+
+// GetAccountInternalIbmCostRecoveryValidatorService returns an instance of the Account_Internal_Ibm_CostRecovery_Validator SoftLayer service
+func GetAccountInternalIbmCostRecoveryValidatorService(sess *session.Session) Account_Internal_Ibm_CostRecovery_Validator {
+	return Account_Internal_Ibm_CostRecovery_Validator{Session: sess}
+}
+
+func (r Account_Internal_Ibm_CostRecovery_Validator) Id(id int) Account_Internal_Ibm_CostRecovery_Validator {
+	r.Options.Id = &id
+	return r
+}
+
+func (r Account_Internal_Ibm_CostRecovery_Validator) Mask(mask string) Account_Internal_Ibm_CostRecovery_Validator {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r Account_Internal_Ibm_CostRecovery_Validator) Filter(filter string) Account_Internal_Ibm_CostRecovery_Validator {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r Account_Internal_Ibm_CostRecovery_Validator) Limit(limit int) Account_Internal_Ibm_CostRecovery_Validator {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r Account_Internal_Ibm_CostRecovery_Validator) Offset(offset int) Account_Internal_Ibm_CostRecovery_Validator {
+	r.Options.Offset = &offset
+	return r
+}
+
+// Will return a container with information for a PACT or WBS account ID and BMS country ID.
+func (r Account_Internal_Ibm_CostRecovery_Validator) GetSprintContainer(accountId *string, countryId *string) (resp datatypes.Sprint_Container_CostRecovery, err error) {
+	params := []interface{}{
+		accountId,
+		countryId,
+	}
+	err = r.Session.DoRequest("SoftLayer_Account_Internal_Ibm_CostRecovery_Validator", "getSprintContainer", params, &r.Options, &resp)
+	return
+}
+
+// Will validate a PACT or WBS account ID and BMS country ID. If the record is invalid, an exception is thrown. Otherwise, a container with account information is returned.
+func (r Account_Internal_Ibm_CostRecovery_Validator) ValidateByAccountAndCountryId(accountId *string, countryId *string) (resp datatypes.Sprint_Container_CostRecovery, err error) {
+	params := []interface{}{
+		accountId,
+		countryId,
+	}
+	err = r.Session.DoRequest("SoftLayer_Account_Internal_Ibm_CostRecovery_Validator", "validateByAccountAndCountryId", params, &r.Options, &resp)
 	return
 }
 
@@ -4075,114 +4075,6 @@ func (r Account_Password) GetType() (resp datatypes.Account_Password_Type, err e
 }
 
 // no documentation yet
-type Account_PersonalData_RemoveRequestReview struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetAccountPersonalDataRemoveRequestReviewService returns an instance of the Account_PersonalData_RemoveRequestReview SoftLayer service
-func GetAccountPersonalDataRemoveRequestReviewService(sess *session.Session) Account_PersonalData_RemoveRequestReview {
-	return Account_PersonalData_RemoveRequestReview{Session: sess}
-}
-
-func (r Account_PersonalData_RemoveRequestReview) Id(id int) Account_PersonalData_RemoveRequestReview {
-	r.Options.Id = &id
-	return r
-}
-
-func (r Account_PersonalData_RemoveRequestReview) Mask(mask string) Account_PersonalData_RemoveRequestReview {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r Account_PersonalData_RemoveRequestReview) Filter(filter string) Account_PersonalData_RemoveRequestReview {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r Account_PersonalData_RemoveRequestReview) Limit(limit int) Account_PersonalData_RemoveRequestReview {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r Account_PersonalData_RemoveRequestReview) Offset(offset int) Account_PersonalData_RemoveRequestReview {
-	r.Options.Offset = &offset
-	return r
-}
-
-// Approve a personal information removal request.
-func (r Account_PersonalData_RemoveRequestReview) ApproveRequest(requestId *int, accessToken *string) (err error) {
-	var resp datatypes.Void
-	params := []interface{}{
-		requestId,
-		accessToken,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "approveRequest", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve
-func (r Account_PersonalData_RemoveRequestReview) GetAccount() (resp datatypes.Account, err error) {
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "getAccount", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve
-func (r Account_PersonalData_RemoveRequestReview) GetApprovedFlag() (resp datatypes.Account_PersonalData_RemoveRequestReview, err error) {
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "getApprovedFlag", nil, &r.Options, &resp)
-	return
-}
-
-// Gets the redirect URL for GDPR removal review.
-func (r Account_PersonalData_RemoveRequestReview) GetAuthorizationUrl() (resp string, err error) {
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "getAuthorizationUrl", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Account_PersonalData_RemoveRequestReview) GetObject() (resp datatypes.Account_PersonalData_RemoveRequestReview, err error) {
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// Gets information removal requests to review.
-func (r Account_PersonalData_RemoveRequestReview) GetPendingRequests(accessToken *string) (resp []datatypes.Container_Account_PersonalInformation, err error) {
-	params := []interface{}{
-		accessToken,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "getPendingRequests", params, &r.Options, &resp)
-	return
-}
-
-// Retrieves an access token.
-func (r Account_PersonalData_RemoveRequestReview) GetReviewerAccessToken(code *string) (resp string, err error) {
-	params := []interface{}{
-		code,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "getReviewerAccessToken", params, &r.Options, &resp)
-	return
-}
-
-// Finds a reviewer's email using the access token
-func (r Account_PersonalData_RemoveRequestReview) GetReviewerEmailFromAccessToken(accessToken *string) (resp string, err error) {
-	params := []interface{}{
-		accessToken,
-	}
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "getReviewerEmailFromAccessToken", params, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Account_PersonalData_RemoveRequestReview) GetTotalPendingRequests() (resp int, err error) {
-	err = r.Session.DoRequest("SoftLayer_Account_PersonalData_RemoveRequestReview", "getTotalPendingRequests", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
 type Account_ProofOfConcept struct {
 	Session *session.Session
 	Options sl.Options
@@ -4291,9 +4183,10 @@ func (r Account_ProofOfConcept) GetReviewerEmailFromAccessToken(accessToken *str
 }
 
 // Allows authorized IBMer to pull all the details of a single proof of concept account request.
-func (r Account_ProofOfConcept) GetSubmittedRequest(requestId *int) (resp datatypes.Container_Account_ProofOfConcept_Review, err error) {
+func (r Account_ProofOfConcept) GetSubmittedRequest(requestId *int, email *string) (resp datatypes.Container_Account_ProofOfConcept_Review, err error) {
 	params := []interface{}{
 		requestId,
+		email,
 	}
 	err = r.Session.DoRequest("SoftLayer_Account_ProofOfConcept", "getSubmittedRequest", params, &r.Options, &resp)
 	return

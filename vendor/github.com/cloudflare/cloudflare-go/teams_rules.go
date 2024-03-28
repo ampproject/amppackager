@@ -2,10 +2,11 @@ package cloudflare
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/goccy/go-json"
 )
 
 type TeamsRuleSettings struct {
@@ -56,6 +57,14 @@ type TeamsRuleSettings struct {
 
 	// Action taken when an untrusted origin certificate error occurs in a http allow rule
 	UntrustedCertSettings *UntrustedCertSettings `json:"untrusted_cert"`
+
+	// Specifies that a resolver policy should use Cloudflare's DNS Resolver.
+	ResolveDnsThroughCloudflare *bool `json:"resolve_dns_through_cloudflare,omitempty"`
+
+	// Resolver policy settings.
+	DnsResolverSettings *TeamsDnsResolverSettings `json:"dns_resolvers,omitempty"`
+
+	NotificationSettings *TeamsNotificationSettings `json:"notification_settings"`
 }
 
 type TeamsGatewayUntrustedCertAction string
@@ -68,6 +77,12 @@ const (
 
 type UntrustedCertSettings struct {
 	Action TeamsGatewayUntrustedCertAction `json:"action"`
+}
+
+type TeamsNotificationSettings struct {
+	Enabled    *bool  `json:"enabled,omitempty"`
+	Message    string `json:"msg"`
+	SupportURL string `json:"support_url"`
 }
 
 type AuditSSHRuleSettings struct {
@@ -99,6 +114,28 @@ type TeamsCheckSessionSettings struct {
 	Enforce  bool     `json:"enforce"`
 	Duration Duration `json:"duration"`
 }
+
+type (
+	TeamsDnsResolverSettings struct {
+		V4Resolvers []TeamsDnsResolverAddressV4 `json:"ipv4,omitempty"`
+		V6Resolvers []TeamsDnsResolverAddressV6 `json:"ipv6,omitempty"`
+	}
+
+	TeamsDnsResolverAddressV4 struct {
+		TeamsDnsResolverAddress
+	}
+
+	TeamsDnsResolverAddressV6 struct {
+		TeamsDnsResolverAddress
+	}
+
+	TeamsDnsResolverAddress struct {
+		IP                         string `json:"ip"`
+		Port                       *int   `json:"port,omitempty"`
+		VnetID                     string `json:"vnet_id,omitempty"`
+		RouteThroughPrivateNetwork *bool  `json:"route_through_private_network,omitempty"`
+	}
+)
 
 type TeamsDlpPayloadLogSettings struct {
 	Enabled bool `json:"enabled"`

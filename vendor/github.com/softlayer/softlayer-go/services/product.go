@@ -29,6 +29,352 @@ import (
 	"github.com/softlayer/softlayer-go/sl"
 )
 
+// The SoftLayer_Product_Item data type contains general information relating to a single SoftLayer product.
+type Product_Item struct {
+	Session *session.Session
+	Options sl.Options
+}
+
+// GetProductItemService returns an instance of the Product_Item SoftLayer service
+func GetProductItemService(sess *session.Session) Product_Item {
+	return Product_Item{Session: sess}
+}
+
+func (r Product_Item) Id(id int) Product_Item {
+	r.Options.Id = &id
+	return r
+}
+
+func (r Product_Item) Mask(mask string) Product_Item {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r Product_Item) Filter(filter string) Product_Item {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r Product_Item) Limit(limit int) Product_Item {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r Product_Item) Offset(offset int) Product_Item {
+	r.Options.Offset = &offset
+	return r
+}
+
+// Retrieve
+func (r Product_Item) GetActivePresaleEvents() (resp []datatypes.Sales_Presale_Event, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getActivePresaleEvents", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Active usage based prices.
+func (r Product_Item) GetActiveUsagePrices() (resp []datatypes.Product_Item_Price, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getActiveUsagePrices", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The attribute values for a product item. These are additional properties that give extra information about the product being sold.
+func (r Product_Item) GetAttributes() (resp []datatypes.Product_Item_Attribute, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getAttributes", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Attributes that govern when an item may no longer be available.
+func (r Product_Item) GetAvailabilityAttributes() (resp []datatypes.Product_Item_Attribute, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getAvailabilityAttributes", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's special billing type, if applicable.
+func (r Product_Item) GetBillingType() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getBillingType", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's included product item references. Some items have other items included in them that we specifically detail. They are here called Bundled Items. An example is Plesk unlimited. It as a bundled item labeled 'SiteBuilder'. These are the SoftLayer_Product_Item_Bundles objects. See the SoftLayer_Product_Item::bundleItems property for bundle of SoftLayer_Product_Item of objects.
+func (r Product_Item) GetBundle() (resp []datatypes.Product_Item_Bundles, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getBundle", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's included products. Some items have other items included in them that we specifically detail. They are here called Bundled Items. An example is Plesk unlimited. It as a bundled item labeled 'SiteBuilder'. These are the SoftLayer_Product_Item objects.
+func (r Product_Item) GetBundleItems() (resp []datatypes.Product_Item, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getBundleItems", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve When the product capacity is best described as a range, this holds the ceiling of the range.
+func (r Product_Item) GetCapacityMaximum() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getCapacityMaximum", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve When the product capacity is best described as a range, this holds the floor of the range.
+func (r Product_Item) GetCapacityMinimum() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getCapacityMinimum", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve This flag indicates that this product is restricted by a capacity on a related product.
+func (r Product_Item) GetCapacityRestrictedProductFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getCapacityRestrictedProductFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's associated item categories.
+func (r Product_Item) GetCategories() (resp []datatypes.Product_Item_Category, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getCategories", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Some product items have configuration templates which can be used to during provisioning of that product.
+func (r Product_Item) GetConfigurationTemplates() (resp []datatypes.Configuration_Template, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getConfigurationTemplates", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's conflicts. For example, McAfee LinuxShield cannot be ordered with Windows. It was not meant for that operating system and as such is a conflict.
+func (r Product_Item) GetConflicts() (resp []datatypes.Product_Item_Resource_Conflict, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getConflicts", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve This flag indicates that this product is restricted by the number of cores on the compute instance. This is deprecated. Use [[SoftLayer_Product_Item/getCapacityRestrictedProductFlag|getCapacityRestrictedProductFlag]]
+func (r Product_Item) GetCoreRestrictedItemFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getCoreRestrictedItemFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Some product items have a downgrade path. This is the first product item in the downgrade path.
+func (r Product_Item) GetDowngradeItem() (resp datatypes.Product_Item, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getDowngradeItem", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Some product items have a downgrade path. These are those product items.
+func (r Product_Item) GetDowngradeItems() (resp []datatypes.Product_Item, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getDowngradeItems", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's category conflicts. For example, 10 Gbps redundant network functionality cannot be ordered with a secondary GPU and as such is a conflict.
+func (r Product_Item) GetGlobalCategoryConflicts() (resp []datatypes.Product_Item_Resource_Conflict, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getGlobalCategoryConflicts", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The generic hardware component that this item represents.
+func (r Product_Item) GetHardwareGenericComponentModel() (resp datatypes.Hardware_Component_Model_Generic, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getHardwareGenericComponentModel", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Product_Item) GetHideFromPortalFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getHideFromPortalFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Product_Item) GetIneligibleForAccountDiscountFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getIneligibleForAccountDiscountFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve DEPRECATED. An item's inventory status per datacenter.
+func (r Product_Item) GetInventory() (resp []datatypes.Product_Package_Inventory, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getInventory", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Flag to indicate the server product is engineered for a multi-server solution. (Deprecated)
+func (r Product_Item) GetIsEngineeredServerProduct() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getIsEngineeredServerProduct", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's primary item category.
+func (r Product_Item) GetItemCategory() (resp datatypes.Product_Item_Category, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getItemCategory", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Product_Item) GetLocalDiskFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getLocalDiskFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's location conflicts. For example, Dual Path network functionality cannot be ordered in WDC and as such is a conflict.
+func (r Product_Item) GetLocationConflicts() (resp []datatypes.Product_Item_Resource_Conflict, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getLocationConflicts", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Indicates whether an item is a M.2 disk controller.
+func (r Product_Item) GetM2ControllerFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getM2ControllerFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Indicates whether an item is a M.2 drive.
+func (r Product_Item) GetM2DriveFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getM2DriveFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The minimum number of bays that support NVMe SSDs.
+func (r Product_Item) GetMinimumNvmeBays() (resp int, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getMinimumNvmeBays", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Indicates whether an item is a NVMe SSD.
+func (r Product_Item) GetNvmeDiskFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getNvmeDiskFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Product Items are the products SoftLayer sells. Items have many properties that help describe what each is for. Each product items holds within it a description, tax rate information, status, and upgrade downgrade path information.
+func (r Product_Item) GetObject() (resp datatypes.Product_Item, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Product_Item) GetObjectStorageClusterGeolocationType() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getObjectStorageClusterGeolocationType", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Product_Item) GetObjectStorageItemFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getObjectStorageItemFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Product_Item) GetObjectStorageServiceClass() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getObjectStorageServiceClass", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A collection of all the SoftLayer_Product_Package(s) in which this item exists.
+func (r Product_Item) GetPackages() (resp []datatypes.Product_Package, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getPackages", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Indicates whether an item is a PCIe drive.
+func (r Product_Item) GetPcieDriveFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getPcieDriveFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The number of cores that a processor has.
+func (r Product_Item) GetPhysicalCoreCapacity() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getPhysicalCoreCapacity", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r Product_Item) GetPresaleEvents() (resp []datatypes.Sales_Presale_Event, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getPresaleEvents", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve A product item's prices.
+func (r Product_Item) GetPrices() (resp []datatypes.Product_Item_Price, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getPrices", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve If an item must be ordered with another item, it will have a requirement item here.
+func (r Product_Item) GetRequirements() (resp []datatypes.Product_Item_Requirement, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getRequirements", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's rules. This includes the requirements and conflicts to resources that an item has.
+func (r Product_Item) GetRules() (resp []datatypes.Product_Item_Rule, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getRules", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The SoftLayer_Software_Description tied to this item. This will only be populated for software items.
+func (r Product_Item) GetSoftwareDescription() (resp datatypes.Software_Description, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getSoftwareDescription", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The total number of cores for a speed select server product.
+func (r Product_Item) GetSpeedSelectServerCoreCount() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getSpeedSelectServerCoreCount", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Indicates a speed select server item.
+func (r Product_Item) GetSpeedSelectServerFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getSpeedSelectServerFlag", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve An item's tax category, if applicable.
+func (r Product_Item) GetTaxCategory() (resp datatypes.Product_Item_Tax_Category, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getTaxCategory", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Third-party policy assignments for this product.
+func (r Product_Item) GetThirdPartyPolicyAssignments() (resp []datatypes.Product_Item_Policy_Assignment, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getThirdPartyPolicyAssignments", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The 3rd party vendor for a support subscription item. (Deprecated)
+func (r Product_Item) GetThirdPartySupportVendor() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getThirdPartySupportVendor", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The total number of physical processing cores (excluding virtual cores / hyperthreads) for this server.
+func (r Product_Item) GetTotalPhysicalCoreCapacity() (resp int, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getTotalPhysicalCoreCapacity", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Shows the total number of cores. This is deprecated. Use [[SoftLayer_Product_Item/getCapacity|getCapacity]] for guest_core products and [[SoftLayer_Product_Item/getTotalPhysicalCoreCapacity|getTotalPhysicalCoreCapacity]] for server products
+func (r Product_Item) GetTotalPhysicalCoreCount() (resp int, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getTotalPhysicalCoreCount", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The total number of processors for this server.
+func (r Product_Item) GetTotalProcessorCapacity() (resp int, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getTotalProcessorCapacity", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Some product items have an upgrade path. This is the next product item in the upgrade path.
+func (r Product_Item) GetUpgradeItem() (resp datatypes.Product_Item, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getUpgradeItem", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Some product items have an upgrade path. These are those upgrade product items.
+func (r Product_Item) GetUpgradeItems() (resp []datatypes.Product_Item, err error) {
+	err = r.Session.DoRequest("SoftLayer_Product_Item", "getUpgradeItems", nil, &r.Options, &resp)
+	return
+}
+
 // The SoftLayer_Product_Item_Category data type contains general category information for prices.
 type Product_Item_Category struct {
 	Session *session.Session

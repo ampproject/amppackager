@@ -19,6 +19,7 @@ type PrivateNetwork struct {
 	Description *string
 	EndIP       *net.IP
 	ID          *string `req-for:"update,delete"`
+	Labels      *map[string]string
 	Name        *string `req-for:"create"`
 	Netmask     *net.IP
 	StartIP     *net.IP
@@ -36,7 +37,13 @@ func privateNetworkFromAPI(p *oapi.PrivateNetwork, zone string) *PrivateNetwork 
 			}
 			return
 		}(),
-		ID:   p.Id,
+		ID: p.Id,
+		Labels: func() (v *map[string]string) {
+			if p.Labels != nil && len(p.Labels.AdditionalProperties) > 0 {
+				v = &p.Labels.AdditionalProperties
+			}
+			return
+		}(),
 		Name: p.Name,
 		Netmask: func() (v *net.IP) {
 			if p.Netmask != nil {
@@ -86,6 +93,12 @@ func (c *Client) CreatePrivateNetwork(
 				if privateNetwork.EndIP != nil {
 					v := privateNetwork.EndIP.String()
 					return &v
+				}
+				return
+			}(),
+			Labels: func() (v *oapi.Labels) {
+				if privateNetwork.Labels != nil {
+					v = &oapi.Labels{AdditionalProperties: *privateNetwork.Labels}
 				}
 				return
 			}(),
@@ -221,6 +234,12 @@ func (c *Client) UpdatePrivateNetwork(ctx context.Context, zone string, privateN
 				if privateNetwork.EndIP != nil {
 					v := privateNetwork.EndIP.String()
 					return &v
+				}
+				return
+			}(),
+			Labels: func() (v *oapi.Labels) {
+				if privateNetwork.Labels != nil {
+					v = &oapi.Labels{AdditionalProperties: *privateNetwork.Labels}
 				}
 				return
 			}(),

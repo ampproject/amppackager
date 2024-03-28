@@ -19,8 +19,6 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Build information. Populated at build-time.
@@ -34,31 +32,6 @@ var (
 	GoOS      = runtime.GOOS
 	GoArch    = runtime.GOARCH
 )
-
-// NewCollector returns a collector that exports metrics about current version
-// information.
-func NewCollector(program string) prometheus.Collector {
-	return prometheus.NewGaugeFunc(
-		prometheus.GaugeOpts{
-			Namespace: program,
-			Name:      "build_info",
-			Help: fmt.Sprintf(
-				"A metric with a constant '1' value labeled by version, revision, branch, goversion from which %s was built, and the goos and goarch for the build.",
-				program,
-			),
-			ConstLabels: prometheus.Labels{
-				"version":   Version,
-				"revision":  getRevision(),
-				"branch":    Branch,
-				"goversion": GoVersion,
-				"goos":      GoOS,
-				"goarch":    GoArch,
-				"tags":      getTags(),
-			},
-		},
-		func() float64 { return 1 },
-	)
-}
 
 // versionInfoTmpl contains the template used by Info.
 var versionInfoTmpl = `
@@ -75,13 +48,13 @@ func Print(program string) string {
 	m := map[string]string{
 		"program":   program,
 		"version":   Version,
-		"revision":  getRevision(),
+		"revision":  GetRevision(),
 		"branch":    Branch,
 		"buildUser": BuildUser,
 		"buildDate": BuildDate,
 		"goVersion": GoVersion,
 		"platform":  GoOS + "/" + GoArch,
-		"tags":      getTags(),
+		"tags":      GetTags(),
 	}
 	t := template.Must(template.New("version").Parse(versionInfoTmpl))
 
@@ -94,10 +67,10 @@ func Print(program string) string {
 
 // Info returns version, branch and revision information.
 func Info() string {
-	return fmt.Sprintf("(version=%s, branch=%s, revision=%s)", Version, Branch, getRevision())
+	return fmt.Sprintf("(version=%s, branch=%s, revision=%s)", Version, Branch, GetRevision())
 }
 
 // BuildContext returns goVersion, platform, buildUser and buildDate information.
 func BuildContext() string {
-	return fmt.Sprintf("(go=%s, platform=%s, user=%s, date=%s, tags=%s)", GoVersion, GoOS+"/"+GoArch, BuildUser, BuildDate, getTags())
+	return fmt.Sprintf("(go=%s, platform=%s, user=%s, date=%s, tags=%s)", GoVersion, GoOS+"/"+GoArch, BuildUser, BuildDate, GetTags())
 }

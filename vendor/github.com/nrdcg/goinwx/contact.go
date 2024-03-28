@@ -144,6 +144,6 @@ type ContactInfoResponse struct {
 
 // ContactListResponse API model.
 type ContactListResponse struct {
-	Count    int
+	Count    int       `mapstructure:"count"`
 	Contacts []Contact `mapstructure:"contact"`
 }

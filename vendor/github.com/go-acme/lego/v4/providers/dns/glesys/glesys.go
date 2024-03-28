@@ -14,11 +14,7 @@ import (
 	"github.com/go-acme/lego/v4/providers/dns/glesys/internal"
 )
 
-const (
-	// defaultBaseURL is the GleSYS API endpoint used by Present and CleanUp.
-	defaultBaseURL = "https://api.glesys.com/domain"
-	minTTL         = 60
-)
+const minTTL = 60
 
 // Environment variables names.
 const (
@@ -114,7 +110,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	// find authZone
 	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("glesys: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+		return fmt.Errorf("glesys: could not find zone for domain %q: %w", domain, err)
 	}
 
 	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)

@@ -101,12 +101,6 @@ func (r Network) DisconnectPrivateEndpointService() (resp bool, err error) {
 	return
 }
 
-// no documentation yet
-func (r Network) GetObject() (resp datatypes.Network, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network", "getObject", nil, &r.Options, &resp)
-	return
-}
-
 // Accessing select IBM Cloud services attached to the private back-end network is made possible by establishing a network relationship between an account's private network and the Service Endpoint network.
 //
 // <h2>Responses</h2>
@@ -246,15 +240,6 @@ func (r Network_Application_Delivery_Controller) GetConfigurationHistory() (resp
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Network_Application_Delivery_Controller) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Network_Application_Delivery_Controller", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve The datacenter that the application delivery controller resides in.
 func (r Network_Application_Delivery_Controller) GetDatacenter() (resp datatypes.Location, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Application_Delivery_Controller", "getDatacenter", nil, &r.Options, &resp)
@@ -264,6 +249,12 @@ func (r Network_Application_Delivery_Controller) GetDatacenter() (resp datatypes
 // Retrieve A brief description of an application delivery controller record.
 func (r Network_Application_Delivery_Controller) GetDescription() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Application_Delivery_Controller", "getDescription", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The total public inbound bandwidth for the current billing cycle.
+func (r Network_Application_Delivery_Controller) GetInboundPublicBandwidthUsage() (resp datatypes.Float64, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Application_Delivery_Controller", "getInboundPublicBandwidthUsage", nil, &r.Options, &resp)
 	return
 }
 
@@ -630,12 +621,6 @@ func (r Network_Application_Delivery_Controller_LoadBalancer_Health_Check) GetAt
 // no documentation yet
 func (r Network_Application_Delivery_Controller_LoadBalancer_Health_Check) GetObject() (resp datatypes.Network_Application_Delivery_Controller_LoadBalancer_Health_Check, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Application_Delivery_Controller_LoadBalancer_Health_Check", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Collection of scale load balancers that use this health check.
-func (r Network_Application_Delivery_Controller_LoadBalancer_Health_Check) GetScaleLoadBalancers() (resp []datatypes.Scale_LoadBalancer, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Application_Delivery_Controller_LoadBalancer_Health_Check", "getScaleLoadBalancers", nil, &r.Options, &resp)
 	return
 }
 
@@ -1242,12 +1227,6 @@ func (r Network_Application_Delivery_Controller_LoadBalancer_VirtualServer) GetR
 	return
 }
 
-// Retrieve [DEPRECATED] Collection of scale load balancers this virtual server applies to.
-func (r Network_Application_Delivery_Controller_LoadBalancer_VirtualServer) GetScaleLoadBalancers() (resp []datatypes.Scale_LoadBalancer, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Application_Delivery_Controller_LoadBalancer_VirtualServer", "getScaleLoadBalancers", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve
 func (r Network_Application_Delivery_Controller_LoadBalancer_VirtualServer) GetServiceGroups() (resp []datatypes.Network_Application_Delivery_Controller_LoadBalancer_Service_Group, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Application_Delivery_Controller_LoadBalancer_VirtualServer", "getServiceGroups", nil, &r.Options, &resp)
@@ -1326,13 +1305,6 @@ func (r Network_Backbone) GetBackbonesForLocationName(locationName *string) (res
 		locationName,
 	}
 	err = r.Session.DoRequest("SoftLayer_Network_Backbone", "getBackbonesForLocationName", params, &r.Options, &resp)
-	return
-}
-
-// [DEPRECATED] Retrieve a graph of a SoftLayer backbone's last 24 hours of activity. getGraphImage returns a PNG image measuring 827 pixels by 293 pixels.
-// Deprecated: This function has been marked as deprecated.
-func (r Network_Backbone) GetGraphImage() (resp []byte, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Backbone", "getGraphImage", nil, &r.Options, &resp)
 	return
 }
 
@@ -1583,15 +1555,6 @@ func (r Network_Bandwidth_Version1_Allotment) GetBillingItem() (resp datatypes.B
 // Retrieve An object that provides commonly used bandwidth summary components for the current billing cycle.
 func (r Network_Bandwidth_Version1_Allotment) GetCurrentBandwidthSummary() (resp datatypes.Metric_Tracking_Object_Bandwidth_Summary, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Bandwidth_Version1_Allotment", "getCurrentBandwidthSummary", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve bandwidth graph by date.
-func (r Network_Bandwidth_Version1_Allotment) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Network_Bandwidth_Version1_Allotment", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
 	return
 }
 
@@ -3042,15 +3005,6 @@ func (r Network_Component) GetActiveCommand() (resp datatypes.Hardware_Component
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Network_Component) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Network_Component", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve The network component linking this object to a child device
 func (r Network_Component) GetDownlinkComponent() (resp datatypes.Network_Component, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Component", "getDownlinkComponent", nil, &r.Options, &resp)
@@ -4087,12 +4041,12 @@ func (r Network_Gateway) EditObject(templateObject *datatypes.Network_Gateway) (
 	return
 }
 
-// Purpose is to rebuild the target Gateway cluster with the specified OS price id. Method will remove the current OS and apply the default vSRX configuration settings. This will result in an extended OUTAGE!! Any custom configuration settings must be re-applied after the forced rebuild is completed. This is a DESTRUCTIVE action, use with caution.
-func (r Network_Gateway) ForceRebuildvSRXCluster(osPriceId *int) (resp bool, err error) {
+// Purpose is to rebuild the target Gateway cluster with the specified OS price id. Method will remove the current OS and apply the default configuration settings. This will result in an extended OUTAGE!! Any custom configuration settings must be re-applied after the forced rebuild is completed. This is a DESTRUCTIVE action, use with caution.
+func (r Network_Gateway) ForceRebuildCluster(osPriceId *int) (resp bool, err error) {
 	params := []interface{}{
 		osPriceId,
 	}
-	err = r.Session.DoRequest("SoftLayer_Network_Gateway", "forceRebuildvSRXCluster", params, &r.Options, &resp)
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway", "forceRebuildCluster", params, &r.Options, &resp)
 	return
 }
 
@@ -4241,6 +4195,28 @@ func (r Network_Gateway) IsRollbackAllowed() (resp bool, err error) {
 	return
 }
 
+// Used to manage gateway require and add on licenses.  If license request is valid for the gateway type a Gateway License Manage process will be created if licenses need to be adjusted on the gateway.
+//
+// requiredItemKeyname - Item Key Name of the required license to be used on the gateway addOnLicenses - Json string containing an Add On license Item Key Name and requested total quantity to exist on each gateway member.  Item Key Name must be associated with an Add On license product item and Item Key Name can only exist once in the json structure.
+//
+// Example : {"ADD_ON_ITEM_KEYNAME_TYPE1":3,"ADD_ON_ITEM_KEYNAME_TYPE2":4}
+//
+// Note, the quantity is not the requested change but total licences.  For example, if current licenses for an Add On e.g. Remote VPN is 3 and the request is to add 1 more license then the quantity would be 4.  If the request was to remove 1 license then the quantity would be 2.
+func (r Network_Gateway) ManageLicenses(requiredItemKeyName *string, addOnLicenses *string) (resp bool, err error) {
+	params := []interface{}{
+		requiredItemKeyName,
+		addOnLicenses,
+	}
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway", "manageLicenses", params, &r.Options, &resp)
+	return
+}
+
+// Rebuild a virtual gateway with HA cluster by destroying existing member gateway os and installing new os on both gateway members, then creating HA cluster between 2 members. This is a destructive process which will remove existing configuration and stop all gateway capabilities. vSRX will need to be re-configured after this operation.
+func (r Network_Gateway) RebuildHACluster() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway", "rebuildHACluster", nil, &r.Options, &resp)
+	return
+}
+
 // Rebuild a vSRX gateway with HA cluster by destroying existing vSRX and installing new vSRX on both gateway servers, then creating HA cluster between 2 vSRX. This is a destructive process which will remove existing vSRX configuration and stop all gateway capabilities. vSRX will need to be re-configured after this operation.
 func (r Network_Gateway) RebuildvSRXHACluster() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Gateway", "rebuildvSRXHACluster", nil, &r.Options, &resp)
@@ -4250,6 +4226,15 @@ func (r Network_Gateway) RebuildvSRXHACluster() (resp bool, err error) {
 // Used to refresh the license for the Juniper Gateway, requires License readiness check has passed.
 func (r Network_Gateway) RefreshGatewayLicense() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Gateway", "refreshGatewayLicense", nil, &r.Options, &resp)
+	return
+}
+
+// Edit the name of this gateway.
+func (r Network_Gateway) Rename(name *string) (resp bool, err error) {
+	params := []interface{}{
+		name,
+	}
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway", "rename", params, &r.Options, &resp)
 	return
 }
 
@@ -4350,9 +4335,24 @@ func (r Network_Gateway_Member) CreateObjects(templateObjects []datatypes.Networ
 	return
 }
 
+// Edit this member, only manufacturer and version can be changed
+func (r Network_Gateway_Member) EditObject(templateObject *datatypes.Network_Gateway_Member) (resp bool, err error) {
+	params := []interface{}{
+		templateObject,
+	}
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway_Member", "editObject", params, &r.Options, &resp)
+	return
+}
+
 // Retrieve The attributes for this member.
 func (r Network_Gateway_Member) GetAttributes() (resp datatypes.Network_Gateway_Member_Attribute, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Gateway_Member", "getAttributes", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The gateway software description for the member.
+func (r Network_Gateway_Member) GetGatewaySoftwareDescription() (resp datatypes.Software_Description, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway_Member", "getGatewaySoftwareDescription", nil, &r.Options, &resp)
 	return
 }
 
@@ -4383,6 +4383,12 @@ func (r Network_Gateway_Member) GetObject() (resp datatypes.Network_Gateway_Memb
 // Retrieve The gateway passwords for this member.
 func (r Network_Gateway_Member) GetPasswords() (resp []datatypes.Network_Gateway_Member_Passwords, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Gateway_Member", "getPasswords", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The public gateway IP address.
+func (r Network_Gateway_Member) GetPublicIpAddress() (resp datatypes.Network_Subnet_IpAddress, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway_Member", "getPublicIpAddress", nil, &r.Options, &resp)
 	return
 }
 
@@ -4484,7 +4490,7 @@ func (r Network_Gateway_Precheck) GetObject() (resp datatypes.Network_Gateway_Pr
 	return
 }
 
-// Get the precheck status for all Juniper Gateway Action categories which require a readiness check before executing. Reference cloud.ibm.com documentation for more details.
+// Get the precheck status for all Virtual (Juniper, Fortigate vFSA) Gateway Action categories which require a readiness check before executing. Reference cloud.ibm.com documentation for more details.
 //
 // Possible precheck readiness values include:
 //
@@ -4639,19 +4645,28 @@ func (r Network_Gateway_VersionUpgrade) GetAllUpgradesByGatewayId(gatewayId *int
 	return
 }
 
-// no documentation yet
-func (r Network_Gateway_VersionUpgrade) GetObject() (resp datatypes.Network_Gateway_VersionUpgrade, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Gateway_VersionUpgrade", "getObject", nil, &r.Options, &resp)
+func (r Network_Gateway_VersionUpgrade) GetGwOrdersAllowedLicenses(accountId *int, manufacturer *string) (resp string, err error) {
+	params := []interface{}{
+		accountId,
+		manufacturer,
+	}
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway_VersionUpgrade", "getGwOrdersAllowedLicenses", params, &r.Options, &resp)
 	return
 }
 
-// Used to get a list per package of prices ids for allowed vSRX OS-es for new orders.
-func (r Network_Gateway_VersionUpgrade) GetVsrxOrdersAllowedOS(accountId *int, validate *bool) (resp []datatypes.Product_Package_Item_Prices, err error) {
+// Used to get a list per package of prices ids for allowed vSRX or vFSA OS-es for new orders.
+func (r Network_Gateway_VersionUpgrade) GetGwOrdersAllowedOS(accountId *int, manufacturer *string) (resp []datatypes.Product_Package_Item_Prices, err error) {
 	params := []interface{}{
 		accountId,
-		validate,
+		manufacturer,
 	}
-	err = r.Session.DoRequest("SoftLayer_Network_Gateway_VersionUpgrade", "getVsrxOrdersAllowedOS", params, &r.Options, &resp)
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway_VersionUpgrade", "getGwOrdersAllowedOS", params, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Network_Gateway_VersionUpgrade) GetObject() (resp datatypes.Network_Gateway_VersionUpgrade, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Gateway_VersionUpgrade", "getObject", nil, &r.Options, &resp)
 	return
 }
 
@@ -4947,12 +4962,6 @@ func (r Network_Interconnect_Tenant) GetVendorName() (resp string, err error) {
 // Retrieve
 func (r Network_Interconnect_Tenant) GetZoneName() (resp string, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Interconnect_Tenant", "getZoneName", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Network_Interconnect_Tenant) IsAdnAccount() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Interconnect_Tenant", "isAdnAccount", nil, &r.Options, &resp)
 	return
 }
 
@@ -5512,6 +5521,15 @@ func (r Network_LBaaS_LoadBalancer) GetAllObjects() (resp []datatypes.Network_LB
 	return
 }
 
+// Get the load balancer appliances for the given lb id.
+func (r Network_LBaaS_LoadBalancer) GetAppliances(lbId *string) (resp []datatypes.Network_LBaaS_LoadBalancerAppliance, err error) {
+	params := []interface{}{
+		lbId,
+	}
+	err = r.Session.DoRequest("SoftLayer_Network_LBaaS_LoadBalancer", "getAppliances", params, &r.Options, &resp)
+	return
+}
+
 // Retrieve Datacenter, where load balancer is located.
 func (r Network_LBaaS_LoadBalancer) GetDatacenter() (resp datatypes.Location, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_LBaaS_LoadBalancer", "getDatacenter", nil, &r.Options, &resp)
@@ -5575,6 +5593,15 @@ func (r Network_LBaaS_LoadBalancer) GetLoadBalancerStatistics(uuid *string) (res
 	return
 }
 
+// Get the load balancer objects for the given user accounts.
+func (r Network_LBaaS_LoadBalancer) GetLoadBalancers(data *string) (resp []datatypes.Network_LBaaS_LoadBalancer, err error) {
+	params := []interface{}{
+		data,
+	}
+	err = r.Session.DoRequest("SoftLayer_Network_LBaaS_LoadBalancer", "getLoadBalancers", params, &r.Options, &resp)
+	return
+}
+
 // Retrieve Members assigned to load balancer.
 func (r Network_LBaaS_LoadBalancer) GetMembers() (resp []datatypes.Network_LBaaS_Member, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_LBaaS_LoadBalancer", "getMembers", nil, &r.Options, &resp)
@@ -5590,6 +5617,16 @@ func (r Network_LBaaS_LoadBalancer) GetObject() (resp datatypes.Network_LBaaS_Lo
 // Retrieve list of preferred custom ciphers configured for the load balancer.
 func (r Network_LBaaS_LoadBalancer) GetSslCiphers() (resp []datatypes.Network_LBaaS_SSLCipher, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_LBaaS_LoadBalancer", "getSslCiphers", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Network_LBaaS_LoadBalancer) ServiceDNS(data *string) (err error) {
+	var resp datatypes.Void
+	params := []interface{}{
+		data,
+	}
+	err = r.Session.DoRequest("SoftLayer_Network_LBaaS_LoadBalancer", "serviceDNS", params, &r.Options, &resp)
 	return
 }
 
@@ -5619,6 +5656,52 @@ func (r Network_LBaaS_LoadBalancer) UpdateSslCiphers(loadBalancerUuid *string, c
 		cipherList,
 	}
 	err = r.Session.DoRequest("SoftLayer_Network_LBaaS_LoadBalancer", "updateSslCiphers", params, &r.Options, &resp)
+	return
+}
+
+// This class represents the load balancers appliances, ie virtual servers, on which the actual load balancer service is running. The relationship between load balancer and appliance is 1-to-N with N=2 for beta and very likely N=3 for post beta. Note that this class is for internal use only.
+type Network_LBaaS_LoadBalancerAppliance struct {
+	Session *session.Session
+	Options sl.Options
+}
+
+// GetNetworkLBaaSLoadBalancerApplianceService returns an instance of the Network_LBaaS_LoadBalancerAppliance SoftLayer service
+func GetNetworkLBaaSLoadBalancerApplianceService(sess *session.Session) Network_LBaaS_LoadBalancerAppliance {
+	return Network_LBaaS_LoadBalancerAppliance{Session: sess}
+}
+
+func (r Network_LBaaS_LoadBalancerAppliance) Id(id int) Network_LBaaS_LoadBalancerAppliance {
+	r.Options.Id = &id
+	return r
+}
+
+func (r Network_LBaaS_LoadBalancerAppliance) Mask(mask string) Network_LBaaS_LoadBalancerAppliance {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r Network_LBaaS_LoadBalancerAppliance) Filter(filter string) Network_LBaaS_LoadBalancerAppliance {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r Network_LBaaS_LoadBalancerAppliance) Limit(limit int) Network_LBaaS_LoadBalancerAppliance {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r Network_LBaaS_LoadBalancerAppliance) Offset(offset int) Network_LBaaS_LoadBalancerAppliance {
+	r.Options.Offset = &offset
+	return r
+}
+
+// no documentation yet
+func (r Network_LBaaS_LoadBalancerAppliance) GetObject() (resp datatypes.Network_LBaaS_LoadBalancerAppliance, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_LBaaS_LoadBalancerAppliance", "getObject", nil, &r.Options, &resp)
 	return
 }
 
@@ -6124,300 +6207,6 @@ func (r Network_LoadBalancer_VirtualIpAddress) KickAllConnections() (resp bool, 
 // Upgrades the connection limit on the VirtualIp and changes the billing item on your account to reflect the change. This function will only upgrade you to the next "level" of service.  The next level follows this pattern Current Level  =>  Next Level 50                 100 100                200 200                500 500                1000 1000               1200 1200               1500 1500               2000 2000               2500 2500               3000
 func (r Network_LoadBalancer_VirtualIpAddress) UpgradeConnectionLimit() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_LoadBalancer_VirtualIpAddress", "upgradeConnectionLimit", nil, &r.Options, &resp)
-	return
-}
-
-// The SoftLayer_Network_Media_Transcode_Account contains information regarding a transcode account.
-type Network_Media_Transcode_Account struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetNetworkMediaTranscodeAccountService returns an instance of the Network_Media_Transcode_Account SoftLayer service
-func GetNetworkMediaTranscodeAccountService(sess *session.Session) Network_Media_Transcode_Account {
-	return Network_Media_Transcode_Account{Session: sess}
-}
-
-func (r Network_Media_Transcode_Account) Id(id int) Network_Media_Transcode_Account {
-	r.Options.Id = &id
-	return r
-}
-
-func (r Network_Media_Transcode_Account) Mask(mask string) Network_Media_Transcode_Account {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r Network_Media_Transcode_Account) Filter(filter string) Network_Media_Transcode_Account {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r Network_Media_Transcode_Account) Limit(limit int) Network_Media_Transcode_Account {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r Network_Media_Transcode_Account) Offset(offset int) Network_Media_Transcode_Account {
-	r.Options.Offset = &offset
-	return r
-}
-
-// With this method, you can create a transcode account.  Individual SoftLayer account can have a single Transcode account. You have to pass your SoftLayer account id as a parameter.
-func (r Network_Media_Transcode_Account) CreateTranscodeAccount() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "createTranscodeAccount", nil, &r.Options, &resp)
-	return
-}
-
-// ”'Note”'. This method is obsolete. Please use the [[SoftLayer_Network_Media_Transcode_Job::createObject|createObject]] method on SoftLayer_Network_Media_Transcode_Job object instead. SoftLayer_Network_Media_Transcode_Job::createObject returns an object of a newly created Transcode Job.
-//
-// With this method, you can create a transcode job.
-//
-// The very first step of creating a transcode job is to upload your media files to the /in directory on your Transcode FTP space. Then, you have to pass a [[SoftLayer_Network_Media_Transcode_Job|Transcode job]] object as a parameter for this method.
-//
-// There are 4 required properties of SoftLayer_Network_Media_Transcode_Job object: transcodePresetName, transcodePresetGuid, inputFile, and outputFile. A transcode preset is a configuration that defines a certain media output.  You can retrieve all the supported presets with the [[SoftLayer_Network_Media_Transcode_Account::getPresets|getPresets]] method. You can also use [[SoftLayer_Network_Media_Transcode_Account::getPresetDetail|getPresetDetail]] method to get more information on a preset. Use these two methods to determine appropriate values for "transcodePresetName" and "transcodePresetGuid" properties. For an "inputFile", you must specify a file that exists in the /in directory of your Transcode FTP space. An "outputFile" name will be used by the Transcode server for naming a transcoded file.  An output file name must be in /out directory. If your outputFile name already exists in the /out directory, the Transcode server will append a file name with _n (an underscore and the total number of files with the identical name plus 1).
-//
-// The "name" property is optional and it can help you keep track of transcode jobs easily. "autoDeleteDuration" is another optional property that you can specify.  It determines how soon your input file will be deleted. If autoDeleteDuration is set to zero, your input file will be removed immediately after the last transcode job running on it is completed. A value for autoDeleteDuration property is in seconds and the maximum value is 259200 which is 3 days.
-//
-// An example SoftLayer_Network_Media_Transcode_Job parameter looks like this:
-//
-// * name: My transcoding
-// * transcodePresetName: F4V 896kbps 640x352 16x9 29.97fps
-// * transcodePresetGuid: {87E01268-C3E3-4A85-9701-052C9AC42BD4}
-// * inputFile: /in/my_birthday.wmv
-// * outputFile: /out/my_birthday_flash
-//
-// Notice that an output file does not have a file extension.  The Transcode server will append a file extension based on an output format. A newly created transcode job will be in "Pending" status and it will be added to the Transcoding queue. You will receive a notification email whenever there is a status change on your transcode job.  For example, the Transcode server starts to process your transcode job, you will be notified via an email.
-//
-// You can add up to 3 pending jobs at a time. Transcode jobs with any other status such as "Complete" or "Error" will not be counted toward your pending jobs.
-//
-// Once a job is complete, the Transcode server will place the output file into the /out directory along with a notification email. The files in the /out directory will be removed 3 days after they were created.  You will need to use an FTP client to download transcoded files.
-func (r Network_Media_Transcode_Account) CreateTranscodeJob(newJob *datatypes.Network_Media_Transcode_Job) (resp bool, err error) {
-	params := []interface{}{
-		newJob,
-	}
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "createTranscodeJob", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve The SoftLayer account information
-func (r Network_Media_Transcode_Account) GetAccount() (resp datatypes.Account, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "getAccount", nil, &r.Options, &resp)
-	return
-}
-
-// This method returns a collection of SoftLayer_Container_Network_Ftp_Directory objects. You can retrieve directory information for /in and /out directories. A [[SoftLayer_Container_Network_Directory_Listing|Directory Listing]] object contains a type (indicating whether it is a file or a directory), name and file count if it is a directory.
-func (r Network_Media_Transcode_Account) GetDirectoryInformation(directoryName *string, extensionFilter *string) (resp []datatypes.Container_Network_Directory_Listing, err error) {
-	params := []interface{}{
-		directoryName,
-		extensionFilter,
-	}
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "getDirectoryInformation", params, &r.Options, &resp)
-	return
-}
-
-// This method returns detailed information of a media file that resides in the Transcode FTP server. A [[SoftLayer_Container_Network_Media_Information|media information]] object contains media details such as file size, media format, frame rate, aspect ratio and so on.  This information is merely for reference purposes. You should not rely on this data. Our library grabs small pieces of data from a media file to gather media details.  This information may not be available for some files.
-func (r Network_Media_Transcode_Account) GetFileDetail(source *string) (resp datatypes.Container_Network_Media_Information, err error) {
-	params := []interface{}{
-		source,
-	}
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "getFileDetail", params, &r.Options, &resp)
-	return
-}
-
-// This method returns your Transcode FTP login credentials to the transcode.service.softlayer.com server.
-//
-// The Transcode FTP server is available via the SoftLayer private network. There is no API method that you can upload a file to Transcode server so you need to use an FTP client. You will have /in and /out directories on the Transcode FTP server.  You will have read-write privileges for /in directory and read-only privilege for /out directory. All the files in both /in and /out directories will be deleted after 72 hours from the creation date.
-func (r Network_Media_Transcode_Account) GetFtpAttributes() (resp datatypes.Container_Network_Authentication_Data, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "getFtpAttributes", nil, &r.Options, &resp)
-	return
-}
-
-// getObject method retrieves the SoftLayer_Network_Media_Transcode_Account object whose ID number corresponds to the ID number of the initial parameter passed to the SoftLayer_Network_Media_Transcode_Account service. You can only retrieve a Transcode account assigned to your SoftLayer customer account.
-func (r Network_Media_Transcode_Account) GetObject() (resp datatypes.Network_Media_Transcode_Account, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// This method returns an array of [[SoftLayer_Container_Network_Media_Transcode_Preset_Element|preset element]] objects. Each preset has its own collection of preset elements such as encoder, frame rate, aspect ratio and so on. Each element object has a default value for itself and an array of [[SoftLayer_Container_Network_Media_Transcode_Preset_Element_Option|element option]] objects. For example, "Frame Rate" element for "Windows Media 9 - Download - 1 Mbps - NTSC - Constrained VBR" preset has 19 element options. 15.0 frame rate is selected by default.  Currently, you are not able to change the default value. Customizing these values may be possible in the future.
-func (r Network_Media_Transcode_Account) GetPresetDetail(guid *string) (resp []datatypes.Container_Network_Media_Transcode_Preset_Element, err error) {
-	params := []interface{}{
-		guid,
-	}
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "getPresetDetail", params, &r.Options, &resp)
-	return
-}
-
-// A transcode preset is a configuration that defines a certain media output. This method returns an array of transcoding preset objects supported by SoftLayer's Transcode server. Each [[SoftLayer_Container_Network_Media_Transcode_Preset|preset object]] contains a GUID property. You will need a GUID string when you create a new transcode job.
-func (r Network_Media_Transcode_Account) GetPresets() (resp []datatypes.Container_Network_Media_Transcode_Preset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "getPresets", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve Transcode jobs
-func (r Network_Media_Transcode_Account) GetTranscodeJobs() (resp []datatypes.Network_Media_Transcode_Job, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Account", "getTranscodeJobs", nil, &r.Options, &resp)
-	return
-}
-
-// The SoftLayer_Network_Media_Transcode_Job contains information regarding a transcode job such as input file, output format, user id and so on.
-type Network_Media_Transcode_Job struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetNetworkMediaTranscodeJobService returns an instance of the Network_Media_Transcode_Job SoftLayer service
-func GetNetworkMediaTranscodeJobService(sess *session.Session) Network_Media_Transcode_Job {
-	return Network_Media_Transcode_Job{Session: sess}
-}
-
-func (r Network_Media_Transcode_Job) Id(id int) Network_Media_Transcode_Job {
-	r.Options.Id = &id
-	return r
-}
-
-func (r Network_Media_Transcode_Job) Mask(mask string) Network_Media_Transcode_Job {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r Network_Media_Transcode_Job) Filter(filter string) Network_Media_Transcode_Job {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r Network_Media_Transcode_Job) Limit(limit int) Network_Media_Transcode_Job {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r Network_Media_Transcode_Job) Offset(offset int) Network_Media_Transcode_Job {
-	r.Options.Offset = &offset
-	return r
-}
-
-// With this method, you can create a transcode job.
-//
-// The very first step of creating a transcode job is to upload your media files to the /in directory on your Transcode FTP space. Then, you have to pass a [[SoftLayer_Network_Media_Transcode_Job|Transcode job]] object as a parameter for this method.
-//
-// There are 4 required properties of SoftLayer_Network_Media_Transcode_Job object: transcodePresetName, transcodePresetGuid, inputFile, and outputFile. A transcode preset is a configuration that defines a certain media output.  You can retrieve all the supported presets with the [[SoftLayer_Network_Media_Transcode_Account::getPresets|getPresets]] method. You can also use [[SoftLayer_Network_Media_Transcode_Account::getPresetDetail|getPresetDetail]] method to get more information on a preset. Use these two methods to determine appropriate values for "transcodePresetName" and "transcodePresetGuid" properties. For an "inputFile", you must specify a file that exists in the /in directory of your Transcode FTP space. An "outputFile" name will be used by the Transcode server for naming a transcoded file.  An output file name must be in /out directory. If your outputFile name already exists in the /out directory, the Transcode server will append a file name with _n (an underscore and the total number of files with the identical name plus 1).
-//
-// The "name" property is optional and it can help you keep track of transcode jobs easily. "autoDeleteDuration" is another optional property that you can specify.  It determines how soon your input file will be deleted. If autoDeleteDuration is set to zero, your input file will be removed immediately after the last transcode job running on it is completed. A value for autoDeleteDuration property is in seconds and the maximum value is 259200 which is 3 days.
-//
-// An example SoftLayer_Network_Media_Transcode_Job parameter looks like this:
-//
-// * name: My transcoding
-// * transcodePresetName: F4V 896kbps 640x352 16x9 29.97fps
-// * transcodePresetGuid: {87E01268-C3E3-4A85-9701-052C9AC42BD4}
-// * inputFile: /in/my_birthday.wmv
-// * outputFile: /out/my_birthday_flash
-//
-// Notice that an output file does not have a file extension.  The Transcode server will append a file extension based on an output format. A newly created transcode job will be in "Pending" status and it will be added to the Transcoding queue. You will receive a notification email whenever there is a status change on your transcode job.  For example, the Transcode server starts to process your transcode job, you will be notified via an email.
-//
-// You can add up to 3 pending jobs at a time. Transcode jobs with any other status such as "Complete" or "Error" will not be counted toward your pending jobs.
-//
-// Once a job is complete, the Transcode server will place the output file into the /out directory along with a notification email. The files in the /out directory will be removed 3 days after they were created.  You will need to use an FTP client to download transcoded files.
-func (r Network_Media_Transcode_Job) CreateObject(templateObject *datatypes.Network_Media_Transcode_Job) (resp datatypes.Network_Media_Transcode_Job, err error) {
-	params := []interface{}{
-		templateObject,
-	}
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job", "createObject", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve
-func (r Network_Media_Transcode_Job) GetHistory() (resp []datatypes.Network_Media_Transcode_Job_History, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job", "getHistory", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Network_Media_Transcode_Job) GetObject() (resp datatypes.Network_Media_Transcode_Job, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The transcode service account
-func (r Network_Media_Transcode_Job) GetTranscodeAccount() (resp datatypes.Network_Media_Transcode_Account, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job", "getTranscodeAccount", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The status information of a transcode job
-func (r Network_Media_Transcode_Job) GetTranscodeStatus() (resp datatypes.Network_Media_Transcode_Job_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job", "getTranscodeStatus", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The status of a transcode job
-func (r Network_Media_Transcode_Job) GetTranscodeStatusName() (resp string, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job", "getTranscodeStatusName", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The SoftLayer user that created the transcode job
-func (r Network_Media_Transcode_Job) GetUser() (resp datatypes.User_Customer, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job", "getUser", nil, &r.Options, &resp)
-	return
-}
-
-// The SoftLayer_Network_Media_Transcode_Job_Status contains information on a transcode job status.
-type Network_Media_Transcode_Job_Status struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetNetworkMediaTranscodeJobStatusService returns an instance of the Network_Media_Transcode_Job_Status SoftLayer service
-func GetNetworkMediaTranscodeJobStatusService(sess *session.Session) Network_Media_Transcode_Job_Status {
-	return Network_Media_Transcode_Job_Status{Session: sess}
-}
-
-func (r Network_Media_Transcode_Job_Status) Id(id int) Network_Media_Transcode_Job_Status {
-	r.Options.Id = &id
-	return r
-}
-
-func (r Network_Media_Transcode_Job_Status) Mask(mask string) Network_Media_Transcode_Job_Status {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r Network_Media_Transcode_Job_Status) Filter(filter string) Network_Media_Transcode_Job_Status {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r Network_Media_Transcode_Job_Status) Limit(limit int) Network_Media_Transcode_Job_Status {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r Network_Media_Transcode_Job_Status) Offset(offset int) Network_Media_Transcode_Job_Status {
-	r.Options.Offset = &offset
-	return r
-}
-
-// This method returns all transcode job statuses.
-func (r Network_Media_Transcode_Job_Status) GetAllStatuses() (resp []datatypes.Network_Media_Transcode_Job_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job_Status", "getAllStatuses", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Network_Media_Transcode_Job_Status) GetObject() (resp datatypes.Network_Media_Transcode_Job_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Media_Transcode_Job_Status", "getObject", nil, &r.Options, &resp)
 	return
 }
 
@@ -14446,6 +14235,14 @@ func (r Network_Subnet) GetHardware() (resp []datatypes.Hardware, err error) {
 	return
 }
 
+// Returns a list of IP address assignment details. Only assigned IP addresses are reported on. IP address assignments are presently only recorded and available for Primary Subnets.
+//
+// Details on the resource assigned to each IP address will only be provided to users with access to the underlying resource. If the user cannot access the resource, a detail record will still be returned for the assignment but without any accompanying resource data.
+func (r Network_Subnet) GetIpAddressUsage() (resp []datatypes.Network_Subnet_IpAddress_UsageDetail, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Subnet", "getIpAddressUsage", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve The IP address records belonging to this subnet.
 func (r Network_Subnet) GetIpAddresses() (resp []datatypes.Network_Subnet_IpAddress, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Subnet", "getIpAddresses", nil, &r.Options, &resp)
@@ -14727,6 +14524,16 @@ func (r Network_Subnet_IpAddress) FindByIpv4Address(ipAddress *string) (resp dat
 		ipAddress,
 	}
 	err = r.Session.DoRequest("SoftLayer_Network_Subnet_IpAddress", "findByIpv4Address", params, &r.Options, &resp)
+	return
+}
+
+// Returns a list of IP address assignment details. Only assigned IP addresses are reported on. IP address assignments are presently only recorded and available for Primary Subnets and their IP addresses.
+//
+// Details on the resource assigned to each IP address will only be provided to users with access to the underlying resource. If the user cannot access the resource, a detail record will still be returned for the assignment but without any accompanying resource data.
+//
+// Callers may provide a SoftLayer_Network_Subnet_IpAddress object filter as search criteria. A result limit and offset may also be provided. A maximum of 1024 results can be retrieved at a time.
+func (r Network_Subnet_IpAddress) FindUsage() (resp []datatypes.Network_Subnet_IpAddress_UsageDetail, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Subnet_IpAddress", "findUsage", nil, &r.Options, &resp)
 	return
 }
 
@@ -16080,15 +15887,17 @@ func (r Network_Vlan) GetHighAvailabilityFirewallFlag() (resp bool, err error) {
 	return
 }
 
-// Retrieve A value of '1' indicates this VLAN's pod has VSI local disk storage capability.
-func (r Network_Vlan) GetLocalDiskStorageCapabilityFlag() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Vlan", "getLocalDiskStorageCapabilityFlag", nil, &r.Options, &resp)
+// Returns a list of IP address assignment details. Only assigned IP addresses are reported on. IP address assignments are presently only recorded and available for Primary Subnets.
+//
+// Details on the resource assigned to each IP address will only be provided to users with access to the underlying resource. If the user cannot access the resource, a detail record will still be returned for the assignment but without any accompanying resource data.
+func (r Network_Vlan) GetIpAddressUsage() (resp []datatypes.Network_Subnet_IpAddress_UsageDetail, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Vlan", "getIpAddressUsage", nil, &r.Options, &resp)
 	return
 }
 
-// Retrieve [DEPRECATED] The network in which this VLAN resides.
-func (r Network_Vlan) GetNetwork() (resp datatypes.Network, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Vlan", "getNetwork", nil, &r.Options, &resp)
+// Retrieve A value of '1' indicates this VLAN's pod has VSI local disk storage capability.
+func (r Network_Vlan) GetLocalDiskStorageCapabilityFlag() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Vlan", "getLocalDiskStorageCapabilityFlag", nil, &r.Options, &resp)
 	return
 }
 
@@ -16125,6 +15934,12 @@ func (r Network_Vlan) GetNetworkVlanFirewall() (resp datatypes.Network_Vlan_Fire
 // Retrieves a VLAN by its id value. Only VLANs assigned to your account are accessible.
 func (r Network_Vlan) GetObject() (resp datatypes.Network_Vlan, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Vlan", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve The pod this VLAN is associated with.
+func (r Network_Vlan) GetPodName() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Network_Vlan", "getPodName", nil, &r.Options, &resp)
 	return
 }
 
@@ -16211,12 +16026,6 @@ func (r Network_Vlan) GetReverseDomainRecords() (resp []datatypes.Dns_Domain, er
 // Retrieve A value of '1' indicates this VLAN's pod has VSI SAN disk storage capability.
 func (r Network_Vlan) GetSanStorageCapabilityFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Network_Vlan", "getSanStorageCapabilityFlag", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] The scale VLANs associated to this VLAN.
-func (r Network_Vlan) GetScaleVlans() (resp []datatypes.Scale_Network_Vlan, err error) {
-	err = r.Session.DoRequest("SoftLayer_Network_Vlan", "getScaleVlans", nil, &r.Options, &resp)
 	return
 }
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
-	"github.com/simplesurance/bunny-go"
+	"github.com/nrdcg/bunny-go"
 )
 
 const minTTL = 60
@@ -93,7 +93,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	authZone, err := getZone(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("bunny: failed to find zone: fqdn=%s: %w", info.EffectiveFQDN, err)
+		return fmt.Errorf("bunny: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
@@ -128,7 +128,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	authZone, err := getZone(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("bunny:  failed to find zone: fqdn=%s: %w", info.EffectiveFQDN, err)
+		return fmt.Errorf("bunny: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
@@ -190,7 +190,9 @@ func getZone(fqdn string) (string, error) {
 		return "", err
 	}
 
-	return dns01.UnFqdn(authZone), nil
+	zone := dns01.UnFqdn(authZone)
+
+	return zone, nil
 }
 
 func pointer[T string | int | int32 | int64](v T) *T { return &v }

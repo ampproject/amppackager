@@ -543,13 +543,6 @@ type Hardware struct {
 	// A hardware's routers.
 	Routers []Hardware `json:"routers,omitempty" xmlrpc:"routers,omitempty"`
 
-	// A count of [DEPRECATED] Collection of scale assets this hardware corresponds to.
-	ScaleAssetCount *uint `json:"scaleAssetCount,omitempty" xmlrpc:"scaleAssetCount,omitempty"`
-
-	// [DEPRECATED] Collection of scale assets this hardware corresponds to.
-	// Deprecated: This function has been marked as deprecated.
-	ScaleAssets []Scale_Asset `json:"scaleAssets,omitempty" xmlrpc:"scaleAssets,omitempty"`
-
 	// A count of information regarding a piece of hardware's vulnerability scan requests.
 	SecurityScanRequestCount *uint `json:"securityScanRequestCount,omitempty" xmlrpc:"securityScanRequestCount,omitempty"`
 
@@ -1978,6 +1971,9 @@ type Hardware_Server struct {
 
 	// Determine if remote management has been disabled due to port speed.
 	IsIpmiDisabled *bool `json:"isIpmiDisabled,omitempty" xmlrpc:"isIpmiDisabled,omitempty"`
+
+	// Determine if hardware object has the QE_INTERNAL_SERVER attribute.
+	IsQeInternalServer *bool `json:"isQeInternalServer,omitempty" xmlrpc:"isQeInternalServer,omitempty"`
 
 	// Determine if hardware object is a Virtual Private Cloud node.
 	IsVirtualPrivateCloudNode *bool `json:"isVirtualPrivateCloudNode,omitempty" xmlrpc:"isVirtualPrivateCloudNode,omitempty"`

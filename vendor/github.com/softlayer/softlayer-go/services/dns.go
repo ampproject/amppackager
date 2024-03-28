@@ -249,6 +249,7 @@ func (r Dns_Domain) GetZoneFileContents() (resp string, err error) {
 }
 
 // The SoftLayer_Dns_Domain_Registration data type represents a domain registration record.
+// Deprecated: This function has been marked as deprecated.
 type Dns_Domain_Registration struct {
 	Session *session.Session
 	Options sl.Options
@@ -473,7 +474,7 @@ func (r Dns_Domain_Registration) UnlockDomain() (resp bool, err error) {
 	return
 }
 
-// SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status models the state of the registrant. Here are the following status codes:
+// [DEPRECATED] SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status models the state of the registrant. Here are the following status codes:
 //
 // *”'Admin Reviewing”': The registrant data has been submitted and being reviewed by compliance team.
 // *”'Pending”': The verification process has been inititated, and verification email will be sent.
@@ -481,6 +482,8 @@ func (r Dns_Domain_Registration) UnlockDomain() (resp bool, err error) {
 // *”'Verified”': The registrant has been validated.
 // *”'Verifying”': The verification process has been initiated and is waiting for registrant response.
 // *”'Unverified”': The verification process has not been inititated.
+//
+// Deprecated: This function has been marked as deprecated.
 type Dns_Domain_Registration_Registrant_Verification_Status struct {
 	Session *session.Session
 	Options sl.Options
@@ -532,13 +535,15 @@ func (r Dns_Domain_Registration_Registrant_Verification_Status) GetObject() (res
 	return
 }
 
-// SoftLayer_Dns_Domain_Registration_Status models the state of domain name. Here are the following status codes:
+// [DEPRECATED] SoftLayer_Dns_Domain_Registration_Status models the state of domain name. Here are the following status codes:
 //
 // *”'Active”': This domain name is active.
 // *”'Pending Owner Approval”': Pending owner approval for completion of transfer.
 // *”'Pending Admin Review”': Pending admin review for transfer.
 // *”'Pending Registry”': Pending registry for transfer.
 // *”'Expired”': Domain name has expired.
+//
+// Deprecated: This function has been marked as deprecated.
 type Dns_Domain_Registration_Status struct {
 	Session *session.Session
 	Options sl.Options

@@ -69,16 +69,6 @@ func (r Metric_Tracking_Object) Offset(offset int) Metric_Tracking_Object {
 	return r
 }
 
-// [DEPRECATED] Retrieve a PNG image of the last 24 hours of bandwidth usage of one of SoftLayer's network backbones.
-// Deprecated: This function has been marked as deprecated.
-func (r Metric_Tracking_Object) GetBackboneBandwidthGraph(graphTitle *string) (resp datatypes.Container_Bandwidth_GraphOutputs, err error) {
-	params := []interface{}{
-		graphTitle,
-	}
-	err = r.Session.DoRequest("SoftLayer_Metric_Tracking_Object", "getBackboneBandwidthGraph", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve a collection of raw bandwidth data from an individual public or private network tracking object. Raw data is ideal if you with to employ your own traffic storage and graphing systems.
 func (r Metric_Tracking_Object) GetBandwidthData(startDateTime *datatypes.Time, endDateTime *datatypes.Time, typ *string, rollupSeconds *int) (resp []datatypes.Metric_Tracking_Object_Data, err error) {
 	params := []interface{}{
@@ -115,15 +105,6 @@ func (r Metric_Tracking_Object) GetBandwidthTotal(startDateTime *datatypes.Time,
 		typ,
 	}
 	err = r.Session.DoRequest("SoftLayer_Metric_Tracking_Object", "getBandwidthTotal", params, &r.Options, &resp)
-	return
-}
-
-// Returns a graph container instance that is populated with metric data for the tracking object.
-func (r Metric_Tracking_Object) GetCustomGraphData(graphContainer *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphContainer,
-	}
-	err = r.Session.DoRequest("SoftLayer_Metric_Tracking_Object", "getCustomGraphData", params, &r.Options, &resp)
 	return
 }
 

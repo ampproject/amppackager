@@ -692,6 +692,9 @@ type Virtual_Guest struct {
 	// Recent events that impact this computing instance.
 	RecentEvents []Notification_Occurrence_Event `json:"recentEvents,omitempty" xmlrpc:"recentEvents,omitempty"`
 
+	// no documentation yet
+	ReclaimDate *Time `json:"reclaimDate,omitempty" xmlrpc:"reclaimDate,omitempty"`
+
 	// The regional group this guest is in.
 	RegionalGroup *Location_Group_Regional `json:"regionalGroup,omitempty" xmlrpc:"regionalGroup,omitempty"`
 
@@ -706,21 +709,6 @@ type Virtual_Guest struct {
 
 	// The reserved capacity group instance the guest is associated with.
 	ReservedCapacityGroupInstance *Virtual_ReservedCapacityGroup_Instance `json:"reservedCapacityGroupInstance,omitempty" xmlrpc:"reservedCapacityGroupInstance,omitempty"`
-
-	// A count of [DEPRECATED] Collection of scale assets this guest corresponds to.
-	ScaleAssetCount *uint `json:"scaleAssetCount,omitempty" xmlrpc:"scaleAssetCount,omitempty"`
-
-	// [DEPRECATED] Collection of scale assets this guest corresponds to.
-	// Deprecated: This function has been marked as deprecated.
-	ScaleAssets []Scale_Asset `json:"scaleAssets,omitempty" xmlrpc:"scaleAssets,omitempty"`
-
-	// [DEPRECATED] The scale member for this guest, if applicable.
-	// Deprecated: This function has been marked as deprecated.
-	ScaleMember *Scale_Member_Virtual_Guest `json:"scaleMember,omitempty" xmlrpc:"scaleMember,omitempty"`
-
-	// [DEPRECATED] Whether or not this guest is a member of a scale group and was automatically created as part of a scale group action.
-	// Deprecated: This function has been marked as deprecated.
-	ScaledFlag *bool `json:"scaledFlag,omitempty" xmlrpc:"scaledFlag,omitempty"`
 
 	// A count of a guest's vulnerability scan requests.
 	SecurityScanRequestCount *uint `json:"securityScanRequestCount,omitempty" xmlrpc:"securityScanRequestCount,omitempty"`

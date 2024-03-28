@@ -643,6 +643,12 @@ func (r Billing_Invoice_Item) GetChildren() (resp []datatypes.Billing_Invoice_It
 	return
 }
 
+// Retrieve This is the DPart for invoice item.
+func (r Billing_Invoice_Item) GetDPart() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Billing_Invoice_Item", "getDPart", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve An Invoice Item's associated child invoice items, excluding some items with a $0.00 recurring fee. Only parent invoice items have associated children. For instance, a server invoice item may have associated children.
 func (r Billing_Invoice_Item) GetFilteredAssociatedChildren() (resp []datatypes.Billing_Invoice_Item, err error) {
 	err = r.Session.DoRequest("SoftLayer_Billing_Invoice_Item", "getFilteredAssociatedChildren", nil, &r.Options, &resp)

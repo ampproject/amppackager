@@ -1261,12 +1261,6 @@ func (r Hardware) GetRouters() (resp []datatypes.Hardware, err error) {
 	return
 }
 
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware", "getScaleAssets", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Information regarding a piece of hardware's vulnerability scan requests.
 func (r Hardware) GetSecurityScanRequests() (resp []datatypes.Network_Security_Scanner_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getSecurityScanRequests", nil, &r.Options, &resp)
@@ -3285,12 +3279,6 @@ func (r Hardware_Router) GetSanStorageCapabilityFlag() (resp bool, err error) {
 	return
 }
 
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware_Router) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getScaleAssets", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Information regarding a piece of hardware's vulnerability scan requests.
 func (r Hardware_Router) GetSecurityScanRequests() (resp []datatypes.Network_Security_Scanner_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getSecurityScanRequests", nil, &r.Options, &resp)
@@ -4438,15 +4426,6 @@ func (r Hardware_SecurityModule) GetCurrentBillingTotal() (resp datatypes.Float6
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Hardware_SecurityModule) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve Indicates if a server has a Customer Installed OS
 func (r Hardware_SecurityModule) GetCustomerInstalledOperatingSystemFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getCustomerInstalledOperatingSystemFlag", nil, &r.Options, &resp)
@@ -4745,6 +4724,12 @@ func (r Hardware_SecurityModule) GetIsCloudReadyNodeCertified() (resp bool, err 
 // Retrieve Determine if remote management has been disabled due to port speed.
 func (r Hardware_SecurityModule) GetIsIpmiDisabled() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getIsIpmiDisabled", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Determine if hardware object has the QE_INTERNAL_SERVER attribute.
+func (r Hardware_SecurityModule) GetIsQeInternalServer() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getIsQeInternalServer", nil, &r.Options, &resp)
 	return
 }
 
@@ -5360,12 +5345,6 @@ func (r Hardware_SecurityModule) GetReverseDomainRecords() (resp []datatypes.Dns
 // Retrieve A hardware's routers.
 func (r Hardware_SecurityModule) GetRouters() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getRouters", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware_SecurityModule) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getScaleAssets", nil, &r.Options, &resp)
 	return
 }
 
@@ -6831,15 +6810,6 @@ func (r Hardware_SecurityModule750) GetCurrentBillingTotal() (resp datatypes.Flo
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Hardware_SecurityModule750) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve Indicates if a server has a Customer Installed OS
 func (r Hardware_SecurityModule750) GetCustomerInstalledOperatingSystemFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getCustomerInstalledOperatingSystemFlag", nil, &r.Options, &resp)
@@ -7138,6 +7108,12 @@ func (r Hardware_SecurityModule750) GetIsCloudReadyNodeCertified() (resp bool, e
 // Retrieve Determine if remote management has been disabled due to port speed.
 func (r Hardware_SecurityModule750) GetIsIpmiDisabled() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getIsIpmiDisabled", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Determine if hardware object has the QE_INTERNAL_SERVER attribute.
+func (r Hardware_SecurityModule750) GetIsQeInternalServer() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getIsQeInternalServer", nil, &r.Options, &resp)
 	return
 }
 
@@ -7753,12 +7729,6 @@ func (r Hardware_SecurityModule750) GetReverseDomainRecords() (resp []datatypes.
 // Retrieve A hardware's routers.
 func (r Hardware_SecurityModule750) GetRouters() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getRouters", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware_SecurityModule750) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getScaleAssets", nil, &r.Options, &resp)
 	return
 }
 
@@ -9224,15 +9194,6 @@ func (r Hardware_Server) GetCurrentBillingTotal() (resp datatypes.Float64, err e
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Hardware_Server) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve Indicates if a server has a Customer Installed OS
 func (r Hardware_Server) GetCustomerInstalledOperatingSystemFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getCustomerInstalledOperatingSystemFlag", nil, &r.Options, &resp)
@@ -9531,6 +9492,12 @@ func (r Hardware_Server) GetIsCloudReadyNodeCertified() (resp bool, err error) {
 // Retrieve Determine if remote management has been disabled due to port speed.
 func (r Hardware_Server) GetIsIpmiDisabled() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getIsIpmiDisabled", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Determine if hardware object has the QE_INTERNAL_SERVER attribute.
+func (r Hardware_Server) GetIsQeInternalServer() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getIsQeInternalServer", nil, &r.Options, &resp)
 	return
 }
 
@@ -10146,12 +10113,6 @@ func (r Hardware_Server) GetReverseDomainRecords() (resp []datatypes.Dns_Domain,
 // Retrieve A hardware's routers.
 func (r Hardware_Server) GetRouters() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getRouters", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware_Server) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getScaleAssets", nil, &r.Options, &resp)
 	return
 }
 

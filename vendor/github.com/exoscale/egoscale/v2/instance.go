@@ -247,7 +247,7 @@ func (c *Client) AttachInstanceToElasticIP(
 
 	resp, err := c.AttachInstanceToElasticIpWithResponse(
 		apiv2.WithZone(ctx, zone), *elasticIP.ID, oapi.AttachInstanceToElasticIpJSONRequestBody{
-			Instance: oapi.Instance{Id: instance.ID},
+			Instance: oapi.InstanceTarget{Id: instance.ID},
 		})
 	if err != nil {
 		return err
@@ -477,7 +477,7 @@ func (c *Client) DetachInstanceFromElasticIP(
 
 	resp, err := c.DetachInstanceFromElasticIpWithResponse(
 		apiv2.WithZone(ctx, zone), *elasticIP.ID, oapi.DetachInstanceFromElasticIpJSONRequestBody{
-			Instance: oapi.Instance{Id: instance.ID},
+			Instance: oapi.InstanceTarget{Id: instance.ID},
 		})
 	if err != nil {
 		return err

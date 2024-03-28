@@ -520,12 +520,6 @@ func (r User_Customer) GetMappedAccounts(providerType *string) (resp []datatypes
 	return
 }
 
-// Retrieve A portal user's associated mobile device profiles.
-func (r User_Customer) GetMobileDevices() (resp []datatypes.User_Customer_MobileDevice, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer", "getMobileDevices", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Notification subscription records for the user.
 func (r User_Customer) GetNotificationSubscribers() (resp []datatypes.Notification_Subscriber, err error) {
 	err = r.Session.DoRequest("SoftLayer_User_Customer", "getNotificationSubscribers", nil, &r.Options, &resp)
@@ -1838,210 +1832,6 @@ func (r User_Customer_Invitation) GetUser() (resp datatypes.User_Customer, err e
 	return
 }
 
-// This class represents a mobile device belonging to a user.  The device can be a phone, tablet, or possibly even some Android based net books.  The purpose is to tie just enough info with the device and the user to enable push notifications through non-softlayer entities (Google, Apple, RIM).
-type User_Customer_MobileDevice struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetUserCustomerMobileDeviceService returns an instance of the User_Customer_MobileDevice SoftLayer service
-func GetUserCustomerMobileDeviceService(sess *session.Session) User_Customer_MobileDevice {
-	return User_Customer_MobileDevice{Session: sess}
-}
-
-func (r User_Customer_MobileDevice) Id(id int) User_Customer_MobileDevice {
-	r.Options.Id = &id
-	return r
-}
-
-func (r User_Customer_MobileDevice) Mask(mask string) User_Customer_MobileDevice {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r User_Customer_MobileDevice) Filter(filter string) User_Customer_MobileDevice {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r User_Customer_MobileDevice) Limit(limit int) User_Customer_MobileDevice {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r User_Customer_MobileDevice) Offset(offset int) User_Customer_MobileDevice {
-	r.Options.Offset = &offset
-	return r
-}
-
-// Create a new mobile device association for a user.
-func (r User_Customer_MobileDevice) CreateObject(templateObject *datatypes.User_Customer_MobileDevice) (resp datatypes.User_Customer_MobileDevice, err error) {
-	params := []interface{}{
-		templateObject,
-	}
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "createObject", params, &r.Options, &resp)
-	return
-}
-
-// Delete a mobile device association for a user.
-func (r User_Customer_MobileDevice) DeleteObject() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "deleteObject", nil, &r.Options, &resp)
-	return
-}
-
-// Edit the object by passing in a modified instance of the object
-func (r User_Customer_MobileDevice) EditObject(templateObject *datatypes.User_Customer_MobileDevice) (resp bool, err error) {
-	params := []interface{}{
-		templateObject,
-	}
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "editObject", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve Notification subscriptions available to a mobile device.
-func (r User_Customer_MobileDevice) GetAvailablePushNotificationSubscriptions() (resp []datatypes.Notification, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getAvailablePushNotificationSubscriptions", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The user this mobile device belongs to.
-func (r User_Customer_MobileDevice) GetCustomer() (resp datatypes.User_Customer, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getCustomer", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice) GetObject() (resp datatypes.User_Customer_MobileDevice, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The operating system this device is using
-func (r User_Customer_MobileDevice) GetOperatingSystem() (resp datatypes.User_Customer_MobileDevice_OperatingSystem, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getOperatingSystem", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve Notification subscriptions attached to a mobile device.
-func (r User_Customer_MobileDevice) GetPushNotificationSubscriptions() (resp []datatypes.Notification_User_Subscriber, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getPushNotificationSubscriptions", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The type of device this user is using
-func (r User_Customer_MobileDevice) GetType() (resp datatypes.User_Customer_MobileDevice_Type, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getType", nil, &r.Options, &resp)
-	return
-}
-
-// This class represents the mobile operating system installed on a user's registered mobile device. It assists us when determining the how to get a push notification to the user.
-type User_Customer_MobileDevice_OperatingSystem struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetUserCustomerMobileDeviceOperatingSystemService returns an instance of the User_Customer_MobileDevice_OperatingSystem SoftLayer service
-func GetUserCustomerMobileDeviceOperatingSystemService(sess *session.Session) User_Customer_MobileDevice_OperatingSystem {
-	return User_Customer_MobileDevice_OperatingSystem{Session: sess}
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Id(id int) User_Customer_MobileDevice_OperatingSystem {
-	r.Options.Id = &id
-	return r
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Mask(mask string) User_Customer_MobileDevice_OperatingSystem {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Filter(filter string) User_Customer_MobileDevice_OperatingSystem {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Limit(limit int) User_Customer_MobileDevice_OperatingSystem {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Offset(offset int) User_Customer_MobileDevice_OperatingSystem {
-	r.Options.Offset = &offset
-	return r
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice_OperatingSystem) GetAllObjects() (resp []datatypes.User_Customer_MobileDevice_OperatingSystem, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice_OperatingSystem", "getAllObjects", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice_OperatingSystem) GetObject() (resp datatypes.User_Customer_MobileDevice_OperatingSystem, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice_OperatingSystem", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// Describes a supported class of mobile device. In this the word class is used in the context of classes of consumer electronic devices, the two most prominent examples being mobile phones and tablets.
-type User_Customer_MobileDevice_Type struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetUserCustomerMobileDeviceTypeService returns an instance of the User_Customer_MobileDevice_Type SoftLayer service
-func GetUserCustomerMobileDeviceTypeService(sess *session.Session) User_Customer_MobileDevice_Type {
-	return User_Customer_MobileDevice_Type{Session: sess}
-}
-
-func (r User_Customer_MobileDevice_Type) Id(id int) User_Customer_MobileDevice_Type {
-	r.Options.Id = &id
-	return r
-}
-
-func (r User_Customer_MobileDevice_Type) Mask(mask string) User_Customer_MobileDevice_Type {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r User_Customer_MobileDevice_Type) Filter(filter string) User_Customer_MobileDevice_Type {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r User_Customer_MobileDevice_Type) Limit(limit int) User_Customer_MobileDevice_Type {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r User_Customer_MobileDevice_Type) Offset(offset int) User_Customer_MobileDevice_Type {
-	r.Options.Offset = &offset
-	return r
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice_Type) GetAllObjects() (resp []datatypes.User_Customer_MobileDevice_Type, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice_Type", "getAllObjects", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice_Type) GetObject() (resp datatypes.User_Customer_MobileDevice_Type, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice_Type", "getObject", nil, &r.Options, &resp)
-	return
-}
-
 // The Customer_Notification_Hardware object stores links between customers and the hardware devices they wish to monitor.  This link is not enough, the user must be sure to also create SoftLayer_Network_Monitor_Version1_Query_Host instance with the response action set to "notify users" in order for the users linked to that hardware object to be notified on failure.
 type User_Customer_Notification_Hardware struct {
 	Session *session.Session
@@ -2783,12 +2573,6 @@ func (r User_Customer_OpenIdConnect) GetMappedAccounts(providerType *string) (re
 	return
 }
 
-// Retrieve A portal user's associated mobile device profiles.
-func (r User_Customer_OpenIdConnect) GetMobileDevices() (resp []datatypes.User_Customer_MobileDevice, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect", "getMobileDevices", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Notification subscription records for the user.
 func (r User_Customer_OpenIdConnect) GetNotificationSubscribers() (resp []datatypes.Notification_Subscriber, err error) {
 	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect", "getNotificationSubscribers", nil, &r.Options, &resp)
@@ -2987,11 +2771,12 @@ func (r User_Customer_OpenIdConnect) GetUnsuccessfulLogins() (resp []datatypes.U
 }
 
 // Returns an IMS User Object from the provided OpenIdConnect User ID or IBMid Unique Identifier for the Account of the active user. Enforces the User Management permissions for the Active User. An exception will be thrown if no matching IMS User is found. NOTE that providing IBMid Unique Identifier is optional, but it will be preferred over OpenIdConnect User ID if provided.
-func (r User_Customer_OpenIdConnect) GetUserForUnifiedInvitation(openIdConnectUserId *string, uniqueIdentifier *string, searchInvitationsNotLinksFlag *string) (resp datatypes.User_Customer_OpenIdConnect, err error) {
+func (r User_Customer_OpenIdConnect) GetUserForUnifiedInvitation(openIdConnectUserId *string, uniqueIdentifier *string, searchInvitationsNotLinksFlag *string, accountId *string) (resp datatypes.User_Customer_OpenIdConnect, err error) {
 	params := []interface{}{
 		openIdConnectUserId,
 		uniqueIdentifier,
 		searchInvitationsNotLinksFlag,
+		accountId,
 	}
 	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect", "getUserForUnifiedInvitation", params, &r.Options, &resp)
 	return
@@ -3997,12 +3782,6 @@ func (r User_Customer_OpenIdConnect_TrustedProfile) GetMappedAccounts(providerTy
 	return
 }
 
-// Retrieve A portal user's associated mobile device profiles.
-func (r User_Customer_OpenIdConnect_TrustedProfile) GetMobileDevices() (resp []datatypes.User_Customer_MobileDevice, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect_TrustedProfile", "getMobileDevices", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Notification subscription records for the user.
 func (r User_Customer_OpenIdConnect_TrustedProfile) GetNotificationSubscribers() (resp []datatypes.Notification_Subscriber, err error) {
 	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect_TrustedProfile", "getNotificationSubscribers", nil, &r.Options, &resp)
@@ -4201,11 +3980,12 @@ func (r User_Customer_OpenIdConnect_TrustedProfile) GetUnsuccessfulLogins() (res
 }
 
 // Returns an IMS User Object from the provided OpenIdConnect User ID or IBMid Unique Identifier for the Account of the active user. Enforces the User Management permissions for the Active User. An exception will be thrown if no matching IMS User is found. NOTE that providing IBMid Unique Identifier is optional, but it will be preferred over OpenIdConnect User ID if provided.
-func (r User_Customer_OpenIdConnect_TrustedProfile) GetUserForUnifiedInvitation(openIdConnectUserId *string, uniqueIdentifier *string, searchInvitationsNotLinksFlag *string) (resp datatypes.User_Customer_OpenIdConnect, err error) {
+func (r User_Customer_OpenIdConnect_TrustedProfile) GetUserForUnifiedInvitation(openIdConnectUserId *string, uniqueIdentifier *string, searchInvitationsNotLinksFlag *string, accountId *string) (resp datatypes.User_Customer_OpenIdConnect, err error) {
 	params := []interface{}{
 		openIdConnectUserId,
 		uniqueIdentifier,
 		searchInvitationsNotLinksFlag,
+		accountId,
 	}
 	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect_TrustedProfile", "getUserForUnifiedInvitation", params, &r.Options, &resp)
 	return
