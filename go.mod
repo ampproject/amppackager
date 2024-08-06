@@ -17,8 +17,8 @@ require (
 	github.com/prometheus/common v0.44.0
 	github.com/stretchr/testify v1.8.4
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
-	golang.org/x/crypto v0.12.0
-	golang.org/x/net v0.14.0
+	golang.org/x/crypto v0.21.0
+	golang.org/x/net v0.23.0
 	google.golang.org/grpc v1.57.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
@@ -140,8 +140,8 @@ require (
 	go.uber.org/ratelimit v0.2.0 // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/oauth2 v0.9.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
 	google.golang.org/api v0.114.0 // indirect
