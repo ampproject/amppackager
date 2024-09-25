@@ -19,7 +19,7 @@ require (
 	github.com/twifkak/crypto v0.0.0-20210326012946-1fce8924335d
 	golang.org/x/crypto v0.12.0
 	golang.org/x/net v0.14.0
-	google.golang.org/grpc v1.57.0
+	google.golang.org/grpc v1.57.1
 	gopkg.in/square/go-jose.v2 v2.6.0
 )
 
