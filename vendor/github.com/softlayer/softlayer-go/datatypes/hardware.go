@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
 
@@ -542,13 +535,6 @@ type Hardware struct {
 
 	// A hardware's routers.
 	Routers []Hardware `json:"routers,omitempty" xmlrpc:"routers,omitempty"`
-
-	// A count of [DEPRECATED] Collection of scale assets this hardware corresponds to.
-	ScaleAssetCount *uint `json:"scaleAssetCount,omitempty" xmlrpc:"scaleAssetCount,omitempty"`
-
-	// [DEPRECATED] Collection of scale assets this hardware corresponds to.
-	// Deprecated: This function has been marked as deprecated.
-	ScaleAssets []Scale_Asset `json:"scaleAssets,omitempty" xmlrpc:"scaleAssets,omitempty"`
 
 	// A count of information regarding a piece of hardware's vulnerability scan requests.
 	SecurityScanRequestCount *uint `json:"securityScanRequestCount,omitempty" xmlrpc:"securityScanRequestCount,omitempty"`
@@ -1204,6 +1190,12 @@ type Hardware_Component_Model struct {
 
 	// The model number or model description of a hardware component model.
 	Version *string `json:"version,omitempty" xmlrpc:"version,omitempty"`
+
+	// A count of
+	VmwareQualifiedFirmwareCount *uint `json:"vmwareQualifiedFirmwareCount,omitempty" xmlrpc:"vmwareQualifiedFirmwareCount,omitempty"`
+
+	// no documentation yet
+	VmwareQualifiedFirmwares []Hardware_Component_Firmware `json:"vmwareQualifiedFirmwares,omitempty" xmlrpc:"vmwareQualifiedFirmwares,omitempty"`
 }
 
 // no documentation yet
@@ -1978,6 +1970,9 @@ type Hardware_Server struct {
 
 	// Determine if remote management has been disabled due to port speed.
 	IsIpmiDisabled *bool `json:"isIpmiDisabled,omitempty" xmlrpc:"isIpmiDisabled,omitempty"`
+
+	// Determine if hardware object has the QE_INTERNAL_SERVER attribute.
+	IsQeInternalServer *bool `json:"isQeInternalServer,omitempty" xmlrpc:"isQeInternalServer,omitempty"`
 
 	// Determine if hardware object is a Virtual Private Cloud node.
 	IsVirtualPrivateCloudNode *bool `json:"isVirtualPrivateCloudNode,omitempty" xmlrpc:"isVirtualPrivateCloudNode,omitempty"`

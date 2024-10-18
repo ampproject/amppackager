@@ -4,6 +4,7 @@ package edgedns
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -62,7 +63,7 @@ type DNSProvider struct {
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for Akamai EdgeDNS:
-// Akamai credentials are automatically detected in the following locations and prioritized in the following order:
+// Akamai's credentials are automatically detected in the following locations and prioritized in the following order:
 //
 // 1. Section-specific environment variables `AKAMAI_{SECTION}_HOST`, `AKAMAI_{SECTION}_ACCESS_TOKEN`, `AKAMAI_{SECTION}_CLIENT_TOKEN`, `AKAMAI_{SECTION}_CLIENT_SECRET` where `{SECTION}` is specified using `AKAMAI_EDGERC_SECTION`
 // 2. If `AKAMAI_EDGERC_SECTION` is not defined or is set to `default`: Environment variables `AKAMAI_HOST`, `AKAMAI_ACCESS_TOKEN`, `AKAMAI_CLIENT_TOKEN`, `AKAMAI_CLIENT_SECRET`
@@ -120,7 +121,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	if err == nil && record == nil {
-		return fmt.Errorf("edgedns: unknown error")
+		return errors.New("edgedns: unknown error")
 	}
 
 	if record != nil {
@@ -175,11 +176,11 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	}
 
 	if existingRec == nil {
-		return fmt.Errorf("edgedns: unknown failure")
+		return errors.New("edgedns: unknown failure")
 	}
 
 	if len(existingRec.Target) == 0 {
-		return fmt.Errorf("edgedns: TXT record is invalid")
+		return errors.New("edgedns: TXT record is invalid")
 	}
 
 	if !containsValue(existingRec.Target, info.Value) {
@@ -224,13 +225,9 @@ func getZone(domain string) (string, error) {
 }
 
 func containsValue(values []string, value string) bool {
-	for _, val := range values {
-		if strings.Trim(val, `"`) == value {
-			return true
-		}
-	}
-
-	return false
+	return slices.ContainsFunc(values, func(val string) bool {
+		return strings.Trim(val, `"`) == value
+	})
 }
 
 func isNotFound(err error) bool {

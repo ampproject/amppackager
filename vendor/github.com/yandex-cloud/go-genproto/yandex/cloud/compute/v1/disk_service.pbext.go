@@ -27,6 +27,10 @@ func (m *ListDisksRequest) SetFilter(v string) {
 	m.Filter = v
 }
 
+func (m *ListDisksRequest) SetOrderBy(v string) {
+	m.OrderBy = v
+}
+
 func (m *ListDisksResponse) SetDisks(v []*Disk) {
 	m.Disks = v
 }
@@ -91,6 +95,10 @@ func (m *CreateDiskRequest) SetDiskPlacementPolicy(v *DiskPlacementPolicy) {
 
 func (m *CreateDiskRequest) SetSnapshotScheduleIds(v []string) {
 	m.SnapshotScheduleIds = v
+}
+
+func (m *CreateDiskRequest) SetHardwareGeneration(v *HardwareGeneration) {
+	m.HardwareGeneration = v
 }
 
 func (m *CreateDiskMetadata) SetDiskId(v string) {
@@ -175,6 +183,30 @@ func (m *MoveDiskMetadata) SetSourceFolderId(v string) {
 
 func (m *MoveDiskMetadata) SetDestinationFolderId(v string) {
 	m.DestinationFolderId = v
+}
+
+func (m *RelocateDiskRequest) SetDiskId(v string) {
+	m.DiskId = v
+}
+
+func (m *RelocateDiskRequest) SetDestinationZoneId(v string) {
+	m.DestinationZoneId = v
+}
+
+func (m *RelocateDiskRequest) SetDiskPlacementPolicy(v *DiskPlacementPolicy) {
+	m.DiskPlacementPolicy = v
+}
+
+func (m *RelocateDiskMetadata) SetDiskId(v string) {
+	m.DiskId = v
+}
+
+func (m *RelocateDiskMetadata) SetSourceZoneId(v string) {
+	m.SourceZoneId = v
+}
+
+func (m *RelocateDiskMetadata) SetDestinationZoneId(v string) {
+	m.DestinationZoneId = v
 }
 
 func (m *ListDiskSnapshotSchedulesRequest) SetDiskId(v string) {

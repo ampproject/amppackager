@@ -29,3 +29,7 @@ func (m *ServiceAccount) SetDescription(v string) {
 func (m *ServiceAccount) SetLabels(v map[string]string) {
 	m.Labels = v
 }
+
+func (m *ServiceAccount) SetLastAuthenticatedAt(v *timestamppb.Timestamp) {
+	m.LastAuthenticatedAt = v
+}

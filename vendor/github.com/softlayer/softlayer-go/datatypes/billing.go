@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
 
@@ -446,6 +439,9 @@ type Billing_Invoice_Item struct {
 	// The date the invoice item was created.
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
 
+	// This is the DPart for invoice item.
+	DPart *string `json:"dPart,omitempty" xmlrpc:"dPart,omitempty"`
+
 	// The item description for this invoice item.
 	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
 
@@ -514,6 +510,9 @@ type Billing_Invoice_Item struct {
 
 	// An invoice item's one-time tax amount. This does not include any child invoice items.
 	OneTimeTaxAmount *Float64 `json:"oneTimeTaxAmount,omitempty" xmlrpc:"oneTimeTaxAmount,omitempty"`
+
+	// This is the package id for this invoice item.
+	PackageId *int `json:"packageId,omitempty" xmlrpc:"packageId,omitempty"`
 
 	// Every item tied to a server should have a parent invoice item which is the server line item. This is how we associate items to a server.
 	Parent *Billing_Invoice_Item `json:"parent,omitempty" xmlrpc:"parent,omitempty"`
@@ -1025,6 +1024,9 @@ type Billing_Item struct {
 	// The package under which this billing item was sold. A Package is the general grouping of products as seen on our order forms.
 	Package *Product_Package `json:"package,omitempty" xmlrpc:"package,omitempty"`
 
+	// This is the package id for this billing item.
+	PackageId *int `json:"packageId,omitempty" xmlrpc:"packageId,omitempty"`
+
 	// A billing item's parent item. If a billing item has no parent item then this value is null.
 	Parent *Billing_Item `json:"parent,omitempty" xmlrpc:"parent,omitempty"`
 
@@ -1278,6 +1280,9 @@ type Billing_Item_Chronicle struct {
 	CycleStartDate *Time `json:"cycleStartDate,omitempty" xmlrpc:"cycleStartDate,omitempty"`
 
 	// no documentation yet
+	DPart *string `json:"dPart,omitempty" xmlrpc:"dPart,omitempty"`
+
+	// no documentation yet
 	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
 
 	// no documentation yet
@@ -1323,6 +1328,9 @@ type Billing_Item_Chronicle struct {
 	OneTimeFee *Float64 `json:"oneTimeFee,omitempty" xmlrpc:"oneTimeFee,omitempty"`
 
 	// no documentation yet
+	PackageId *int `json:"packageId,omitempty" xmlrpc:"packageId,omitempty"`
+
+	// no documentation yet
 	ParentId *int `json:"parentId,omitempty" xmlrpc:"parentId,omitempty"`
 
 	// The entry in the product catalog that the underlying billing item is based on.
@@ -1358,6 +1366,14 @@ type Billing_Item_Ctc_Account struct {
 // The SoftLayer_Billing_Item_Big_Data_Cluster data type contains general information relating to a single SoftLayer billing item for a big data cluster.
 type Billing_Item_Gateway_Appliance_Cluster struct {
 	Billing_Item
+}
+
+// The SoftLayer_Billing_Item_Gateway_License data type contains general information relating to a single SoftLayer billing item for a bare_metal_gateway_license
+type Billing_Item_Gateway_License struct {
+	Billing_Item
+
+	// no documentation yet
+	Resource *Network_Gateway `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
 }
 
 // The SoftLayer_Billing_Item_Hardware data type contains general information relating to a single SoftLayer billing item for hardware.
@@ -1504,16 +1520,6 @@ type Billing_Item_Network_Interconnect_Routing struct {
 // A SoftLayer_Billing_Item_Network_LoadBalancer represents the [[SoftLayer_Billing_Item|billing item]] related to a single [[SoftLayer_Network_LoadBalancer|load balancer]] instance.
 type Billing_Item_Network_LoadBalancer struct {
 	Billing_Item
-}
-
-// The global load balancer service has been deprecated and is no longer available.
-//
-// The SoftLayer_Billing_Item_Network_LoadBalancer_Global data type contains general information relating to a single SoftLayer billing item whose item category code is 'global_load_balancer'
-type Billing_Item_Network_LoadBalancer_Global struct {
-	Billing_Item
-
-	// The resource for a global load balancer billing item.
-	Resource *Network_LoadBalancer_Global_Account `json:"resource,omitempty" xmlrpc:"resource,omitempty"`
 }
 
 // A SoftLayer_Billing_Item_Network_LoadBalancer_VirtualIpAddress represents the [[SoftLayer_Billing_Item|billing item]] related to a single [[SoftLayer_Network_LoadBalancer_VirtualIpAddress|load balancer]] instance.

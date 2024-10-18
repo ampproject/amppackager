@@ -30,10 +30,11 @@ type Client struct {
 }
 
 // NewClient creates a new Client.
-func NewClient(host *url.URL, serverName string, apiKey string) *Client {
+func NewClient(host *url.URL, serverName string, apiVersion int, apiKey string) *Client {
 	return &Client{
 		serverName: serverName,
 		apiKey:     apiKey,
+		apiVersion: apiVersion,
 		Host:       host,
 		HTTPClient: &http.Client{Timeout: 5 * time.Second},
 	}
@@ -116,7 +117,7 @@ func (c *Client) GetHostedZone(ctx context.Context, authZone string) (*HostedZon
 }
 
 func (c *Client) UpdateRecords(ctx context.Context, zone *HostedZone, sets RRSets) error {
-	endpoint := c.joinPath("/", zone.URL)
+	endpoint := c.joinPath("/", "servers", c.serverName, "zones", zone.ID)
 
 	req, err := newJSONRequest(ctx, http.MethodPatch, endpoint, sets)
 	if err != nil {
@@ -136,7 +137,7 @@ func (c *Client) Notify(ctx context.Context, zone *HostedZone) error {
 		return nil
 	}
 
-	endpoint := c.joinPath("/", zone.URL, "/notify")
+	endpoint := c.joinPath("/", "servers", c.serverName, "zones", zone.ID, "notify")
 
 	req, err := newJSONRequest(ctx, http.MethodPut, endpoint, nil)
 	if err != nil {
@@ -218,7 +219,8 @@ func newJSONRequest(ctx context.Context, method string, endpoint *url.URL, paylo
 
 	req.Header.Set("Accept", "application/json")
 
-	if payload != nil {
+	// PowerDNS doesn't follow HTTP convention about the "Content-Type" header.
+	if method != http.MethodGet && method != http.MethodDelete {
 		req.Header.Set("Content-Type", "application/json")
 	}
 

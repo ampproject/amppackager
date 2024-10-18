@@ -60,6 +60,26 @@ func (m *Bucket) SetLifecycleRules(v []*LifecycleRule) {
 	m.LifecycleRules = v
 }
 
+func (m *Bucket) SetTags(v []*Tag) {
+	m.Tags = v
+}
+
+func (m *Bucket) SetObjectLock(v *ObjectLock) {
+	m.ObjectLock = v
+}
+
+func (m *Bucket) SetEncryption(v *Encryption) {
+	m.Encryption = v
+}
+
+func (m *Tag) SetKey(v string) {
+	m.Key = v
+}
+
+func (m *Tag) SetValue(v string) {
+	m.Value = v
+}
+
 func (m *ACL) SetGrants(v []*ACL_Grant) {
 	m.Grants = v
 }
@@ -204,8 +224,16 @@ func (m *LifecycleRule) SetNoncurrentTransitions(v []*LifecycleRule_NoncurrentTr
 	m.NoncurrentTransitions = v
 }
 
+func (m *LifecycleRule) SetNoncurrentDeleteMarkers(v *LifecycleRule_NoncurrentDeleteMarkers) {
+	m.NoncurrentDeleteMarkers = v
+}
+
 func (m *LifecycleRule_AfterDays) SetDaysAfterExpiration(v *wrapperspb.Int64Value) {
 	m.DaysAfterExpiration = v
+}
+
+func (m *LifecycleRule_NoncurrentDeleteMarkers) SetNoncurrentDays(v *wrapperspb.Int64Value) {
+	m.NoncurrentDays = v
 }
 
 func (m *LifecycleRule_NoncurrentExpiration) SetNoncurrentDays(v *wrapperspb.Int64Value) {
@@ -246,6 +274,38 @@ func (m *LifecycleRule_Expiration) SetExpiredObjectDeleteMarker(v *wrapperspb.Bo
 
 func (m *LifecycleRule_RuleFilter) SetPrefix(v string) {
 	m.Prefix = v
+}
+
+func (m *LifecycleRule_RuleFilter) SetObjectSizeGreaterThan(v *wrapperspb.Int64Value) {
+	m.ObjectSizeGreaterThan = v
+}
+
+func (m *LifecycleRule_RuleFilter) SetObjectSizeLessThan(v *wrapperspb.Int64Value) {
+	m.ObjectSizeLessThan = v
+}
+
+func (m *LifecycleRule_RuleFilter) SetTag(v *Tag) {
+	m.Tag = v
+}
+
+func (m *LifecycleRule_RuleFilter) SetAndOperator(v *LifecycleRule_RuleFilter_And) {
+	m.AndOperator = v
+}
+
+func (m *LifecycleRule_RuleFilter_And) SetPrefix(v string) {
+	m.Prefix = v
+}
+
+func (m *LifecycleRule_RuleFilter_And) SetObjectSizeGreaterThan(v *wrapperspb.Int64Value) {
+	m.ObjectSizeGreaterThan = v
+}
+
+func (m *LifecycleRule_RuleFilter_And) SetObjectSizeLessThan(v *wrapperspb.Int64Value) {
+	m.ObjectSizeLessThan = v
+}
+
+func (m *LifecycleRule_RuleFilter_And) SetTag(v []*Tag) {
+	m.Tag = v
 }
 
 func (m *Counters) SetSimpleObjectSize(v int64) {
@@ -370,4 +430,46 @@ func (m *HTTPSConfig) SetNotAfter(v *timestamppb.Timestamp) {
 
 func (m *HTTPSConfig) SetCertificateId(v string) {
 	m.CertificateId = v
+}
+
+func (m *ObjectLock) SetStatus(v ObjectLock_ObjectLockStatus) {
+	m.Status = v
+}
+
+func (m *ObjectLock) SetDefaultRetention(v *ObjectLock_DefaultRetention) {
+	m.DefaultRetention = v
+}
+
+type ObjectLock_DefaultRetention_Period = isObjectLock_DefaultRetention_Period
+
+func (m *ObjectLock_DefaultRetention) SetPeriod(v ObjectLock_DefaultRetention_Period) {
+	m.Period = v
+}
+
+func (m *ObjectLock_DefaultRetention) SetMode(v ObjectLock_DefaultRetention_Mode) {
+	m.Mode = v
+}
+
+func (m *ObjectLock_DefaultRetention) SetDays(v int64) {
+	m.Period = &ObjectLock_DefaultRetention_Days{
+		Days: v,
+	}
+}
+
+func (m *ObjectLock_DefaultRetention) SetYears(v int64) {
+	m.Period = &ObjectLock_DefaultRetention_Years{
+		Years: v,
+	}
+}
+
+func (m *Encryption) SetRules(v []*Encryption_EncryptionRule) {
+	m.Rules = v
+}
+
+func (m *Encryption_EncryptionRule) SetKmsMasterKeyId(v string) {
+	m.KmsMasterKeyId = v
+}
+
+func (m *Encryption_EncryptionRule) SetSseAlgorithm(v string) {
+	m.SseAlgorithm = v
 }

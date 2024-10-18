@@ -90,7 +90,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("namesilo: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+		return fmt.Errorf("namesilo: could not find zone for domain %q: %w", domain, err)
 	}
 
 	zoneName := dns01.UnFqdn(zone)
@@ -98,11 +98,6 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	subdomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, zoneName)
 	if err != nil {
 		return fmt.Errorf("namesilo: %w", err)
-	}
-
-	err = d.CleanUp(domain, token, keyAuth)
-	if err != nil {
-		return err
 	}
 
 	_, err = d.client.DnsAddRecord(&namesilo.DnsAddRecordParams{
@@ -124,7 +119,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 
 	zone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("namesilo: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+		return fmt.Errorf("namesilo: could not find zone for domain %q: %w", domain, err)
 	}
 
 	zoneName := dns01.UnFqdn(zone)
@@ -139,16 +134,18 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return fmt.Errorf("namesilo: %w", err)
 	}
 
-	var lastErr error
 	for _, r := range resp.Reply.ResourceRecord {
-		if r.Type == "TXT" && (r.Host == subdomain || r.Host == dns01.UnFqdn(info.EffectiveFQDN)) {
+		if r.Type == "TXT" && r.Value == info.Value && (r.Host == subdomain || r.Host == dns01.UnFqdn(info.EffectiveFQDN)) {
 			_, err := d.client.DnsDeleteRecord(&namesilo.DnsDeleteRecordParams{Domain: zoneName, ID: r.RecordID})
 			if err != nil {
-				lastErr = fmt.Errorf("namesilo: %w", err)
+				return fmt.Errorf("namesilo: %w", err)
 			}
+
+			return nil
 		}
 	}
-	return lastErr
+
+	return fmt.Errorf("namesilo: no TXT record to delete for %s (%s)", info.EffectiveFQDN, info.Value)
 }
 
 // Timeout returns the timeout and interval to use when checking for DNS propagation.

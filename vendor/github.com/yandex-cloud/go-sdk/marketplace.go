@@ -4,11 +4,14 @@
 package ycsdk
 
 import (
+	"github.com/yandex-cloud/go-sdk/gen/marketplace/licensemanager"
 	"github.com/yandex-cloud/go-sdk/gen/marketplace/metering"
 )
 
 const (
-	MarketplaceMeteringServiceID Endpoint = "marketplace"
+	MarketplaceServiceID               Endpoint = "marketplace"
+	MarketplaceMeteringServiceID                = MarketplaceServiceID
+	MarketplaceLicenseManagerServiceID          = MarketplaceServiceID
 )
 
 type Marketplace struct {
@@ -17,4 +20,8 @@ type Marketplace struct {
 
 func (m *Marketplace) Metering() *metering.Metering {
 	return metering.NewMetering(m.sdk.getConn(MarketplaceMeteringServiceID))
+}
+
+func (m *Marketplace) LicenseManager() *licensemanager.LicenseManager {
+	return licensemanager.NewLicenseManager(m.sdk.getConn(MarketplaceLicenseManagerServiceID))
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/yandex-cloud/go-sdk/gen/mdb/kafka"
 	"github.com/yandex-cloud/go-sdk/gen/mdb/mongodb"
 	"github.com/yandex-cloud/go-sdk/gen/mdb/mysql"
+	"github.com/yandex-cloud/go-sdk/gen/mdb/opensearch"
 	"github.com/yandex-cloud/go-sdk/gen/mdb/postgresql"
 	"github.com/yandex-cloud/go-sdk/gen/mdb/redis"
 	"github.com/yandex-cloud/go-sdk/gen/mdb/sqlserver"
@@ -25,6 +26,7 @@ const (
 	MDBSQLServerServiceID  Endpoint = "managed-sqlserver"
 	MDBGreenplumServiceID  Endpoint = "managed-greenplum"
 	MDBElasticSearchID     Endpoint = "managed-elasticsearch"
+	MDBOpenSearchID        Endpoint = "managed-opensearch"
 )
 
 type MDB struct {
@@ -65,4 +67,8 @@ func (m *MDB) Greenplum() *greenplum.Greenplum {
 
 func (m *MDB) ElasticSearch() *elasticsearch.ElasticSearch {
 	return elasticsearch.NewElasticSearch(m.sdk.getConn(MDBElasticSearchID))
+}
+
+func (m *MDB) OpenSearch() *opensearch.OpenSearch {
+	return opensearch.NewOpenSearch(m.sdk.getConn(MDBOpenSearchID))
 }

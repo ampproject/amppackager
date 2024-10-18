@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
 
@@ -31,10 +24,16 @@ type Container_Account_Authentication_OpenIdConnect_UsernameLookupContainer stru
 	EmailAddress *string `json:"emailAddress,omitempty" xmlrpc:"emailAddress,omitempty"`
 
 	// no documentation yet
+	FamilyName *string `json:"familyName,omitempty" xmlrpc:"familyName,omitempty"`
+
+	// no documentation yet
 	Federated *bool `json:"federated,omitempty" xmlrpc:"federated,omitempty"`
 
 	// no documentation yet
 	FoundAs *string `json:"foundAs,omitempty" xmlrpc:"foundAs,omitempty"`
+
+	// no documentation yet
+	GivenName *string `json:"givenName,omitempty" xmlrpc:"givenName,omitempty"`
 
 	// no documentation yet
 	NumberOfIbmIdsWithEmailAddress *int `json:"numberOfIbmIdsWithEmailAddress,omitempty" xmlrpc:"numberOfIbmIdsWithEmailAddress,omitempty"`
@@ -177,56 +176,6 @@ type Container_Account_External_Setup_ProvisioningHoldLifted_Attributes struct {
 	SoftLayerBrandMoveDate *Time `json:"softLayerBrandMoveDate,omitempty" xmlrpc:"softLayerBrandMoveDate,omitempty"`
 }
 
-// Models a single outbound object for a graph of given data sets.
-type Container_Account_Graph_Outputs struct {
-	Entity
-
-	// The count of closed tickets included in this graph.
-	ClosedTickets *string `json:"closedTickets,omitempty" xmlrpc:"closedTickets,omitempty"`
-
-	// The count of completed backups included in this graph.
-	CompletedBackupCount *string `json:"completedBackupCount,omitempty" xmlrpc:"completedBackupCount,omitempty"`
-
-	// The count of conflicted backups included in this graph.
-	ConflictBackupCount *string `json:"conflictBackupCount,omitempty" xmlrpc:"conflictBackupCount,omitempty"`
-
-	// The maximum date included in this graph.
-	EndDate *Time `json:"endDate,omitempty" xmlrpc:"endDate,omitempty"`
-
-	// The count of failed backups included in this graph.
-	FailedBackupCount *string `json:"failedBackupCount,omitempty" xmlrpc:"failedBackupCount,omitempty"`
-
-	// Error message encountered during graphing
-	GraphError *string `json:"graphError,omitempty" xmlrpc:"graphError,omitempty"`
-
-	// The raw PNG binary data to be displayed once the graph is drawn.
-	GraphImage *[]byte `json:"graphImage,omitempty" xmlrpc:"graphImage,omitempty"`
-
-	// The average of hardware uptime included in this graph.
-	HardwareUptime *string `json:"hardwareUptime,omitempty" xmlrpc:"hardwareUptime,omitempty"`
-
-	// The inbound bandwidth usage shown in this graph.
-	InboundUsage *string `json:"inboundUsage,omitempty" xmlrpc:"inboundUsage,omitempty"`
-
-	// The count of open tickets included in this graph.
-	OpenTickets *string `json:"openTickets,omitempty" xmlrpc:"openTickets,omitempty"`
-
-	// The outbound bandwidth usage shown in this graph.
-	OutboundUsage *string `json:"outboundUsage,omitempty" xmlrpc:"outboundUsage,omitempty"`
-
-	// The count of tickets included in this graph.
-	PendingCustomerResponseTicketCount *string `json:"pendingCustomerResponseTicketCount,omitempty" xmlrpc:"pendingCustomerResponseTicketCount,omitempty"`
-
-	// The minimum date included in this graph.
-	StartDate *Time `json:"startDate,omitempty" xmlrpc:"startDate,omitempty"`
-
-	// The average of url uptime included in this graph.
-	UrlUptime *string `json:"urlUptime,omitempty" xmlrpc:"urlUptime,omitempty"`
-
-	// The count of tickets included in this graph.
-	WaitingEmployeeResponseTicketCount *string `json:"waitingEmployeeResponseTicketCount,omitempty" xmlrpc:"waitingEmployeeResponseTicketCount,omitempty"`
-}
-
 // Historical Summary Container for account resource details
 type Container_Account_Historical_Summary struct {
 	Entity
@@ -271,6 +220,17 @@ type Container_Account_Historical_Summary_Uptime struct {
 	Container_Account_Historical_Summary
 }
 
+// no documentation yet
+type Container_Account_Internal_Ibm_CostRecovery struct {
+	Entity
+
+	// no documentation yet
+	AccountId *string `json:"accountId,omitempty" xmlrpc:"accountId,omitempty"`
+
+	// no documentation yet
+	CountryId *string `json:"countryId,omitempty" xmlrpc:"countryId,omitempty"`
+}
+
 // Contains data required to both request a new IaaS account for active IBM employees and review pending requests. Fields used exclusively in the review process are scrubbed of user input.
 type Container_Account_Internal_Ibm_Request struct {
 	Entity
@@ -290,19 +250,28 @@ type Container_Account_Internal_Ibm_Request struct {
 	// Name of the company displayed on the IaaS account
 	CompanyName *string `json:"companyName,omitempty" xmlrpc:"companyName,omitempty"`
 
+	// no documentation yet
+	CostRecoveryAccountId *string `json:"costRecoveryAccountId,omitempty" xmlrpc:"costRecoveryAccountId,omitempty"`
+
+	// no documentation yet
+	CostRecoveryCountryId *string `json:"costRecoveryCountryId,omitempty" xmlrpc:"costRecoveryCountryId,omitempty"`
+
 	// If not provided, will attempt to retrieve from BluePages
 	Country *string `json:"country,omitempty" xmlrpc:"country,omitempty"`
 
 	// True if the request has been denied by either the IaaS team or the
 	DeniedFlag *bool `json:"deniedFlag,omitempty" xmlrpc:"deniedFlag,omitempty"`
 
-	// Department within the division which will be changed during cost recovery.
+	// Department within the division which will be changed during cost recovery. [DEPRECATED]
+	// Deprecated: This function has been marked as deprecated.
 	DepartmentCode *string `json:"departmentCode,omitempty" xmlrpc:"departmentCode,omitempty"`
 
-	// Country assigned to the department for cost recovery.
+	// Country code assigned to the department for cost recovery. [DEPRECATED]
+	// Deprecated: This function has been marked as deprecated.
 	DepartmentCountry *string `json:"departmentCountry,omitempty" xmlrpc:"departmentCountry,omitempty"`
 
-	// Division code used for cost recovery.
+	// Division code used for cost recovery. [DEPRECATED]
+	// Deprecated: This function has been marked as deprecated.
 	DivisionCode *string `json:"divisionCode,omitempty" xmlrpc:"divisionCode,omitempty"`
 
 	// Account owner's IBM email address. Must be a discoverable email
@@ -1016,56 +985,72 @@ type Container_Authentication_Response_Success struct {
 	Token *Container_User_Authentication_Token `json:"token,omitempty" xmlrpc:"token,omitempty"`
 }
 
-// The SoftLayer_Container_Auxiliary_Network_Status_Reading data type contains information relating to an object being monitored from outside the SoftLayer network.  It is primarily used to check the status of our edge routers from multiple locations around the world.
+// no documentation yet
 type Container_Auxiliary_Network_Status_Reading struct {
 	Entity
 
-	// Average packet round-trip time.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	AveragePing *Float64 `json:"averagePing,omitempty" xmlrpc:"averagePing,omitempty"`
 
-	// Number of failures since the target was last detected to be working properly.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	Fails *int `json:"fails,omitempty" xmlrpc:"fails,omitempty"`
 
-	// Monitoring frequency in minutes.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	Frequency *int `json:"frequency,omitempty" xmlrpc:"frequency,omitempty"`
 
-	// The target babel.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	Label *string `json:"label,omitempty" xmlrpc:"label,omitempty"`
 
-	// Last check date and time.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	LastCheckDate *Time `json:"lastCheckDate,omitempty" xmlrpc:"lastCheckDate,omitempty"`
 
-	// Date and time of the last problem detected.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	LastDownDate *Time `json:"lastDownDate,omitempty" xmlrpc:"lastDownDate,omitempty"`
 
-	// The total response time in seconds calculated during the last check.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	Latency *Float64 `json:"latency,omitempty" xmlrpc:"latency,omitempty"`
 
-	// The monitoring location name.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	Location *string `json:"location,omitempty" xmlrpc:"location,omitempty"`
 
-	// Maximum packet round-trip time.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	MaximumPing *Float64 `json:"maximumPing,omitempty" xmlrpc:"maximumPing,omitempty"`
 
-	// Minimum packet round-trip time.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	MinimumPing *Float64 `json:"minimumPing,omitempty" xmlrpc:"minimumPing,omitempty"`
 
-	// Packet loss percentage.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	PingLoss *Float64 `json:"pingLoss,omitempty" xmlrpc:"pingLoss,omitempty"`
 
-	// The date monitoring first began
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	StartDate *Time `json:"startDate,omitempty" xmlrpc:"startDate,omitempty"`
 
-	// Status Code - one of UP, Down, Test pending.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	StatusCode *string `json:"statusCode,omitempty" xmlrpc:"statusCode,omitempty"`
 
-	// The status message from the last effective check.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	StatusMessage *string `json:"statusMessage,omitempty" xmlrpc:"statusMessage,omitempty"`
 
-	// The target object.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	Target *string `json:"target,omitempty" xmlrpc:"target,omitempty"`
 
-	// A letter indicating the target type.
+	// no documentation yet
+	// Deprecated: This function has been marked as deprecated.
 	TargetType *string `json:"targetType,omitempty" xmlrpc:"targetType,omitempty"`
 }
 
@@ -1104,29 +1089,6 @@ type Container_Bandwidth_GraphOutputs struct {
 
 	// The minimum date included in this graph.
 	MinStartDate *Time `json:"minStartDate,omitempty" xmlrpc:"minStartDate,omitempty"`
-}
-
-// SoftLayer_Container_Bandwidth_GraphOutputs models an individual bandwidth graph image and certain details about that graph image.
-type Container_Bandwidth_GraphOutputsExtended struct {
-	Entity
-
-	// The raw PNG binary data of a bandwidth graph image.
-	GraphImage *[]byte `json:"graphImage,omitempty" xmlrpc:"graphImage,omitempty"`
-
-	// A bandwidth graph's title.
-	GraphTitle *string `json:"graphTitle,omitempty" xmlrpc:"graphTitle,omitempty"`
-
-	// The amount of inbound traffic reported on a bandwidth graph image.
-	InBoundTotalBytes *uint `json:"inBoundTotalBytes,omitempty" xmlrpc:"inBoundTotalBytes,omitempty"`
-
-	// The ending date of the data represented in a bandwidth graph.
-	MaxEndDate *Time `json:"maxEndDate,omitempty" xmlrpc:"maxEndDate,omitempty"`
-
-	// The beginning date of the data represented in a bandwidth graph.
-	MinStartDate *Time `json:"minStartDate,omitempty" xmlrpc:"minStartDate,omitempty"`
-
-	// The amount of outbound traffic reported on a bandwidth graph image.
-	OutBoundTotalBytes *uint `json:"outBoundTotalBytes,omitempty" xmlrpc:"outBoundTotalBytes,omitempty"`
 }
 
 // SoftLayer_Container_Bandwidth_Projection models projected bandwidth use over a time range.
@@ -1403,233 +1365,6 @@ type Container_Disk_Image_Capture_Template_Volume_Partition struct {
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 }
 
-// Contact information container for domain registration
-type Container_Dns_Domain_Registration_Contact struct {
-	Entity
-
-	// The street address of the contact.
-	Address1 *string `json:"address1,omitempty" xmlrpc:"address1,omitempty"`
-
-	// The second line in the address of the contact.
-	Address2 *string `json:"address2,omitempty" xmlrpc:"address2,omitempty"`
-
-	// The third line in the address of the contact.
-	Address3 *string `json:"address3,omitempty" xmlrpc:"address3,omitempty"`
-
-	// The city of the contact.
-	City *string `json:"city,omitempty" xmlrpc:"city,omitempty"`
-
-	// The 2-character Country code. (i.e. US)
-	Country *string `json:"country,omitempty" xmlrpc:"country,omitempty"`
-
-	// The email address of the contact.
-	Email *string `json:"email,omitempty" xmlrpc:"email,omitempty"`
-
-	// The fax number of the contact.
-	Fax *string `json:"fax,omitempty" xmlrpc:"fax,omitempty"`
-
-	// The first name of the contact.
-	FirstName *string `json:"firstName,omitempty" xmlrpc:"firstName,omitempty"`
-
-	// The last name of the contact.
-	LastName *string `json:"lastName,omitempty" xmlrpc:"lastName,omitempty"`
-
-	// The organization name of the contact.
-	OrganizationName *string `json:"organizationName,omitempty" xmlrpc:"organizationName,omitempty"`
-
-	// The phone number of the contact.
-	Phone *string `json:"phone,omitempty" xmlrpc:"phone,omitempty"`
-
-	// The postal code of the contact.
-	PostalCode *string `json:"postalCode,omitempty" xmlrpc:"postalCode,omitempty"`
-
-	// The state of the contact.
-	State *string `json:"state,omitempty" xmlrpc:"state,omitempty"`
-
-	// The type of contact. The following are the valid types of contacts:
-	// * admin
-	// * owner
-	// * billing
-	// * tech
-	Type *string `json:"type,omitempty" xmlrpc:"type,omitempty"`
-}
-
-// This container data type contains extended attributes information for a domain of country code TLD.
-type Container_Dns_Domain_Registration_ExtendedAttribute struct {
-	Entity
-
-	// Indicates if this is a child of another extended attribute.
-	ChildFlag *bool `json:"childFlag,omitempty" xmlrpc:"childFlag,omitempty"`
-
-	// The description of an extended attribute.
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// The name of an extended attribute.
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-
-	// The collection of options for an extended attribute.
-	Options []Container_Dns_Domain_Registration_ExtendedAttribute_Option `json:"options,omitempty" xmlrpc:"options,omitempty"`
-
-	// Indicates if extended attribute is required.
-	RequiredFlag *int `json:"requiredFlag,omitempty" xmlrpc:"requiredFlag,omitempty"`
-
-	// User defined indicates that the value is required from outside sources.
-	UserDefinedFlag *bool `json:"userDefinedFlag,omitempty" xmlrpc:"userDefinedFlag,omitempty"`
-}
-
-// This is the data type that may need to be populated to complete registraton for domains that are country code TLD's.
-type Container_Dns_Domain_Registration_ExtendedAttribute_Configuration struct {
-	Entity
-
-	// The extended attribute name.
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-
-	// The extended attribute option value.
-	Value *string `json:"value,omitempty" xmlrpc:"value,omitempty"`
-}
-
-// This container data type contains extended attribute options information for a domain of country code TLD.
-type Container_Dns_Domain_Registration_ExtendedAttribute_Option struct {
-	Entity
-
-	// The description of an option.
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// Extended Attribute that is required for an option.
-	RequireExtendedAttributes []Container_Dns_Domain_Registration_ExtendedAttribute_Option_Require `json:"requireExtendedAttributes,omitempty" xmlrpc:"requireExtendedAttributes,omitempty"`
-
-	// The title of an option.
-	Title *string `json:"title,omitempty" xmlrpc:"title,omitempty"`
-
-	// The value of an option.
-	Value *string `json:"value,omitempty" xmlrpc:"value,omitempty"`
-}
-
-// This container data type contains the extended attribute name that is required by an extended attribute option.
-type Container_Dns_Domain_Registration_ExtendedAttribute_Option_Require struct {
-	Entity
-
-	// The name of an extended attribute that is required by an extended attribute option.
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-}
-
-// Information container for domain registration
-type Container_Dns_Domain_Registration_Information struct {
-	Entity
-
-	// The information of the registered domain.
-	Contacts []Container_Dns_Domain_Registration_Contact `json:"contacts,omitempty" xmlrpc:"contacts,omitempty"`
-
-	// The date that a domain is set to expire.
-	ExpireDate *Time `json:"expireDate,omitempty" xmlrpc:"expireDate,omitempty"`
-
-	// The list of nameservers for the domain.
-	Nameservers []Container_Dns_Domain_Registration_Nameserver `json:"nameservers,omitempty" xmlrpc:"nameservers,omitempty"`
-
-	// no documentation yet
-	RegistryCreateDate *Time `json:"registryCreateDate,omitempty" xmlrpc:"registryCreateDate,omitempty"`
-
-	// no documentation yet
-	RegistryExpireDate *Time `json:"registryExpireDate,omitempty" xmlrpc:"registryExpireDate,omitempty"`
-
-	// no documentation yet
-	RegistryUpdateDate *Time `json:"registryUpdateDate,omitempty" xmlrpc:"registryUpdateDate,omitempty"`
-}
-
-// no documentation yet
-type Container_Dns_Domain_Registration_List struct {
-	Entity
-
-	// The domain name.
-	DomainName *string `json:"domainName,omitempty" xmlrpc:"domainName,omitempty"`
-
-	// Three-character language tag for the IDN domain that you're trying to register. This is only required for IDN domains.
-	EncodingType *string `json:"encodingType,omitempty" xmlrpc:"encodingType,omitempty"`
-
-	// Data required by the Registry for some country code top level domains (i.e. example.us).
-	//
-	// In order to determine if a domain requires extended attributes, use [[SoftLayer_Dns_Domain_Registration::getExtendedAttributes|domain registration]] service.
-	ExtendedAttributeConfiguration []Container_Dns_Domain_Registration_ExtendedAttribute_Configuration `json:"extendedAttributeConfiguration,omitempty" xmlrpc:"extendedAttributeConfiguration,omitempty"`
-
-	// The length of the registration period in years. Valid values are 1 – 10.
-	RegistrationPeriod *int `json:"registrationPeriod,omitempty" xmlrpc:"registrationPeriod,omitempty"`
-}
-
-// Lookup domain container for domain registration
-type Container_Dns_Domain_Registration_Lookup struct {
-	Entity
-
-	// The list of available and taken domain names.
-	Items []Container_Dns_Domain_Registration_Lookup_Items `json:"items,omitempty" xmlrpc:"items,omitempty"`
-}
-
-// Lookup items container for domain registration
-type Container_Dns_Domain_Registration_Lookup_Items struct {
-	Entity
-
-	// The domain name.
-	DomainName *string `json:"domainName,omitempty" xmlrpc:"domainName,omitempty"`
-
-	// The status of the domain name if available and can be registered.
-	Status *string `json:"status,omitempty" xmlrpc:"status,omitempty"`
-}
-
-// Nameserver container for domain registration
-type Container_Dns_Domain_Registration_Nameserver struct {
-	Entity
-
-	// The list of fully qualified names of the nameserver.
-	Nameservers []Container_Dns_Domain_Registration_Nameserver_List `json:"nameservers,omitempty" xmlrpc:"nameservers,omitempty"`
-}
-
-// Nameservers list container for domain registration
-type Container_Dns_Domain_Registration_Nameserver_List struct {
-	Entity
-
-	// The IPv4 address of the nameserver.
-	Ipv4Address *string `json:"ipv4Address,omitempty" xmlrpc:"ipv4Address,omitempty"`
-
-	// The IPv6 address of the nameserver.
-	Ipv6Address *string `json:"ipv6Address,omitempty" xmlrpc:"ipv6Address,omitempty"`
-
-	// The fully qualified name of the nameserver
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-
-	// The sort order of the nameserver
-	SortOrder *int `json:"sortOrder,omitempty" xmlrpc:"sortOrder,omitempty"`
-}
-
-// no documentation yet
-type Container_Dns_Domain_Registration_Registrant_Verification_StatusDetail struct {
-	Entity
-
-	// The current status of the verification.
-	Status *Dns_Domain_Registration_Registrant_Verification_Status `json:"status,omitempty" xmlrpc:"status,omitempty"`
-
-	// The adate when the domain will be suspended.
-	VerificationDeadlineDate *Time `json:"verificationDeadlineDate,omitempty" xmlrpc:"verificationDeadlineDate,omitempty"`
-}
-
-// Transfer Information container for domain registration
-type Container_Dns_Domain_Registration_Transfer_Information struct {
-	Entity
-
-	// The reason why a domain is not transferable.
-	Reason *string `json:"reason,omitempty" xmlrpc:"reason,omitempty"`
-
-	// The registrant email.
-	RegistrantEmail *string `json:"registrantEmail,omitempty" xmlrpc:"registrantEmail,omitempty"`
-
-	// The status of the latest transfer on the domain.
-	Status *string `json:"status,omitempty" xmlrpc:"status,omitempty"`
-
-	// The date and time of the most recent update to the state of the transfer.
-	TimeStamp *Time `json:"timeStamp,omitempty" xmlrpc:"timeStamp,omitempty"`
-
-	// Indicates if the domain can be transferred.
-	Transferrable *int `json:"transferrable,omitempty" xmlrpc:"transferrable,omitempty"`
-}
-
 // The SoftLayer_Container_Exception data type represents a SoftLayer_Exception.
 type Container_Exception struct {
 	Entity
@@ -1671,9 +1406,6 @@ type Container_Graph struct {
 
 	// A collection of graph plots.
 	Plots []Container_Graph_Plot `json:"plots,omitempty" xmlrpc:"plots,omitempty"`
-
-	// option to not return the image.
-	ReturnImage *bool `json:"returnImage,omitempty" xmlrpc:"returnImage,omitempty"`
 
 	// Graph range start datetime.
 	StartDatetime *string `json:"startDatetime,omitempty" xmlrpc:"startDatetime,omitempty"`
@@ -2728,162 +2460,6 @@ type Container_Network_LoadBalancer_StatusEntry struct {
 	Label *string `json:"label,omitempty" xmlrpc:"label,omitempty"`
 }
 
-// This container class holds information on a media file such as file name, codec, frame rate and so on
-type Container_Network_Media_Information struct {
-	Entity
-
-	// The audio bit rate
-	AudioBitRate *int `json:"audioBitRate,omitempty" xmlrpc:"audioBitRate,omitempty"`
-
-	// The audio channel mode
-	AudioChannelMode *string `json:"audioChannelMode,omitempty" xmlrpc:"audioChannelMode,omitempty"`
-
-	// The number of audio channels
-	AudioChannels *int `json:"audioChannels,omitempty" xmlrpc:"audioChannels,omitempty"`
-
-	// The audio codec name
-	AudioCodec *string `json:"audioCodec,omitempty" xmlrpc:"audioCodec,omitempty"`
-
-	// The audio sample rate
-	AudioSampleRate *int `json:"audioSampleRate,omitempty" xmlrpc:"audioSampleRate,omitempty"`
-
-	// The duration of a media
-	Duration *Float64 `json:"duration,omitempty" xmlrpc:"duration,omitempty"`
-
-	// The error message if any.
-	ErrorMessage *string `json:"errorMessage,omitempty" xmlrpc:"errorMessage,omitempty"`
-
-	// The name of a media file
-	File *string `json:"file,omitempty" xmlrpc:"file,omitempty"`
-
-	// The file format
-	FileFormat *string `json:"fileFormat,omitempty" xmlrpc:"fileFormat,omitempty"`
-
-	// The size of a media file in byte
-	FileSize *uint `json:"fileSize,omitempty" xmlrpc:"fileSize,omitempty"`
-
-	// The frame rate
-	FrameRate *Float64 `json:"frameRate,omitempty" xmlrpc:"frameRate,omitempty"`
-
-	// The width of a media in pixel
-	SizeX *int `json:"sizeX,omitempty" xmlrpc:"sizeX,omitempty"`
-
-	// The height of a media in pixel
-	SizeY *int `json:"sizeY,omitempty" xmlrpc:"sizeY,omitempty"`
-
-	// The total of frames
-	TotalFrames *uint `json:"totalFrames,omitempty" xmlrpc:"totalFrames,omitempty"`
-
-	// The width in a video's width to height aspect ratio
-	VideoAspectX *Float64 `json:"videoAspectX,omitempty" xmlrpc:"videoAspectX,omitempty"`
-
-	// The height in a video's width to height aspect ratio
-	VideoAspectY *int `json:"videoAspectY,omitempty" xmlrpc:"videoAspectY,omitempty"`
-
-	// The video codec name
-	VideoCodec *string `json:"videoCodec,omitempty" xmlrpc:"videoCodec,omitempty"`
-}
-
-// no documentation yet
-type Container_Network_Media_Transcode_Job_Watermark struct {
-	Entity
-
-	// Time to stop showing watermark in milliseconds
-	EndTime *int `json:"endTime,omitempty" xmlrpc:"endTime,omitempty"`
-
-	// Filename of image to use as watermark in transcoding job
-	FileName *string `json:"fileName,omitempty" xmlrpc:"fileName,omitempty"`
-
-	// Position to place watermark at
-	Position *Container_Network_Media_Transcode_Job_Watermark_Position `json:"position,omitempty" xmlrpc:"position,omitempty"`
-
-	// Time to start showing watermark in milliseconds
-	StartTime *int `json:"startTime,omitempty" xmlrpc:"startTime,omitempty"`
-
-	// Text to Place in Watermark
-	Text *string `json:"text,omitempty" xmlrpc:"text,omitempty"`
-
-	// Percentage Transparent watermark should be
-	TransparencyPercentage *int `json:"transparencyPercentage,omitempty" xmlrpc:"transparencyPercentage,omitempty"`
-}
-
-// no documentation yet
-type Container_Network_Media_Transcode_Job_Watermark_Position struct {
-	Entity
-
-	// X Coordinate of Watermark
-	X *int `json:"x,omitempty" xmlrpc:"x,omitempty"`
-
-	// vertical Coordinate of Watermark
-	Y *int `json:"y,omitempty" xmlrpc:"y,omitempty"`
-}
-
-// Transcode preset is a set of configuration parameters that defines a Transcode output format. SoftLayer_Container_Network_Media_Transcode_Preset contains a preset information defined on a Transcode server
-type Container_Network_Media_Transcode_Preset struct {
-	Entity
-
-	// The unique id that is used by a Transcode server
-	GUID *string `json:"GUID,omitempty" xmlrpc:"GUID,omitempty"`
-
-	// The category that a preset belongs to
-	Category *string `json:"category,omitempty" xmlrpc:"category,omitempty"`
-
-	// The description of the preset
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// The friendly name of a preset
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-}
-
-// Transcode preset element
-type Container_Network_Media_Transcode_Preset_Element struct {
-	Entity
-
-	// The additional elements for DROPDOWNLIST element
-	AdditionalElements []Container_Network_Media_Transcode_Preset_Element_Option `json:"additionalElements,omitempty" xmlrpc:"additionalElements,omitempty"`
-
-	// The default value of an element.
-	DefaultValue *string `json:"defaultValue,omitempty" xmlrpc:"defaultValue,omitempty"`
-
-	// The description of a preset element
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// The flag that indicates whether an element is enabled or not
-	Enabled *bool `json:"enabled,omitempty" xmlrpc:"enabled,omitempty"`
-
-	// The extended description of a preset element
-	ExtendedDescription *string `json:"extendedDescription,omitempty" xmlrpc:"extendedDescription,omitempty"`
-
-	// The flag that indicates whether an element is hidden or not
-	Hidden *bool `json:"hidden,omitempty" xmlrpc:"hidden,omitempty"`
-
-	// The maximum value of an element
-	MaximumValue *int `json:"maximumValue,omitempty" xmlrpc:"maximumValue,omitempty"`
-
-	// The minimum value of an element
-	MinimumValue *int `json:"minimumValue,omitempty" xmlrpc:"minimumValue,omitempty"`
-
-	// The name of an preset element
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-
-	// The name of a parent element
-	ParentName *string `json:"parentName,omitempty" xmlrpc:"parentName,omitempty"`
-
-	// The type of an preset element.
-	Type *string `json:"type,omitempty" xmlrpc:"type,omitempty"`
-}
-
-// Transcode preset element
-type Container_Network_Media_Transcode_Preset_Element_Option struct {
-	Entity
-
-	// The name of a additional preset element
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-
-	// The value of a additional preset element
-	Value *string `json:"value,omitempty" xmlrpc:"value,omitempty"`
-}
-
 // This datatype is deprecated and will be removed in API version 3.2.
 type Container_Network_Message_Delivery_Email struct {
 	Entity
@@ -3666,16 +3242,6 @@ type Container_Network_Subnet_Registration_TransactionDetails struct {
 	TransactionId *int `json:"transactionId,omitempty" xmlrpc:"transactionId,omitempty"`
 }
 
-// no documentation yet
-type Container_Notification_Mass_Filter_TemplateKey struct {
-	Entity
-}
-
-// no documentation yet
-type Container_Notification_Mass_Filter_TemplateValue struct {
-	Entity
-}
-
 // Represents the acceptance status of a Policy.
 type Container_Policy_Acceptance struct {
 	Entity
@@ -4150,37 +3716,6 @@ type Container_Product_Order_Billing_Information struct {
 	VatId *string `json:"vatId,omitempty" xmlrpc:"vatId,omitempty"`
 }
 
-// This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. The SoftLayer_Container_Product_Order_Dns_Domain_Registration datatype contains everything required to place a domain registration order with SoftLayer.
-type Container_Product_Order_Dns_Domain_Registration struct {
-	Container_Product_Order
-
-	// Administrative contact information associated with an registraton or transfer. This is required if registration type is 'new' or 'transfer'.
-	AdministrativeContact *Container_Dns_Domain_Registration_Contact `json:"administrativeContact,omitempty" xmlrpc:"administrativeContact,omitempty"`
-
-	// Billing contact information associated with an registraton or transfer. This is required if registration type is 'new' or 'transfer'.
-	BillingContact *Container_Dns_Domain_Registration_Contact `json:"billingContact,omitempty" xmlrpc:"billingContact,omitempty"`
-
-	// The list of domains to be registered. This is required if registration type is 'new', 'renew', or 'transfer'.
-	DomainRegistrationList []Container_Dns_Domain_Registration_List `json:"domainRegistrationList,omitempty" xmlrpc:"domainRegistrationList,omitempty"`
-
-	// Owner contact information associated with an registraton or transfer. This is required if registration type is 'new' or 'transfer'.
-	OwnerContact *Container_Dns_Domain_Registration_Contact `json:"ownerContact,omitempty" xmlrpc:"ownerContact,omitempty"`
-
-	// The type of a domain registration order. The registration type is Required. Allowed values are new, transfer, and renew
-	RegistrationType *string `json:"registrationType,omitempty" xmlrpc:"registrationType,omitempty"`
-
-	// Technical contact information associated with an registraton or transfer. This is required if registration type is 'new' or 'transfer'.
-	TechnicalContact *Container_Dns_Domain_Registration_Contact `json:"technicalContact,omitempty" xmlrpc:"technicalContact,omitempty"`
-}
-
-// This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. The SoftLayer_Container_Product_Order_Dns_Domain_Reseller datatype contains everything required to place a domain reseller credit order with SoftLayer.
-type Container_Product_Order_Dns_Domain_Reseller struct {
-	Container_Product_Order
-
-	// Amount to be credited to the domain reseller account.
-	CreditAmount *Float64 `json:"creditAmount,omitempty" xmlrpc:"creditAmount,omitempty"`
-}
-
 // This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. This datatype has everything required to place a Gateway Appliance Cluster order with SoftLayer.
 type Container_Product_Order_Gateway_Appliance_Cluster struct {
 	Container_Product_Order
@@ -4411,27 +3946,20 @@ type Container_Product_Order_Network_LoadBalancer_AsAService struct {
 	UseSystemPublicIpPool *bool `json:"useSystemPublicIpPool,omitempty" xmlrpc:"useSystemPublicIpPool,omitempty"`
 }
 
-// The global load balancer service has been deprecated and is no longer available.
-//
-// This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. This datatype has everything required to place a global load balancer order with SoftLayer.
-type Container_Product_Order_Network_LoadBalancer_Global struct {
-	Container_Product_Order
-
-	// The domain name that will be load balanced.
-	Domain *string `json:"domain,omitempty" xmlrpc:"domain,omitempty"`
-
-	// The hostname that will be load balanced.
-	Hostname *string `json:"hostname,omitempty" xmlrpc:"hostname,omitempty"`
-}
-
 // This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. This datatype has everything required to place a network message delivery order with SoftLayer.
 type Container_Product_Order_Network_Message_Delivery struct {
 	Container_Product_Order
 
+	// This property has been deprecated and should no longer be used.
+	//
 	// The account password for SendGrid enrollment.
+	// Deprecated: This function has been marked as deprecated.
 	AccountPassword *string `json:"accountPassword,omitempty" xmlrpc:"accountPassword,omitempty"`
 
+	// This property has been deprecated and should no longer be used.
+	//
 	// The username for SendGrid enrollment.
+	// Deprecated: This function has been marked as deprecated.
 	AccountUsername *string `json:"accountUsername,omitempty" xmlrpc:"accountUsername,omitempty"`
 
 	// The email address for SendGrid enrollment.
@@ -4590,22 +4118,6 @@ type Container_Product_Order_Network_Storage_Hub_Datacenter struct {
 // This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. This datatype has everything required to place an ISCSI order with SoftLayer.
 type Container_Product_Order_Network_Storage_Iscsi struct {
 	Container_Product_Order
-}
-
-// This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. This datatype has everything required to place an ISCSI Replication order with SoftLayer.
-type Container_Product_Order_Network_Storage_Iscsi_Replication struct {
-	Container_Product_Order
-
-	// the [[SoftLayer_Network_Storage_Iscsi_EqualLogic_Version3]] Id.
-	VolumeId *int `json:"volumeId,omitempty" xmlrpc:"volumeId,omitempty"`
-}
-
-// This is the datatype that needs to be populated and sent to SoftLayer_Product_Order::placeOrder. This datatype has everything required to place an ISCSI Snapshot Space order with SoftLayer.
-type Container_Product_Order_Network_Storage_Iscsi_SnapshotSpace struct {
-	Container_Product_Order
-
-	// the [[SoftLayer_Network_Storage_Iscsi_EqualLogic_Version3]] Id.
-	VolumeId *int `json:"volumeId,omitempty" xmlrpc:"volumeId,omitempty"`
 }
 
 // This datatype is to be used for mass data migration requests.

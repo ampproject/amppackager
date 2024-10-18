@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,7 +21,7 @@ const (
 	AuthBaseURL = "https://auth.mythic-beasts.com/login"
 )
 
-// Client the EasyDNS API client.
+// Client the Mythic Beasts API client.
 type Client struct {
 	username string
 	password string
@@ -134,7 +135,7 @@ func (c *Client) do(req *http.Request, result any) error {
 	if tok != nil {
 		req.Header.Set("Authorization", "Bearer "+tok.Token)
 	} else {
-		return fmt.Errorf("not logged in")
+		return errors.New("not logged in")
 	}
 
 	resp, err := c.HTTPClient.Do(req)

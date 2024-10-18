@@ -14,24 +14,32 @@ func (m *CreateTransferRequest) SetTargetId(v string) {
 	m.TargetId = v
 }
 
-func (m *CreateTransferRequest) SetName(v string) {
-	m.Name = v
-}
-
 func (m *CreateTransferRequest) SetDescription(v string) {
 	m.Description = v
-}
-
-func (m *CreateTransferRequest) SetLabels(v map[string]string) {
-	m.Labels = v
 }
 
 func (m *CreateTransferRequest) SetFolderId(v string) {
 	m.FolderId = v
 }
 
+func (m *CreateTransferRequest) SetRuntime(v *Runtime) {
+	m.Runtime = v
+}
+
 func (m *CreateTransferRequest) SetType(v TransferType) {
 	m.Type = v
+}
+
+func (m *CreateTransferRequest) SetName(v string) {
+	m.Name = v
+}
+
+func (m *CreateTransferRequest) SetLabels(v map[string]string) {
+	m.Labels = v
+}
+
+func (m *CreateTransferRequest) SetTransformation(v *Transformation) {
+	m.Transformation = v
 }
 
 func (m *CreateTransferMetadata) SetTransferId(v string) {
@@ -46,8 +54,8 @@ func (m *UpdateTransferRequest) SetDescription(v string) {
 	m.Description = v
 }
 
-func (m *UpdateTransferRequest) SetLabels(v map[string]string) {
-	m.Labels = v
+func (m *UpdateTransferRequest) SetRuntime(v *Runtime) {
+	m.Runtime = v
 }
 
 func (m *UpdateTransferRequest) SetName(v string) {
@@ -56,6 +64,14 @@ func (m *UpdateTransferRequest) SetName(v string) {
 
 func (m *UpdateTransferRequest) SetUpdateMask(v *fieldmaskpb.FieldMask) {
 	m.UpdateMask = v
+}
+
+func (m *UpdateTransferRequest) SetLabels(v map[string]string) {
+	m.Labels = v
+}
+
+func (m *UpdateTransferRequest) SetTransformation(v *Transformation) {
+	m.Transformation = v
 }
 
 func (m *UpdateTransferMetadata) SetTransferId(v string) {

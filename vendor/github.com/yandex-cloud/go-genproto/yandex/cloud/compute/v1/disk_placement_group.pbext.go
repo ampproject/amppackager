@@ -49,3 +49,13 @@ func (m *DiskPlacementGroup) SetSpreadPlacementStrategy(v *DiskSpreadPlacementSt
 		SpreadPlacementStrategy: v,
 	}
 }
+
+func (m *DiskPlacementGroup) SetPartitionPlacementStrategy(v *DiskPartitionPlacementStrategy) {
+	m.PlacementStrategy = &DiskPlacementGroup_PartitionPlacementStrategy{
+		PartitionPlacementStrategy: v,
+	}
+}
+
+func (m *DiskPartitionPlacementStrategy) SetPartitions(v int64) {
+	m.Partitions = v
+}

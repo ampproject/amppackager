@@ -29,3 +29,11 @@ func (m *Backup) SetSourceShardNames(v []string) {
 func (m *Backup) SetStartedAt(v *timestamppb.Timestamp) {
 	m.StartedAt = v
 }
+
+func (m *Backup) SetSize(v int64) {
+	m.Size = v
+}
+
+func (m *Backup) SetType(v Backup_BackupType) {
+	m.Type = v
+}

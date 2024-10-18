@@ -6,11 +6,11 @@ package iamkey
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	yaml2json "github.com/ghodss/yaml"
 	"google.golang.org/protobuf/encoding/protojson"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/iam/v1"
 	"github.com/yandex-cloud/go-sdk/pkg/sdkerrors"
@@ -109,7 +109,7 @@ func ReadFromJSONBytes(keyBytes []byte) (*Key, error) {
 
 // ReadFromJSONFile reads IAM Key from JSON file.
 func ReadFromJSONFile(path string) (*Key, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, sdkerrors.WithMessagef(err, "key file '%s' read fail", path)
 	}
@@ -123,7 +123,7 @@ func WriteToJSONFile(path string, key *Key) error {
 	if err != nil {
 		return sdkerrors.WithMessage(err, "key marshal fail")
 	}
-	err = ioutil.WriteFile(path, data, 0600)
+	err = os.WriteFile(path, data, 0600)
 	if err != nil {
 		return sdkerrors.WithMessagef(err, "file '%s' write fail", path)
 	}

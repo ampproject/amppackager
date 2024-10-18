@@ -132,6 +132,14 @@ func (m *UpdateClusterRequest) SetMaintenanceWindow(v *MaintenanceWindow) {
 	m.MaintenanceWindow = v
 }
 
+func (m *UpdateClusterRequest) SetNetworkId(v string) {
+	m.NetworkId = v
+}
+
+func (m *UpdateClusterRequest) SetSubnetIds(v []string) {
+	m.SubnetIds = v
+}
+
 func (m *UpdateClusterMetadata) SetClusterId(v string) {
 	m.ClusterId = v
 }

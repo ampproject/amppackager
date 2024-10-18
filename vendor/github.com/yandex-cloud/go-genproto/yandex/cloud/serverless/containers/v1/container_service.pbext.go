@@ -170,6 +170,22 @@ func (m *DeployContainerRevisionRequest) SetProvisionPolicy(v *ProvisionPolicy) 
 	m.ProvisionPolicy = v
 }
 
+func (m *DeployContainerRevisionRequest) SetScalingPolicy(v *ScalingPolicy) {
+	m.ScalingPolicy = v
+}
+
+func (m *DeployContainerRevisionRequest) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
+}
+
+func (m *DeployContainerRevisionRequest) SetStorageMounts(v []*StorageMount) {
+	m.StorageMounts = v
+}
+
+func (m *DeployContainerRevisionRequest) SetMounts(v []*Mount) {
+	m.Mounts = v
+}
+
 func (m *ImageSpec) SetImageUrl(v string) {
 	m.ImageUrl = v
 }

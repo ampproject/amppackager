@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // The SoftLayer_Dns_Domain data type represents a single DNS domain record hosted on the SoftLayer nameservers. Domains contain general information about the domain name such as name and serial. Individual records such as A, AAAA, CTYPE, and MX records are stored in the domain's associated [[SoftLayer_Dns_Domain_ResourceRecord (type)|SoftLayer_Dns_Domain_ResourceRecord]] records.
 type Dns_Domain struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetDnsDomainService returns an instance of the Dns_Domain SoftLayer service
-func GetDnsDomainService(sess *session.Session) Dns_Domain {
+func GetDnsDomainService(sess session.SLSession) Dns_Domain {
 	return Dns_Domain{Session: sess}
 }
 
@@ -248,348 +241,6 @@ func (r Dns_Domain) GetZoneFileContents() (resp string, err error) {
 	return
 }
 
-// The SoftLayer_Dns_Domain_Registration data type represents a domain registration record.
-type Dns_Domain_Registration struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetDnsDomainRegistrationService returns an instance of the Dns_Domain_Registration SoftLayer service
-func GetDnsDomainRegistrationService(sess *session.Session) Dns_Domain_Registration {
-	return Dns_Domain_Registration{Session: sess}
-}
-
-func (r Dns_Domain_Registration) Id(id int) Dns_Domain_Registration {
-	r.Options.Id = &id
-	return r
-}
-
-func (r Dns_Domain_Registration) Mask(mask string) Dns_Domain_Registration {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r Dns_Domain_Registration) Filter(filter string) Dns_Domain_Registration {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r Dns_Domain_Registration) Limit(limit int) Dns_Domain_Registration {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r Dns_Domain_Registration) Offset(offset int) Dns_Domain_Registration {
-	r.Options.Offset = &offset
-	return r
-}
-
-// The addNameserversToDomain method adds nameservers to a domain for a domain that already has nameservers assigned to it. This method does not create a nameserver; the nameserver must already exist.
-func (r Dns_Domain_Registration) AddNameserversToDomain(nameservers []string) (resp bool, err error) {
-	params := []interface{}{
-		nameservers,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "addNameserversToDomain", params, &r.Options, &resp)
-	return
-}
-
-// The deleteRegisteredNameserver method deletes a nameserver that was registered, provided it is not currently serving a domain
-func (r Dns_Domain_Registration) DeleteRegisteredNameserver(nameserver *string) (resp bool, err error) {
-	params := []interface{}{
-		nameserver,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "deleteRegisteredNameserver", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve The SoftLayer customer account that the domain is registered to.
-func (r Dns_Domain_Registration) GetAccount() (resp datatypes.Account, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getAccount", nil, &r.Options, &resp)
-	return
-}
-
-// The getAuthenticationCode method retrieves the authentication code for the domain.
-func (r Dns_Domain_Registration) GetAuthenticationCode() (resp string, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getAuthenticationCode", nil, &r.Options, &resp)
-	return
-}
-
-// The getDomainInformation method retrieves all the information for a domain.
-func (r Dns_Domain_Registration) GetDomainInformation() (resp datatypes.Container_Dns_Domain_Registration_Information, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getDomainInformation", nil, &r.Options, &resp)
-	return
-}
-
-// The getDomainNameservers method retrieve nameservers information for domain.
-func (r Dns_Domain_Registration) GetDomainNameservers() (resp []datatypes.Container_Dns_Domain_Registration_Nameserver, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getDomainNameservers", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The domain registration status.
-func (r Dns_Domain_Registration) GetDomainRegistrationStatus() (resp datatypes.Dns_Domain_Registration_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getDomainRegistrationStatus", nil, &r.Options, &resp)
-	return
-}
-
-// The getExtendedAttributes method determines if a country code top level domain requires extended attributes.
-func (r Dns_Domain_Registration) GetExtendedAttributes(domainName *string) (resp []datatypes.Container_Dns_Domain_Registration_ExtendedAttribute, err error) {
-	params := []interface{}{
-		domainName,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getExtendedAttributes", params, &r.Options, &resp)
-	return
-}
-
-// getObject retrieves the SoftLayer_Dns_Domain_Registration object whose ID number corresponds to the ID number of the init parameter passed to the SoftLayer_Dns_Domain_Registration service.
-func (r Dns_Domain_Registration) GetObject() (resp datatypes.Dns_Domain_Registration, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// The getRegisteredNameserver method retrieves registered nameservers.
-func (r Dns_Domain_Registration) GetRegisteredNameserver() (resp datatypes.Container_Dns_Domain_Registration_Nameserver, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getRegisteredNameserver", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The registrant verification status.
-func (r Dns_Domain_Registration) GetRegistrantVerificationStatus() (resp datatypes.Dns_Domain_Registration_Registrant_Verification_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getRegistrantVerificationStatus", nil, &r.Options, &resp)
-	return
-}
-
-// When a domain is registered or transferred, or when the registrant contact information is changed, the registrant must reply to an email requesting them to confirm that the submitted contact information is correct. This method returns the current state of the verification request.
-func (r Dns_Domain_Registration) GetRegistrantVerificationStatusDetail() (resp datatypes.Container_Dns_Domain_Registration_Registrant_Verification_StatusDetail, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getRegistrantVerificationStatusDetail", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve
-func (r Dns_Domain_Registration) GetServiceProvider() (resp datatypes.Service_Provider, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getServiceProvider", nil, &r.Options, &resp)
-	return
-}
-
-// The getTransferInformation method checks to see if the domain can be transferred and also can be used to check the status of the last transfer request.
-func (r Dns_Domain_Registration) GetTransferInformation(domainName *string) (resp datatypes.Container_Dns_Domain_Registration_Transfer_Information, err error) {
-	params := []interface{}{
-		domainName,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "getTransferInformation", params, &r.Options, &resp)
-	return
-}
-
-// The lockDomain method locks a domain to prevent unauthorized, unwanted or accidental changes to the domain name. When set, the following actions are prohibited:
-// * Transferring of the domain name
-// * Deletion of the domain name
-func (r Dns_Domain_Registration) LockDomain() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "lockDomain", nil, &r.Options, &resp)
-	return
-}
-
-// The lookupDomain method checks whether a specified domain name is available for registration in TLD's, and suggests other similar domain names, and checks whether they are available as well.
-func (r Dns_Domain_Registration) LookupDomain(domainName *string) (resp []datatypes.Container_Dns_Domain_Registration_Lookup, err error) {
-	params := []interface{}{
-		domainName,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "lookupDomain", params, &r.Options, &resp)
-	return
-}
-
-// The modifyContact method modifies contact information (admin, billing, owner, technical) for a domain.
-func (r Dns_Domain_Registration) ModifyContact(contact *datatypes.Container_Dns_Domain_Registration_Contact) (resp bool, err error) {
-	params := []interface{}{
-		contact,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "modifyContact", params, &r.Options, &resp)
-	return
-}
-
-// The modifyRegisteredNameserver method modifies a nameserver that was registered.
-func (r Dns_Domain_Registration) ModifyRegisteredNameserver(oldNameserver *string, newNameserver *string, ipAddress *string) (resp bool, err error) {
-	params := []interface{}{
-		oldNameserver,
-		newNameserver,
-		ipAddress,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "modifyRegisteredNameserver", params, &r.Options, &resp)
-	return
-}
-
-// The registerNameserver method creates a nameserver for the domain.
-func (r Dns_Domain_Registration) RegisterNameserver(nameserver *string, ipAddress *string) (resp bool, err error) {
-	params := []interface{}{
-		nameserver,
-		ipAddress,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "registerNameserver", params, &r.Options, &resp)
-	return
-}
-
-// The removeNameserversFromDomain method removes nameservers from a domain for a domain that already has nameservers assigned to it.
-func (r Dns_Domain_Registration) RemoveNameserversFromDomain(nameservers []string) (resp bool, err error) {
-	params := []interface{}{
-		nameservers,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "removeNameserversFromDomain", params, &r.Options, &resp)
-	return
-}
-
-// The sendAuthenticationCode method sends the authentication code to the administrative contact for the domain.
-func (r Dns_Domain_Registration) SendAuthenticationCode() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "sendAuthenticationCode", nil, &r.Options, &resp)
-	return
-}
-
-// When a domain is registered or transferred, or when the registrant contact information is changed, the registrant must reply to an email requesting them to confirm that the submitted contact information is correct. This method sends the verification email to the registrant.
-func (r Dns_Domain_Registration) SendRegistrantVerificationEmail() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "sendRegistrantVerificationEmail", nil, &r.Options, &resp)
-	return
-}
-
-// The sendTransferApprovalEmail method resends a transfer approval email message for a transfer that is in 'pending owner approval' state, to the admin contact listed for the domain at the time that the transfer request was submitted
-func (r Dns_Domain_Registration) SendTransferApprovalEmail() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "sendTransferApprovalEmail", nil, &r.Options, &resp)
-	return
-}
-
-// The setAuthenticationCode method sets the authentication code for the domain. The authentication code is a transfer key and provides an extra level of security, safeguarding domain names from unauthorized transfers.
-func (r Dns_Domain_Registration) SetAuthenticationCode(authenticationCode *string) (resp bool, err error) {
-	params := []interface{}{
-		authenticationCode,
-	}
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "setAuthenticationCode", params, &r.Options, &resp)
-	return
-}
-
-// The unlockDomain method unlocks a domain
-func (r Dns_Domain_Registration) UnlockDomain() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration", "unlockDomain", nil, &r.Options, &resp)
-	return
-}
-
-// SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status models the state of the registrant. Here are the following status codes:
-//
-// *”'Admin Reviewing”': The registrant data has been submitted and being reviewed by compliance team.
-// *”'Pending”': The verification process has been inititated, and verification email will be sent.
-// *”'Suspended”': The registrant has failed verification and the domain has been suspended.
-// *”'Verified”': The registrant has been validated.
-// *”'Verifying”': The verification process has been initiated and is waiting for registrant response.
-// *”'Unverified”': The verification process has not been inititated.
-type Dns_Domain_Registration_Registrant_Verification_Status struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetDnsDomainRegistrationRegistrantVerificationStatusService returns an instance of the Dns_Domain_Registration_Registrant_Verification_Status SoftLayer service
-func GetDnsDomainRegistrationRegistrantVerificationStatusService(sess *session.Session) Dns_Domain_Registration_Registrant_Verification_Status {
-	return Dns_Domain_Registration_Registrant_Verification_Status{Session: sess}
-}
-
-func (r Dns_Domain_Registration_Registrant_Verification_Status) Id(id int) Dns_Domain_Registration_Registrant_Verification_Status {
-	r.Options.Id = &id
-	return r
-}
-
-func (r Dns_Domain_Registration_Registrant_Verification_Status) Mask(mask string) Dns_Domain_Registration_Registrant_Verification_Status {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r Dns_Domain_Registration_Registrant_Verification_Status) Filter(filter string) Dns_Domain_Registration_Registrant_Verification_Status {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r Dns_Domain_Registration_Registrant_Verification_Status) Limit(limit int) Dns_Domain_Registration_Registrant_Verification_Status {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r Dns_Domain_Registration_Registrant_Verification_Status) Offset(offset int) Dns_Domain_Registration_Registrant_Verification_Status {
-	r.Options.Offset = &offset
-	return r
-}
-
-// no documentation yet
-func (r Dns_Domain_Registration_Registrant_Verification_Status) GetAllObjects() (resp []datatypes.Dns_Domain_Registration_Registrant_Verification_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status", "getAllObjects", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Dns_Domain_Registration_Registrant_Verification_Status) GetObject() (resp datatypes.Dns_Domain_Registration_Registrant_Verification_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// SoftLayer_Dns_Domain_Registration_Status models the state of domain name. Here are the following status codes:
-//
-// *”'Active”': This domain name is active.
-// *”'Pending Owner Approval”': Pending owner approval for completion of transfer.
-// *”'Pending Admin Review”': Pending admin review for transfer.
-// *”'Pending Registry”': Pending registry for transfer.
-// *”'Expired”': Domain name has expired.
-type Dns_Domain_Registration_Status struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetDnsDomainRegistrationStatusService returns an instance of the Dns_Domain_Registration_Status SoftLayer service
-func GetDnsDomainRegistrationStatusService(sess *session.Session) Dns_Domain_Registration_Status {
-	return Dns_Domain_Registration_Status{Session: sess}
-}
-
-func (r Dns_Domain_Registration_Status) Id(id int) Dns_Domain_Registration_Status {
-	r.Options.Id = &id
-	return r
-}
-
-func (r Dns_Domain_Registration_Status) Mask(mask string) Dns_Domain_Registration_Status {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r Dns_Domain_Registration_Status) Filter(filter string) Dns_Domain_Registration_Status {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r Dns_Domain_Registration_Status) Limit(limit int) Dns_Domain_Registration_Status {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r Dns_Domain_Registration_Status) Offset(offset int) Dns_Domain_Registration_Status {
-	r.Options.Offset = &offset
-	return r
-}
-
-// no documentation yet
-func (r Dns_Domain_Registration_Status) GetAllObjects() (resp []datatypes.Dns_Domain_Registration_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration_Status", "getAllObjects", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Dns_Domain_Registration_Status) GetObject() (resp datatypes.Dns_Domain_Registration_Status, err error) {
-	err = r.Session.DoRequest("SoftLayer_Dns_Domain_Registration_Status", "getObject", nil, &r.Options, &resp)
-	return
-}
-
 // The SoftLayer_Dns_Domain_ResourceRecord data type represents a single resource record entry in a SoftLayer hosted domain. Each resource record contains a ”host” and ”data” property, defining a resource's name and it's target data. Domains contain multiple types of resource records. The ”type” property separates out resource records by type. ”Type” can take one of the following values:
 // * ”'"a"”' for [[SoftLayer_Dns_Domain_ResourceRecord_AType|address]] records
 // * ”'"aaaa"”' for [[SoftLayer_Dns_Domain_ResourceRecord_AaaaType|address]] records
@@ -604,12 +255,12 @@ func (r Dns_Domain_Registration_Status) GetObject() (resp datatypes.Dns_Domain_R
 //
 // As ”SoftLayer_Dns_Domain_ResourceRecord” objects are created and loaded, the API verifies the ”type” property and casts the object as the appropriate type.
 type Dns_Domain_ResourceRecord struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetDnsDomainResourceRecordService returns an instance of the Dns_Domain_ResourceRecord SoftLayer service
-func GetDnsDomainResourceRecordService(sess *session.Session) Dns_Domain_ResourceRecord {
+func GetDnsDomainResourceRecordService(sess session.SLSession) Dns_Domain_ResourceRecord {
 	return Dns_Domain_ResourceRecord{Session: sess}
 }
 
@@ -723,12 +374,12 @@ func (r Dns_Domain_ResourceRecord) GetObject() (resp datatypes.Dns_Domain_Resour
 //
 // MX records must be defined for hosts with accompanying A or AAAA resource records. They may not point mail towards a host defined by a CNAME record.
 type Dns_Domain_ResourceRecord_MxType struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetDnsDomainResourceRecordMxTypeService returns an instance of the Dns_Domain_ResourceRecord_MxType SoftLayer service
-func GetDnsDomainResourceRecordMxTypeService(sess *session.Session) Dns_Domain_ResourceRecord_MxType {
+func GetDnsDomainResourceRecordMxTypeService(sess session.SLSession) Dns_Domain_ResourceRecord_MxType {
 	return Dns_Domain_ResourceRecord_MxType{Session: sess}
 }
 
@@ -836,12 +487,12 @@ func (r Dns_Domain_ResourceRecord_MxType) GetObject() (resp datatypes.Dns_Domain
 
 // SoftLayer_Dns_Domain_ResourceRecord_SrvType is a SoftLayer_Dns_Domain_ResourceRecord object whose ”type” property is set to "srv" and defines a DNS SRV record on a SoftLayer hosted domain.
 type Dns_Domain_ResourceRecord_SrvType struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetDnsDomainResourceRecordSrvTypeService returns an instance of the Dns_Domain_ResourceRecord_SrvType SoftLayer service
-func GetDnsDomainResourceRecordSrvTypeService(sess *session.Session) Dns_Domain_ResourceRecord_SrvType {
+func GetDnsDomainResourceRecordSrvTypeService(sess session.SLSession) Dns_Domain_ResourceRecord_SrvType {
 	return Dns_Domain_ResourceRecord_SrvType{Session: sess}
 }
 
@@ -949,12 +600,12 @@ func (r Dns_Domain_ResourceRecord_SrvType) GetObject() (resp datatypes.Dns_Domai
 
 // The SoftLayer_Dns_Secondary data type contains information on a single secondary DNS zone which is managed through SoftLayer's zone transfer service. Domains created via zone transfer may not be modified by the SoftLayer portal or API.
 type Dns_Secondary struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetDnsSecondaryService returns an instance of the Dns_Secondary SoftLayer service
-func GetDnsSecondaryService(sess *session.Session) Dns_Secondary {
+func GetDnsSecondaryService(sess session.SLSession) Dns_Secondary {
 	return Dns_Secondary{Session: sess}
 }
 

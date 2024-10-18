@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
-	"github.com/simplesurance/bunny-go"
+	"github.com/nrdcg/bunny-go"
 )
 
 const minTTL = 60
@@ -91,9 +91,9 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := getZone(info.EffectiveFQDN)
+	authZone, err := getZoneName(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("bunny: failed to find zone: fqdn=%s: %w", info.EffectiveFQDN, err)
+		return fmt.Errorf("bunny: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
@@ -126,9 +126,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := getZone(info.EffectiveFQDN)
+	authZone, err := getZoneName(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("bunny:  failed to find zone: fqdn=%s: %w", info.EffectiveFQDN, err)
+		return fmt.Errorf("bunny: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
@@ -184,7 +184,7 @@ func (d *DNSProvider) findZone(ctx context.Context, authZone string) (*bunny.DNS
 	return zone, nil
 }
 
-func getZone(fqdn string) (string, error) {
+func getZoneName(fqdn string) (string, error) {
 	authZone, err := dns01.FindZoneByFqdn(fqdn)
 	if err != nil {
 		return "", err

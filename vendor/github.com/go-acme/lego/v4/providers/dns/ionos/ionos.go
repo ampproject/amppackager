@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -112,14 +113,15 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 		return fmt.Errorf("ionos: failed to get zones: %w", err)
 	}
 
-	// TODO(ldez) replace domain by FQDN to follow CNAME.
-	zone := findZone(zones, domain)
+	name := dns01.UnFqdn(info.EffectiveFQDN)
+
+	zone := findZone(zones, name)
 	if zone == nil {
 		return errors.New("ionos: no matching zone found for domain")
 	}
 
 	filter := &internal.RecordsFilter{
-		Suffix:     dns01.UnFqdn(info.EffectiveFQDN),
+		Suffix:     name,
 		RecordType: "TXT",
 	}
 
@@ -129,7 +131,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 	}
 
 	records = append(records, internal.Record{
-		Name:    dns01.UnFqdn(info.EffectiveFQDN),
+		Name:    name,
 		Content: info.Value,
 		TTL:     d.config.TTL,
 		Type:    "TXT",
@@ -154,14 +156,15 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		return fmt.Errorf("ionos: failed to get zones: %w", err)
 	}
 
-	// TODO(ldez) replace domain by FQDN to follow CNAME.
-	zone := findZone(zones, domain)
+	name := dns01.UnFqdn(info.EffectiveFQDN)
+
+	zone := findZone(zones, name)
 	if zone == nil {
 		return errors.New("ionos: no matching zone found for domain")
 	}
 
 	filter := &internal.RecordsFilter{
-		Suffix:     dns01.UnFqdn(info.EffectiveFQDN),
+		Suffix:     name,
 		RecordType: "TXT",
 	}
 
@@ -171,8 +174,8 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 	}
 
 	for _, record := range records {
-		if record.Name == dns01.UnFqdn(info.EffectiveFQDN) && record.Content == info.Value {
-			err := d.client.RemoveRecord(ctx, zone.ID, record.ID)
+		if record.Name == name && record.Content == strconv.Quote(info.Value) {
+			err = d.client.RemoveRecord(ctx, zone.ID, record.ID)
 			if err != nil {
 				return fmt.Errorf("ionos: failed to remove record (zone=%s, record=%s): %w", zone.ID, record.ID, err)
 			}
@@ -180,14 +183,13 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 		}
 	}
 
-	return nil
+	return fmt.Errorf("ionos: failed to remove record, record not found (zone=%s, domain=%s, fqdn=%s, value=%s)", zone.ID, domain, info.EffectiveFQDN, info.Value)
 }
 
 func findZone(zones []internal.Zone, domain string) *internal.Zone {
 	var result *internal.Zone
 
 	for _, zone := range zones {
-		zone := zone
 		if zone.Name != "" && strings.HasSuffix(domain, zone.Name) {
 			if result == nil || len(zone.Name) > len(result.Name) {
 				result = &zone

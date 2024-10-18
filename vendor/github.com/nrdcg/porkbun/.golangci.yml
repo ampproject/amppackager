@@ -1,7 +1,5 @@
 run:
-  deadline: 5m
-  skip-files: [ ]
-  skip-dirs: [ ]
+  timeout: 5m
 
 linters-settings:
   govet:
@@ -10,8 +8,6 @@ linters-settings:
       - fieldalignment
   gocyclo:
     min-complexity: 15
-  maligned:
-    suggest-new: true
   goconst:
     min-len: 5
     min-occurrences: 3
@@ -26,11 +22,13 @@ linters-settings:
   gofumpt:
     extra-rules: true
   depguard:
-    list-type: blacklist
-    include-go-root: false
-    packages:
-      - github.com/sirupsen/logrus
-      - github.com/pkg/errors
+    rules:
+      main:
+        deny:
+          - pkg: "github.com/instana/testify"
+            desc: not allowed
+          - pkg: "github.com/pkg/errors"
+            desc: Should be replaced by standard lib errors package
   gocritic:
     enabled-tags:
       - diagnostic
@@ -46,26 +44,17 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - deadcode # deprecated
-    - exhaustivestruct # deprecated
-    - golint # deprecated
-    - ifshort # deprecated
-    - interfacer # deprecated
-    - maligned # deprecated
-    - nosnakecase # deprecated
-    - scopelint # deprecated
-    - structcheck # deprecated
-    - varcheck # deprecated
+    - execinquery # deprecated
     - sqlclosecheck # not relevant (SQL)
     - rowserrcheck # not relevant (SQL)
-    - execinquery # not relevant (SQL)
     - cyclop # duplicate of gocyclo
     - lll
     - dupl
     - wsl
     - nlreturn
     - gomnd
-    - goerr113
+    - mnd
+    - err113
     - wrapcheck
     - exhaustive
     - exhaustruct
@@ -73,14 +62,13 @@ linters:
     - tparallel
     - paralleltest
     - prealloc
-    - ifshort
     - forcetypeassert
     - bodyclose # Too many false positives: https://github.com/timakin/bodyclose/issues/30
     - varnamelen
 
 issues:
   exclude-use-default: false
-  max-per-linter: 0
+  max-issues-per-linter: 0
   max-same-issues: 0
   exclude:
     - 'ST1000: at least one file in a package should have a package comment'
@@ -92,3 +80,6 @@ issues:
         - funlen
     - path: types.go
       text: 'the type name `Status` should conform to the `XxxError` format'
+
+output:
+  show-stats: true

@@ -1,0 +1,105 @@
+run:
+  timeout: 5m
+  skip-files: [ 'client_secret_test.go' ]
+  skip-dirs: [ ]
+
+linters-settings:
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+  gocyclo:
+    min-complexity: 15
+  maligned:
+    suggest-new: true
+  goconst:
+    min-len: 5
+    min-occurrences: 3
+  misspell:
+    locale: US
+  funlen:
+    lines: -1
+    statements: 40
+  godox:
+    keywords:
+      - FIXME
+  gofumpt:
+    extra-rules: true
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: "github.com/instana/testify"
+            desc: not allowed
+          - pkg: "github.com/pkg/errors"
+            desc: Should be replaced by standard lib errors package
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+    disabled-checks:
+      - sloppyReassign
+      - rangeValCopy
+      - octalLiteral
+      - paramTypeCombine # already handle by gofumpt.extra-rules
+    settings:
+      hugeParam:
+        sizeThreshold: 120
+  tagliatelle:
+    case:
+      rules:
+        json: snake
+
+linters:
+  enable-all: true
+  disable:
+    - deadcode # deprecated
+    - exhaustivestruct # deprecated
+    - golint # deprecated
+    - ifshort # deprecated
+    - interfacer # deprecated
+    - maligned # deprecated
+    - nosnakecase # deprecated
+    - scopelint # deprecated
+    - structcheck # deprecated
+    - varcheck # deprecated
+    - sqlclosecheck # not relevant (SQL)
+    - rowserrcheck # not relevant (SQL)
+    - execinquery # not relevant (SQL)
+    - cyclop # duplicate of gocyclo
+    - lll
+    - dupl
+    - wsl
+    - nlreturn
+    - gomnd
+    - goerr113
+    - wrapcheck
+    - exhaustive
+    - exhaustruct
+    - testpackage
+    - tparallel
+    - paralleltest
+    - prealloc
+    - ifshort
+    - forcetypeassert
+    - nilnil
+    - varnamelen
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude:
+    - 'ST1000: at least one file in a package should have a package comment'
+    - 'package-comments: should have a package comment'
+    - 'fmt.Sprintf can be replaced with string addition'
+  exclude-rules:
+    - path: .*_test.go
+      linters:
+        - funlen
+        - gosec
+    - path: mailinabox_test.go
+      linters:
+        - unparam
+      text: "testHandler` - `statusCode` always receives `http.StatusOK` \\(`200`\\)"

@@ -10,12 +10,12 @@ func (m *OnPremiseMongo) SetPort(v int64) {
 	m.Port = v
 }
 
-func (m *OnPremiseMongo) SetTlsMode(v *TLSMode) {
-	m.TlsMode = v
-}
-
 func (m *OnPremiseMongo) SetReplicaSet(v string) {
 	m.ReplicaSet = v
+}
+
+func (m *OnPremiseMongo) SetTlsMode(v *TLSMode) {
+	m.TlsMode = v
 }
 
 type MongoConnectionOptions_Address = isMongoConnectionOptions_Address
@@ -76,10 +76,6 @@ func (m *MongoSource) SetSubnetId(v string) {
 	m.SubnetId = v
 }
 
-func (m *MongoSource) SetSecurityGroups(v []string) {
-	m.SecurityGroups = v
-}
-
 func (m *MongoSource) SetCollections(v []*MongoCollection) {
 	m.Collections = v
 }
@@ -92,16 +88,12 @@ func (m *MongoSource) SetSecondaryPreferredMode(v bool) {
 	m.SecondaryPreferredMode = v
 }
 
+func (m *MongoSource) SetSecurityGroups(v []string) {
+	m.SecurityGroups = v
+}
+
 func (m *MongoTarget) SetConnection(v *MongoConnection) {
 	m.Connection = v
-}
-
-func (m *MongoTarget) SetSubnetId(v string) {
-	m.SubnetId = v
-}
-
-func (m *MongoTarget) SetSecurityGroups(v []string) {
-	m.SecurityGroups = v
 }
 
 func (m *MongoTarget) SetDatabase(v string) {
@@ -110,4 +102,12 @@ func (m *MongoTarget) SetDatabase(v string) {
 
 func (m *MongoTarget) SetCleanupPolicy(v CleanupPolicy) {
 	m.CleanupPolicy = v
+}
+
+func (m *MongoTarget) SetSubnetId(v string) {
+	m.SubnetId = v
+}
+
+func (m *MongoTarget) SetSecurityGroups(v []string) {
+	m.SecurityGroups = v
 }

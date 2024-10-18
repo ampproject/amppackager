@@ -62,6 +62,10 @@ func (m *CreateResourceRequest) SetSslCertificate(v *SSLTargetCertificate) {
 	m.SslCertificate = v
 }
 
+func (m *CreateResourceRequest) SetLabels(v map[string]string) {
+	m.Labels = v
+}
+
 type CreateResourceRequest_Origin_OriginVariant = isCreateResourceRequest_Origin_OriginVariant
 
 func (m *CreateResourceRequest_Origin) SetOriginVariant(v CreateResourceRequest_Origin_OriginVariant) {
@@ -124,6 +128,10 @@ func (m *UpdateResourceRequest) SetActive(v *wrapperspb.BoolValue) {
 
 func (m *UpdateResourceRequest) SetSslCertificate(v *SSLTargetCertificate) {
 	m.SslCertificate = v
+}
+
+func (m *UpdateResourceRequest) SetLabels(v map[string]string) {
+	m.Labels = v
 }
 
 func (m *UpdateResourceMetadata) SetResourceId(v string) {

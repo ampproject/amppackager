@@ -22,16 +22,22 @@ import (
 	_ "github.com/yandex-cloud/go-genproto/yandex/cloud/quota" // Used in Operation.error.details
 	"github.com/yandex-cloud/go-sdk/dial"
 	apiendpoint "github.com/yandex-cloud/go-sdk/gen/apiendpoint"
+	"github.com/yandex-cloud/go-sdk/gen/audittrails"
+	"github.com/yandex-cloud/go-sdk/gen/backup"
 	"github.com/yandex-cloud/go-sdk/gen/compute"
 	"github.com/yandex-cloud/go-sdk/gen/dns"
 	"github.com/yandex-cloud/go-sdk/gen/iam"
+	"github.com/yandex-cloud/go-sdk/gen/iam/workload"
+	"github.com/yandex-cloud/go-sdk/gen/iam/workload/oidc"
 	k8s "github.com/yandex-cloud/go-sdk/gen/kubernetes"
+	"github.com/yandex-cloud/go-sdk/gen/monitoring"
 	gen_operation "github.com/yandex-cloud/go-sdk/gen/operation"
 	"github.com/yandex-cloud/go-sdk/gen/organizationmanager"
 	organizationmanagersaml "github.com/yandex-cloud/go-sdk/gen/organizationmanager/saml"
 	"github.com/yandex-cloud/go-sdk/gen/resourcemanager"
 	"github.com/yandex-cloud/go-sdk/gen/storage-api"
 	"github.com/yandex-cloud/go-sdk/gen/vpc"
+	"github.com/yandex-cloud/go-sdk/gen/vpc/privatelink"
 	"github.com/yandex-cloud/go-sdk/gen/ydb"
 	sdk_operation "github.com/yandex-cloud/go-sdk/operation"
 	"github.com/yandex-cloud/go-sdk/pkg/grpcclient"
@@ -51,14 +57,17 @@ const (
 	ResourceManagementServiceID     Endpoint = "resource-manager"
 	StorageServiceID                Endpoint = "storage"
 	StorageAPIServiceID             Endpoint = "storage-api"
+	MonitoringServiceID             Endpoint = "monitoring"
 	SerialSSHServiceID              Endpoint = "serialssh"
 	// revive:disable:var-naming
 	ApiEndpointServiceID Endpoint = "endpoint"
 	// revive:enable:var-naming
-	VpcServiceID        Endpoint = "vpc"
-	KubernetesServiceID Endpoint = "managed-kubernetes"
-	DNSServiceID        Endpoint = "dns"
-	YDBServiceID        Endpoint = "ydb"
+	VpcServiceID         Endpoint = "vpc"
+	KubernetesServiceID  Endpoint = "managed-kubernetes"
+	DNSServiceID         Endpoint = "dns"
+	YDBServiceID         Endpoint = "ydb"
+	BackupServiceID      Endpoint = "backup"
+	AuditTrailsServiceID Endpoint = "audittrails"
 )
 
 // Config is a config that is used to create SDK instance.
@@ -166,6 +175,14 @@ func (sdk *SDK) IAM() *iam.IAM {
 	return iam.NewIAM(sdk.getConn(IAMServiceID))
 }
 
+func (sdk *SDK) Workload() *workload.Workload {
+	return workload.NewWorkload(sdk.getConn(IAMServiceID))
+}
+
+func (sdk *SDK) WorkloadOidc() *oidc.WorkloadOidc {
+	return oidc.NewWorkloadOidc(sdk.getConn(IAMServiceID))
+}
+
 // Compute returns Compute object that is used to operate on Yandex Compute Cloud
 func (sdk *SDK) Compute() *compute.Compute {
 	return compute.NewCompute(sdk.getConn(ComputeServiceID))
@@ -174,6 +191,11 @@ func (sdk *SDK) Compute() *compute.Compute {
 // VPC returns VPC object that is used to operate on Yandex Virtual Private Cloud
 func (sdk *SDK) VPC() *vpc.VPC {
 	return vpc.NewVPC(sdk.getConn(VpcServiceID))
+}
+
+// VPCPrivateLink returns PrivateLink object that is used to operate on Yandex Virtual Private Cloud Private Endpoints
+func (sdk *SDK) VPCPrivateLink() *privatelink.PrivateLink {
+	return privatelink.NewPrivateLink(sdk.getConn(VpcServiceID))
 }
 
 // MDB returns MDB object that is used to operate on Yandex Managed Databases
@@ -197,6 +219,21 @@ func (sdk *SDK) Operation() *gen_operation.OperationServiceClient {
 
 func (sdk *SDK) OrganizationManager() *organizationmanager.OrganizationManager {
 	return organizationmanager.NewOrganizationManager(sdk.getConn(OrganizationManagementServiceID))
+}
+
+func (sdk *SDK) OSLoginServiceClient() *organizationmanager.OsLoginServiceClient {
+	manager := sdk.OrganizationManager()
+	return manager.OsLogin()
+}
+
+func (sdk *SDK) UserSSHKeyServiceClient() *organizationmanager.UserSshKeyServiceClient {
+	manager := sdk.OrganizationManager()
+	return manager.UserSshKey()
+}
+
+func (sdk *SDK) GroupMappingServiceClient() *organizationmanager.GroupMappingServiceClient {
+	manager := sdk.OrganizationManager()
+	return manager.GroupMapping()
 }
 
 func (sdk *SDK) OrganizationManagerSAML() *organizationmanagersaml.OrganizationManagerSAML {
@@ -377,4 +414,19 @@ var now = time.Now
 // StorageAPI returns storage object for operating with Object Storage service.
 func (sdk *SDK) StorageAPI() *storage.StorageAPI {
 	return storage.NewStorageAPI(sdk.getConn(StorageAPIServiceID))
+}
+
+// Monitoring returns object for operating with Monitoring service.
+func (sdk *SDK) Monitoring() *monitoring.Monitoring {
+	return monitoring.NewMonitoring(sdk.getConn(MonitoringServiceID))
+}
+
+// Backup returns backup for operating with Backup service.
+func (sdk *SDK) Backup() *backup.Backup {
+	return backup.NewBackup(sdk.getConn(BackupServiceID))
+}
+
+// AuditTrails returns object for operating with Audit Trails service.
+func (sdk *SDK) AuditTrails() *audittrails.AuditTrails {
+	return audittrails.NewAuditTrails(sdk.getConn(AuditTrailsServiceID))
 }

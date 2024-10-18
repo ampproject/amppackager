@@ -2,10 +2,11 @@ package cloudflare
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/goccy/go-json"
 )
 
 type TeamsRuleSettings struct {
@@ -48,6 +49,9 @@ type TeamsRuleSettings struct {
 	// Turns on ip category based filter on dns if the rule contains dns category checks
 	IPCategories bool `json:"ip_categories"`
 
+	// Turns on for explicitly ignoring cname domain category matches
+	IgnoreCNAMECategoryMatches *bool `json:"ignore_cname_category_matches"`
+
 	// Allow parent MSP accounts to enable bypass their children's rules. Do not set them for non MSP accounts.
 	AllowChildBypass *bool `json:"allow_child_bypass,omitempty"`
 
@@ -56,6 +60,14 @@ type TeamsRuleSettings struct {
 
 	// Action taken when an untrusted origin certificate error occurs in a http allow rule
 	UntrustedCertSettings *UntrustedCertSettings `json:"untrusted_cert"`
+
+	// Specifies that a resolver policy should use Cloudflare's DNS Resolver.
+	ResolveDnsThroughCloudflare *bool `json:"resolve_dns_through_cloudflare,omitempty"`
+
+	// Resolver policy settings.
+	DnsResolverSettings *TeamsDnsResolverSettings `json:"dns_resolvers,omitempty"`
+
+	NotificationSettings *TeamsNotificationSettings `json:"notification_settings"`
 }
 
 type TeamsGatewayUntrustedCertAction string
@@ -68,6 +80,12 @@ const (
 
 type UntrustedCertSettings struct {
 	Action TeamsGatewayUntrustedCertAction `json:"action"`
+}
+
+type TeamsNotificationSettings struct {
+	Enabled    *bool  `json:"enabled,omitempty"`
+	Message    string `json:"msg"`
+	SupportURL string `json:"support_url"`
 }
 
 type AuditSSHRuleSettings struct {
@@ -100,6 +118,28 @@ type TeamsCheckSessionSettings struct {
 	Duration Duration `json:"duration"`
 }
 
+type (
+	TeamsDnsResolverSettings struct {
+		V4Resolvers []TeamsDnsResolverAddressV4 `json:"ipv4,omitempty"`
+		V6Resolvers []TeamsDnsResolverAddressV6 `json:"ipv6,omitempty"`
+	}
+
+	TeamsDnsResolverAddressV4 struct {
+		TeamsDnsResolverAddress
+	}
+
+	TeamsDnsResolverAddressV6 struct {
+		TeamsDnsResolverAddress
+	}
+
+	TeamsDnsResolverAddress struct {
+		IP                         string `json:"ip"`
+		Port                       *int   `json:"port,omitempty"`
+		VnetID                     string `json:"vnet_id,omitempty"`
+		RouteThroughPrivateNetwork *bool  `json:"route_through_private_network,omitempty"`
+	}
+)
+
 type TeamsDlpPayloadLogSettings struct {
 	Enabled bool `json:"enabled"`
 }
@@ -109,10 +149,11 @@ type TeamsFilterType string
 type TeamsGatewayAction string
 
 const (
-	HttpFilter   TeamsFilterType = "http"
-	DnsFilter    TeamsFilterType = "dns"
-	L4Filter     TeamsFilterType = "l4"
-	EgressFilter TeamsFilterType = "egress"
+	HttpFilter        TeamsFilterType = "http"
+	DnsFilter         TeamsFilterType = "dns"
+	L4Filter          TeamsFilterType = "l4"
+	EgressFilter      TeamsFilterType = "egress"
+	DnsResolverFilter TeamsFilterType = "dns_resolver"
 )
 
 const (
@@ -130,6 +171,7 @@ const (
 	L4Override   TeamsGatewayAction = "l4_override"  // l4
 	Egress       TeamsGatewayAction = "egress"       // egress
 	AuditSSH     TeamsGatewayAction = "audit_ssh"    // l4
+	Resolve      TeamsGatewayAction = "resolve"      // resolve
 )
 
 func TeamsRulesActionValues() []string {
@@ -148,6 +190,7 @@ func TeamsRulesActionValues() []string {
 		string(L4Override),
 		string(Egress),
 		string(AuditSSH),
+		string(Resolve),
 	}
 }
 

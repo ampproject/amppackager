@@ -23,6 +23,7 @@ type ServerPlan struct {
 	CPU          int                 `json:",omitempty" yaml:"cpu,omitempty" structs:",omitempty"`
 	MemoryMB     int                 `json:",omitempty" yaml:"memory_mb,omitempty" structs:",omitempty"`
 	GPU          int                 `json:",omitempty" yaml:"gpu,omitempty" structs:",omitempty"`
+	CPUModel     string              `json:",omitempty" yaml:"cpu_model,omitempty" structs:",omitempty"`
 	Commitment   types.ECommitment   `json:",omitempty" yaml:"commitment,omitempty" structs:",omitempty"`
 	Generation   int                 `json:",omitempty" yaml:"generation,omitempty" structs:",omitempty"`
 	ServiceClass string              `json:",omitempty" yaml:"service_class,omitempty" structs:",omitempty"`

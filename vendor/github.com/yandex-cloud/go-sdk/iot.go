@@ -5,14 +5,16 @@ package ycsdk
 
 import (
 	"github.com/yandex-cloud/go-sdk/gen/iot/broker"
+	brokerdata "github.com/yandex-cloud/go-sdk/gen/iot/brokerdata"
 	data "github.com/yandex-cloud/go-sdk/gen/iot/data"
 	"github.com/yandex-cloud/go-sdk/gen/iot/devices"
 )
 
 const (
-	IoTDevicesServiceID Endpoint = "iot-devices"
-	IoTDataServiceID    Endpoint = "iot-data"
-	IoTBrokerServiceID  Endpoint = "iot-broker"
+	IoTDevicesServiceID    Endpoint = "iot-devices"
+	IoTDataServiceID       Endpoint = "iot-data"
+	IoTBrokerServiceID     Endpoint = "iot-broker"
+	IoTBrokerDataServiceID Endpoint = "broker-data"
 )
 
 func (sdk *SDK) IoT() *IoT {
@@ -33,4 +35,8 @@ func (m *IoT) Data() *data.Data {
 
 func (m *IoT) Broker() *broker.Broker {
 	return broker.NewBroker(m.sdk.getConn(IoTBrokerServiceID))
+}
+
+func (m *IoT) BrokerData() *brokerdata.BrokerData {
+	return brokerdata.NewBrokerData(m.sdk.getConn(IoTBrokerDataServiceID))
 }

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	clientVersion = "2.7.6"
+	clientVersion = "2.12.0"
 
 	defaultEndpoint               = "https://api.nsone.net/v1/"
 	defaultShouldFollowPagination = true
@@ -54,36 +54,37 @@ type Client struct {
 	// Whether the client should handle paginated responses automatically.
 	FollowPagination bool
 
-	// Enables permissions compatibility with the DDI API.
-	DDI bool
-
 	// From the excellent github-go client.
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
 
 	// Services used for communicating with different components of the NS1 API.
-	APIKeys       *APIKeysService
-	DataFeeds     *DataFeedsService
-	DataSources   *DataSourcesService
-	Jobs          *JobsService
-	PulsarJobs    *PulsarJobsService
-	Notifications *NotificationsService
-	Records       *RecordsService
-	Applications  *ApplicationsService
-	Settings      *SettingsService
-	Stats         *StatsService
-	Teams         *TeamsService
-	Users         *UsersService
-	Warnings      *WarningsService
-	Zones         *ZonesService
-	DNSSEC        *DNSSECService
-	IPAM          *IPAMService
-	ScopeGroup    *ScopeGroupService
-	Scope         *ScopeService
-	Reservation   *ReservationService
-	OptionDef     *OptionDefService
-	TSIG          *TsigService
-	View          *DNSViewService
-	Network       *NetworkService
+	APIKeys              *APIKeysService
+	DataFeeds            *DataFeedsService
+	DataSources          *DataSourcesService
+	Jobs                 *JobsService
+	MonitorRegions       *MonitorRegionsService
+	PulsarJobs           *PulsarJobsService
+	Notifications        *NotificationsService
+	Records              *RecordsService
+	Applications         *ApplicationsService
+	RecordSearch         *RecordSearchService
+	ZoneSearch           *ZoneSearchService
+	Settings             *SettingsService
+	Stats                *StatsService
+	Teams                *TeamsService
+	Users                *UsersService
+	Warnings             *WarningsService
+	Zones                *ZonesService
+	Versions             *VersionsService
+	DNSSEC               *DNSSECService
+	TSIG                 *TsigService
+	View                 *DNSViewService
+	Network              *NetworkService
+	GlobalIPWhitelist    *GlobalIPWhitelistService
+	Datasets             *DatasetsService
+	Activity             *ActivityService
+	Redirects            *RedirectService
+	RedirectCertificates *RedirectCertificateService
 }
 
 // NewClient constructs and returns a reference to an instantiated Client.
@@ -107,25 +108,29 @@ func NewClient(httpClient Doer, options ...func(*Client)) *Client {
 	c.DataFeeds = (*DataFeedsService)(&c.common)
 	c.DataSources = (*DataSourcesService)(&c.common)
 	c.Jobs = (*JobsService)(&c.common)
+	c.MonitorRegions = (*MonitorRegionsService)(&c.common)
 	c.PulsarJobs = (*PulsarJobsService)(&c.common)
 	c.Notifications = (*NotificationsService)(&c.common)
 	c.Records = (*RecordsService)(&c.common)
 	c.Applications = (*ApplicationsService)(&c.common)
+	c.RecordSearch = (*RecordSearchService)(&c.common)
+	c.ZoneSearch = (*ZoneSearchService)(&c.common)
 	c.Settings = (*SettingsService)(&c.common)
 	c.Stats = (*StatsService)(&c.common)
 	c.Teams = (*TeamsService)(&c.common)
 	c.Users = (*UsersService)(&c.common)
 	c.Warnings = (*WarningsService)(&c.common)
 	c.Zones = (*ZonesService)(&c.common)
+	c.Versions = (*VersionsService)(&c.common)
 	c.DNSSEC = (*DNSSECService)(&c.common)
-	c.IPAM = (*IPAMService)(&c.common)
-	c.ScopeGroup = (*ScopeGroupService)(&c.common)
-	c.Scope = (*ScopeService)(&c.common)
-	c.Reservation = (*ReservationService)(&c.common)
-	c.OptionDef = (*OptionDefService)(&c.common)
 	c.TSIG = (*TsigService)(&c.common)
 	c.View = (*DNSViewService)(&c.common)
 	c.Network = (*NetworkService)(&c.common)
+	c.GlobalIPWhitelist = (*GlobalIPWhitelistService)(&c.common)
+	c.Datasets = (*DatasetsService)(&c.common)
+	c.Activity = (*ActivityService)(&c.common)
+	c.Redirects = (*RedirectService)(&c.common)
+	c.RedirectCertificates = (*RedirectCertificateService)(&c.common)
 
 	for _, option := range options {
 		option(c)
@@ -167,15 +172,22 @@ func SetFollowPagination(shouldFollow bool) func(*Client) {
 	return func(c *Client) { c.FollowPagination = shouldFollow }
 }
 
-// SetDDIAPI configures the client to use permissions compatible with the DDI API.
-func SetDDIAPI() func(*Client) {
-	return func(c *Client) { c.DDI = true }
+// Param is a container struct which holds a `Key` and `Value` field corresponding to the values of a URL parameter.
+type Param struct {
+	Key, Value string
 }
 
 // Do satisfies the Doer interface. resp will be nil if a non-HTTP error
 // occurs, otherwise it is available for inspection when the error reflects a
-// non-2XX response.
-func (c Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
+// non-2XX response. It accepts a variadic number of optional URL parameters to
+// supply to the request. URL parameters are of type `rest.Param`.
+func (c Client) Do(req *http.Request, v interface{}, params ...Param) (*http.Response, error) {
+	q := req.URL.Query()
+	for _, p := range params {
+		q.Set(p.Key, p.Value)
+	}
+	req.URL.RawQuery = q.Encode()
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -191,6 +203,14 @@ func (c Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 
 	if v != nil {
+		// For non-JSON responses, the desired destination might be a bytes buffer
+		if buf, ok := v.(*bytes.Buffer); ok {
+			if _, err := io.Copy(buf, resp.Body); err != nil {
+				return nil, err
+			}
+			return resp, err
+		}
+
 		// Try to unmarshal body into given type using streaming decoder.
 		if err := json.NewDecoder(resp.Body).Decode(&v); err != nil {
 			return nil, err
@@ -206,9 +226,11 @@ type NextFunc func(v *interface{}, uri string) (*http.Response, error)
 // DoWithPagination Does, and follows Link headers for pagination. The returned
 // Response is from the last URI visited - either the last page, or one that
 // responded with a non-2XX status. If a non-HTTP error occurs, resp will be
-// nil.
-func (c Client) DoWithPagination(req *http.Request, v interface{}, f NextFunc) (*http.Response, error) {
-	resp, err := c.Do(req, v)
+// nil. It accepts a variadic number of optional URL parameters to supply to
+// the underlying `.Do()` method request(s). URL parameters are of type
+// `rest.Param`.
+func (c Client) DoWithPagination(req *http.Request, v interface{}, f NextFunc, params ...Param) (*http.Response, error) {
+	resp, err := c.Do(req, v, params...)
 	if err != nil {
 		return resp, err
 	}
@@ -279,7 +301,7 @@ func CheckResponse(resp *http.Response) error {
 
 	restErr := &Error{Resp: resp}
 
-	msgBody, err := ioutil.ReadAll(resp.Body)
+	msgBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

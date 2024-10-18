@@ -75,6 +75,14 @@ func (m *UpdateLoadBalancerRequest) SetSecurityGroupIds(v []string) {
 	m.SecurityGroupIds = v
 }
 
+func (m *UpdateLoadBalancerRequest) SetAutoScalePolicy(v *AutoScalePolicy) {
+	m.AutoScalePolicy = v
+}
+
+func (m *UpdateLoadBalancerRequest) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
+}
+
 func (m *UpdateLoadBalancerMetadata) SetLoadBalancerId(v string) {
 	m.LoadBalancerId = v
 }
@@ -113,6 +121,14 @@ func (m *CreateLoadBalancerRequest) SetAllocationPolicy(v *AllocationPolicy) {
 
 func (m *CreateLoadBalancerRequest) SetSecurityGroupIds(v []string) {
 	m.SecurityGroupIds = v
+}
+
+func (m *CreateLoadBalancerRequest) SetAutoScalePolicy(v *AutoScalePolicy) {
+	m.AutoScalePolicy = v
+}
+
+func (m *CreateLoadBalancerRequest) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
 }
 
 func (m *CreateLoadBalancerMetadata) SetLoadBalancerId(v string) {

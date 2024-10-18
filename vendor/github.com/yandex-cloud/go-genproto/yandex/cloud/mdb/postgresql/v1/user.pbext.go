@@ -34,6 +34,14 @@ func (m *User) SetGrants(v []string) {
 	m.Grants = v
 }
 
+func (m *User) SetDeletionProtection(v *wrapperspb.BoolValue) {
+	m.DeletionProtection = v
+}
+
+func (m *User) SetUserPasswordEncryption(v UserPasswordEncryption) {
+	m.UserPasswordEncryption = v
+}
+
 func (m *Permission) SetDatabaseName(v string) {
 	m.DatabaseName = v
 }
@@ -66,6 +74,18 @@ func (m *UserSpec) SetGrants(v []string) {
 	m.Grants = v
 }
 
+func (m *UserSpec) SetDeletionProtection(v *wrapperspb.BoolValue) {
+	m.DeletionProtection = v
+}
+
+func (m *UserSpec) SetUserPasswordEncryption(v UserPasswordEncryption) {
+	m.UserPasswordEncryption = v
+}
+
+func (m *PGAuditSettings) SetLog(v []PGAuditSettings_PGAuditSettingsLog) {
+	m.Log = v
+}
+
 func (m *UserSettings) SetDefaultTransactionIsolation(v UserSettings_TransactionIsolation) {
 	m.DefaultTransactionIsolation = v
 }
@@ -88,4 +108,32 @@ func (m *UserSettings) SetTempFileLimit(v *wrapperspb.Int64Value) {
 
 func (m *UserSettings) SetLogStatement(v UserSettings_LogStatement) {
 	m.LogStatement = v
+}
+
+func (m *UserSettings) SetPoolMode(v UserSettings_PoolingMode) {
+	m.PoolMode = v
+}
+
+func (m *UserSettings) SetPreparedStatementsPooling(v *wrapperspb.BoolValue) {
+	m.PreparedStatementsPooling = v
+}
+
+func (m *UserSettings) SetCatchupTimeout(v *wrapperspb.Int64Value) {
+	m.CatchupTimeout = v
+}
+
+func (m *UserSettings) SetWalSenderTimeout(v *wrapperspb.Int64Value) {
+	m.WalSenderTimeout = v
+}
+
+func (m *UserSettings) SetIdleInTransactionSessionTimeout(v *wrapperspb.Int64Value) {
+	m.IdleInTransactionSessionTimeout = v
+}
+
+func (m *UserSettings) SetStatementTimeout(v *wrapperspb.Int64Value) {
+	m.StatementTimeout = v
+}
+
+func (m *UserSettings) SetPgaudit(v *PGAuditSettings) {
+	m.Pgaudit = v
 }

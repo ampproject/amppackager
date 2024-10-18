@@ -10,13 +10,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
@@ -29,7 +30,7 @@ import (
 )
 
 // Credentials is an abstraction of API authorization credentials.
-// See https://cloud.yandex.ru/docs/iam/concepts/authorization/authorization for details.
+// See https://cloud.yandex.ru/docs/iam/concepts/authorization/ for details.
 // Note that functions that return Credentials may return different Credentials implementation
 // in next SDK version, and this is not considered breaking change.
 type Credentials interface {
@@ -91,9 +92,19 @@ func ServiceAccountKey(key *iamkey.Key) (Credentials, error) {
 // That is, for SDK build with InstanceServiceAccount credentials and used on Compute Instance
 // created with yandex.cloud.compute.v1.CreateInstanceRequest.service_account_id, API calls
 // will be authenticated with this ServiceAccount ID.
+// You can override the default address of Metadata Service by setting env variable.
 // TODO(skipor): doc link
 func InstanceServiceAccount() NonExchangeableCredentials {
-	return newInstanceServiceAccountCredentials(InstanceMetadataAddr)
+	return newInstanceServiceAccountCredentials(getMetadataServiceAddr())
+}
+
+// getMetadataServiceAddr returns the address of Metadata Service, gets the value from InstanceMetadataOverrideEnvVar
+// env variable if it is set, otherwise uses the default address from InstanceMetadataAddr.
+func getMetadataServiceAddr() string {
+	if nonDefaultAddr := os.Getenv(InstanceMetadataOverrideEnvVar); nonDefaultAddr != "" {
+		return nonDefaultAddr
+	}
+	return InstanceMetadataAddr
 }
 
 func newServiceAccountJWTBuilder(key *iamkey.Key) (*serviceAccountJWTBuilder, error) {
@@ -213,7 +224,7 @@ func (c *instanceServiceAccountCredentials) iamToken(ctx context.Context) (*iamp
 			"Is this compute instance running using Service Account? That is, Instance.service_account_id should not be empty.",
 			resp.Status)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		if err != nil {

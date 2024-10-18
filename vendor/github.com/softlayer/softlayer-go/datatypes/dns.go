@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
 
@@ -58,97 +51,6 @@ type Dns_Domain struct {
 // The SoftLayer_Dns_Domain_Forward data type represents a single DNS domain record hosted on the SoftLayer nameservers. Domains contain general information about the domain name such as name and serial. Individual records such as A, AAAA, CTYPE, and MX records are stored in the domain's associated [[SoftLayer_Dns_Domain_ResourceRecord (type)|SoftLayer_Dns_Domain_ResourceRecord]] records.
 type Dns_Domain_Forward struct {
 	Dns_Domain
-}
-
-// The SoftLayer_Dns_Domain_Registration data type represents a domain registration record.
-type Dns_Domain_Registration struct {
-	Entity
-
-	// The SoftLayer customer account that the domain is registered to.
-	Account *Account `json:"account,omitempty" xmlrpc:"account,omitempty"`
-
-	// no documentation yet
-	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
-
-	// The domain registration status.
-	DomainRegistrationStatus *Dns_Domain_Registration_Status `json:"domainRegistrationStatus,omitempty" xmlrpc:"domainRegistrationStatus,omitempty"`
-
-	// no documentation yet
-	DomainRegistrationStatusId *int `json:"domainRegistrationStatusId,omitempty" xmlrpc:"domainRegistrationStatusId,omitempty"`
-
-	// The date that the domain registration will expire.
-	ExpireDate *Time `json:"expireDate,omitempty" xmlrpc:"expireDate,omitempty"`
-
-	// A domain record's internal identifier.
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// Indicates whether a domain is locked or unlocked.
-	LockedFlag *int `json:"lockedFlag,omitempty" xmlrpc:"lockedFlag,omitempty"`
-
-	// no documentation yet
-	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
-
-	// A domain's name, for example "example.com".
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-
-	// The registrant verification status.
-	RegistrantVerificationStatus *Dns_Domain_Registration_Registrant_Verification_Status `json:"registrantVerificationStatus,omitempty" xmlrpc:"registrantVerificationStatus,omitempty"`
-
-	// no documentation yet
-	RegistrantVerificationStatusId *int `json:"registrantVerificationStatusId,omitempty" xmlrpc:"registrantVerificationStatusId,omitempty"`
-
-	// no documentation yet
-	ServiceProvider *Service_Provider `json:"serviceProvider,omitempty" xmlrpc:"serviceProvider,omitempty"`
-
-	// no documentation yet
-	ServiceProviderId *int `json:"serviceProviderId,omitempty" xmlrpc:"serviceProviderId,omitempty"`
-}
-
-// SoftLayer_Dns_Domain_Registration_Registrant_Verification_Status models the state of the registrant. Here are the following status codes:
-//
-// *”'Admin Reviewing”': The registrant data has been submitted and being reviewed by compliance team.
-// *”'Pending”': The verification process has been inititated, and verification email will be sent.
-// *”'Suspended”': The registrant has failed verification and the domain has been suspended.
-// *”'Verified”': The registrant has been validated.
-// *”'Verifying”': The verification process has been initiated and is waiting for registrant response.
-// *”'Unverified”': The verification process has not been inititated.
-type Dns_Domain_Registration_Registrant_Verification_Status struct {
-	Entity
-
-	// The description of the registrant verification status.
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// The unique identifier of the registrant verification status
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// The unique keyname of the registrant verification status.
-	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
-
-	// The name of the registrant verification status.
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-}
-
-// SoftLayer_Dns_Domain_Registration_Status models the state of domain name. Here are the following status codes:
-//
-// *”'Active”': This domain name is active.
-// *”'Pending Owner Approval”': Pending owner approval for completion of transfer.
-// *”'Pending Admin Review”': Pending admin review for transfer.
-// *”'Pending Registry”': Pending registry for transfer.
-// *”'Expired”': Domain name has expired.
-type Dns_Domain_Registration_Status struct {
-	Entity
-
-	// The description of the domain registration status names.
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// The unique identifier of the domain registration status
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// The unique keyname of the domain registration status.
-	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
-
-	// The name of the domain registration status.
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
 }
 
 // The SoftLayer_Dns_Domain_ResourceRecord data type represents a single resource record entry in a SoftLayer hosted domain. Each resource record contains a ”host” and ”data” property, defining a resource's name and it's target data. Domains contain multiple types of resource records. The ”type” property separates out resource records by type. ”Type” can take one of the following values:

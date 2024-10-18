@@ -47,7 +47,7 @@ func ValidatePoolOrder(val string) error {
 
 	list := []string{"FIXED", "RANDOM", "ROUND_ROBIN"}
 
-	return errors.UnknownDataError("Pool order", val, list)
+	return errors.UnknownDataError("poolOrder", val, list)
 }
 
 func ValidateRegionFailureSensitivity(val string) error {
@@ -57,7 +57,7 @@ func ValidateRegionFailureSensitivity(val string) error {
 
 	list := []string{"HIGH", "LOW"}
 
-	return errors.UnknownDataError("Pool Region Failure Sensitivity", val, list)
+	return errors.UnknownDataError("regionFailureSensitivity", val, list)
 }
 
 func ValidateMonitorMethod(monitor *Monitor) error {
@@ -67,7 +67,7 @@ func ValidateMonitorMethod(monitor *Monitor) error {
 
 	list := []string{"GET", "POST"}
 
-	return errors.UnknownDataError("Pool Monitor Method", monitor.Method, list)
+	return errors.UnknownDataError("monitorMethod", monitor.Method, list)
 }
 
 func ValidateResponseMethod(val string) error {
@@ -77,7 +77,7 @@ func ValidateResponseMethod(val string) error {
 
 	list := []string{"PRIORITY_HUNT", "RANDOM", "ROUND_ROBIN"}
 
-	return errors.UnknownDataError("Pool Response Method", val, list)
+	return errors.UnknownDataError("responseMethod", val, list)
 }
 
 func ValidateServingPreference(val string) error {
@@ -87,7 +87,7 @@ func ValidateServingPreference(val string) error {
 
 	list := []string{"AUTO_SELECT", "SERVE_PRIMARY", "SERVE_ALL_FAIL"}
 
-	return errors.UnknownDataError("Pool Serving Preference", val, list)
+	return errors.UnknownDataError("servingPreference", val, list)
 }
 
 func ValidateConflictResolve(val string) error {
@@ -97,7 +97,7 @@ func ValidateConflictResolve(val string) error {
 
 	list := []string{"GEO", "IP", ""}
 
-	return errors.UnknownDataError("DIR Pool Resolve Conflict", val, list)
+	return errors.UnknownDataError("dirPoolConflict", val, list)
 }
 
 func ValidatePoolRecordState(rdataInfoData []*RDataInfo) error {
@@ -105,7 +105,7 @@ func ValidatePoolRecordState(rdataInfoData []*RDataInfo) error {
 		if !isValidField(rdataInfo.State, poolRecordState) {
 			list := []string{"NORMAL", "ACTIVE", "INACTIVE"}
 
-			return errors.UnknownDataError("Pool record state", rdataInfo.State, list)
+			return errors.UnknownDataError("poolRecordState", rdataInfo.State, list)
 		}
 	}
 

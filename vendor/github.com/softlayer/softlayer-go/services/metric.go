@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // Metric tracking objects provides a common interface to all metrics provided by SoftLayer. These metrics range from network component traffic for a server to aggregated Bandwidth Pooling traffic and more. Every object within SoftLayer's range of objects that has data that can be tracked over time has an associated tracking object. Use the [[SoftLayer_Metric_Tracking_Object]] service to retrieve raw and graph data from a tracking object.
 type Metric_Tracking_Object struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetMetricTrackingObjectService returns an instance of the Metric_Tracking_Object SoftLayer service
-func GetMetricTrackingObjectService(sess *session.Session) Metric_Tracking_Object {
+func GetMetricTrackingObjectService(sess session.SLSession) Metric_Tracking_Object {
 	return Metric_Tracking_Object{Session: sess}
 }
 
@@ -67,16 +60,6 @@ func (r Metric_Tracking_Object) Limit(limit int) Metric_Tracking_Object {
 func (r Metric_Tracking_Object) Offset(offset int) Metric_Tracking_Object {
 	r.Options.Offset = &offset
 	return r
-}
-
-// [DEPRECATED] Retrieve a PNG image of the last 24 hours of bandwidth usage of one of SoftLayer's network backbones.
-// Deprecated: This function has been marked as deprecated.
-func (r Metric_Tracking_Object) GetBackboneBandwidthGraph(graphTitle *string) (resp datatypes.Container_Bandwidth_GraphOutputs, err error) {
-	params := []interface{}{
-		graphTitle,
-	}
-	err = r.Session.DoRequest("SoftLayer_Metric_Tracking_Object", "getBackboneBandwidthGraph", params, &r.Options, &resp)
-	return
 }
 
 // Retrieve a collection of raw bandwidth data from an individual public or private network tracking object. Raw data is ideal if you with to employ your own traffic storage and graphing systems.
@@ -115,15 +98,6 @@ func (r Metric_Tracking_Object) GetBandwidthTotal(startDateTime *datatypes.Time,
 		typ,
 	}
 	err = r.Session.DoRequest("SoftLayer_Metric_Tracking_Object", "getBandwidthTotal", params, &r.Options, &resp)
-	return
-}
-
-// Returns a graph container instance that is populated with metric data for the tracking object.
-func (r Metric_Tracking_Object) GetCustomGraphData(graphContainer *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphContainer,
-	}
-	err = r.Session.DoRequest("SoftLayer_Metric_Tracking_Object", "getCustomGraphData", params, &r.Options, &resp)
 	return
 }
 
@@ -190,12 +164,12 @@ func (r Metric_Tracking_Object) GetType() (resp datatypes.Metric_Tracking_Object
 
 // This data type provides commonly used bandwidth summary components for the current billing cycle.
 type Metric_Tracking_Object_Bandwidth_Summary struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetMetricTrackingObjectBandwidthSummaryService returns an instance of the Metric_Tracking_Object_Bandwidth_Summary SoftLayer service
-func GetMetricTrackingObjectBandwidthSummaryService(sess *session.Session) Metric_Tracking_Object_Bandwidth_Summary {
+func GetMetricTrackingObjectBandwidthSummaryService(sess session.SLSession) Metric_Tracking_Object_Bandwidth_Summary {
 	return Metric_Tracking_Object_Bandwidth_Summary{Session: sess}
 }
 

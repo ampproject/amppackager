@@ -2,6 +2,7 @@ package ycsdk
 
 import (
 	"github.com/yandex-cloud/go-sdk/gen/apigateway"
+	"github.com/yandex-cloud/go-sdk/gen/apigateway/websocket"
 	"github.com/yandex-cloud/go-sdk/gen/containers"
 	"github.com/yandex-cloud/go-sdk/gen/functions"
 	"github.com/yandex-cloud/go-sdk/gen/mdbproxy"
@@ -18,6 +19,7 @@ const (
 	APIGatewayServiceID           Endpoint = "serverless-apigateway"
 	MDBProxyServiceID             Endpoint = "mdbproxy"
 	ServerlessContainersServiceID Endpoint = "serverless-containers"
+	APIGatewayWebsocketServiceID  Endpoint = "apigateway-connections"
 )
 
 func (s *Serverless) Functions() *functions.Function {
@@ -38,4 +40,8 @@ func (s *Serverless) MDBProxy() *mdbproxy.Proxy {
 
 func (s *Serverless) Containers() *containers.Container {
 	return containers.NewContainer(s.sdk.getConn(ServerlessContainersServiceID))
+}
+
+func (s *Serverless) APIGatewayWebsocket() *websocket.Websocket {
+	return websocket.NewWebsocket(s.sdk.getConn(APIGatewayWebsocketServiceID))
 }

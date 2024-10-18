@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
-	"github.com/go-acme/lego/v4/providers/dns/hostingde/internal"
+	"github.com/go-acme/lego/v4/providers/dns/internal/hostingde"
 )
 
 // Environment variables names.
@@ -40,6 +40,7 @@ type Config struct {
 // NewDefaultConfig returns a default configuration for the DNSProvider.
 func NewDefaultConfig() *Config {
 	return &Config{
+		ZoneName:           env.GetOrFile(EnvZoneName),
 		TTL:                env.GetOrDefaultInt(EnvTTL, dns01.DefaultTTL),
 		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, 2*time.Minute),
 		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, 2*time.Second),
@@ -52,7 +53,7 @@ func NewDefaultConfig() *Config {
 // DNSProvider implements the challenge.Provider interface.
 type DNSProvider struct {
 	config *Config
-	client *internal.Client
+	client *hostingde.Client
 
 	recordIDs   map[string]string
 	recordIDsMu sync.Mutex
@@ -69,7 +70,6 @@ func NewDNSProvider() (*DNSProvider, error) {
 
 	config := NewDefaultConfig()
 	config.APIKey = values[EnvAPIKey]
-	config.ZoneName = env.GetOrFile(EnvZoneName)
 
 	return NewDNSProviderConfig(config)
 }
@@ -86,7 +86,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 	return &DNSProvider{
 		config:    config,
-		client:    internal.NewClient(config.APIKey),
+		client:    hostingde.NewClient(config.APIKey),
 		recordIDs: make(map[string]string),
 	}, nil
 }
@@ -109,8 +109,8 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	ctx := context.Background()
 
 	// get the ZoneConfig for that domain
-	zonesFind := internal.ZoneConfigsFindRequest{
-		Filter: internal.Filter{Field: "zoneName", Value: zoneName},
+	zonesFind := hostingde.ZoneConfigsFindRequest{
+		Filter: hostingde.Filter{Field: "zoneName", Value: zoneName},
 		Limit:  1,
 		Page:   1,
 	}
@@ -122,14 +122,14 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	zoneConfig.Name = zoneName
 
-	rec := []internal.DNSRecord{{
+	rec := []hostingde.DNSRecord{{
 		Type:    "TXT",
 		Name:    dns01.UnFqdn(info.EffectiveFQDN),
 		Content: info.Value,
 		TTL:     d.config.TTL,
 	}}
 
-	req := internal.ZoneUpdateRequest{
+	req := hostingde.ZoneUpdateRequest{
 		ZoneConfig:   *zoneConfig,
 		RecordsToAdd: rec,
 	}
@@ -166,8 +166,8 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	ctx := context.Background()
 
 	// get the ZoneConfig for that domain
-	zonesFind := internal.ZoneConfigsFindRequest{
-		Filter: internal.Filter{Field: "zoneName", Value: zoneName},
+	zonesFind := hostingde.ZoneConfigsFindRequest{
+		Filter: hostingde.Filter{Field: "zoneName", Value: zoneName},
 		Limit:  1,
 		Page:   1,
 	}
@@ -178,13 +178,13 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	}
 	zoneConfig.Name = zoneName
 
-	rec := []internal.DNSRecord{{
+	rec := []hostingde.DNSRecord{{
 		Type:    "TXT",
 		Name:    dns01.UnFqdn(info.EffectiveFQDN),
 		Content: `"` + info.Value + `"`,
 	}}
 
-	req := internal.ZoneUpdateRequest{
+	req := hostingde.ZoneUpdateRequest{
 		ZoneConfig:      *zoneConfig,
 		RecordsToDelete: rec,
 	}
@@ -208,7 +208,7 @@ func (d *DNSProvider) getZoneName(fqdn string) (string, error) {
 
 	zoneName, err := dns01.FindZoneByFqdn(fqdn)
 	if err != nil {
-		return "", fmt.Errorf("could not find zone for FQDN %q: %w", fqdn, err)
+		return "", fmt.Errorf("could not find zone for %s: %w", fqdn, err)
 	}
 
 	if zoneName == "" {

@@ -115,3 +115,11 @@ func (m *DeleteCloudMetadata) SetCloudId(v string) {
 func (m *DeleteCloudMetadata) SetDeleteAfter(v *timestamppb.Timestamp) {
 	m.DeleteAfter = v
 }
+
+func (m *DeleteCloudMetadata) SetCancelledBy(v string) {
+	m.CancelledBy = v
+}
+
+func (m *DeleteCloudMetadata) SetCancelledAt(v *timestamppb.Timestamp) {
+	m.CancelledAt = v
+}

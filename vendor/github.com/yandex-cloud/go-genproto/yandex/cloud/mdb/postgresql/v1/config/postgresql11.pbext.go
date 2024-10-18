@@ -502,6 +502,70 @@ func (m *PostgresqlConfig11) SetPgQualstatsSampleRate(v *wrapperspb.DoubleValue)
 	m.PgQualstatsSampleRate = v
 }
 
+func (m *PostgresqlConfig11) SetMaxStackDepth(v *wrapperspb.Int64Value) {
+	m.MaxStackDepth = v
+}
+
+func (m *PostgresqlConfig11) SetGeqo(v *wrapperspb.BoolValue) {
+	m.Geqo = v
+}
+
+func (m *PostgresqlConfig11) SetGeqoThreshold(v *wrapperspb.Int64Value) {
+	m.GeqoThreshold = v
+}
+
+func (m *PostgresqlConfig11) SetGeqoEffort(v *wrapperspb.Int64Value) {
+	m.GeqoEffort = v
+}
+
+func (m *PostgresqlConfig11) SetGeqoPoolSize(v *wrapperspb.Int64Value) {
+	m.GeqoPoolSize = v
+}
+
+func (m *PostgresqlConfig11) SetGeqoGenerations(v *wrapperspb.Int64Value) {
+	m.GeqoGenerations = v
+}
+
+func (m *PostgresqlConfig11) SetGeqoSelectionBias(v *wrapperspb.DoubleValue) {
+	m.GeqoSelectionBias = v
+}
+
+func (m *PostgresqlConfig11) SetGeqoSeed(v *wrapperspb.DoubleValue) {
+	m.GeqoSeed = v
+}
+
+func (m *PostgresqlConfig11) SetPgTrgmSimilarityThreshold(v *wrapperspb.DoubleValue) {
+	m.PgTrgmSimilarityThreshold = v
+}
+
+func (m *PostgresqlConfig11) SetPgTrgmWordSimilarityThreshold(v *wrapperspb.DoubleValue) {
+	m.PgTrgmWordSimilarityThreshold = v
+}
+
+func (m *PostgresqlConfig11) SetPgTrgmStrictWordSimilarityThreshold(v *wrapperspb.DoubleValue) {
+	m.PgTrgmStrictWordSimilarityThreshold = v
+}
+
+func (m *PostgresqlConfig11) SetMaxStandbyArchiveDelay(v *wrapperspb.Int64Value) {
+	m.MaxStandbyArchiveDelay = v
+}
+
+func (m *PostgresqlConfig11) SetSessionDurationTimeout(v *wrapperspb.Int64Value) {
+	m.SessionDurationTimeout = v
+}
+
+func (m *PostgresqlConfig11) SetLogReplicationCommands(v *wrapperspb.BoolValue) {
+	m.LogReplicationCommands = v
+}
+
+func (m *PostgresqlConfig11) SetLogAutovacuumMinDuration(v *wrapperspb.Int64Value) {
+	m.LogAutovacuumMinDuration = v
+}
+
+func (m *PostgresqlConfig11) SetPasswordEncryption(v PostgresqlConfig11_PasswordEncryption) {
+	m.PasswordEncryption = v
+}
+
 func (m *PostgresqlConfigSet11) SetEffectiveConfig(v *PostgresqlConfig11) {
 	m.EffectiveConfig = v
 }

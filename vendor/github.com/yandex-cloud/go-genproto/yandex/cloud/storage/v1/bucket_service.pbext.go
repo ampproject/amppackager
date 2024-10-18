@@ -47,6 +47,10 @@ func (m *CreateBucketRequest) SetAcl(v *ACL) {
 	m.Acl = v
 }
 
+func (m *CreateBucketRequest) SetTags(v []*Tag) {
+	m.Tags = v
+}
+
 func (m *CreateBucketMetadata) SetName(v string) {
 	m.Name = v
 }
@@ -55,8 +59,8 @@ func (m *UpdateBucketRequest) SetName(v string) {
 	m.Name = v
 }
 
-func (m *UpdateBucketRequest) SetFieldMask(v *fieldmaskpb.FieldMask) {
-	m.FieldMask = v
+func (m *UpdateBucketRequest) SetUpdateMask(v *fieldmaskpb.FieldMask) {
+	m.UpdateMask = v
 }
 
 func (m *UpdateBucketRequest) SetAnonymousAccessFlags(v *AnonymousAccessFlags) {
@@ -93,6 +97,18 @@ func (m *UpdateBucketRequest) SetPolicy(v *structpb.Struct) {
 
 func (m *UpdateBucketRequest) SetAcl(v *ACL) {
 	m.Acl = v
+}
+
+func (m *UpdateBucketRequest) SetTags(v []*Tag) {
+	m.Tags = v
+}
+
+func (m *UpdateBucketRequest) SetObjectLock(v *ObjectLock) {
+	m.ObjectLock = v
+}
+
+func (m *UpdateBucketRequest) SetEncryption(v *Encryption) {
+	m.Encryption = v
 }
 
 func (m *UpdateBucketMetadata) SetName(v string) {

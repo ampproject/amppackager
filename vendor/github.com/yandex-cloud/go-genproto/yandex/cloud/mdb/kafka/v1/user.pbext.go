@@ -33,3 +33,7 @@ func (m *Permission) SetTopicName(v string) {
 func (m *Permission) SetRole(v Permission_AccessRole) {
 	m.Role = v
 }
+
+func (m *Permission) SetAllowHosts(v []string) {
+	m.AllowHosts = v
+}

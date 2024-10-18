@@ -46,6 +46,10 @@ func (m *CreateRegistryRequest) SetLabels(v map[string]string) {
 	m.Labels = v
 }
 
+func (m *CreateRegistryRequest) SetSecure(v bool) {
+	m.Secure = v
+}
+
 func (m *CreateRegistryMetadata) SetRegistryId(v string) {
 	m.RegistryId = v
 }

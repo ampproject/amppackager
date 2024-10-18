@@ -25,3 +25,7 @@ func (m *AccessKey) SetDescription(v string) {
 func (m *AccessKey) SetKeyId(v string) {
 	m.KeyId = v
 }
+
+func (m *AccessKey) SetLastUsedAt(v *timestamppb.Timestamp) {
+	m.LastUsedAt = v
+}
