@@ -40,10 +40,20 @@ func (c *Client) Do(method, path string, payload, target interface{}) (*http.Res
 	req.Header.Add("Accept", contentType)
 	req.Header.Add("User-Agent", userAgent)
 
+	c.logHttpRequest(req)
 	res, err := c.httpClient.Do(req)
+	c.logHttpResponse(res)
+
+	resp := &http.Response{}
+
+	if res != nil {
+		resp.Status = res.Status
+		resp.StatusCode = res.StatusCode
+		resp.Header = res.Header
+	}
 
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 
 	defer res.Body.Close()
@@ -51,10 +61,10 @@ func (c *Client) Do(method, path string, payload, target interface{}) (*http.Res
 	er := validateResponse(res, target)
 
 	if er != nil {
-		return nil, er
+		return resp, er
 	}
 
-	return res, nil
+	return resp, nil
 }
 
 func validateResponse(res *http.Response, t interface{}) error {
@@ -62,10 +72,13 @@ func validateResponse(res *http.Response, t interface{}) error {
 		return errors.ResponseTargetError("<nil>")
 	}
 
+	// Api Response should be always Response{} struct
+	// or else throw ResponseTargetError
+	// with current Response struct type
 	target, ok := t.(*Response)
 
 	if !ok {
-		return errors.ResponseTargetError(fmt.Sprintf("%T", target))
+		return errors.ResponseTargetError(fmt.Sprintf("%T", t))
 	}
 
 	if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusMultipleChoices {

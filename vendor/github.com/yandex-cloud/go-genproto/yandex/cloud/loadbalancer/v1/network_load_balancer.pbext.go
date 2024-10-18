@@ -54,6 +54,10 @@ func (m *NetworkLoadBalancer) SetAttachedTargetGroups(v []*AttachedTargetGroup) 
 	m.AttachedTargetGroups = v
 }
 
+func (m *NetworkLoadBalancer) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
+}
+
 func (m *AttachedTargetGroup) SetTargetGroupId(v string) {
 	m.TargetGroupId = v
 }

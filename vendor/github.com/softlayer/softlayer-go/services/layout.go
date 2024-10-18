@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // The SoftLayer_Layout_Container contains definitions for default page layouts
 type Layout_Container struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetLayoutContainerService returns an instance of the Layout_Container SoftLayer service
-func GetLayoutContainerService(sess *session.Session) Layout_Container {
+func GetLayoutContainerService(sess session.SLSession) Layout_Container {
 	return Layout_Container{Session: sess}
 }
 
@@ -95,12 +88,12 @@ func (r Layout_Container) GetObject() (resp datatypes.Layout_Container, err erro
 
 // The SoftLayer_Layout_Item contains definitions for default layout items
 type Layout_Item struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetLayoutItemService returns an instance of the Layout_Item SoftLayer service
-func GetLayoutItemService(sess *session.Session) Layout_Item {
+func GetLayoutItemService(sess session.SLSession) Layout_Item {
 	return Layout_Item{Session: sess}
 }
 
@@ -153,12 +146,12 @@ func (r Layout_Item) GetObject() (resp datatypes.Layout_Item, err error) {
 
 // The SoftLayer_Layout_Profile contains the definition of the layout profile
 type Layout_Profile struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetLayoutProfileService returns an instance of the Layout_Profile SoftLayer service
-func GetLayoutProfileService(sess *session.Session) Layout_Profile {
+func GetLayoutProfileService(sess session.SLSession) Layout_Profile {
 	return Layout_Profile{Session: sess}
 }
 
@@ -257,12 +250,12 @@ func (r Layout_Profile) ModifyPreferences(layoutPreferenceObjects []datatypes.La
 
 // no documentation yet
 type Layout_Profile_Containers struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetLayoutProfileContainersService returns an instance of the Layout_Profile_Containers SoftLayer service
-func GetLayoutProfileContainersService(sess *session.Session) Layout_Profile_Containers {
+func GetLayoutProfileContainersService(sess session.SLSession) Layout_Profile_Containers {
 	return Layout_Profile_Containers{Session: sess}
 }
 
@@ -296,7 +289,7 @@ func (r Layout_Profile_Containers) Offset(offset int) Layout_Profile_Containers 
 }
 
 // no documentation yet
-func (r Layout_Profile_Containers) CreateObject(templateObject *datatypes.Layout_Profile_Containers) (resp bool, err error) {
+func (r Layout_Profile_Containers) CreateObject(templateObject *datatypes.Layout_Profile_Containers) (resp datatypes.Layout_Profile_Containers, err error) {
 	params := []interface{}{
 		templateObject,
 	}
@@ -333,12 +326,12 @@ func (r Layout_Profile_Containers) GetObject() (resp datatypes.Layout_Profile_Co
 
 // no documentation yet
 type Layout_Profile_Customer struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetLayoutProfileCustomerService returns an instance of the Layout_Profile_Customer SoftLayer service
-func GetLayoutProfileCustomerService(sess *session.Session) Layout_Profile_Customer {
+func GetLayoutProfileCustomerService(sess session.SLSession) Layout_Profile_Customer {
 	return Layout_Profile_Customer{Session: sess}
 }
 
@@ -443,12 +436,12 @@ func (r Layout_Profile_Customer) ModifyPreferences(layoutPreferenceObjects []dat
 
 // The SoftLayer_Layout_Profile_Preference contains definitions for layout preferences
 type Layout_Profile_Preference struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetLayoutProfilePreferenceService returns an instance of the Layout_Profile_Preference SoftLayer service
-func GetLayoutProfilePreferenceService(sess *session.Session) Layout_Profile_Preference {
+func GetLayoutProfilePreferenceService(sess session.SLSession) Layout_Profile_Preference {
 	return Layout_Profile_Preference{Session: sess}
 }
 

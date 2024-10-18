@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -75,7 +74,7 @@ func newClient(config ClientConfiguration) (*client, error) {
 
 	if config.PrivateKeyReader != nil {
 		var err error
-		privateKeyBody, err = ioutil.ReadAll(config.PrivateKeyReader)
+		privateKeyBody, err = io.ReadAll(config.PrivateKeyReader)
 
 		if err != nil {
 			return &client{}, fmt.Errorf("error while reading private key: %w", err)
@@ -120,7 +119,7 @@ func newClient(config ClientConfiguration) (*client, error) {
 // This method is used by all rest client methods, thus: 'get','post','put','delete'
 // It uses the authenticator to get a token, either statically provided by the user or requested from the authentication server
 // Then decodes the json response to a supplied interface
-func (c *client) call(method rest.Method, request rest.Request, result interface{}) (rest.Response, error) {
+func (c *client) call(method rest.Method, request rest.Request, result any) (rest.Response, error) {
 	token, err := c.authenticator.GetToken()
 	if err != nil {
 		return rest.Response{}, fmt.Errorf("could not get token from authenticator: %w", err)
@@ -150,7 +149,7 @@ func (c *client) call(method rest.Method, request rest.Request, result interface
 	bodyReader := io.LimitReader(httpResponse.Body, httpBodyLimit)
 
 	// read entire httpResponse body
-	b, err := ioutil.ReadAll(bodyReader)
+	b, err := io.ReadAll(bodyReader)
 	if err != nil {
 		return rest.Response{}, fmt.Errorf("error reading http response body: %w", err)
 	}
@@ -164,7 +163,7 @@ func (c *client) call(method rest.Method, request rest.Request, result interface
 		ContentLocation: contentLocation,
 	}
 
-	err = restResponse.ParseResponse(&result)
+	err = restResponse.ParseResponse(result)
 
 	return restResponse, err
 }
@@ -195,45 +194,52 @@ func (c *client) Get(request rest.Request, responseObject interface{}) error {
 // This method will create and execute a http Post request
 // It expects no response, that is why it does not ask for a responseObject
 func (c *client) Post(request rest.Request) error {
-	_, err := c.call(rest.PostMethod, request, nil)
+	var response any
+	_, err := c.call(rest.PostMethod, request, &response)
 	return err
 }
 
 // This method will create and execute a http Post request
 // It expects a response
 func (c *client) PostWithResponse(request rest.Request) (rest.Response, error) {
-	return c.call(rest.PostMethod, request, nil)
+	var response any
+	return c.call(rest.PostMethod, request, &response)
 }
 
 // This method will create and execute a http Put request
 // It expects no response, that is why it does not ask for a responseObject
 func (c *client) Put(request rest.Request) error {
-	_, err := c.call(rest.PutMethod, request, nil)
+	var response any
+	_, err := c.call(rest.PutMethod, request, &response)
 	return err
 }
 
 // This method will create and execute a http Put request
 // It expects a response
 func (c *client) PutWithResponse(request rest.Request) (rest.Response, error) {
-	return c.call(rest.PutMethod, request, nil)
+	var response any
+	return c.call(rest.PutMethod, request, &response)
 }
 
 // This method will create and execute a http Delete request
 // It expects no response, that is why it does not ask for a responseObject
 func (c *client) Delete(request rest.Request) error {
-	_, err := c.call(rest.DeleteMethod, request, nil)
+	var response any
+	_, err := c.call(rest.DeleteMethod, request, &response)
 	return err
 }
 
 // This method will create and execute a http Patch request
 // It expects no response, that is why it does not ask for a responseObject
 func (c *client) Patch(request rest.Request) error {
-	_, err := c.call(rest.PatchMethod, request, nil)
+	var response any
+	_, err := c.call(rest.PatchMethod, request, &response)
 	return err
 }
 
 // This method will create and execute a http Patch request
 // It expects a response
 func (c *client) PatchWithResponse(request rest.Request) (rest.Response, error) {
-	return c.call(rest.PatchMethod, request, nil)
+	var response any
+	return c.call(rest.PatchMethod, request, &response)
 }

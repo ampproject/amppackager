@@ -27,6 +27,10 @@ func (m *ListFilesystemsRequest) SetFilter(v string) {
 	m.Filter = v
 }
 
+func (m *ListFilesystemsRequest) SetOrderBy(v string) {
+	m.OrderBy = v
+}
+
 func (m *ListFilesystemsResponse) SetFilesystems(v []*Filesystem) {
 	m.Filesystems = v
 }

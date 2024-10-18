@@ -58,6 +58,10 @@ func (m *Resource) SetSslCertificate(v *SSLCertificate) {
 	m.SslCertificate = v
 }
 
+func (m *Resource) SetLabels(v map[string]string) {
+	m.Labels = v
+}
+
 func (m *ResourceOptions) SetDisableCache(v *ResourceOptions_BoolOption) {
 	m.DisableCache = v
 }
@@ -132,6 +136,14 @@ func (m *ResourceOptions) SetIgnoreCookie(v *ResourceOptions_BoolOption) {
 
 func (m *ResourceOptions) SetRewrite(v *ResourceOptions_RewriteOption) {
 	m.Rewrite = v
+}
+
+func (m *ResourceOptions) SetSecureKey(v *ResourceOptions_SecureKeyOption) {
+	m.SecureKey = v
+}
+
+func (m *ResourceOptions) SetIpAddressAcl(v *ResourceOptions_IPAddressACLOption) {
+	m.IpAddressAcl = v
 }
 
 func (m *ResourceOptions_BoolOption) SetEnabled(v bool) {
@@ -324,6 +336,30 @@ func (m *ResourceOptions_RewriteOption) SetBody(v string) {
 
 func (m *ResourceOptions_RewriteOption) SetFlag(v RewriteFlag) {
 	m.Flag = v
+}
+
+func (m *ResourceOptions_SecureKeyOption) SetEnabled(v bool) {
+	m.Enabled = v
+}
+
+func (m *ResourceOptions_SecureKeyOption) SetKey(v string) {
+	m.Key = v
+}
+
+func (m *ResourceOptions_SecureKeyOption) SetType(v SecureKeyURLType) {
+	m.Type = v
+}
+
+func (m *ResourceOptions_IPAddressACLOption) SetEnabled(v bool) {
+	m.Enabled = v
+}
+
+func (m *ResourceOptions_IPAddressACLOption) SetPolicyType(v PolicyType) {
+	m.PolicyType = v
+}
+
+func (m *ResourceOptions_IPAddressACLOption) SetExceptedValues(v []string) {
+	m.ExceptedValues = v
 }
 
 func (m *SSLTargetCertificate) SetType(v SSLCertificateType) {

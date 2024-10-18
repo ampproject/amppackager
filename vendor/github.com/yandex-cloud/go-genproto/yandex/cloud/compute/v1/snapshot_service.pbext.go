@@ -27,6 +27,10 @@ func (m *ListSnapshotsRequest) SetFilter(v string) {
 	m.Filter = v
 }
 
+func (m *ListSnapshotsRequest) SetOrderBy(v string) {
+	m.OrderBy = v
+}
+
 func (m *ListSnapshotsResponse) SetSnapshots(v []*Snapshot) {
 	m.Snapshots = v
 }
@@ -53,6 +57,10 @@ func (m *CreateSnapshotRequest) SetDescription(v string) {
 
 func (m *CreateSnapshotRequest) SetLabels(v map[string]string) {
 	m.Labels = v
+}
+
+func (m *CreateSnapshotRequest) SetHardwareGeneration(v *HardwareGeneration) {
+	m.HardwareGeneration = v
 }
 
 func (m *CreateSnapshotMetadata) SetSnapshotId(v string) {

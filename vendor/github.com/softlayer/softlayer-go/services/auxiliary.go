@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -30,65 +23,13 @@ import (
 )
 
 // no documentation yet
-type Auxiliary_Marketing_Event struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetAuxiliaryMarketingEventService returns an instance of the Auxiliary_Marketing_Event SoftLayer service
-func GetAuxiliaryMarketingEventService(sess *session.Session) Auxiliary_Marketing_Event {
-	return Auxiliary_Marketing_Event{Session: sess}
-}
-
-func (r Auxiliary_Marketing_Event) Id(id int) Auxiliary_Marketing_Event {
-	r.Options.Id = &id
-	return r
-}
-
-func (r Auxiliary_Marketing_Event) Mask(mask string) Auxiliary_Marketing_Event {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r Auxiliary_Marketing_Event) Filter(filter string) Auxiliary_Marketing_Event {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r Auxiliary_Marketing_Event) Limit(limit int) Auxiliary_Marketing_Event {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r Auxiliary_Marketing_Event) Offset(offset int) Auxiliary_Marketing_Event {
-	r.Options.Offset = &offset
-	return r
-}
-
-// This method will return a collection of SoftLayer_Auxiliary_Marketing_Event objects ordered in ascending order by start date.
-func (r Auxiliary_Marketing_Event) GetMarketingEvents() (resp []datatypes.Auxiliary_Marketing_Event, err error) {
-	err = r.Session.DoRequest("SoftLayer_Auxiliary_Marketing_Event", "getMarketingEvents", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r Auxiliary_Marketing_Event) GetObject() (resp datatypes.Auxiliary_Marketing_Event, err error) {
-	err = r.Session.DoRequest("SoftLayer_Auxiliary_Marketing_Event", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
 type Auxiliary_Network_Status struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetAuxiliaryNetworkStatusService returns an instance of the Auxiliary_Network_Status SoftLayer service
-func GetAuxiliaryNetworkStatusService(sess *session.Session) Auxiliary_Network_Status {
+func GetAuxiliaryNetworkStatusService(sess session.SLSession) Auxiliary_Network_Status {
 	return Auxiliary_Network_Status{Session: sess}
 }
 
@@ -121,18 +62,8 @@ func (r Auxiliary_Network_Status) Offset(offset int) Auxiliary_Network_Status {
 	return r
 }
 
-// Return the current network status of and latency information for a given target from numerous points around the world. Valid Targets:
-// * ALL
-// * NETWORK_DALLAS
-// * NETWORK_SEATTLE
-// * NETWORK_PUBLIC
-// * NETWORK_PUBLIC_DALLAS
-// * NETWORK_PUBLIC_SEATTLE
-// * NETWORK_PUBLIC_WDC
-// * NETWORK_PRIVATE
-// * NETWORK_PRIVATE_DALLAS
-// * NETWORK_PRIVATE_SEATTLE
-// * NETWORK_PRIVATE_WDC
+// no documentation yet
+// Deprecated: This function has been marked as deprecated.
 func (r Auxiliary_Network_Status) GetNetworkStatus(target *string) (resp []datatypes.Container_Auxiliary_Network_Status_Reading, err error) {
 	params := []interface{}{
 		target,
@@ -143,12 +74,12 @@ func (r Auxiliary_Network_Status) GetNetworkStatus(target *string) (resp []datat
 
 // A SoftLayer_Auxiliary_Notification_Emergency data object represents a notification event being broadcast to the SoftLayer customer base. It is used to provide information regarding outages or current known issues.
 type Auxiliary_Notification_Emergency struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetAuxiliaryNotificationEmergencyService returns an instance of the Auxiliary_Notification_Emergency SoftLayer service
-func GetAuxiliaryNotificationEmergencyService(sess *session.Session) Auxiliary_Notification_Emergency {
+func GetAuxiliaryNotificationEmergencyService(sess session.SLSession) Auxiliary_Notification_Emergency {
 	return Auxiliary_Notification_Emergency{Session: sess}
 }
 
@@ -213,12 +144,12 @@ func (r Auxiliary_Notification_Emergency) GetStatus() (resp datatypes.Auxiliary_
 
 // no documentation yet
 type Auxiliary_Shipping_Courier_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetAuxiliaryShippingCourierTypeService returns an instance of the Auxiliary_Shipping_Courier_Type SoftLayer service
-func GetAuxiliaryShippingCourierTypeService(sess *session.Session) Auxiliary_Shipping_Courier_Type {
+func GetAuxiliaryShippingCourierTypeService(sess session.SLSession) Auxiliary_Shipping_Courier_Type {
 	return Auxiliary_Shipping_Courier_Type{Session: sess}
 }
 

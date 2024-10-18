@@ -23,27 +23,28 @@ import (
 
 // Disk ディスク
 type Disk struct {
-	ID              types.ID              `json:",omitempty" yaml:"id,omitempty" structs:",omitempty"`
-	Name            string                `json:",omitempty" yaml:"name,omitempty" structs:",omitempty"`
-	Description     string                `yaml:"description"`
-	Tags            types.Tags            `yaml:"tags"`
-	Icon            *Icon                 `json:",omitempty" yaml:"icon,omitempty" structs:",omitempty"`
-	CreatedAt       *time.Time            `json:",omitempty" yaml:"created_at,omitempty" structs:",omitempty"`
-	ModifiedAt      *time.Time            `json:",omitempty" yaml:"modified_at,omitempty" structs:",omitempty"`
-	Availability    types.EAvailability   `json:",omitempty" yaml:"availability,omitempty" structs:",omitempty"`
-	ServiceClass    string                `json:",omitempty" yaml:"service_class,omitempty" structs:",omitempty"`
-	SizeMB          int                   `json:",omitempty" yaml:"size_mb,omitempty" structs:",omitempty"`
-	MigratedMB      int                   `json:",omitempty" yaml:"migrated_mb,omitempty" structs:",omitempty"`
-	Connection      types.EDiskConnection `json:",omitempty" yaml:"connection,omitempty" structs:",omitempty"`
-	ConnectionOrder int                   `json:",omitempty" yaml:"connection_order,omitempty" structs:",omitempty"`
-	ReinstallCount  int                   `json:",omitempty" yaml:"reinstall_count,omitempty" structs:",omitempty"`
-	JobStatus       *MigrationJobStatus   `json:",omitempty" yaml:"job_status,omitempty" structs:",omitempty"`
-	Plan            *DiskPlan             `json:",omitempty" yaml:"plan,omitempty" structs:",omitempty"`
-	SourceDisk      *Disk                 `json:",omitempty" yaml:"source_disk,omitempty" structs:",omitempty"`
-	SourceArchive   *Archive              `json:",omitempty" yaml:"source_archive,omitempty" structs:",omitempty"`
-	BundleInfo      *BundleInfo           `json:",omitempty" yaml:"bundle_info,omitempty" structs:",omitempty"`
-	Storage         *Storage              `json:",omitempty" yaml:"storage,omitempty" structs:",omitempty"`
-	Server          *Server               `json:",omitempty" yaml:"server,omitempty" structs:",omitempty"`
+	ID                  types.ID                       `json:",omitempty" yaml:"id,omitempty" structs:",omitempty"`
+	Name                string                         `json:",omitempty" yaml:"name,omitempty" structs:",omitempty"`
+	Description         string                         `yaml:"description"`
+	Tags                types.Tags                     `yaml:"tags"`
+	Icon                *Icon                          `json:",omitempty" yaml:"icon,omitempty" structs:",omitempty"`
+	CreatedAt           *time.Time                     `json:",omitempty" yaml:"created_at,omitempty" structs:",omitempty"`
+	ModifiedAt          *time.Time                     `json:",omitempty" yaml:"modified_at,omitempty" structs:",omitempty"`
+	Availability        types.EAvailability            `json:",omitempty" yaml:"availability,omitempty" structs:",omitempty"`
+	ServiceClass        string                         `json:",omitempty" yaml:"service_class,omitempty" structs:",omitempty"`
+	SizeMB              int                            `json:",omitempty" yaml:"size_mb,omitempty" structs:",omitempty"`
+	MigratedMB          int                            `json:",omitempty" yaml:"migrated_mb,omitempty" structs:",omitempty"`
+	Connection          types.EDiskConnection          `json:",omitempty" yaml:"connection,omitempty" structs:",omitempty"`
+	EncryptionAlgorithm types.EDiskEncryptionAlgorithm `json:",omitempty" yaml:"encryption_algorithm,omitempty" structs:",omitempty"`
+	ConnectionOrder     int                            `json:",omitempty" yaml:"connection_order,omitempty" structs:",omitempty"`
+	ReinstallCount      int                            `json:",omitempty" yaml:"reinstall_count,omitempty" structs:",omitempty"`
+	JobStatus           *MigrationJobStatus            `json:",omitempty" yaml:"job_status,omitempty" structs:",omitempty"`
+	Plan                *DiskPlan                      `json:",omitempty" yaml:"plan,omitempty" structs:",omitempty"`
+	SourceDisk          *Disk                          `json:",omitempty" yaml:"source_disk,omitempty" structs:",omitempty"`
+	SourceArchive       *Archive                       `json:",omitempty" yaml:"source_archive,omitempty" structs:",omitempty"`
+	BundleInfo          *BundleInfo                    `json:",omitempty" yaml:"bundle_info,omitempty" structs:",omitempty"`
+	Storage             *Storage                       `json:",omitempty" yaml:"storage,omitempty" structs:",omitempty"`
+	Server              *Server                        `json:",omitempty" yaml:"server,omitempty" structs:",omitempty"`
 }
 
 // MigrationJobStatus マイグレーションジョブステータス

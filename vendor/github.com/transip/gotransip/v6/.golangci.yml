@@ -19,11 +19,51 @@ linters-settings:
   goconst:
     min-len: 3
     min-occurrences: 2
-  depguard: {}
+  depguard:
+    rules:
+      Main:
+        files:
+          - "!**/internal/**/*.go"
+          - "$all"
+          - "!$test"
+        allow:
+          - "$gostd"
+          - github.com/transip/gotransip/v6
+          - github.com/transip/gotransip/v6/rest
+          - github.com/transip/gotransip/v6/repository
+          - github.com/transip/gotransip/v6/vps
+      Internal:
+        files:
+          - "**/internal/**/*.go"
+        allow:
+          - "$gostd"
+          - github.com/transip/gotransip/v6
+          - github.com/transip/gotransip/v6/rest
+          - github.com/transip/gotransip/v6/repository
+          - github.com/transip/gotransip/v6/vps
+          - github.com/stretchr/testify/assert
+          - github.com/stretchr/testify/require
+      Tests:
+        files:
+          - "$test"
+        allow:
+          - "$gostd"
+          - github.com/transip/gotransip/v6
+          - github.com/transip/gotransip/v6/rest
+          - github.com/transip/gotransip/v6/repository
+          - github.com/transip/gotransip/v6/ipaddress
+          - github.com/transip/gotransip/v6/vps
+          - github.com/transip/gotransip/v6/jwt
+          - github.com/transip/gotransip/v6/internal/testutil
+          - github.com/stretchr/testify/require
+          - github.com/stretchr/testify/assert
+
+      
   lll:
     line-length: 160
   nakedret:
     max-func-lines: 10
+    
 
 linters:
   enable:
@@ -31,7 +71,6 @@ linters:
     - bidichk
     - bodyclose
     - contextcheck
-    - deadcode
     - decorder
     - depguard
     - dogsled
@@ -58,7 +97,6 @@ linters:
     - gosimple
     - govet
     - grouper
-    - ifshort
     - importas
     - ineffassign
     - lll
@@ -76,14 +114,12 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
     - tenv
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - wastedassign
   enable-all: false
   disable-all: false
@@ -104,3 +140,4 @@ issues:
     - path: mocks/*
       linters:
         - typecheck
+

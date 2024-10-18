@@ -1,9 +1,6 @@
 package rrset
 
 import (
-	"fmt"
-	"net/url"
-
 	"github.com/ultradns/ultradns-go-sdk/pkg/helper"
 )
 
@@ -33,35 +30,4 @@ type ResponseList struct {
 	QueryInfo  *helper.QueryInfo  `json:"queryInfo,omitempty"`
 	ResultInfo *helper.ResultInfo `json:"resultInfo,omitempty"`
 	RRSets     []*RRSet           `json:"rrSets,omitempty"`
-}
-
-func (r RRSetKey) RecordURI() string {
-	r.Owner = url.PathEscape(r.Owner)
-	r.Zone = url.PathEscape(r.Zone)
-
-	if r.RecordType == "" {
-		r.RecordType = "ANY"
-	}
-
-	return fmt.Sprintf("zones/%s/rrsets/%s/%s", r.Zone, r.RecordType, r.Owner)
-}
-
-func (r RRSetKey) ProbeURI() string {
-	return fmt.Sprintf("%s/probes/%s", r.RecordURI(), r.ID)
-}
-
-func (r RRSetKey) ProbeListURI(query string) string {
-	return fmt.Sprintf("%s/probes?q=%s", r.RecordURI(), query)
-}
-
-func (r RRSetKey) RecordID() string {
-	r.Owner = helper.GetOwnerFQDN(r.Owner, r.Zone)
-	r.Zone = helper.GetZoneFQDN(r.Zone)
-	r.RecordType = helper.GetRecordTypeFullString(r.RecordType)
-
-	return fmt.Sprintf("%s:%s:%s", r.Owner, r.Zone, r.RecordType)
-}
-
-func (r RRSetKey) PID() string {
-	return fmt.Sprintf("%s:%s", r.RecordID(), r.ID)
 }

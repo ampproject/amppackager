@@ -62,6 +62,10 @@ func (m *Host) SetServerId(v string) {
 	m.ServerId = v
 }
 
+func (m *Host) SetReplacement(v *Replacement) {
+	m.Replacement = v
+}
+
 type ScalePolicy_ScaleType = isScalePolicy_ScaleType
 
 func (m *ScalePolicy) SetScaleType(v ScalePolicy_ScaleType) {
@@ -76,4 +80,12 @@ func (m *ScalePolicy) SetFixedScale(v *ScalePolicy_FixedScale) {
 
 func (m *ScalePolicy_FixedScale) SetSize(v int64) {
 	m.Size = v
+}
+
+func (m *Replacement) SetHostId(v string) {
+	m.HostId = v
+}
+
+func (m *Replacement) SetDeadlineAt(v *timestamppb.Timestamp) {
+	m.DeadlineAt = v
 }

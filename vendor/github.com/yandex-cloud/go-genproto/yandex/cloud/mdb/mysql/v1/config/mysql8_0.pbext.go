@@ -290,6 +290,54 @@ func (m *MysqlConfig8_0) SetBinlogTransactionDependencyTracking(v MysqlConfig8_0
 	m.BinlogTransactionDependencyTracking = v
 }
 
+func (m *MysqlConfig8_0) SetAutocommit(v *wrapperspb.BoolValue) {
+	m.Autocommit = v
+}
+
+func (m *MysqlConfig8_0) SetInnodbStatusOutput(v *wrapperspb.BoolValue) {
+	m.InnodbStatusOutput = v
+}
+
+func (m *MysqlConfig8_0) SetInnodbStrictMode(v *wrapperspb.BoolValue) {
+	m.InnodbStrictMode = v
+}
+
+func (m *MysqlConfig8_0) SetInnodbPrintLockWaitTimeoutInfo(v *wrapperspb.BoolValue) {
+	m.InnodbPrintLockWaitTimeoutInfo = v
+}
+
+func (m *MysqlConfig8_0) SetLogErrorVerbosity(v *wrapperspb.Int64Value) {
+	m.LogErrorVerbosity = v
+}
+
+func (m *MysqlConfig8_0) SetMaxDigestLength(v *wrapperspb.Int64Value) {
+	m.MaxDigestLength = v
+}
+
+func (m *MysqlConfig8_0) SetLockWaitTimeout(v *wrapperspb.Int64Value) {
+	m.LockWaitTimeout = v
+}
+
+func (m *MysqlConfig8_0) SetMaxPreparedStmtCount(v *wrapperspb.Int64Value) {
+	m.MaxPreparedStmtCount = v
+}
+
+func (m *MysqlConfig8_0) SetOptimizerSwitch(v string) {
+	m.OptimizerSwitch = v
+}
+
+func (m *MysqlConfig8_0) SetOptimizerSearchDepth(v *wrapperspb.Int64Value) {
+	m.OptimizerSearchDepth = v
+}
+
+func (m *MysqlConfig8_0) SetUserstat(v *wrapperspb.BoolValue) {
+	m.Userstat = v
+}
+
+func (m *MysqlConfig8_0) SetMaxExecutionTime(v *wrapperspb.Int64Value) {
+	m.MaxExecutionTime = v
+}
+
 func (m *MysqlConfigSet8_0) SetEffectiveConfig(v *MysqlConfig8_0) {
 	m.EffectiveConfig = v
 }

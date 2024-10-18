@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // Details provided for the notification are basic.  Details such as the related preferences, name and keyname for the notification can be retrieved.  The keyname property for the notification can be used to refer to a notification when integrating into the SoftLayer Notification system.  The name property can used more for display purposes.
 type Notification struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetNotificationService returns an instance of the Notification SoftLayer service
-func GetNotificationService(sess *session.Session) Notification {
+func GetNotificationService(sess session.SLSession) Notification {
 	return Notification{Session: sess}
 }
 
@@ -95,12 +88,12 @@ func (r Notification) GetRequiredPreferences() (resp []datatypes.Notification_Pr
 
 // This is an extension of the SoftLayer_Notification class.  These are implementation details specific to those notifications which can be subscribed to and received on a mobile device.
 type Notification_Mobile struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetNotificationMobileService returns an instance of the Notification_Mobile SoftLayer service
-func GetNotificationMobileService(sess *session.Session) Notification_Mobile {
+func GetNotificationMobileService(sess session.SLSession) Notification_Mobile {
 	return Notification_Mobile{Session: sess}
 }
 
@@ -170,12 +163,12 @@ func (r Notification_Mobile) GetRequiredPreferences() (resp []datatypes.Notifica
 
 // no documentation yet
 type Notification_Occurrence_Event struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetNotificationOccurrenceEventService returns an instance of the Notification_Occurrence_Event SoftLayer service
-func GetNotificationOccurrenceEventService(sess *session.Session) Notification_Occurrence_Event {
+func GetNotificationOccurrenceEventService(sess session.SLSession) Notification_Occurrence_Event {
 	return Notification_Occurrence_Event{Session: sess}
 }
 
@@ -315,12 +308,12 @@ func (r Notification_Occurrence_Event) GetUpdates() (resp []datatypes.Notificati
 
 // This type contains general information relating to a user that may be impacted by a [[SoftLayer_Notification_Occurrence_Event]].
 type Notification_Occurrence_User struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetNotificationOccurrenceUserService returns an instance of the Notification_Occurrence_User SoftLayer service
-func GetNotificationOccurrenceUserService(sess *session.Session) Notification_Occurrence_User {
+func GetNotificationOccurrenceUserService(sess session.SLSession) Notification_Occurrence_User {
 	return Notification_Occurrence_User{Session: sess}
 }
 
@@ -399,12 +392,12 @@ func (r Notification_Occurrence_User) GetUser() (resp datatypes.User_Customer, e
 //
 // NOTE: There are preferences and delivery methods that cannot be modified.  Also, there are some subscriptions that are required.
 type Notification_User_Subscriber struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetNotificationUserSubscriberService returns an instance of the Notification_User_Subscriber SoftLayer service
-func GetNotificationUserSubscriberService(sess *session.Session) Notification_User_Subscriber {
+func GetNotificationUserSubscriberService(sess session.SLSession) Notification_User_Subscriber {
 	return Notification_User_Subscriber{Session: sess}
 }
 
@@ -529,12 +522,12 @@ func (r Notification_User_Subscriber) GetUserRecord() (resp datatypes.User_Custo
 //
 // NOTE: There are preferences and delivery methods that cannot be modified.  Also, there are some subscriptions that are required.
 type Notification_User_Subscriber_Billing struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetNotificationUserSubscriberBillingService returns an instance of the Notification_User_Subscriber_Billing SoftLayer service
-func GetNotificationUserSubscriberBillingService(sess *session.Session) Notification_User_Subscriber_Billing {
+func GetNotificationUserSubscriberBillingService(sess session.SLSession) Notification_User_Subscriber_Billing {
 	return Notification_User_Subscriber_Billing{Session: sess}
 }
 
@@ -659,12 +652,12 @@ func (r Notification_User_Subscriber_Billing) GetUserRecord() (resp datatypes.Us
 //
 // NOTE: There are preferences and delivery methods that cannot be modified.  Also, there are some subscriptions that are required.
 type Notification_User_Subscriber_Mobile struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetNotificationUserSubscriberMobileService returns an instance of the Notification_User_Subscriber_Mobile SoftLayer service
-func GetNotificationUserSubscriberMobileService(sess *session.Session) Notification_User_Subscriber_Mobile {
+func GetNotificationUserSubscriberMobileService(sess session.SLSession) Notification_User_Subscriber_Mobile {
 	return Notification_User_Subscriber_Mobile{Session: sess}
 }
 
@@ -805,12 +798,12 @@ func (r Notification_User_Subscriber_Mobile) SetSnoozeTimer(start *int, end *int
 //
 // NOTE: Some preferences have certain restrictions on values that can be set.
 type Notification_User_Subscriber_Preference struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetNotificationUserSubscriberPreferenceService returns an instance of the Notification_User_Subscriber_Preference SoftLayer service
-func GetNotificationUserSubscriberPreferenceService(sess *session.Session) Notification_User_Subscriber_Preference {
+func GetNotificationUserSubscriberPreferenceService(sess session.SLSession) Notification_User_Subscriber_Preference {
 	return Notification_User_Subscriber_Preference{Session: sess}
 }
 

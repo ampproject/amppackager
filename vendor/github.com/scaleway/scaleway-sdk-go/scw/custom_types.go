@@ -43,6 +43,28 @@ type File struct {
 	Content io.Reader `json:"content"`
 }
 
+func (f *File) MarshalJSON() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if f.Content != nil {
+		_, err := io.Copy(buf, f.Content)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	tmpFile := struct {
+		Name        string `json:"name"`
+		ContentType string `json:"content_type"`
+		Content     string `json:"content"`
+	}{
+		Name:        f.Name,
+		ContentType: f.ContentType,
+		Content:     buf.String(),
+	}
+
+	return json.Marshal(tmpFile)
+}
+
 func (f *File) UnmarshalJSON(b []byte) error {
 	type file File
 	var tmpFile struct {
@@ -90,7 +112,7 @@ type Money struct {
 // - (value = 1.123456789, precision = 9) => Money{Units = 1, Nanos = 123456789}
 func NewMoneyFromFloat(value float64, currencyCode string, precision int) *Money {
 	if precision > 9 {
-		panic(fmt.Errorf("max precision is 9"))
+		panic(errors.New("max precision is 9"))
 	}
 
 	strValue := strconv.FormatFloat(value, 'f', precision, 64)
@@ -115,7 +137,7 @@ func (m Money) String() string {
 
 	currencySign, currencySignFound := currencySignsByCodes[m.CurrencyCode]
 	if !currencySignFound {
-		logger.Debugf("%s currency code is not supported", m.CurrencyCode)
+		logger.Debugf("%s currency code is not supported\n", m.CurrencyCode)
 		currencySign = m.CurrencyCode
 	}
 
@@ -184,7 +206,7 @@ func (tsp *TimeSeriesPoint) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(point) != 2 {
-		return fmt.Errorf("invalid point array")
+		return errors.New("invalid point array")
 	}
 
 	strTimestamp, isStrTimestamp := point[0].(string)
@@ -264,7 +286,7 @@ func (d *Duration) ToTimeDuration() *time.Duration {
 	if d == nil {
 		return nil
 	}
-	timeDuration := time.Duration(d.Nanos) + time.Duration(d.Seconds/1e9)
+	timeDuration := time.Duration(d.Nanos) + time.Duration(d.Seconds)*time.Second
 	return &timeDuration
 }
 
@@ -303,6 +325,15 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	}
 
 	return nil
+}
+
+func NewDurationFromTimeDuration(t time.Duration) *Duration {
+	duration := Duration{
+		Seconds: int64(t.Seconds()),
+	}
+	duration.Nanos = int32(t.Nanoseconds() - (time.Duration(duration.Seconds) * time.Second).Nanoseconds())
+
+	return &duration
 }
 
 // splitFloatString splits a float represented in a string, and returns its units (left-coma part) and nanos (right-coma part).
@@ -416,4 +447,16 @@ func EncodeJSONObject(v JSONObject, escape EscapeMode) (string, error) {
 	}
 
 	panic(fmt.Sprintf("EncodeJSONObject called with unknown EscapeMode, %v", escape))
+}
+
+// Decimal is a representation of a decimal value, such as 2.5.
+// Comparable to language-native decimal formats, such as Java's BigDecimal or
+// Python's decimal.Decimal.
+// Lookup protobuf google.type.Decimal for details.
+type Decimal string
+
+var _ fmt.Stringer = (*Decimal)(nil)
+
+func (d Decimal) String() string {
+	return string(d)
 }

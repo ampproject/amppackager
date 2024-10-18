@@ -147,9 +147,45 @@ func (m *ClusterConfig) SetPostgresqlConfig_13(v *config.PostgresqlConfigSet13) 
 	}
 }
 
+func (m *ClusterConfig) SetPostgresqlConfig_13_1C(v *config.PostgresqlConfigSet13_1C) {
+	m.PostgresqlConfig = &ClusterConfig_PostgresqlConfig_13_1C{
+		PostgresqlConfig_13_1C: v,
+	}
+}
+
 func (m *ClusterConfig) SetPostgresqlConfig_14(v *config.PostgresqlConfigSet14) {
 	m.PostgresqlConfig = &ClusterConfig_PostgresqlConfig_14{
 		PostgresqlConfig_14: v,
+	}
+}
+
+func (m *ClusterConfig) SetPostgresqlConfig_14_1C(v *config.PostgresqlConfigSet14_1C) {
+	m.PostgresqlConfig = &ClusterConfig_PostgresqlConfig_14_1C{
+		PostgresqlConfig_14_1C: v,
+	}
+}
+
+func (m *ClusterConfig) SetPostgresqlConfig_15(v *config.PostgresqlConfigSet15) {
+	m.PostgresqlConfig = &ClusterConfig_PostgresqlConfig_15{
+		PostgresqlConfig_15: v,
+	}
+}
+
+func (m *ClusterConfig) SetPostgresqlConfig_15_1C(v *config.PostgresqlConfigSet15_1C) {
+	m.PostgresqlConfig = &ClusterConfig_PostgresqlConfig_15_1C{
+		PostgresqlConfig_15_1C: v,
+	}
+}
+
+func (m *ClusterConfig) SetPostgresqlConfig_16(v *config.PostgresqlConfigSet16) {
+	m.PostgresqlConfig = &ClusterConfig_PostgresqlConfig_16{
+		PostgresqlConfig_16: v,
+	}
+}
+
+func (m *ClusterConfig) SetPostgresqlConfig_16_1C(v *config.PostgresqlConfigSet16_1C) {
+	m.PostgresqlConfig = &ClusterConfig_PostgresqlConfig_16_1C{
+		PostgresqlConfig_16_1C: v,
 	}
 }
 
@@ -179,6 +215,10 @@ func (m *ClusterConfig) SetAccess(v *Access) {
 
 func (m *ClusterConfig) SetPerformanceDiagnostics(v *PerformanceDiagnostics) {
 	m.PerformanceDiagnostics = v
+}
+
+func (m *ClusterConfig) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *ConnectionPoolerConfig) SetPoolingMode(v ConnectionPoolerConfig_PoolingMode) {
@@ -295,9 +335,45 @@ func (m *HostConfig) SetPostgresqlConfig_13(v *config.PostgresqlHostConfig13) {
 	}
 }
 
+func (m *HostConfig) SetPostgresqlConfig_13_1C(v *config.PostgresqlHostConfig13_1C) {
+	m.PostgresqlConfig = &HostConfig_PostgresqlConfig_13_1C{
+		PostgresqlConfig_13_1C: v,
+	}
+}
+
 func (m *HostConfig) SetPostgresqlConfig_14(v *config.PostgresqlHostConfig14) {
 	m.PostgresqlConfig = &HostConfig_PostgresqlConfig_14{
 		PostgresqlConfig_14: v,
+	}
+}
+
+func (m *HostConfig) SetPostgresqlConfig_14_1C(v *config.PostgresqlHostConfig14_1C) {
+	m.PostgresqlConfig = &HostConfig_PostgresqlConfig_14_1C{
+		PostgresqlConfig_14_1C: v,
+	}
+}
+
+func (m *HostConfig) SetPostgresqlConfig_15(v *config.PostgresqlHostConfig15) {
+	m.PostgresqlConfig = &HostConfig_PostgresqlConfig_15{
+		PostgresqlConfig_15: v,
+	}
+}
+
+func (m *HostConfig) SetPostgresqlConfig_15_1C(v *config.PostgresqlHostConfig15_1C) {
+	m.PostgresqlConfig = &HostConfig_PostgresqlConfig_15_1C{
+		PostgresqlConfig_15_1C: v,
+	}
+}
+
+func (m *HostConfig) SetPostgresqlConfig_16(v *config.PostgresqlHostConfig16) {
+	m.PostgresqlConfig = &HostConfig_PostgresqlConfig_16{
+		PostgresqlConfig_16: v,
+	}
+}
+
+func (m *HostConfig) SetPostgresqlConfig_16_1C(v *config.PostgresqlHostConfig16_1C) {
+	m.PostgresqlConfig = &HostConfig_PostgresqlConfig_16_1C{
+		PostgresqlConfig_16_1C: v,
 	}
 }
 
@@ -337,6 +413,10 @@ func (m *Access) SetDataTransfer(v bool) {
 	m.DataTransfer = v
 }
 
+func (m *Access) SetYandexQuery(v bool) {
+	m.YandexQuery = v
+}
+
 func (m *PerformanceDiagnostics) SetEnabled(v bool) {
 	m.Enabled = v
 }
@@ -347,4 +427,16 @@ func (m *PerformanceDiagnostics) SetSessionsSamplingInterval(v int64) {
 
 func (m *PerformanceDiagnostics) SetStatementsSamplingInterval(v int64) {
 	m.StatementsSamplingInterval = v
+}
+
+func (m *DiskSizeAutoscaling) SetPlannedUsageThreshold(v int64) {
+	m.PlannedUsageThreshold = v
+}
+
+func (m *DiskSizeAutoscaling) SetEmergencyUsageThreshold(v int64) {
+	m.EmergencyUsageThreshold = v
+}
+
+func (m *DiskSizeAutoscaling) SetDiskSizeLimit(v int64) {
+	m.DiskSizeLimit = v
 }

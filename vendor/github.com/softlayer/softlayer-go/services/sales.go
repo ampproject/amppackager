@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // The presale event data types indicate the information regarding an individual presale event. The ”'locationId”' will indicate the datacenter associated with the presale event. The ”'itemId”' will indicate the product item associated with a particular presale event - however these are more rare. The ”'startDate”' and ”'endDate”' will provide information regarding when the presale event is available for use. At the end of the presale event, the server or services purchased will be available once approved and provisioned.
 type Sales_Presale_Event struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSalesPresaleEventService returns an instance of the Sales_Presale_Event SoftLayer service
-func GetSalesPresaleEventService(sess *session.Session) Sales_Presale_Event {
+func GetSalesPresaleEventService(sess session.SLSession) Sales_Presale_Event {
 	return Sales_Presale_Event{Session: sess}
 }
 

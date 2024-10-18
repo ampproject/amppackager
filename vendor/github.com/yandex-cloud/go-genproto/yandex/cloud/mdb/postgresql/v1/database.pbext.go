@@ -2,6 +2,10 @@
 
 package postgresql
 
+import (
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
+)
+
 func (m *Database) SetName(v string) {
 	m.Name = v
 }
@@ -28,6 +32,10 @@ func (m *Database) SetExtensions(v []*Extension) {
 
 func (m *Database) SetTemplateDb(v string) {
 	m.TemplateDb = v
+}
+
+func (m *Database) SetDeletionProtection(v *wrapperspb.BoolValue) {
+	m.DeletionProtection = v
 }
 
 func (m *Extension) SetName(v string) {
@@ -60,4 +68,8 @@ func (m *DatabaseSpec) SetExtensions(v []*Extension) {
 
 func (m *DatabaseSpec) SetTemplateDb(v string) {
 	m.TemplateDb = v
+}
+
+func (m *DatabaseSpec) SetDeletionProtection(v *wrapperspb.BoolValue) {
+	m.DeletionProtection = v
 }

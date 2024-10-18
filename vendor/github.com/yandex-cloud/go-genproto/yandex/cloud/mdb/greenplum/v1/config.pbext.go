@@ -30,12 +30,112 @@ func (m *ConnectionPoolerConfig) SetClientIdleTimeout(v *wrapperspb.Int64Value) 
 	m.ClientIdleTimeout = v
 }
 
+func (m *BackgroundActivityStartAt) SetHours(v int64) {
+	m.Hours = v
+}
+
+func (m *BackgroundActivityStartAt) SetMinutes(v int64) {
+	m.Minutes = v
+}
+
+func (m *TableSizes) SetStarts(v []*BackgroundActivityStartAt) {
+	m.Starts = v
+}
+
+func (m *AnalyzeAndVacuum) SetStart(v *BackgroundActivityStartAt) {
+	m.Start = v
+}
+
+func (m *AnalyzeAndVacuum) SetAnalyzeTimeout(v *wrapperspb.Int64Value) {
+	m.AnalyzeTimeout = v
+}
+
+func (m *AnalyzeAndVacuum) SetVacuumTimeout(v *wrapperspb.Int64Value) {
+	m.VacuumTimeout = v
+}
+
+func (m *BackgroundActivitiesConfig) SetTableSizes(v *TableSizes) {
+	m.TableSizes = v
+}
+
+func (m *BackgroundActivitiesConfig) SetAnalyzeAndVacuum(v *AnalyzeAndVacuum) {
+	m.AnalyzeAndVacuum = v
+}
+
+func (m *BackgroundActivitiesConfig) SetQueryKillerScripts(v *QueryKillerScripts) {
+	m.QueryKillerScripts = v
+}
+
+func (m *QueryKiller) SetEnable(v *wrapperspb.BoolValue) {
+	m.Enable = v
+}
+
+func (m *QueryKiller) SetMaxAge(v *wrapperspb.Int64Value) {
+	m.MaxAge = v
+}
+
+func (m *QueryKiller) SetIgnoreUsers(v []string) {
+	m.IgnoreUsers = v
+}
+
+func (m *QueryKillerScripts) SetIdle(v *QueryKiller) {
+	m.Idle = v
+}
+
+func (m *QueryKillerScripts) SetIdleInTransaction(v *QueryKiller) {
+	m.IdleInTransaction = v
+}
+
+func (m *QueryKillerScripts) SetLongRunning(v *QueryKiller) {
+	m.LongRunning = v
+}
+
 func (m *MasterSubclusterConfig) SetResources(v *Resources) {
 	m.Resources = v
 }
 
 func (m *SegmentSubclusterConfig) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *GreenplumConfig6) SetMaxConnections(v *wrapperspb.Int64Value) {
+	m.MaxConnections = v
+}
+
+func (m *GreenplumConfig6) SetMaxSlotWalKeepSize(v *wrapperspb.Int64Value) {
+	m.MaxSlotWalKeepSize = v
+}
+
+func (m *GreenplumConfig6) SetGpWorkfileLimitPerSegment(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitPerSegment = v
+}
+
+func (m *GreenplumConfig6) SetGpWorkfileLimitPerQuery(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitPerQuery = v
+}
+
+func (m *GreenplumConfig6) SetGpWorkfileLimitFilesPerQuery(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitFilesPerQuery = v
+}
+
+func (m *GreenplumConfig6) SetMaxPreparedTransactions(v *wrapperspb.Int64Value) {
+	m.MaxPreparedTransactions = v
+}
+
+func (m *GreenplumConfig6) SetGpWorkfileCompression(v *wrapperspb.BoolValue) {
+	m.GpWorkfileCompression = v
+}
+
+func (m *GreenplumConfig6) SetMaxStatementMem(v *wrapperspb.Int64Value) {
+	m.MaxStatementMem = v
+}
+
+func (m *GreenplumConfig6) SetLogStatement(v LogStatement) {
+	m.LogStatement = v
+}
+
+func (m *GreenplumConfig6) SetGpAddColumnInheritsTableSetting(v *wrapperspb.BoolValue) {
+	m.GpAddColumnInheritsTableSetting = v
 }
 
 func (m *GreenplumConfig6_17) SetMaxConnections(v *wrapperspb.Int64Value) {
@@ -102,6 +202,86 @@ func (m *GreenplumConfig6_19) SetLogStatement(v LogStatement) {
 	m.LogStatement = v
 }
 
+func (m *GreenplumConfig6_21) SetMaxConnections(v *wrapperspb.Int64Value) {
+	m.MaxConnections = v
+}
+
+func (m *GreenplumConfig6_21) SetMaxSlotWalKeepSize(v *wrapperspb.Int64Value) {
+	m.MaxSlotWalKeepSize = v
+}
+
+func (m *GreenplumConfig6_21) SetGpWorkfileLimitPerSegment(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitPerSegment = v
+}
+
+func (m *GreenplumConfig6_21) SetGpWorkfileLimitPerQuery(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitPerQuery = v
+}
+
+func (m *GreenplumConfig6_21) SetGpWorkfileLimitFilesPerQuery(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitFilesPerQuery = v
+}
+
+func (m *GreenplumConfig6_21) SetMaxPreparedTransactions(v *wrapperspb.Int64Value) {
+	m.MaxPreparedTransactions = v
+}
+
+func (m *GreenplumConfig6_21) SetGpWorkfileCompression(v *wrapperspb.BoolValue) {
+	m.GpWorkfileCompression = v
+}
+
+func (m *GreenplumConfig6_21) SetMaxStatementMem(v *wrapperspb.Int64Value) {
+	m.MaxStatementMem = v
+}
+
+func (m *GreenplumConfig6_21) SetLogStatement(v LogStatement) {
+	m.LogStatement = v
+}
+
+func (m *GreenplumConfig6_21) SetGpAddColumnInheritsTableSetting(v *wrapperspb.BoolValue) {
+	m.GpAddColumnInheritsTableSetting = v
+}
+
+func (m *GreenplumConfig6_22) SetMaxConnections(v *wrapperspb.Int64Value) {
+	m.MaxConnections = v
+}
+
+func (m *GreenplumConfig6_22) SetMaxSlotWalKeepSize(v *wrapperspb.Int64Value) {
+	m.MaxSlotWalKeepSize = v
+}
+
+func (m *GreenplumConfig6_22) SetGpWorkfileLimitPerSegment(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitPerSegment = v
+}
+
+func (m *GreenplumConfig6_22) SetGpWorkfileLimitPerQuery(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitPerQuery = v
+}
+
+func (m *GreenplumConfig6_22) SetGpWorkfileLimitFilesPerQuery(v *wrapperspb.Int64Value) {
+	m.GpWorkfileLimitFilesPerQuery = v
+}
+
+func (m *GreenplumConfig6_22) SetMaxPreparedTransactions(v *wrapperspb.Int64Value) {
+	m.MaxPreparedTransactions = v
+}
+
+func (m *GreenplumConfig6_22) SetGpWorkfileCompression(v *wrapperspb.BoolValue) {
+	m.GpWorkfileCompression = v
+}
+
+func (m *GreenplumConfig6_22) SetMaxStatementMem(v *wrapperspb.Int64Value) {
+	m.MaxStatementMem = v
+}
+
+func (m *GreenplumConfig6_22) SetLogStatement(v LogStatement) {
+	m.LogStatement = v
+}
+
+func (m *GreenplumConfig6_22) SetGpAddColumnInheritsTableSetting(v *wrapperspb.BoolValue) {
+	m.GpAddColumnInheritsTableSetting = v
+}
+
 func (m *GreenplumConfigSet6_17) SetEffectiveConfig(v *GreenplumConfig6_17) {
 	m.EffectiveConfig = v
 }
@@ -123,6 +303,42 @@ func (m *GreenplumConfigSet6_19) SetUserConfig(v *GreenplumConfig6_19) {
 }
 
 func (m *GreenplumConfigSet6_19) SetDefaultConfig(v *GreenplumConfig6_19) {
+	m.DefaultConfig = v
+}
+
+func (m *GreenplumConfigSet6_21) SetEffectiveConfig(v *GreenplumConfig6_21) {
+	m.EffectiveConfig = v
+}
+
+func (m *GreenplumConfigSet6_21) SetUserConfig(v *GreenplumConfig6_21) {
+	m.UserConfig = v
+}
+
+func (m *GreenplumConfigSet6_21) SetDefaultConfig(v *GreenplumConfig6_21) {
+	m.DefaultConfig = v
+}
+
+func (m *GreenplumConfigSet6_22) SetEffectiveConfig(v *GreenplumConfig6_22) {
+	m.EffectiveConfig = v
+}
+
+func (m *GreenplumConfigSet6_22) SetUserConfig(v *GreenplumConfig6_22) {
+	m.UserConfig = v
+}
+
+func (m *GreenplumConfigSet6_22) SetDefaultConfig(v *GreenplumConfig6_22) {
+	m.DefaultConfig = v
+}
+
+func (m *GreenplumConfigSet6) SetEffectiveConfig(v *GreenplumConfig6) {
+	m.EffectiveConfig = v
+}
+
+func (m *GreenplumConfigSet6) SetUserConfig(v *GreenplumConfig6) {
+	m.UserConfig = v
+}
+
+func (m *GreenplumConfigSet6) SetDefaultConfig(v *GreenplumConfig6) {
 	m.DefaultConfig = v
 }
 

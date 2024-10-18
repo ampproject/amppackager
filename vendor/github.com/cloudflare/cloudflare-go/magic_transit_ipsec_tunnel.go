@@ -2,11 +2,12 @@ package cloudflare
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/goccy/go-json"
 )
 
 // Magic Transit IPsec Tunnel Error messages.
@@ -41,6 +42,7 @@ type MagicTransitIPsecTunnel struct {
 	PskMetadata        *MagicTransitIPsecTunnelPskMetadata `json:"psk_metadata,omitempty"`
 	RemoteIdentities   *RemoteIdentities                   `json:"remote_identities,omitempty"`
 	AllowNullCipher    bool                                `json:"allow_null_cipher"`
+	ReplayProtection   *bool                               `json:"replay_protection,omitempty"`
 }
 
 // ListMagicTransitIPsecTunnelsResponse contains a response including IPsec tunnels.

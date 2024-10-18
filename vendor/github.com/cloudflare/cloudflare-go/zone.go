@@ -2,7 +2,6 @@ package cloudflare
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"golang.org/x/net/idna"
 )
@@ -145,11 +146,12 @@ type ZoneRatePlanResponse struct {
 
 // ZoneSetting contains settings for a zone.
 type ZoneSetting struct {
-	ID            string      `json:"id"`
-	Editable      bool        `json:"editable"`
-	ModifiedOn    string      `json:"modified_on,omitempty"`
-	Value         interface{} `json:"value"`
-	TimeRemaining int         `json:"time_remaining"`
+	ID                string      `json:"id"`
+	Editable          bool        `json:"editable"`
+	ModifiedOn        string      `json:"modified_on,omitempty"`
+	Value             interface{} `json:"value"`
+	TimeRemaining     int         `json:"time_remaining"`
+	NextScheduledScan string      `json:"next_scheduled_scan,omitempty"`
 }
 
 // ZoneSettingResponse represents the response from the Zone Setting endpoint.
@@ -174,7 +176,6 @@ type ZoneSSLSetting struct {
 }
 
 // ZoneSSLSettingResponse represents the response from the Zone SSL Setting
-// endpoint.
 type ZoneSSLSettingResponse struct {
 	Response
 	Result ZoneSSLSetting `json:"result"`
@@ -671,8 +672,15 @@ func (api *API) PurgeCache(ctx context.Context, zoneID string, pcr PurgeCacheReq
 //
 // API reference: https://api.cloudflare.com/#zone-purge-individual-files-by-url-and-cache-tags
 func (api *API) PurgeCacheContext(ctx context.Context, zoneID string, pcr PurgeCacheRequest) (PurgeCacheResponse, error) {
+	// manually build the payload to ensure we don't escape HTML entities to
+	// match their keys for purging.
+	payload, err := json.MarshalWithOption(pcr, json.DisableHTMLEscape())
+	if err != nil {
+		return PurgeCacheResponse{}, err
+	}
+
 	uri := fmt.Sprintf("/zones/%s/purge_cache", zoneID)
-	res, err := api.makeRequestContext(ctx, http.MethodPost, uri, pcr)
+	res, err := api.makeRequestContext(ctx, http.MethodPost, uri, payload)
 	if err != nil {
 		return PurgeCacheResponse{}, err
 	}

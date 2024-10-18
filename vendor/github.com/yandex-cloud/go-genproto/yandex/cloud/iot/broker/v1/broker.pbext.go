@@ -3,6 +3,7 @@
 package broker
 
 import (
+	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -34,6 +35,10 @@ func (m *Broker) SetStatus(v Broker_Status) {
 	m.Status = v
 }
 
+func (m *Broker) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
+}
+
 func (m *BrokerCertificate) SetBrokerId(v string) {
 	m.BrokerId = v
 }
@@ -60,4 +65,30 @@ func (m *BrokerPassword) SetId(v string) {
 
 func (m *BrokerPassword) SetCreatedAt(v *timestamppb.Timestamp) {
 	m.CreatedAt = v
+}
+
+type LogOptions_Destination = isLogOptions_Destination
+
+func (m *LogOptions) SetDestination(v LogOptions_Destination) {
+	m.Destination = v
+}
+
+func (m *LogOptions) SetDisabled(v bool) {
+	m.Disabled = v
+}
+
+func (m *LogOptions) SetLogGroupId(v string) {
+	m.Destination = &LogOptions_LogGroupId{
+		LogGroupId: v,
+	}
+}
+
+func (m *LogOptions) SetFolderId(v string) {
+	m.Destination = &LogOptions_FolderId{
+		FolderId: v,
+	}
+}
+
+func (m *LogOptions) SetMinLevel(v v1.LogLevel_Level) {
+	m.MinLevel = v
 }

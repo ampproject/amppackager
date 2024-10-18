@@ -27,3 +27,23 @@ func (o *OrganizationManager) Organization() *OrganizationServiceClient {
 func (o *OrganizationManager) User() *UserServiceClient {
 	return &UserServiceClient{getConn: o.getConn}
 }
+
+// Group gets GroupService client
+func (o *OrganizationManager) Group() *GroupServiceClient {
+	return &GroupServiceClient{getConn: o.getConn}
+}
+
+// GroupMapping gets GroupMappingService client
+func (o *OrganizationManager) GroupMapping() *GroupMappingServiceClient {
+	return &GroupMappingServiceClient{getConn: o.getConn}
+}
+
+// OsLogin gets OsLoginService client
+func (o *OrganizationManager) OsLogin() *OsLoginServiceClient {
+	return &OsLoginServiceClient{getConn: o.getConn}
+}
+
+// UserSshKey gets UserSshKeyService client
+func (o *OrganizationManager) UserSshKey() *UserSshKeyServiceClient {
+	return &UserSshKeyServiceClient{getConn: o.getConn}
+}

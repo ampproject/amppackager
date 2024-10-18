@@ -13,19 +13,20 @@ import (
 type Record struct {
 	Meta *data.Meta `json:"meta,omitempty"`
 
-	ID              string `json:"id,omitempty"`
-	Zone            string `json:"zone"`
-	Domain          string `json:"domain"`
-	Type            string `json:"type"`
-	Link            string `json:"link,omitempty"`
-	TTL             int    `json:"ttl,omitempty"`
-	OverrideTTL     *bool  `json:"override_ttl,omitempty"`
-	UseClientSubnet *bool  `json:"use_client_subnet,omitempty"`
+	ID                     string `json:"id,omitempty"`
+	Zone                   string `json:"zone"`
+	Domain                 string `json:"domain"`
+	Type                   string `json:"type"`
+	Link                   string `json:"link,omitempty"`
+	TTL                    int    `json:"ttl,omitempty"`
+	OverrideTTL            *bool  `json:"override_ttl,omitempty"`
+	OverrideAddressRecords *bool  `json:"override_address_records,omitempty"`
+	UseClientSubnet        *bool  `json:"use_client_subnet,omitempty"`
 
 	// Answers must all be of the same type as the record.
 	Answers []*Answer `json:"answers"`
 	// The records' filter chain.
-	Filters []*filter.Filter `json:"filters,omitempty"`
+	Filters []*filter.Filter `json:"filters"`
 	// The records' regions.
 	Regions data.Regions `json:"regions,omitempty"`
 
@@ -46,18 +47,20 @@ func (r *Record) String() string {
 
 // NewRecord takes a zone, domain and record type t and creates a *Record with
 // UseClientSubnet: true & empty Answers.
-func NewRecord(zone string, domain string, t string) *Record {
+func NewRecord(zone string, domain string, t string, tags map[string]string, blockedTags []string) *Record {
 	if !strings.HasSuffix(strings.ToLower(domain), strings.ToLower(zone)) {
 		domain = fmt.Sprintf("%s.%s", domain, zone)
 	}
 	return &Record{
-		Meta:    &data.Meta{},
-		Zone:    zone,
-		Domain:  domain,
-		Type:    t,
-		Answers: []*Answer{},
-		Filters: []*filter.Filter{},
-		Regions: data.Regions{},
+		Meta:        &data.Meta{},
+		Zone:        zone,
+		Domain:      domain,
+		Type:        t,
+		Answers:     []*Answer{},
+		Filters:     []*filter.Filter{},
+		Regions:     data.Regions{},
+		Tags:        tags,
+		BlockedTags: blockedTags,
 	}
 }
 

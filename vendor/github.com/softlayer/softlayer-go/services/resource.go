@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // no documentation yet
 type Resource_Configuration struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetResourceConfigurationService returns an instance of the Resource_Configuration SoftLayer service
-func GetResourceConfigurationService(sess *session.Session) Resource_Configuration {
+func GetResourceConfigurationService(sess session.SLSession) Resource_Configuration {
 	return Resource_Configuration{Session: sess}
 }
 
@@ -80,12 +73,12 @@ func (r Resource_Configuration) SetOsPasswordFromEncrypted(encryptedPassword *st
 
 // no documentation yet
 type Resource_Group struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetResourceGroupService returns an instance of the Resource_Group SoftLayer service
-func GetResourceGroupService(sess *session.Session) Resource_Group {
+func GetResourceGroupService(sess session.SLSession) Resource_Group {
 	return Resource_Group{Session: sess}
 }
 
@@ -183,12 +176,12 @@ func (r Resource_Group) GetVlanMembers() (resp []datatypes.Resource_Group_Member
 
 // no documentation yet
 type Resource_Group_Template struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetResourceGroupTemplateService returns an instance of the Resource_Group_Template SoftLayer service
-func GetResourceGroupTemplateService(sess *session.Session) Resource_Group_Template {
+func GetResourceGroupTemplateService(sess session.SLSession) Resource_Group_Template {
 	return Resource_Group_Template{Session: sess}
 }
 
@@ -247,12 +240,12 @@ func (r Resource_Group_Template) GetObject() (resp datatypes.Resource_Group_Temp
 
 // no documentation yet
 type Resource_Metadata struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetResourceMetadataService returns an instance of the Resource_Metadata SoftLayer service
-func GetResourceMetadataService(sess *session.Session) Resource_Metadata {
+func GetResourceMetadataService(sess session.SLSession) Resource_Metadata {
 	return Resource_Metadata{Session: sess}
 }
 

@@ -478,6 +478,58 @@ func (m *PostgresqlConfig10_1C) SetPgQualstatsSampleRate(v *wrapperspb.DoubleVal
 	m.PgQualstatsSampleRate = v
 }
 
+func (m *PostgresqlConfig10_1C) SetMaxStackDepth(v *wrapperspb.Int64Value) {
+	m.MaxStackDepth = v
+}
+
+func (m *PostgresqlConfig10_1C) SetGeqo(v *wrapperspb.BoolValue) {
+	m.Geqo = v
+}
+
+func (m *PostgresqlConfig10_1C) SetGeqoThreshold(v *wrapperspb.Int64Value) {
+	m.GeqoThreshold = v
+}
+
+func (m *PostgresqlConfig10_1C) SetGeqoEffort(v *wrapperspb.Int64Value) {
+	m.GeqoEffort = v
+}
+
+func (m *PostgresqlConfig10_1C) SetGeqoPoolSize(v *wrapperspb.Int64Value) {
+	m.GeqoPoolSize = v
+}
+
+func (m *PostgresqlConfig10_1C) SetGeqoGenerations(v *wrapperspb.Int64Value) {
+	m.GeqoGenerations = v
+}
+
+func (m *PostgresqlConfig10_1C) SetGeqoSelectionBias(v *wrapperspb.DoubleValue) {
+	m.GeqoSelectionBias = v
+}
+
+func (m *PostgresqlConfig10_1C) SetGeqoSeed(v *wrapperspb.DoubleValue) {
+	m.GeqoSeed = v
+}
+
+func (m *PostgresqlConfig10_1C) SetMaxStandbyArchiveDelay(v *wrapperspb.Int64Value) {
+	m.MaxStandbyArchiveDelay = v
+}
+
+func (m *PostgresqlConfig10_1C) SetSessionDurationTimeout(v *wrapperspb.Int64Value) {
+	m.SessionDurationTimeout = v
+}
+
+func (m *PostgresqlConfig10_1C) SetLogReplicationCommands(v *wrapperspb.BoolValue) {
+	m.LogReplicationCommands = v
+}
+
+func (m *PostgresqlConfig10_1C) SetLogAutovacuumMinDuration(v *wrapperspb.Int64Value) {
+	m.LogAutovacuumMinDuration = v
+}
+
+func (m *PostgresqlConfig10_1C) SetPasswordEncryption(v PostgresqlConfig10_1C_PasswordEncryption) {
+	m.PasswordEncryption = v
+}
+
 func (m *PostgresqlConfigSet10_1C) SetEffectiveConfig(v *PostgresqlConfig10_1C) {
 	m.EffectiveConfig = v
 }

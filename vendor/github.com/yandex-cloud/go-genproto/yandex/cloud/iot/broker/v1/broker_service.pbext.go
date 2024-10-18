@@ -55,6 +55,10 @@ func (m *CreateBrokerRequest) SetPassword(v string) {
 	m.Password = v
 }
 
+func (m *CreateBrokerRequest) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
+}
+
 func (m *CreateBrokerRequest_Certificate) SetCertificateData(v string) {
 	m.CertificateData = v
 }
@@ -81,6 +85,10 @@ func (m *UpdateBrokerRequest) SetDescription(v string) {
 
 func (m *UpdateBrokerRequest) SetLabels(v map[string]string) {
 	m.Labels = v
+}
+
+func (m *UpdateBrokerRequest) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
 }
 
 func (m *UpdateBrokerMetadata) SetBrokerId(v string) {

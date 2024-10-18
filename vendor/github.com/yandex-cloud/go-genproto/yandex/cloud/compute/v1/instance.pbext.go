@@ -3,6 +3,7 @@
 package compute
 
 import (
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -74,6 +75,14 @@ func (m *Instance) SetNetworkInterfaces(v []*NetworkInterface) {
 	m.NetworkInterfaces = v
 }
 
+func (m *Instance) SetSerialPortSettings(v *SerialPortSettings) {
+	m.SerialPortSettings = v
+}
+
+func (m *Instance) SetGpuSettings(v *GpuSettings) {
+	m.GpuSettings = v
+}
+
 func (m *Instance) SetFqdn(v string) {
 	m.Fqdn = v
 }
@@ -92,6 +101,26 @@ func (m *Instance) SetNetworkSettings(v *NetworkSettings) {
 
 func (m *Instance) SetPlacementPolicy(v *PlacementPolicy) {
 	m.PlacementPolicy = v
+}
+
+func (m *Instance) SetHostGroupId(v string) {
+	m.HostGroupId = v
+}
+
+func (m *Instance) SetHostId(v string) {
+	m.HostId = v
+}
+
+func (m *Instance) SetMaintenancePolicy(v MaintenancePolicy) {
+	m.MaintenancePolicy = v
+}
+
+func (m *Instance) SetMaintenanceGracePeriod(v *durationpb.Duration) {
+	m.MaintenanceGracePeriod = v
+}
+
+func (m *Instance) SetHardwareGeneration(v *HardwareGeneration) {
+	m.HardwareGeneration = v
 }
 
 func (m *Resources) SetMemory(v int64) {
@@ -218,12 +247,20 @@ func (m *NetworkSettings) SetType(v NetworkSettings_Type) {
 	m.Type = v
 }
 
+func (m *GpuSettings) SetGpuClusterId(v string) {
+	m.GpuClusterId = v
+}
+
 func (m *PlacementPolicy) SetPlacementGroupId(v string) {
 	m.PlacementGroupId = v
 }
 
 func (m *PlacementPolicy) SetHostAffinityRules(v []*PlacementPolicy_HostAffinityRule) {
 	m.HostAffinityRules = v
+}
+
+func (m *PlacementPolicy) SetPlacementGroupPartition(v int64) {
+	m.PlacementGroupPartition = v
 }
 
 func (m *PlacementPolicy_HostAffinityRule) SetKey(v string) {
@@ -252,4 +289,8 @@ func (m *MetadataOptions) SetGceHttpToken(v MetadataOption) {
 
 func (m *MetadataOptions) SetAwsV1HttpToken(v MetadataOption) {
 	m.AwsV1HttpToken = v
+}
+
+func (m *SerialPortSettings) SetSshAuthorization(v SerialPortSettings_SSHAuthorization) {
+	m.SshAuthorization = v
 }

@@ -48,6 +48,24 @@ func (m *EndpointSettings) SetPostgresSource(v *endpoint.PostgresSource) {
 	}
 }
 
+func (m *EndpointSettings) SetYdbSource(v *endpoint.YdbSource) {
+	m.Settings = &EndpointSettings_YdbSource{
+		YdbSource: v,
+	}
+}
+
+func (m *EndpointSettings) SetYdsSource(v *endpoint.YDSSource) {
+	m.Settings = &EndpointSettings_YdsSource{
+		YdsSource: v,
+	}
+}
+
+func (m *EndpointSettings) SetKafkaSource(v *endpoint.KafkaSource) {
+	m.Settings = &EndpointSettings_KafkaSource{
+		KafkaSource: v,
+	}
+}
+
 func (m *EndpointSettings) SetMongoSource(v *endpoint.MongoSource) {
 	m.Settings = &EndpointSettings_MongoSource{
 		MongoSource: v,
@@ -78,8 +96,32 @@ func (m *EndpointSettings) SetClickhouseTarget(v *endpoint.ClickhouseTarget) {
 	}
 }
 
+func (m *EndpointSettings) SetYdbTarget(v *endpoint.YdbTarget) {
+	m.Settings = &EndpointSettings_YdbTarget{
+		YdbTarget: v,
+	}
+}
+
+func (m *EndpointSettings) SetKafkaTarget(v *endpoint.KafkaTarget) {
+	m.Settings = &EndpointSettings_KafkaTarget{
+		KafkaTarget: v,
+	}
+}
+
 func (m *EndpointSettings) SetMongoTarget(v *endpoint.MongoTarget) {
 	m.Settings = &EndpointSettings_MongoTarget{
 		MongoTarget: v,
+	}
+}
+
+func (m *EndpointSettings) SetMetrikaSource(v *endpoint.MetrikaSource) {
+	m.Settings = &EndpointSettings_MetrikaSource{
+		MetrikaSource: v,
+	}
+}
+
+func (m *EndpointSettings) SetYdsTarget(v *endpoint.YDSTarget) {
+	m.Settings = &EndpointSettings_YdsTarget{
+		YdsTarget: v,
 	}
 }

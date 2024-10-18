@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // The SoftLayer_Hardware data type contains general information relating to a single SoftLayer hardware.
 type Hardware struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareService returns an instance of the Hardware SoftLayer service
-func GetHardwareService(sess *session.Session) Hardware {
+func GetHardwareService(sess session.SLSession) Hardware {
 	return Hardware{Session: sess}
 }
 
@@ -1261,12 +1254,6 @@ func (r Hardware) GetRouters() (resp []datatypes.Hardware, err error) {
 	return
 }
 
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware", "getScaleAssets", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Information regarding a piece of hardware's vulnerability scan requests.
 func (r Hardware) GetSecurityScanRequests() (resp []datatypes.Network_Security_Scanner_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware", "getSecurityScanRequests", nil, &r.Options, &resp)
@@ -1566,12 +1553,12 @@ func (r Hardware) UpdateIpmiPassword(password *string) (resp bool, err error) {
 
 // The SoftLayer_Hardware_Benchmark_Certification data type contains general information relating to a single SoftLayer hardware benchmark certification document.
 type Hardware_Benchmark_Certification struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareBenchmarkCertificationService returns an instance of the Hardware_Benchmark_Certification SoftLayer service
-func GetHardwareBenchmarkCertificationService(sess *session.Session) Hardware_Benchmark_Certification {
+func GetHardwareBenchmarkCertificationService(sess session.SLSession) Hardware_Benchmark_Certification {
 	return Hardware_Benchmark_Certification{Session: sess}
 }
 
@@ -1630,12 +1617,12 @@ func (r Hardware_Benchmark_Certification) GetResultFile() (resp []byte, err erro
 
 // no documentation yet
 type Hardware_Blade struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareBladeService returns an instance of the Hardware_Blade SoftLayer service
-func GetHardwareBladeService(sess *session.Session) Hardware_Blade {
+func GetHardwareBladeService(sess session.SLSession) Hardware_Blade {
 	return Hardware_Blade{Session: sess}
 }
 
@@ -1688,12 +1675,12 @@ func (r Hardware_Blade) GetObject() (resp datatypes.Hardware_Blade, err error) {
 
 // no documentation yet
 type Hardware_Component_Locator struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareComponentLocatorService returns an instance of the Hardware_Component_Locator SoftLayer service
-func GetHardwareComponentLocatorService(sess *session.Session) Hardware_Component_Locator {
+func GetHardwareComponentLocatorService(sess session.SLSession) Hardware_Component_Locator {
 	return Hardware_Component_Locator{Session: sess}
 }
 
@@ -1752,12 +1739,12 @@ func (r Hardware_Component_Locator) GetServerPackageAvailability() (resp []datat
 
 // The SoftLayer_Hardware_Component_Model data type contains general information relating to a single SoftLayer component model.  A component model represents a vendor specific representation of a hardware component.  Every piece of hardware on a server will have a specific hardware component model.
 type Hardware_Component_Model struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareComponentModelService returns an instance of the Hardware_Component_Model SoftLayer service
-func GetHardwareComponentModelService(sess *session.Session) Hardware_Component_Model {
+func GetHardwareComponentModelService(sess session.SLSession) Hardware_Component_Model {
 	return Hardware_Component_Model{Session: sess}
 }
 
@@ -1892,14 +1879,20 @@ func (r Hardware_Component_Model) GetValidAttributeTypes() (resp []datatypes.Har
 	return
 }
 
+// Retrieve
+func (r Hardware_Component_Model) GetVmwareQualifiedFirmwares() (resp []datatypes.Hardware_Component_Firmware, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Component_Model", "getVmwareQualifiedFirmwares", nil, &r.Options, &resp)
+	return
+}
+
 // The SoftLayer_Hardware_Component_Partition_OperatingSystem data type contains general information relating to a single SoftLayer Operating System Partition Template.
 type Hardware_Component_Partition_OperatingSystem struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareComponentPartitionOperatingSystemService returns an instance of the Hardware_Component_Partition_OperatingSystem SoftLayer service
-func GetHardwareComponentPartitionOperatingSystemService(sess *session.Session) Hardware_Component_Partition_OperatingSystem {
+func GetHardwareComponentPartitionOperatingSystemService(sess session.SLSession) Hardware_Component_Partition_OperatingSystem {
 	return Hardware_Component_Partition_OperatingSystem{Session: sess}
 }
 
@@ -1961,12 +1954,12 @@ func (r Hardware_Component_Partition_OperatingSystem) GetPartitionTemplates() (r
 
 // The SoftLayer_Hardware_Component_Partition_Template data type contains general information relating to a single SoftLayer partition template.  Partition templates group 1 or more partition configurations that can be used to predefine how a hard drive's partitions will be configured.
 type Hardware_Component_Partition_Template struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareComponentPartitionTemplateService returns an instance of the Hardware_Component_Partition_Template SoftLayer service
-func GetHardwareComponentPartitionTemplateService(sess *session.Session) Hardware_Component_Partition_Template {
+func GetHardwareComponentPartitionTemplateService(sess session.SLSession) Hardware_Component_Partition_Template {
 	return Hardware_Component_Partition_Template{Session: sess}
 }
 
@@ -2037,12 +2030,12 @@ func (r Hardware_Component_Partition_Template) GetPartitionTemplatePartition() (
 
 // The SoftLayer_Hardware_Router data type contains general information relating to a single SoftLayer router.
 type Hardware_Router struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareRouterService returns an instance of the Hardware_Router SoftLayer service
-func GetHardwareRouterService(sess *session.Session) Hardware_Router {
+func GetHardwareRouterService(sess session.SLSession) Hardware_Router {
 	return Hardware_Router{Session: sess}
 }
 
@@ -3285,12 +3278,6 @@ func (r Hardware_Router) GetSanStorageCapabilityFlag() (resp bool, err error) {
 	return
 }
 
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware_Router) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getScaleAssets", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Information regarding a piece of hardware's vulnerability scan requests.
 func (r Hardware_Router) GetSecurityScanRequests() (resp []datatypes.Network_Security_Scanner_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Router", "getSecurityScanRequests", nil, &r.Options, &resp)
@@ -3590,12 +3577,12 @@ func (r Hardware_Router) UpdateIpmiPassword(password *string) (resp bool, err er
 
 // no documentation yet
 type Hardware_SecurityModule struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareSecurityModuleService returns an instance of the Hardware_SecurityModule SoftLayer service
-func GetHardwareSecurityModuleService(sess *session.Session) Hardware_SecurityModule {
+func GetHardwareSecurityModuleService(sess session.SLSession) Hardware_SecurityModule {
 	return Hardware_SecurityModule{Session: sess}
 }
 
@@ -3681,6 +3668,15 @@ func (r Hardware_SecurityModule) CaptureImage(captureTemplate *datatypes.Contain
 		captureTemplate,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "captureImage", params, &r.Options, &resp)
+	return
+}
+
+// Changes the power state for the server.  The server's power status is changed from its remote management card.
+func (r Hardware_SecurityModule) ChangeRedfishPowerState(state *string) (resp bool, err error) {
+	params := []interface{}{
+		state,
+	}
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "changeRedfishPowerState", params, &r.Options, &resp)
 	return
 }
 
@@ -4438,15 +4434,6 @@ func (r Hardware_SecurityModule) GetCurrentBillingTotal() (resp datatypes.Float6
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Hardware_SecurityModule) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve Indicates if a server has a Customer Installed OS
 func (r Hardware_SecurityModule) GetCustomerInstalledOperatingSystemFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getCustomerInstalledOperatingSystemFlag", nil, &r.Options, &resp)
@@ -4745,6 +4732,12 @@ func (r Hardware_SecurityModule) GetIsCloudReadyNodeCertified() (resp bool, err 
 // Retrieve Determine if remote management has been disabled due to port speed.
 func (r Hardware_SecurityModule) GetIsIpmiDisabled() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getIsIpmiDisabled", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Determine if hardware object has the QE_INTERNAL_SERVER attribute.
+func (r Hardware_SecurityModule) GetIsQeInternalServer() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getIsQeInternalServer", nil, &r.Options, &resp)
 	return
 }
 
@@ -5297,6 +5290,12 @@ func (r Hardware_SecurityModule) GetRecentRemoteManagementCommands() (resp []dat
 	return
 }
 
+// Retrieves the power state for the server.  The server's power status is retrieved from its remote management card.  This will return 'on' or 'off'.
+func (r Hardware_SecurityModule) GetRedfishPowerState() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getRedfishPowerState", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve
 func (r Hardware_SecurityModule) GetRegionalInternetRegistry() (resp datatypes.Network_Regional_Internet_Registry, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getRegionalInternetRegistry", nil, &r.Options, &resp)
@@ -5360,12 +5359,6 @@ func (r Hardware_SecurityModule) GetReverseDomainRecords() (resp []datatypes.Dns
 // Retrieve A hardware's routers.
 func (r Hardware_SecurityModule) GetRouters() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getRouters", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware_SecurityModule) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "getScaleAssets", nil, &r.Options, &resp)
 	return
 }
 
@@ -5982,13 +5975,20 @@ func (r Hardware_SecurityModule) ValidatePartitionsForOperatingSystem(operatingS
 }
 
 // no documentation yet
+func (r Hardware_SecurityModule) ValidateSecurityLevel() (err error) {
+	var resp datatypes.Void
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule", "validateSecurityLevel", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
 type Hardware_SecurityModule750 struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareSecurityModule750Service returns an instance of the Hardware_SecurityModule750 SoftLayer service
-func GetHardwareSecurityModule750Service(sess *session.Session) Hardware_SecurityModule750 {
+func GetHardwareSecurityModule750Service(sess session.SLSession) Hardware_SecurityModule750 {
 	return Hardware_SecurityModule750{Session: sess}
 }
 
@@ -6074,6 +6074,15 @@ func (r Hardware_SecurityModule750) CaptureImage(captureTemplate *datatypes.Cont
 		captureTemplate,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "captureImage", params, &r.Options, &resp)
+	return
+}
+
+// Changes the power state for the server.  The server's power status is changed from its remote management card.
+func (r Hardware_SecurityModule750) ChangeRedfishPowerState(state *string) (resp bool, err error) {
+	params := []interface{}{
+		state,
+	}
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "changeRedfishPowerState", params, &r.Options, &resp)
 	return
 }
 
@@ -6831,15 +6840,6 @@ func (r Hardware_SecurityModule750) GetCurrentBillingTotal() (resp datatypes.Flo
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Hardware_SecurityModule750) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve Indicates if a server has a Customer Installed OS
 func (r Hardware_SecurityModule750) GetCustomerInstalledOperatingSystemFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getCustomerInstalledOperatingSystemFlag", nil, &r.Options, &resp)
@@ -7138,6 +7138,12 @@ func (r Hardware_SecurityModule750) GetIsCloudReadyNodeCertified() (resp bool, e
 // Retrieve Determine if remote management has been disabled due to port speed.
 func (r Hardware_SecurityModule750) GetIsIpmiDisabled() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getIsIpmiDisabled", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Determine if hardware object has the QE_INTERNAL_SERVER attribute.
+func (r Hardware_SecurityModule750) GetIsQeInternalServer() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getIsQeInternalServer", nil, &r.Options, &resp)
 	return
 }
 
@@ -7690,6 +7696,12 @@ func (r Hardware_SecurityModule750) GetRecentRemoteManagementCommands() (resp []
 	return
 }
 
+// Retrieves the power state for the server.  The server's power status is retrieved from its remote management card.  This will return 'on' or 'off'.
+func (r Hardware_SecurityModule750) GetRedfishPowerState() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getRedfishPowerState", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve
 func (r Hardware_SecurityModule750) GetRegionalInternetRegistry() (resp datatypes.Network_Regional_Internet_Registry, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getRegionalInternetRegistry", nil, &r.Options, &resp)
@@ -7753,12 +7765,6 @@ func (r Hardware_SecurityModule750) GetReverseDomainRecords() (resp []datatypes.
 // Retrieve A hardware's routers.
 func (r Hardware_SecurityModule750) GetRouters() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getRouters", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware_SecurityModule750) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "getScaleAssets", nil, &r.Options, &resp)
 	return
 }
 
@@ -8374,14 +8380,21 @@ func (r Hardware_SecurityModule750) ValidatePartitionsForOperatingSystem(operati
 	return
 }
 
+// no documentation yet
+func (r Hardware_SecurityModule750) ValidateSecurityLevel() (err error) {
+	var resp datatypes.Void
+	err = r.Session.DoRequest("SoftLayer_Hardware_SecurityModule750", "validateSecurityLevel", nil, &r.Options, &resp)
+	return
+}
+
 // The SoftLayer_Hardware_Server data type contains general information relating to a single SoftLayer server.
 type Hardware_Server struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetHardwareServerService returns an instance of the Hardware_Server SoftLayer service
-func GetHardwareServerService(sess *session.Session) Hardware_Server {
+func GetHardwareServerService(sess session.SLSession) Hardware_Server {
 	return Hardware_Server{Session: sess}
 }
 
@@ -8467,6 +8480,15 @@ func (r Hardware_Server) CaptureImage(captureTemplate *datatypes.Container_Disk_
 		captureTemplate,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "captureImage", params, &r.Options, &resp)
+	return
+}
+
+// Changes the power state for the server.  The server's power status is changed from its remote management card.
+func (r Hardware_Server) ChangeRedfishPowerState(state *string) (resp bool, err error) {
+	params := []interface{}{
+		state,
+	}
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "changeRedfishPowerState", params, &r.Options, &resp)
 	return
 }
 
@@ -9224,15 +9246,6 @@ func (r Hardware_Server) GetCurrentBillingTotal() (resp datatypes.Float64, err e
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Hardware_Server) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve Indicates if a server has a Customer Installed OS
 func (r Hardware_Server) GetCustomerInstalledOperatingSystemFlag() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getCustomerInstalledOperatingSystemFlag", nil, &r.Options, &resp)
@@ -9531,6 +9544,12 @@ func (r Hardware_Server) GetIsCloudReadyNodeCertified() (resp bool, err error) {
 // Retrieve Determine if remote management has been disabled due to port speed.
 func (r Hardware_Server) GetIsIpmiDisabled() (resp bool, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getIsIpmiDisabled", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve Determine if hardware object has the QE_INTERNAL_SERVER attribute.
+func (r Hardware_Server) GetIsQeInternalServer() (resp bool, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getIsQeInternalServer", nil, &r.Options, &resp)
 	return
 }
 
@@ -10083,6 +10102,12 @@ func (r Hardware_Server) GetRecentRemoteManagementCommands() (resp []datatypes.H
 	return
 }
 
+// Retrieves the power state for the server.  The server's power status is retrieved from its remote management card.  This will return 'on' or 'off'.
+func (r Hardware_Server) GetRedfishPowerState() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getRedfishPowerState", nil, &r.Options, &resp)
+	return
+}
+
 // Retrieve
 func (r Hardware_Server) GetRegionalInternetRegistry() (resp datatypes.Network_Regional_Internet_Registry, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getRegionalInternetRegistry", nil, &r.Options, &resp)
@@ -10146,12 +10171,6 @@ func (r Hardware_Server) GetReverseDomainRecords() (resp []datatypes.Dns_Domain,
 // Retrieve A hardware's routers.
 func (r Hardware_Server) GetRouters() (resp []datatypes.Hardware, err error) {
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getRouters", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Collection of scale assets this hardware corresponds to.
-func (r Hardware_Server) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "getScaleAssets", nil, &r.Options, &resp)
 	return
 }
 
@@ -10764,5 +10783,12 @@ func (r Hardware_Server) ValidatePartitionsForOperatingSystem(operatingSystem *d
 		partitions,
 	}
 	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "validatePartitionsForOperatingSystem", params, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r Hardware_Server) ValidateSecurityLevel() (err error) {
+	var resp datatypes.Void
+	err = r.Session.DoRequest("SoftLayer_Hardware_Server", "validateSecurityLevel", nil, &r.Options, &resp)
 	return
 }

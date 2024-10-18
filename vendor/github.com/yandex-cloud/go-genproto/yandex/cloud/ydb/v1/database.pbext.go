@@ -108,6 +108,10 @@ func (m *Database) SetKinesisApiEndpoint(v string) {
 	m.KinesisApiEndpoint = v
 }
 
+func (m *Database) SetKafkaApiEndpoint(v string) {
+	m.KafkaApiEndpoint = v
+}
+
 func (m *Database) SetMonitoringConfig(v *MonitoringConfig) {
 	m.MonitoringConfig = v
 }
@@ -274,6 +278,10 @@ func (m *ServerlessDatabase) SetEnableThrottlingRcuLimit(v bool) {
 
 func (m *ServerlessDatabase) SetProvisionedRcuLimit(v int64) {
 	m.ProvisionedRcuLimit = v
+}
+
+func (m *ServerlessDatabase) SetTopicWriteQuota(v int64) {
+	m.TopicWriteQuota = v
 }
 
 func (m *ZonalDatabase) SetZoneId(v string) {

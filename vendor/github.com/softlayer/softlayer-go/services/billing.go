@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // no documentation yet
 type Billing_Currency struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingCurrencyService returns an instance of the Billing_Currency SoftLayer service
-func GetBillingCurrencyService(sess *session.Session) Billing_Currency {
+func GetBillingCurrencyService(sess session.SLSession) Billing_Currency {
 	return Billing_Currency{Session: sess}
 }
 
@@ -99,12 +92,12 @@ func (r Billing_Currency) GetPrice(price *datatypes.Float64, formatOptions *data
 
 // The SoftLayer_Billing_Currency_Country data type maps what currencies are valid for specific countries. US Dollars are valid from any country, but other currencies are only available to customers in certain countries.
 type Billing_Currency_Country struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingCurrencyCountryService returns an instance of the Billing_Currency_Country SoftLayer service
-func GetBillingCurrencyCountryService(sess *session.Session) Billing_Currency_Country {
+func GetBillingCurrencyCountryService(sess session.SLSession) Billing_Currency_Country {
 	return Billing_Currency_Country{Session: sess}
 }
 
@@ -151,12 +144,12 @@ func (r Billing_Currency_Country) GetObject() (resp datatypes.Billing_Currency_C
 
 // no documentation yet
 type Billing_Currency_ExchangeRate struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingCurrencyExchangeRateService returns an instance of the Billing_Currency_ExchangeRate SoftLayer service
-func GetBillingCurrencyExchangeRateService(sess *session.Session) Billing_Currency_ExchangeRate {
+func GetBillingCurrencyExchangeRateService(sess session.SLSession) Billing_Currency_ExchangeRate {
 	return Billing_Currency_ExchangeRate{Session: sess}
 }
 
@@ -245,12 +238,12 @@ func (r Billing_Currency_ExchangeRate) GetPrice(price *datatypes.Float64, format
 
 // Every SoftLayer customer account has billing specific information which is kept in the SoftLayer_Billing_Info data type. This information is used by the SoftLayer accounting group when sending invoices and making billing inquiries.
 type Billing_Info struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingInfoService returns an instance of the Billing_Info SoftLayer service
-func GetBillingInfoService(sess *session.Session) Billing_Info {
+func GetBillingInfoService(sess session.SLSession) Billing_Info {
 	return Billing_Info{Session: sess}
 }
 
@@ -327,12 +320,12 @@ func (r Billing_Info) GetObject() (resp datatypes.Billing_Info, err error) {
 
 // The SoftLayer_Billing_Invoice data type contains general information relating to an individual invoice applied to a SoftLayer customer account. Personal information in this type such as names, addresses, and phone numbers are taken from the account's contact information at the time the invoice is generated.
 type Billing_Invoice struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingInvoiceService returns an instance of the Billing_Invoice SoftLayer service
-func GetBillingInvoiceService(sess *session.Session) Billing_Invoice {
+func GetBillingInvoiceService(sess session.SLSession) Billing_Invoice {
 	return Billing_Invoice{Session: sess}
 }
 
@@ -575,12 +568,12 @@ func (r Billing_Invoice) GetZeroFeeItemCounts() (resp []datatypes.Container_Prod
 
 // Each billing invoice item makes up a record within an invoice. This provides you with a detailed record of everything related to an invoice item. When you are billed, our system takes active billing items and creates an invoice. These invoice items are a copy of your active billing items, and make up the contents of your invoice.
 type Billing_Invoice_Item struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingInvoiceItemService returns an instance of the Billing_Invoice_Item SoftLayer service
-func GetBillingInvoiceItemService(sess *session.Session) Billing_Invoice_Item {
+func GetBillingInvoiceItemService(sess session.SLSession) Billing_Invoice_Item {
 	return Billing_Invoice_Item{Session: sess}
 }
 
@@ -640,6 +633,12 @@ func (r Billing_Invoice_Item) GetCategory() (resp datatypes.Product_Item_Categor
 // Retrieve An Invoice Item's child invoice items. Only parent invoice items have children. For instance, a server invoice item will have children.
 func (r Billing_Invoice_Item) GetChildren() (resp []datatypes.Billing_Invoice_Item, err error) {
 	err = r.Session.DoRequest("SoftLayer_Billing_Invoice_Item", "getChildren", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve This is the DPart for invoice item.
+func (r Billing_Invoice_Item) GetDPart() (resp string, err error) {
+	err = r.Session.DoRequest("SoftLayer_Billing_Invoice_Item", "getDPart", nil, &r.Options, &resp)
 	return
 }
 
@@ -729,12 +728,12 @@ func (r Billing_Invoice_Item) GetUsageChargeFlag() (resp bool, err error) {
 
 // no documentation yet
 type Billing_Invoice_Next struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingInvoiceNextService returns an instance of the Billing_Invoice_Next SoftLayer service
-func GetBillingInvoiceNextService(sess *session.Session) Billing_Invoice_Next {
+func GetBillingInvoiceNextService(sess session.SLSession) Billing_Invoice_Next {
 	return Billing_Invoice_Next{Session: sess}
 }
 
@@ -796,12 +795,12 @@ func (r Billing_Invoice_Next) GetPdfDetailed(documentCreateDate *datatypes.Time)
 
 // The invoice tax status data type models a single status or state that an invoice can reflect in regard to an integration with a third-party tax calculation service.
 type Billing_Invoice_Tax_Status struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingInvoiceTaxStatusService returns an instance of the Billing_Invoice_Tax_Status SoftLayer service
-func GetBillingInvoiceTaxStatusService(sess *session.Session) Billing_Invoice_Tax_Status {
+func GetBillingInvoiceTaxStatusService(sess session.SLSession) Billing_Invoice_Tax_Status {
 	return Billing_Invoice_Tax_Status{Session: sess}
 }
 
@@ -848,12 +847,12 @@ func (r Billing_Invoice_Tax_Status) GetObject() (resp datatypes.Billing_Invoice_
 
 // The invoice tax type data type models a single strategy for handling tax calculations.
 type Billing_Invoice_Tax_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingInvoiceTaxTypeService returns an instance of the Billing_Invoice_Tax_Type SoftLayer service
-func GetBillingInvoiceTaxTypeService(sess *session.Session) Billing_Invoice_Tax_Type {
+func GetBillingInvoiceTaxTypeService(sess session.SLSession) Billing_Invoice_Tax_Type {
 	return Billing_Invoice_Tax_Type{Session: sess}
 }
 
@@ -902,12 +901,12 @@ func (r Billing_Invoice_Tax_Type) GetObject() (resp datatypes.Billing_Invoice_Ta
 //
 // Billing items exist in a tree relationship. Items are associated with each other by parent/child relationships. Component items such as CPU's, RAM, and software each have a parent billing item for the server chassis they're associated with. Billing Items with a null parent item do not have an associated parent item.
 type Billing_Item struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingItemService returns an instance of the Billing_Item SoftLayer service
-func GetBillingItemService(sess *session.Session) Billing_Item {
+func GetBillingItemService(sess session.SLSession) Billing_Item {
 	return Billing_Item{Session: sess}
 }
 
@@ -1311,12 +1310,12 @@ func (r Billing_Item) VoidCancelService() (resp bool, err error) {
 
 // The SoftLayer_Billing_Item_Cancellation_Reason data type contains cancellation reasons.
 type Billing_Item_Cancellation_Reason struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingItemCancellationReasonService returns an instance of the Billing_Item_Cancellation_Reason SoftLayer service
-func GetBillingItemCancellationReasonService(sess *session.Session) Billing_Item_Cancellation_Reason {
+func GetBillingItemCancellationReasonService(sess session.SLSession) Billing_Item_Cancellation_Reason {
 	return Billing_Item_Cancellation_Reason{Session: sess}
 }
 
@@ -1381,12 +1380,12 @@ func (r Billing_Item_Cancellation_Reason) GetTranslatedReason() (resp string, er
 
 // The SoftLayer_Billing_Item_Cancellation_Reason_Category data type contains cancellation reason categories.
 type Billing_Item_Cancellation_Reason_Category struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingItemCancellationReasonCategoryService returns an instance of the Billing_Item_Cancellation_Reason_Category SoftLayer service
-func GetBillingItemCancellationReasonCategoryService(sess *session.Session) Billing_Item_Cancellation_Reason_Category {
+func GetBillingItemCancellationReasonCategoryService(sess session.SLSession) Billing_Item_Cancellation_Reason_Category {
 	return Billing_Item_Cancellation_Reason_Category{Session: sess}
 }
 
@@ -1439,12 +1438,12 @@ func (r Billing_Item_Cancellation_Reason_Category) GetObject() (resp datatypes.B
 
 // SoftLayer_Billing_Item_Cancellation_Request data type is used to cancel service billing items.
 type Billing_Item_Cancellation_Request struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingItemCancellationRequestService returns an instance of the Billing_Item_Cancellation_Request SoftLayer service
-func GetBillingItemCancellationRequestService(sess *session.Session) Billing_Item_Cancellation_Request {
+func GetBillingItemCancellationRequestService(sess session.SLSession) Billing_Item_Cancellation_Request {
 	return Billing_Item_Cancellation_Request{Session: sess}
 }
 
@@ -1573,12 +1572,12 @@ func (r Billing_Item_Cancellation_Request) Void(closeRelatedTicketFlag *bool) (r
 
 // no documentation yet
 type Billing_Item_Chronicle struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingItemChronicleService returns an instance of the Billing_Item_Chronicle SoftLayer service
-func GetBillingItemChronicleService(sess *session.Session) Billing_Item_Chronicle {
+func GetBillingItemChronicleService(sess session.SLSession) Billing_Item_Chronicle {
 	return Billing_Item_Chronicle{Session: sess}
 }
 
@@ -1631,12 +1630,12 @@ func (r Billing_Item_Chronicle) GetProduct() (resp datatypes.Product_Item, err e
 
 // no documentation yet
 type Billing_Item_Virtual_DedicatedHost struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingItemVirtualDedicatedHostService returns an instance of the Billing_Item_Virtual_DedicatedHost SoftLayer service
-func GetBillingItemVirtualDedicatedHostService(sess *session.Session) Billing_Item_Virtual_DedicatedHost {
+func GetBillingItemVirtualDedicatedHostService(sess session.SLSession) Billing_Item_Virtual_DedicatedHost {
 	return Billing_Item_Virtual_DedicatedHost{Session: sess}
 }
 
@@ -2046,12 +2045,12 @@ func (r Billing_Item_Virtual_DedicatedHost) VoidCancelService() (resp bool, err 
 
 // The SoftLayer_Billing_Order data type contains general information relating to an individual order applied to a SoftLayer customer account or to a new customer. Personal information in this type such as names, addresses, and phone numbers are taken from the account's contact information at the time the order is generated for existing SoftLayer customer.
 type Billing_Order struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingOrderService returns an instance of the Billing_Order SoftLayer service
-func GetBillingOrderService(sess *session.Session) Billing_Order {
+func GetBillingOrderService(sess session.SLSession) Billing_Order {
 	return Billing_Order{Session: sess}
 }
 
@@ -2306,12 +2305,12 @@ func (r Billing_Order) IsPendingEditApproval() (resp bool, err error) {
 
 // no documentation yet
 type Billing_Order_Cart struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingOrderCartService returns an instance of the Billing_Order_Cart SoftLayer service
-func GetBillingOrderCartService(sess *session.Session) Billing_Order_Cart {
+func GetBillingOrderCartService(sess session.SLSession) Billing_Order_Cart {
 	return Billing_Order_Cart{Session: sess}
 }
 
@@ -2506,12 +2505,12 @@ func (r Billing_Order_Cart) WithdrawGdprAcceptance() (err error) {
 //
 // Billing items exist in a tree relationship. Items are associated with each other by parent/child relationships. Component items such as CPU's, RAM, and software each have a parent billing item for the server chassis they're associated with. Billing Items with a null parent item do not have an associated parent item.
 type Billing_Order_Item struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingOrderItemService returns an instance of the Billing_Order_Item SoftLayer service
-func GetBillingOrderItemService(sess *session.Session) Billing_Order_Item {
+func GetBillingOrderItemService(sess session.SLSession) Billing_Order_Item {
 	return Billing_Order_Item{Session: sess}
 }
 
@@ -2690,12 +2689,12 @@ func (r Billing_Order_Item) GetUpgradeItem() (resp datatypes.Product_Item, err e
 
 // The SoftLayer_Billing_Oder_Quote data type contains general information relating to an individual order applied to a SoftLayer customer account or to a new customer. Personal information in this type such as names, addresses, and phone numbers are taken from the account's contact information at the time the quote is generated for existing SoftLayer customer.
 type Billing_Order_Quote struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBillingOrderQuoteService returns an instance of the Billing_Order_Quote SoftLayer service
-func GetBillingOrderQuoteService(sess *session.Session) Billing_Order_Quote {
+func GetBillingOrderQuoteService(sess session.SLSession) Billing_Order_Quote {
 	return Billing_Order_Quote{Session: sess}
 }
 

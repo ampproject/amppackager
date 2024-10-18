@@ -37,3 +37,7 @@ func (m *Backup) SetSize(v int64) {
 func (m *Backup) SetType(v Backup_BackupType) {
 	m.Type = v
 }
+
+func (m *Backup) SetJournalSize(v int64) {
+	m.JournalSize = v
+}

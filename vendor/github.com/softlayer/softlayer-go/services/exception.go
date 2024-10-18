@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -30,12 +23,12 @@ import (
 
 // Throw this exception if there are validation errors. The types are specified in SoftLayer_Brand_Creation_Input including: KEY_NAME, PREFIX, NAME, LONG_NAME, SUPPORT_POLICY, POLICY_ACKNOWLEDGEMENT_FLAG, etc.
 type Exception_Brand_Creation struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetExceptionBrandCreationService returns an instance of the Exception_Brand_Creation SoftLayer service
-func GetExceptionBrandCreationService(sess *session.Session) Exception_Brand_Creation {
+func GetExceptionBrandCreationService(sess session.SLSession) Exception_Brand_Creation {
 	return Exception_Brand_Creation{Session: sess}
 }
 

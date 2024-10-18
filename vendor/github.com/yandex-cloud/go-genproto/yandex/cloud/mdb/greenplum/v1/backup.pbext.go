@@ -29,3 +29,15 @@ func (m *Backup) SetStartedAt(v *timestamppb.Timestamp) {
 func (m *Backup) SetSize(v int64) {
 	m.Size = v
 }
+
+func (m *Backup) SetType(v Backup_BackupCreationType) {
+	m.Type = v
+}
+
+func (m *Backup) SetMethod(v Backup_BackupMethod) {
+	m.Method = v
+}
+
+func (m *Backup) SetJournalSize(v int64) {
+	m.JournalSize = v
+}

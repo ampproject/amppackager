@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // This data type presents the structure for a dedicated host. The data type contains relational properties to distinguish a dedicated host and associate an account to it.
 type Virtual_DedicatedHost struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualDedicatedHostService returns an instance of the Virtual_DedicatedHost SoftLayer service
-func GetVirtualDedicatedHostService(sess *session.Session) Virtual_DedicatedHost {
+func GetVirtualDedicatedHostService(sess session.SLSession) Virtual_DedicatedHost {
 	return Virtual_DedicatedHost{Session: sess}
 }
 
@@ -172,12 +165,12 @@ func (r Virtual_DedicatedHost) SetTags(tags *string) (resp bool, err error) {
 //
 // Virtual block devices are assigned to disk images.
 type Virtual_Disk_Image struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualDiskImageService returns an instance of the Virtual_Disk_Image SoftLayer service
-func GetVirtualDiskImageService(sess *session.Session) Virtual_Disk_Image {
+func GetVirtualDiskImageService(sess session.SLSession) Virtual_Disk_Image {
 	return Virtual_Disk_Image{Session: sess}
 }
 
@@ -367,12 +360,12 @@ func (r Virtual_Disk_Image) GetType() (resp datatypes.Virtual_Disk_Image_Type, e
 //
 // A guest, also known as a virtual server, represents an allocation of resources on a virtual host.
 type Virtual_Guest struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualGuestService returns an instance of the Virtual_Guest SoftLayer service
-func GetVirtualGuestService(sess *session.Session) Virtual_Guest {
+func GetVirtualGuestService(sess session.SLSession) Virtual_Guest {
 	return Virtual_Guest{Session: sess}
 }
 
@@ -1259,24 +1252,6 @@ func (r Virtual_Guest) GetCurrentBillingTotal() (resp datatypes.Float64, err err
 	return
 }
 
-// Retrieve bandwidth graph by date.
-func (r Virtual_Guest) GetCustomBandwidthDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getCustomBandwidthDataByDate", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve bandwidth graph by date.
-func (r Virtual_Guest) GetCustomMetricDataByDate(graphData *datatypes.Container_Graph) (resp datatypes.Container_Graph, err error) {
-	params := []interface{}{
-		graphData,
-	}
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getCustomMetricDataByDate", params, &r.Options, &resp)
-	return
-}
-
 // Retrieve The datacenter that a virtual guest resides in.
 func (r Virtual_Guest) GetDatacenter() (resp datatypes.Location, err error) {
 	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getDatacenter", nil, &r.Options, &resp)
@@ -1745,24 +1720,6 @@ func (r Virtual_Guest) GetReverseDomainRecords() (resp []datatypes.Dns_Domain, e
 	return
 }
 
-// Retrieve [DEPRECATED] Collection of scale assets this guest corresponds to.
-func (r Virtual_Guest) GetScaleAssets() (resp []datatypes.Scale_Asset, err error) {
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getScaleAssets", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] The scale member for this guest, if applicable.
-func (r Virtual_Guest) GetScaleMember() (resp datatypes.Scale_Member_Virtual_Guest, err error) {
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getScaleMember", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve [DEPRECATED] Whether or not this guest is a member of a scale group and was automatically created as part of a scale group action.
-func (r Virtual_Guest) GetScaledFlag() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getScaledFlag", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve A guest's vulnerability scan requests.
 func (r Virtual_Guest) GetSecurityScanRequests() (resp []datatypes.Network_Security_Scanner_Request, err error) {
 	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "getSecurityScanRequests", nil, &r.Options, &resp)
@@ -1971,6 +1928,13 @@ func (r Virtual_Guest) RebootSoft() (resp bool, err error) {
 	return
 }
 
+// no documentation yet
+func (r Virtual_Guest) ReconfigureConsole() (err error) {
+	var resp datatypes.Void
+	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "reconfigureConsole", nil, &r.Options, &resp)
+	return
+}
+
 // Create a transaction to perform an OS reload
 func (r Virtual_Guest) ReloadCurrentOperatingSystemConfiguration() (resp datatypes.Provisioning_Version1_Transaction, err error) {
 	err = r.Session.DoRequest("SoftLayer_Virtual_Guest", "reloadCurrentOperatingSystemConfiguration", nil, &r.Options, &resp)
@@ -2124,12 +2088,12 @@ func (r Virtual_Guest) VerifyReloadOperatingSystem(config *datatypes.Container_H
 //
 // A virtual block device template group, also known as an image template group, represents an image of a virtual guest instance.
 type Virtual_Guest_Block_Device_Template_Group struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualGuestBlockDeviceTemplateGroupService returns an instance of the Virtual_Guest_Block_Device_Template_Group SoftLayer service
-func GetVirtualGuestBlockDeviceTemplateGroupService(sess *session.Session) Virtual_Guest_Block_Device_Template_Group {
+func GetVirtualGuestBlockDeviceTemplateGroupService(sess session.SLSession) Virtual_Guest_Block_Device_Template_Group {
 	return Virtual_Guest_Block_Device_Template_Group{Session: sess}
 }
 
@@ -2615,12 +2579,12 @@ func (r Virtual_Guest_Block_Device_Template_Group) SetTags(tags *string) (resp b
 
 // no documentation yet
 type Virtual_Guest_Boot_Parameter struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualGuestBootParameterService returns an instance of the Virtual_Guest_Boot_Parameter SoftLayer service
-func GetVirtualGuestBootParameterService(sess *session.Session) Virtual_Guest_Boot_Parameter {
+func GetVirtualGuestBootParameterService(sess session.SLSession) Virtual_Guest_Boot_Parameter {
 	return Virtual_Guest_Boot_Parameter{Session: sess}
 }
 
@@ -2697,12 +2661,12 @@ func (r Virtual_Guest_Boot_Parameter) GetObject() (resp datatypes.Virtual_Guest_
 
 // Describes a virtual guest boot parameter. In this the word class is used in the context of arguments sent to cloud computing instances such as single user mode and boot into bash.
 type Virtual_Guest_Boot_Parameter_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualGuestBootParameterTypeService returns an instance of the Virtual_Guest_Boot_Parameter_Type SoftLayer service
-func GetVirtualGuestBootParameterTypeService(sess *session.Session) Virtual_Guest_Boot_Parameter_Type {
+func GetVirtualGuestBootParameterTypeService(sess session.SLSession) Virtual_Guest_Boot_Parameter_Type {
 	return Virtual_Guest_Boot_Parameter_Type{Session: sess}
 }
 
@@ -2751,12 +2715,12 @@ func (r Virtual_Guest_Boot_Parameter_Type) GetObject() (resp datatypes.Virtual_G
 //
 // A guest, also known as a virtual server, represents an allocation of resources on a virtual host.
 type Virtual_Guest_Network_Component struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualGuestNetworkComponentService returns an instance of the Virtual_Guest_Network_Component SoftLayer service
-func GetVirtualGuestNetworkComponentService(sess *session.Session) Virtual_Guest_Network_Component {
+func GetVirtualGuestNetworkComponentService(sess session.SLSession) Virtual_Guest_Network_Component {
 	return Virtual_Guest_Network_Component{Session: sess}
 }
 
@@ -2899,12 +2863,12 @@ func (r Virtual_Guest_Network_Component) SecurityGroupsReady() (resp bool, err e
 
 // The virtual host represents the platform on which virtual guests reside. At times a virtual host has no allocations on the physical server, however with many modern platforms it is a virtual machine with small CPU and Memory allocations that runs in the Control Domain.
 type Virtual_Host struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualHostService returns an instance of the Virtual_Host SoftLayer service
-func GetVirtualHostService(sess *session.Session) Virtual_Host {
+func GetVirtualHostService(sess session.SLSession) Virtual_Host {
 	return Virtual_Host{Session: sess}
 }
 
@@ -2969,12 +2933,12 @@ func (r Virtual_Host) GetPciDevices() (resp []datatypes.Virtual_Host_PciDevice, 
 
 // This data type presents the structure for a virtual guest placement group. The data type contains relational properties to the virtual guest placement group rule class.
 type Virtual_PlacementGroup struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualPlacementGroupService returns an instance of the Virtual_PlacementGroup SoftLayer service
-func GetVirtualPlacementGroupService(sess *session.Session) Virtual_PlacementGroup {
+func GetVirtualPlacementGroupService(sess session.SLSession) Virtual_PlacementGroup {
 	return Virtual_PlacementGroup{Session: sess}
 }
 
@@ -3072,12 +3036,12 @@ func (r Virtual_PlacementGroup) GetRule() (resp datatypes.Virtual_PlacementGroup
 
 // This data type presents the structure of a virtual guest placement group rule.
 type Virtual_PlacementGroup_Rule struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualPlacementGroupRuleService returns an instance of the Virtual_PlacementGroup_Rule SoftLayer service
-func GetVirtualPlacementGroupRuleService(sess *session.Session) Virtual_PlacementGroup_Rule {
+func GetVirtualPlacementGroupRuleService(sess session.SLSession) Virtual_PlacementGroup_Rule {
 	return Virtual_PlacementGroup_Rule{Session: sess}
 }
 
@@ -3124,12 +3088,12 @@ func (r Virtual_PlacementGroup_Rule) GetObject() (resp datatypes.Virtual_Placeme
 
 // This data type presents the structure for a virtual reserved capacity group.
 type Virtual_ReservedCapacityGroup struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualReservedCapacityGroupService returns an instance of the Virtual_ReservedCapacityGroup SoftLayer service
-func GetVirtualReservedCapacityGroupService(sess *session.Session) Virtual_ReservedCapacityGroup {
+func GetVirtualReservedCapacityGroupService(sess session.SLSession) Virtual_ReservedCapacityGroup {
 	return Virtual_ReservedCapacityGroup{Session: sess}
 }
 
@@ -3215,12 +3179,12 @@ func (r Virtual_ReservedCapacityGroup) GetOccupiedInstances() (resp []datatypes.
 
 // This data type presents the structure for a virtual reserved capacity group instance.
 type Virtual_ReservedCapacityGroup_Instance struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualReservedCapacityGroupInstanceService returns an instance of the Virtual_ReservedCapacityGroup_Instance SoftLayer service
-func GetVirtualReservedCapacityGroupInstanceService(sess *session.Session) Virtual_ReservedCapacityGroup_Instance {
+func GetVirtualReservedCapacityGroupInstanceService(sess session.SLSession) Virtual_ReservedCapacityGroup_Instance {
 	return Virtual_ReservedCapacityGroup_Instance{Session: sess}
 }
 
@@ -3285,12 +3249,12 @@ func (r Virtual_ReservedCapacityGroup_Instance) GetReservedCapacityGroup() (resp
 
 // The SoftLayer_Virtual_Storage_Repository represents a web based storage system that can be accessed through many types of devices, interfaces, and other resources.
 type Virtual_Storage_Repository struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetVirtualStorageRepositoryService returns an instance of the Virtual_Storage_Repository SoftLayer service
-func GetVirtualStorageRepositoryService(sess *session.Session) Virtual_Storage_Repository {
+func GetVirtualStorageRepositoryService(sess session.SLSession) Virtual_Storage_Repository {
 	return Virtual_Storage_Repository{Session: sess}
 }
 

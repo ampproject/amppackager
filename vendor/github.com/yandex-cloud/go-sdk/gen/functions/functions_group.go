@@ -22,3 +22,8 @@ func NewFunction(g func(ctx context.Context) (*grpc.ClientConn, error)) *Functio
 func (f *Function) Function() *FunctionServiceClient {
 	return &FunctionServiceClient{getConn: f.getConn}
 }
+
+// Network gets NetworkService client
+func (f *Function) Network() *NetworkServiceClient {
+	return &NetworkServiceClient{getConn: f.getConn}
+}

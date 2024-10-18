@@ -22,6 +22,17 @@ import (
 	"golang.org/x/net/idna"
 )
 
+const (
+	// DefaultOverallRequestLimit is the overall number of request per second
+	// limited on the "new-reg", "new-authz" and "new-cert" endpoints.
+	// From the documentation the limitation is 20 requests per second,
+	// but using 20 as value doesn't work but 18 do.
+	// https://letsencrypt.org/docs/rate-limits/
+	// ZeroSSL has a limit of 7.
+	// https://help.zerossl.com/hc/en-us/articles/17864245480093-Advantages-over-Using-Let-s-Encrypt#h_01HT4Z1JCJFJQFJ1M3P7S085Q9
+	DefaultOverallRequestLimit = 18
+)
+
 // maxBodySize is the maximum size of body that we will read.
 const maxBodySize = 1024 * 1024
 
@@ -63,6 +74,10 @@ type ObtainRequest struct {
 	Bundle                         bool
 	PreferredChain                 string
 	AlwaysDeactivateAuthorizations bool
+	// A string uniquely identifying a previously-issued certificate which this
+	// order is intended to replace.
+	// - https://datatracker.ietf.org/doc/html/draft-ietf-acme-ari-03#section-5
+	ReplacesCertID string
 }
 
 // ObtainForCSRRequest The request to obtain a certificate matching the CSR passed into it.
@@ -79,6 +94,10 @@ type ObtainForCSRRequest struct {
 	Bundle                         bool
 	PreferredChain                 string
 	AlwaysDeactivateAuthorizations bool
+	// A string uniquely identifying a previously-issued certificate which this
+	// order is intended to replace.
+	// - https://datatracker.ietf.org/doc/html/draft-ietf-acme-ari-03#section-5
+	ReplacesCertID string
 }
 
 type resolver interface {
@@ -86,24 +105,33 @@ type resolver interface {
 }
 
 type CertifierOptions struct {
-	KeyType certcrypto.KeyType
-	Timeout time.Duration
+	KeyType             certcrypto.KeyType
+	Timeout             time.Duration
+	OverallRequestLimit int
 }
 
 // Certifier A service to obtain/renew/revoke certificates.
 type Certifier struct {
-	core     *api.Core
-	resolver resolver
-	options  CertifierOptions
+	core                *api.Core
+	resolver            resolver
+	options             CertifierOptions
+	overallRequestLimit int
 }
 
 // NewCertifier creates a Certifier.
 func NewCertifier(core *api.Core, resolver resolver, options CertifierOptions) *Certifier {
-	return &Certifier{
+	c := &Certifier{
 		core:     core,
 		resolver: resolver,
 		options:  options,
 	}
+
+	c.overallRequestLimit = options.OverallRequestLimit
+	if c.overallRequestLimit <= 0 {
+		c.overallRequestLimit = DefaultOverallRequestLimit
+	}
+
+	return c
 }
 
 // Obtain tries to obtain a single certificate using all domains passed into it.
@@ -124,8 +152,9 @@ func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
 	}
 
 	orderOpts := &api.OrderOptions{
-		NotBefore: request.NotBefore,
-		NotAfter:  request.NotAfter,
+		NotBefore:      request.NotBefore,
+		NotAfter:       request.NotAfter,
+		ReplacesCertID: request.ReplacesCertID,
 	}
 
 	order, err := c.core.Orders.NewWithOptions(domains, orderOpts)
@@ -149,11 +178,11 @@ func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
 
 	log.Infof("[%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
 
-	failures := make(obtainError)
+	failures := newObtainError()
 	cert, err := c.getForOrder(domains, order, request.Bundle, request.PrivateKey, request.MustStaple, request.PreferredChain)
 	if err != nil {
 		for _, auth := range authz {
-			failures[challenge.GetTargetedDomain(auth)] = err
+			failures.Add(challenge.GetTargetedDomain(auth), err)
 		}
 	}
 
@@ -161,12 +190,7 @@ func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
 		c.deactivateAuthorizations(order, true)
 	}
 
-	// Do not return an empty failures map, because
-	// it would still be a non-nil error value
-	if len(failures) > 0 {
-		return cert, failures
-	}
-	return cert, nil
+	return cert, failures.Join()
 }
 
 // ObtainForCSR tries to obtain a certificate matching the CSR passed into it.
@@ -194,8 +218,9 @@ func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error)
 	}
 
 	orderOpts := &api.OrderOptions{
-		NotBefore: request.NotBefore,
-		NotAfter:  request.NotAfter,
+		NotBefore:      request.NotBefore,
+		NotAfter:       request.NotAfter,
+		ReplacesCertID: request.ReplacesCertID,
 	}
 
 	order, err := c.core.Orders.NewWithOptions(domains, orderOpts)
@@ -219,11 +244,11 @@ func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error)
 
 	log.Infof("[%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
 
-	failures := make(obtainError)
+	failures := newObtainError()
 	cert, err := c.getForCSR(domains, order, request.Bundle, request.CSR.Raw, nil, request.PreferredChain)
 	if err != nil {
 		for _, auth := range authz {
-			failures[challenge.GetTargetedDomain(auth)] = err
+			failures.Add(challenge.GetTargetedDomain(auth), err)
 		}
 	}
 
@@ -236,12 +261,7 @@ func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error)
 		cert.CSR = certcrypto.PEMEncode(request.CSR)
 	}
 
-	// Do not return an empty failures map,
-	// because it would still be a non-nil error value
-	if len(failures) > 0 {
-		return cert, failures
-	}
-	return cert, nil
+	return cert, failures.Join()
 }
 
 func (c *Certifier) getForOrder(domains []string, order acme.ExtendedOrder, bundle bool, privateKey crypto.PrivateKey, mustStaple bool, preferredChain string) (*Resource, error) {
@@ -253,8 +273,10 @@ func (c *Certifier) getForOrder(domains []string, order acme.ExtendedOrder, bund
 		}
 	}
 
-	// Determine certificate name(s) based on the authorization resources
-	commonName := domains[0]
+	commonName := ""
+	if len(domains[0]) <= 64 {
+		commonName = domains[0]
+	}
 
 	// RFC8555 Section 7.4 "Applying for Certificate Issuance"
 	// https://www.rfc-editor.org/rfc/rfc8555.html#section-7.4
@@ -262,7 +284,12 @@ func (c *Certifier) getForOrder(domains []string, order acme.ExtendedOrder, bund
 	//   Clients SHOULD NOT make any assumptions about the sort order of
 	//   "identifiers" or "authorizations" elements in the returned order
 	//   object.
-	san := []string{commonName}
+
+	var san []string
+	if commonName != "" {
+		san = append(san, commonName)
+	}
+
 	for _, auth := range order.Identifiers {
 		if auth.Value != commonName {
 			san = append(san, auth.Value)
@@ -284,15 +311,14 @@ func (c *Certifier) getForCSR(domains []string, order acme.ExtendedOrder, bundle
 		return nil, err
 	}
 
-	commonName := domains[0]
 	certRes := &Resource{
-		Domain:     commonName,
+		Domain:     domains[0],
 		CertURL:    respOrder.Certificate,
 		PrivateKey: privateKeyPem,
 	}
 
 	if respOrder.Status == acme.StatusValid {
-		// if the certificate is available right away, short cut!
+		// if the certificate is available right away, shortcut!
 		ok, errR := c.checkResponse(respOrder, certRes, bundle, preferredChain)
 		if errR != nil {
 			return nil, errR
@@ -608,8 +634,13 @@ func (c *Certifier) Get(url string, bundle bool) (*Resource, error) {
 		return nil, err
 	}
 
+	domain, err := certcrypto.GetCertificateMainDomain(x509Certs[0])
+	if err != nil {
+		return nil, err
+	}
+
 	return &Resource{
-		Domain:            x509Certs[0].Subject.CommonName,
+		Domain:            domain,
 		Certificate:       cert,
 		IssuerCertificate: issuer,
 		CertURL:           url,

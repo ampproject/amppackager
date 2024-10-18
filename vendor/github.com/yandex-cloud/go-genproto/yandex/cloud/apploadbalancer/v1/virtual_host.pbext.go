@@ -38,6 +38,58 @@ func (m *RouteOptions) SetModifyResponseHeaders(v []*HeaderModification) {
 	m.ModifyResponseHeaders = v
 }
 
+func (m *RouteOptions) SetRbac(v *RBAC) {
+	m.Rbac = v
+}
+
+func (m *RouteOptions) SetSecurityProfileId(v string) {
+	m.SecurityProfileId = v
+}
+
+func (m *RBAC) SetAction(v RBAC_Action) {
+	m.Action = v
+}
+
+func (m *RBAC) SetPrincipals(v []*Principals) {
+	m.Principals = v
+}
+
+func (m *Principals) SetAndPrincipals(v []*Principal) {
+	m.AndPrincipals = v
+}
+
+type Principal_Identifier = isPrincipal_Identifier
+
+func (m *Principal) SetIdentifier(v Principal_Identifier) {
+	m.Identifier = v
+}
+
+func (m *Principal) SetHeader(v *Principal_HeaderMatcher) {
+	m.Identifier = &Principal_Header{
+		Header: v,
+	}
+}
+
+func (m *Principal) SetRemoteIp(v string) {
+	m.Identifier = &Principal_RemoteIp{
+		RemoteIp: v,
+	}
+}
+
+func (m *Principal) SetAny(v bool) {
+	m.Identifier = &Principal_Any{
+		Any: v,
+	}
+}
+
+func (m *Principal_HeaderMatcher) SetName(v string) {
+	m.Name = v
+}
+
+func (m *Principal_HeaderMatcher) SetValue(v *StringMatch) {
+	m.Value = v
+}
+
 type HeaderModification_Operation = isHeaderModification_Operation
 
 func (m *HeaderModification) SetOperation(v HeaderModification_Operation) {
@@ -175,6 +227,12 @@ func (m *StringMatch) SetExactMatch(v string) {
 func (m *StringMatch) SetPrefixMatch(v string) {
 	m.Match = &StringMatch_PrefixMatch{
 		PrefixMatch: v,
+	}
+}
+
+func (m *StringMatch) SetRegexMatch(v string) {
+	m.Match = &StringMatch_RegexMatch{
+		RegexMatch: v,
 	}
 }
 

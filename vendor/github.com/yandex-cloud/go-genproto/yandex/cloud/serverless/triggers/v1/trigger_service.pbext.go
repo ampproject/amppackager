@@ -79,6 +79,10 @@ func (m *UpdateTriggerRequest) SetLabels(v map[string]string) {
 	m.Labels = v
 }
 
+func (m *UpdateTriggerRequest) SetRule(v *Trigger_Rule) {
+	m.Rule = v
+}
+
 func (m *UpdateTriggerMetadata) SetTriggerId(v string) {
 	m.TriggerId = v
 }

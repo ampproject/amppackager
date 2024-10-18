@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // no documentation yet
 type Catalyst_Company_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetCatalystCompanyTypeService returns an instance of the Catalyst_Company_Type SoftLayer service
-func GetCatalystCompanyTypeService(sess *session.Session) Catalyst_Company_Type {
+func GetCatalystCompanyTypeService(sess session.SLSession) Catalyst_Company_Type {
 	return Catalyst_Company_Type{Session: sess}
 }
 
@@ -83,12 +76,12 @@ func (r Catalyst_Company_Type) GetObject() (resp datatypes.Catalyst_Company_Type
 
 // no documentation yet
 type Catalyst_Enrollment struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetCatalystEnrollmentService returns an instance of the Catalyst_Enrollment SoftLayer service
-func GetCatalystEnrollmentService(sess *session.Session) Catalyst_Enrollment {
+func GetCatalystEnrollmentService(sess session.SLSession) Catalyst_Enrollment {
 	return Catalyst_Enrollment{Session: sess}
 }
 

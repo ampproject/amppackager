@@ -125,6 +125,10 @@ func (m *ClusterConfig) SetEmbeddedKeeper(v *wrapperspb.BoolValue) {
 	m.EmbeddedKeeper = v
 }
 
+func (m *ClusterConfig) SetBackupRetainPeriodDays(v *wrapperspb.Int64Value) {
+	m.BackupRetainPeriodDays = v
+}
+
 func (m *ClusterConfig_Clickhouse) SetConfig(v *config.ClickhouseConfigSet) {
 	m.Config = v
 }
@@ -279,4 +283,8 @@ func (m *CloudStorage) SetDataCacheEnabled(v *wrapperspb.BoolValue) {
 
 func (m *CloudStorage) SetDataCacheMaxSize(v *wrapperspb.Int64Value) {
 	m.DataCacheMaxSize = v
+}
+
+func (m *CloudStorage) SetPreferNotToMerge(v *wrapperspb.BoolValue) {
+	m.PreferNotToMerge = v
 }

@@ -24,23 +24,6 @@ func getPoolSchema(poolType string) string {
 	return poolSchema[poolType]
 }
 
-func setPoolProfile(profileType string, rrSet *rrset.RRSet) {
-	switch profileType {
-	case pool.RD:
-		rrSet.Profile = &rdpool.Profile{}
-	case pool.SF:
-		rrSet.Profile = &sfpool.Profile{}
-	case pool.SLB:
-		rrSet.Profile = &slbpool.Profile{}
-	case pool.SB:
-		rrSet.Profile = &sbpool.Profile{}
-	case pool.TC:
-		rrSet.Profile = &tcpool.Profile{}
-	case pool.DIR:
-		rrSet.Profile = &dirpool.Profile{}
-	}
-}
-
 func validatePoolProfile(rrSet *rrset.RRSet) error {
 	if rrSet.Profile == nil {
 		return nil

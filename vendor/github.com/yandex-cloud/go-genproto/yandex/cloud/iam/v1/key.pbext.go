@@ -43,3 +43,7 @@ func (m *Key) SetKeyAlgorithm(v Key_Algorithm) {
 func (m *Key) SetPublicKey(v string) {
 	m.PublicKey = v
 }
+
+func (m *Key) SetLastUsedAt(v *timestamppb.Timestamp) {
+	m.LastUsedAt = v
+}

@@ -1,14 +1,83 @@
 package network
 
 import (
+	"fmt"
+
 	liquidweb "github.com/liquidweb/liquidweb-go"
 )
+
+type DNSZoneBackend interface {
+	List(liquidweb.ListMeta) (DNSZoneList, error)
+	ListAll() (DNSZoneList, error)
+	Create(DNSZoneCreateParams) (DNSZone, error)
+	Details(string) (DNSZone, error)
+	DeleteByName(string) error
+}
+
+type DNSZoneClient struct {
+	Backend liquidweb.Backend
+}
+
+func (c *DNSZoneClient) List(params liquidweb.ListMeta) (result DNSZoneList, err error) {
+	err = c.Backend.CallIntoInterface("bleed/Network/DNS/Zone/list", params, &result)
+	return
+}
+
+func (c *DNSZoneClient) ListAll() (result DNSZoneList, err error) {
+	var reqParams liquidweb.ListMeta
+	var incrementalResult DNSZoneList
+	incrementalResult.PageTotal = 2
+
+	for incrementalResult.PageTotal > incrementalResult.PageNum {
+		incrementalResult, err = c.List(reqParams)
+		if err != nil {
+			return DNSZoneList{}, err
+		}
+		result.Items = append(result.Items, incrementalResult.Items...)
+		reqParams.PageNum = incrementalResult.PageNum + 1
+	}
+	return
+}
+
+func (c *DNSZoneClient) Create(params DNSZoneCreateParams) (result DNSZone, err error) {
+	err = c.Backend.CallIntoInterface("bleed/Network/DNS/Zone/create", params, &result)
+	return
+}
+
+func (c *DNSZoneClient) DeleteByName(zoneName string) (err error) {
+	result := struct {
+		DeletedDomain string `json:"name"`
+	}{}
+	err = c.Backend.CallIntoInterface("bleed/Network/DNS/Zone/delete", struct {
+		Name string `json:"name"`
+	}{
+		Name: zoneName,
+	}, &result)
+	if err != nil {
+		return err
+	}
+	if result.DeletedDomain != zoneName {
+		return fmt.Errorf("requested delete of %s deleted %s", zoneName, result.DeletedDomain)
+	}
+	return nil
+}
+
+func (c *DNSZoneClient) Details(zoneName string) (zone DNSZone, err error) {
+	var result DNSZone
+	err = c.Backend.CallIntoInterface("bleed/Network/DNS/Zone/details", struct {
+		Name string `json:"name"`
+	}{
+		Name: zoneName,
+	}, &result)
+	return result, err
+}
 
 // DNSBackend describes the interface for interactions with the API.
 type DNSBackend interface {
 	Create(*DNSRecordParams) (*DNSRecord, error)
 	Details(int) (*DNSRecord, error)
 	List(*DNSRecordParams) (*DNSRecordList, error)
+	ListAll(string) (DNSRecordList, error)
 	Update(*DNSRecordParams) (*DNSRecord, error)
 	Delete(*DNSRecordParams) (*DNSRecordDeletion, error)
 }
@@ -50,6 +119,25 @@ func (c *DNSClient) List(params *DNSRecordParams) (*DNSRecordList, error) {
 		return nil, err
 	}
 	return list, nil
+}
+
+// List returns a list of DNS Records.
+func (c *DNSClient) ListAll(zone string) (result DNSRecordList, err error) {
+	var reqParams DNSRecordParams
+	incrementalResult := &DNSRecordList{}
+	reqParams.PageNum = 1
+	reqParams.Zone = zone
+	incrementalResult.PageTotal = 2
+
+	for incrementalResult.PageTotal > incrementalResult.PageNum {
+		incrementalResult, err = c.List(&reqParams)
+		if err != nil {
+			return DNSRecordList{}, err
+		}
+		result.Items = append(result.Items, incrementalResult.Items...)
+		reqParams.PageNum++
+	}
+	return
 }
 
 // Update will update a DNS Record.
