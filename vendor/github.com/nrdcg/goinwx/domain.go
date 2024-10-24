@@ -279,7 +279,7 @@ type DomainInfoResponse struct {
 	UpDate       time.Time          `mapstructure:"upDate"`
 	ReDate       time.Time          `mapstructure:"reDate"`
 	ScDate       time.Time          `mapstructure:"scDate"`
-	TransferLock int                `mapstructure:"transferLock"`
+	TransferLock bool               `mapstructure:"transferLock"`
 	Status       string             `mapstructure:"status"`
 	AuthCode     string             `mapstructure:"authCode"`
 	RenewalMode  string             `mapstructure:"renewalMode"`
@@ -289,7 +289,7 @@ type DomainInfoResponse struct {
 	Tech         int                `mapstructure:"tech"`
 	Billing      int                `mapstructure:"billing"`
 	Nameservers  []string           `mapstructure:"ns"`
-	NoDelegation int                `mapstructure:"noDelegation"`
+	NoDelegation bool               `mapstructure:"noDelegation"`
 	Contacts     map[string]Contact `mapstructure:"contact"`
 }
 
@@ -332,7 +332,7 @@ type DomainListRequest struct {
 
 // DomainList API model.
 type DomainList struct {
-	Count   int
+	Count   int                  `mapstructure:"count"`
 	Domains []DomainInfoResponse `mapstructure:"domain"`
 }
 

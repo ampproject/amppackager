@@ -4,11 +4,12 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/transip/gotransip/v6/jwt"
-	"github.com/transip/gotransip/v6/rest"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
+
+	"github.com/transip/gotransip/v6/jwt"
+	"github.com/transip/gotransip/v6/rest"
 )
 
 const (
@@ -164,7 +165,7 @@ func (a *Authenticator) requestNewToken() (jwt.Token, error) {
 	defer httpResponse.Body.Close()
 
 	// read entire response body
-	b, err := ioutil.ReadAll(httpResponse.Body)
+	b, err := io.ReadAll(httpResponse.Body)
 	if err != nil {
 		return jwt.Token{}, fmt.Errorf("error requesting token: %w", err)
 	}

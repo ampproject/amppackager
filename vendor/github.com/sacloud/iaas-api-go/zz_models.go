@@ -8751,6 +8751,7 @@ type Disk struct {
 	Availability              types.EAvailability
 	Connection                types.EDiskConnection `json:",omitempty" mapconv:",omitempty"`
 	ConnectionOrder           int
+	EncryptionAlgorithm       types.EDiskEncryptionAlgorithm `json:",omitempty" mapconv:",omitempty"`
 	ReinstallCount            int
 	JobStatus                 *JobStatus
 	SizeMB                    int
@@ -8781,6 +8782,7 @@ func (o *Disk) setDefaults() interface{} {
 		Availability              types.EAvailability
 		Connection                types.EDiskConnection `json:",omitempty" mapconv:",omitempty"`
 		ConnectionOrder           int
+		EncryptionAlgorithm       types.EDiskEncryptionAlgorithm `json:",omitempty" mapconv:",omitempty"`
 		ReinstallCount            int
 		JobStatus                 *JobStatus
 		SizeMB                    int
@@ -8807,6 +8809,7 @@ func (o *Disk) setDefaults() interface{} {
 		Availability:              o.GetAvailability(),
 		Connection:                o.GetConnection(),
 		ConnectionOrder:           o.GetConnectionOrder(),
+		EncryptionAlgorithm:       o.GetEncryptionAlgorithm(),
 		ReinstallCount:            o.GetReinstallCount(),
 		JobStatus:                 o.GetJobStatus(),
 		SizeMB:                    o.GetSizeMB(),
@@ -8936,6 +8939,16 @@ func (o *Disk) GetConnectionOrder() int {
 // SetConnectionOrder sets value to ConnectionOrder
 func (o *Disk) SetConnectionOrder(v int) {
 	o.ConnectionOrder = v
+}
+
+// GetEncryptionAlgorithm returns value of EncryptionAlgorithm
+func (o *Disk) GetEncryptionAlgorithm() types.EDiskEncryptionAlgorithm {
+	return o.EncryptionAlgorithm
+}
+
+// SetEncryptionAlgorithm sets value to EncryptionAlgorithm
+func (o *Disk) SetEncryptionAlgorithm(v types.EDiskEncryptionAlgorithm) {
+	o.EncryptionAlgorithm = v
 }
 
 // GetReinstallCount returns value of ReinstallCount
@@ -9234,42 +9247,45 @@ func (o *JobConfigError) SetStatus(v string) {
 
 // DiskCreateRequest represents API parameter/response structure
 type DiskCreateRequest struct {
-	DiskPlanID      types.ID              `mapconv:"Plan.ID"`
-	Connection      types.EDiskConnection `json:",omitempty" mapconv:",omitempty"`
-	SourceDiskID    types.ID              `mapconv:"SourceDisk.ID,omitempty"`
-	SourceArchiveID types.ID              `mapconv:"SourceArchive.ID,omitempty"`
-	ServerID        types.ID              `mapconv:"Server.ID,omitempty"`
-	SizeMB          int
-	Name            string
-	Description     string
-	Tags            types.Tags
-	IconID          types.ID `mapconv:"Icon.ID"`
+	DiskPlanID          types.ID                       `mapconv:"Plan.ID"`
+	Connection          types.EDiskConnection          `json:",omitempty" mapconv:",omitempty"`
+	EncryptionAlgorithm types.EDiskEncryptionAlgorithm `json:",omitempty" mapconv:",omitempty"`
+	SourceDiskID        types.ID                       `mapconv:"SourceDisk.ID,omitempty"`
+	SourceArchiveID     types.ID                       `mapconv:"SourceArchive.ID,omitempty"`
+	ServerID            types.ID                       `mapconv:"Server.ID,omitempty"`
+	SizeMB              int
+	Name                string
+	Description         string
+	Tags                types.Tags
+	IconID              types.ID `mapconv:"Icon.ID"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *DiskCreateRequest) setDefaults() interface{} {
 	return &struct {
-		DiskPlanID      types.ID              `mapconv:"Plan.ID"`
-		Connection      types.EDiskConnection `json:",omitempty" mapconv:",omitempty"`
-		SourceDiskID    types.ID              `mapconv:"SourceDisk.ID,omitempty"`
-		SourceArchiveID types.ID              `mapconv:"SourceArchive.ID,omitempty"`
-		ServerID        types.ID              `mapconv:"Server.ID,omitempty"`
-		SizeMB          int
-		Name            string
-		Description     string
-		Tags            types.Tags
-		IconID          types.ID `mapconv:"Icon.ID"`
+		DiskPlanID          types.ID                       `mapconv:"Plan.ID"`
+		Connection          types.EDiskConnection          `json:",omitempty" mapconv:",omitempty"`
+		EncryptionAlgorithm types.EDiskEncryptionAlgorithm `json:",omitempty" mapconv:",omitempty"`
+		SourceDiskID        types.ID                       `mapconv:"SourceDisk.ID,omitempty"`
+		SourceArchiveID     types.ID                       `mapconv:"SourceArchive.ID,omitempty"`
+		ServerID            types.ID                       `mapconv:"Server.ID,omitempty"`
+		SizeMB              int
+		Name                string
+		Description         string
+		Tags                types.Tags
+		IconID              types.ID `mapconv:"Icon.ID"`
 	}{
-		DiskPlanID:      o.GetDiskPlanID(),
-		Connection:      o.GetConnection(),
-		SourceDiskID:    o.GetSourceDiskID(),
-		SourceArchiveID: o.GetSourceArchiveID(),
-		ServerID:        o.GetServerID(),
-		SizeMB:          o.GetSizeMB(),
-		Name:            o.GetName(),
-		Description:     o.GetDescription(),
-		Tags:            o.GetTags(),
-		IconID:          o.GetIconID(),
+		DiskPlanID:          o.GetDiskPlanID(),
+		Connection:          o.GetConnection(),
+		EncryptionAlgorithm: o.GetEncryptionAlgorithm(),
+		SourceDiskID:        o.GetSourceDiskID(),
+		SourceArchiveID:     o.GetSourceArchiveID(),
+		ServerID:            o.GetServerID(),
+		SizeMB:              o.GetSizeMB(),
+		Name:                o.GetName(),
+		Description:         o.GetDescription(),
+		Tags:                o.GetTags(),
+		IconID:              o.GetIconID(),
 	}
 }
 
@@ -9291,6 +9307,16 @@ func (o *DiskCreateRequest) GetConnection() types.EDiskConnection {
 // SetConnection sets value to Connection
 func (o *DiskCreateRequest) SetConnection(v types.EDiskConnection) {
 	o.Connection = v
+}
+
+// GetEncryptionAlgorithm returns value of EncryptionAlgorithm
+func (o *DiskCreateRequest) GetEncryptionAlgorithm() types.EDiskEncryptionAlgorithm {
+	return o.EncryptionAlgorithm
+}
+
+// SetEncryptionAlgorithm sets value to EncryptionAlgorithm
+func (o *DiskCreateRequest) SetEncryptionAlgorithm(v types.EDiskEncryptionAlgorithm) {
+	o.EncryptionAlgorithm = v
 }
 
 // GetSourceDiskID returns value of SourceDiskID
@@ -22804,6 +22830,7 @@ type Server struct {
 	CPU                     int                         `mapconv:"ServerPlan.CPU"`
 	MemoryMB                int                         `mapconv:"ServerPlan.MemoryMB"`
 	GPU                     int                         `mapconv:"ServerPlan.GPU"`
+	ServerPlanCPUModel      string                      `json:",omitempty" mapconv:"ServerPlan.CPUModel"`
 	ServerPlanCommitment    types.ECommitment           `json:",omitempty" mapconv:"ServerPlan.Commitment"`
 	ServerPlanGeneration    types.EPlanGeneration       `mapconv:"ServerPlan.Generation"`
 	Zone                    *ZoneInfo                   `json:",omitempty" mapconv:",omitempty,recursive"`
@@ -22840,6 +22867,7 @@ func (o *Server) setDefaults() interface{} {
 		CPU                     int                         `mapconv:"ServerPlan.CPU"`
 		MemoryMB                int                         `mapconv:"ServerPlan.MemoryMB"`
 		GPU                     int                         `mapconv:"ServerPlan.GPU"`
+		ServerPlanCPUModel      string                      `json:",omitempty" mapconv:"ServerPlan.CPUModel"`
 		ServerPlanCommitment    types.ECommitment           `json:",omitempty" mapconv:"ServerPlan.Commitment"`
 		ServerPlanGeneration    types.EPlanGeneration       `mapconv:"ServerPlan.Generation"`
 		Zone                    *ZoneInfo                   `json:",omitempty" mapconv:",omitempty,recursive"`
@@ -22872,6 +22900,7 @@ func (o *Server) setDefaults() interface{} {
 		CPU:                     o.GetCPU(),
 		MemoryMB:                o.GetMemoryMB(),
 		GPU:                     o.GetGPU(),
+		ServerPlanCPUModel:      o.GetServerPlanCPUModel(),
 		ServerPlanCommitment:    o.GetServerPlanCommitment(),
 		ServerPlanGeneration:    o.GetServerPlanGeneration(),
 		Zone:                    o.GetZone(),
@@ -23060,6 +23089,16 @@ func (o *Server) GetGPU() int {
 // SetGPU sets value to GPU
 func (o *Server) SetGPU(v int) {
 	o.GPU = v
+}
+
+// GetServerPlanCPUModel returns value of ServerPlanCPUModel
+func (o *Server) GetServerPlanCPUModel() string {
+	return o.ServerPlanCPUModel
+}
+
+// SetServerPlanCPUModel sets value to ServerPlanCPUModel
+func (o *Server) SetServerPlanCPUModel(v string) {
+	o.ServerPlanCPUModel = v
 }
 
 // GetServerPlanCommitment returns value of ServerPlanCommitment
@@ -23469,39 +23508,42 @@ func (o *FTPServerInfo) SetIPAddress(v string) {
 
 // ServerConnectedDisk represents API parameter/response structure
 type ServerConnectedDisk struct {
-	ID              types.ID
-	Name            string
-	Availability    types.EAvailability
-	Connection      types.EDiskConnection `json:",omitempty" mapconv:",omitempty"`
-	ConnectionOrder int
-	ReinstallCount  int
-	SizeMB          int
-	DiskPlanID      types.ID `mapconv:"Plan.ID"`
-	Storage         *Storage `json:",omitempty" mapconv:",omitempty,recursive"`
+	ID                  types.ID
+	Name                string
+	Availability        types.EAvailability
+	Connection          types.EDiskConnection `json:",omitempty" mapconv:",omitempty"`
+	ConnectionOrder     int
+	EncryptionAlgorithm types.EDiskEncryptionAlgorithm `json:",omitempty" mapconv:",omitempty"`
+	ReinstallCount      int
+	SizeMB              int
+	DiskPlanID          types.ID `mapconv:"Plan.ID"`
+	Storage             *Storage `json:",omitempty" mapconv:",omitempty,recursive"`
 }
 
 // setDefaults implements iaas.argumentDefaulter
 func (o *ServerConnectedDisk) setDefaults() interface{} {
 	return &struct {
-		ID              types.ID
-		Name            string
-		Availability    types.EAvailability
-		Connection      types.EDiskConnection `json:",omitempty" mapconv:",omitempty"`
-		ConnectionOrder int
-		ReinstallCount  int
-		SizeMB          int
-		DiskPlanID      types.ID `mapconv:"Plan.ID"`
-		Storage         *Storage `json:",omitempty" mapconv:",omitempty,recursive"`
+		ID                  types.ID
+		Name                string
+		Availability        types.EAvailability
+		Connection          types.EDiskConnection `json:",omitempty" mapconv:",omitempty"`
+		ConnectionOrder     int
+		EncryptionAlgorithm types.EDiskEncryptionAlgorithm `json:",omitempty" mapconv:",omitempty"`
+		ReinstallCount      int
+		SizeMB              int
+		DiskPlanID          types.ID `mapconv:"Plan.ID"`
+		Storage             *Storage `json:",omitempty" mapconv:",omitempty,recursive"`
 	}{
-		ID:              o.GetID(),
-		Name:            o.GetName(),
-		Availability:    o.GetAvailability(),
-		Connection:      o.GetConnection(),
-		ConnectionOrder: o.GetConnectionOrder(),
-		ReinstallCount:  o.GetReinstallCount(),
-		SizeMB:          o.GetSizeMB(),
-		DiskPlanID:      o.GetDiskPlanID(),
-		Storage:         o.GetStorage(),
+		ID:                  o.GetID(),
+		Name:                o.GetName(),
+		Availability:        o.GetAvailability(),
+		Connection:          o.GetConnection(),
+		ConnectionOrder:     o.GetConnectionOrder(),
+		EncryptionAlgorithm: o.GetEncryptionAlgorithm(),
+		ReinstallCount:      o.GetReinstallCount(),
+		SizeMB:              o.GetSizeMB(),
+		DiskPlanID:          o.GetDiskPlanID(),
+		Storage:             o.GetStorage(),
 	}
 }
 
@@ -23575,6 +23617,16 @@ func (o *ServerConnectedDisk) SetConnectionOrder(v int) {
 	o.ConnectionOrder = v
 }
 
+// GetEncryptionAlgorithm returns value of EncryptionAlgorithm
+func (o *ServerConnectedDisk) GetEncryptionAlgorithm() types.EDiskEncryptionAlgorithm {
+	return o.EncryptionAlgorithm
+}
+
+// SetEncryptionAlgorithm sets value to EncryptionAlgorithm
+func (o *ServerConnectedDisk) SetEncryptionAlgorithm(v types.EDiskEncryptionAlgorithm) {
+	o.EncryptionAlgorithm = v
+}
+
 // GetReinstallCount returns value of ReinstallCount
 func (o *ServerConnectedDisk) GetReinstallCount() int {
 	return o.ReinstallCount
@@ -23634,6 +23686,7 @@ type ServerCreateRequest struct {
 	CPU                  int                   `mapconv:"ServerPlan.CPU"`
 	MemoryMB             int                   `mapconv:"ServerPlan.MemoryMB"`
 	GPU                  int                   `mapconv:"ServerPlan.GPU"`
+	ServerPlanCPUModel   string                `json:",omitempty" mapconv:"ServerPlan.CPUModel"`
 	ServerPlanCommitment types.ECommitment     `json:",omitempty" mapconv:"ServerPlan.Commitment"`
 	ServerPlanGeneration types.EPlanGeneration `mapconv:"ServerPlan.Generation"`
 	ConnectedSwitches    []*ConnectedSwitch    `json:",omitempty" mapconv:"[]ConnectedSwitches,recursive"`
@@ -23652,6 +23705,7 @@ func (o *ServerCreateRequest) setDefaults() interface{} {
 		CPU                  int                   `mapconv:"ServerPlan.CPU"`
 		MemoryMB             int                   `mapconv:"ServerPlan.MemoryMB"`
 		GPU                  int                   `mapconv:"ServerPlan.GPU"`
+		ServerPlanCPUModel   string                `json:",omitempty" mapconv:"ServerPlan.CPUModel"`
 		ServerPlanCommitment types.ECommitment     `json:",omitempty" mapconv:"ServerPlan.Commitment"`
 		ServerPlanGeneration types.EPlanGeneration `mapconv:"ServerPlan.Generation"`
 		ConnectedSwitches    []*ConnectedSwitch    `json:",omitempty" mapconv:"[]ConnectedSwitches,recursive"`
@@ -23666,6 +23720,7 @@ func (o *ServerCreateRequest) setDefaults() interface{} {
 		CPU:                  o.GetCPU(),
 		MemoryMB:             o.GetMemoryMB(),
 		GPU:                  o.GetGPU(),
+		ServerPlanCPUModel:   o.GetServerPlanCPUModel(),
 		ServerPlanCommitment: o.GetServerPlanCommitment(),
 		ServerPlanGeneration: o.GetServerPlanGeneration(),
 		ConnectedSwitches:    o.GetConnectedSwitches(),
@@ -23712,6 +23767,16 @@ func (o *ServerCreateRequest) GetGPU() int {
 // SetGPU sets value to GPU
 func (o *ServerCreateRequest) SetGPU(v int) {
 	o.GPU = v
+}
+
+// GetServerPlanCPUModel returns value of ServerPlanCPUModel
+func (o *ServerCreateRequest) GetServerPlanCPUModel() string {
+	return o.ServerPlanCPUModel
+}
+
+// SetServerPlanCPUModel sets value to ServerPlanCPUModel
+func (o *ServerCreateRequest) SetServerPlanCPUModel(v string) {
+	o.ServerPlanCPUModel = v
 }
 
 // GetServerPlanCommitment returns value of ServerPlanCommitment
@@ -24054,6 +24119,7 @@ type ServerChangePlanRequest struct {
 	CPU                  int
 	MemoryMB             int
 	GPU                  int
+	ServerPlanCPUModel   string                `json:"CPUModel,omitempty"`
 	ServerPlanGeneration types.EPlanGeneration `json:"Generation,omitempty"`
 	ServerPlanCommitment types.ECommitment     `json:"Commitment,omitempty"`
 }
@@ -24064,12 +24130,14 @@ func (o *ServerChangePlanRequest) setDefaults() interface{} {
 		CPU                  int
 		MemoryMB             int
 		GPU                  int
+		ServerPlanCPUModel   string                `json:"CPUModel,omitempty"`
 		ServerPlanGeneration types.EPlanGeneration `json:"Generation,omitempty"`
 		ServerPlanCommitment types.ECommitment     `json:"Commitment,omitempty"`
 	}{
 		CPU:                  o.GetCPU(),
 		MemoryMB:             o.GetMemoryMB(),
 		GPU:                  o.GetGPU(),
+		ServerPlanCPUModel:   o.GetServerPlanCPUModel(),
 		ServerPlanGeneration: o.GetServerPlanGeneration(),
 		ServerPlanCommitment: o.GetServerPlanCommitment(),
 	}
@@ -24113,6 +24181,16 @@ func (o *ServerChangePlanRequest) GetGPU() int {
 // SetGPU sets value to GPU
 func (o *ServerChangePlanRequest) SetGPU(v int) {
 	o.GPU = v
+}
+
+// GetServerPlanCPUModel returns value of ServerPlanCPUModel
+func (o *ServerChangePlanRequest) GetServerPlanCPUModel() string {
+	return o.ServerPlanCPUModel
+}
+
+// SetServerPlanCPUModel sets value to ServerPlanCPUModel
+func (o *ServerChangePlanRequest) SetServerPlanCPUModel(v string) {
+	o.ServerPlanCPUModel = v
 }
 
 // GetServerPlanGeneration returns value of ServerPlanGeneration
@@ -24407,6 +24485,7 @@ type ServerPlan struct {
 	CPU          int
 	MemoryMB     int
 	GPU          int
+	CPUModel     string
 	Commitment   types.ECommitment
 	Generation   types.EPlanGeneration
 	Availability types.EAvailability
@@ -24420,6 +24499,7 @@ func (o *ServerPlan) setDefaults() interface{} {
 		CPU          int
 		MemoryMB     int
 		GPU          int
+		CPUModel     string
 		Commitment   types.ECommitment
 		Generation   types.EPlanGeneration
 		Availability types.EAvailability
@@ -24429,6 +24509,7 @@ func (o *ServerPlan) setDefaults() interface{} {
 		CPU:          o.GetCPU(),
 		MemoryMB:     o.GetMemoryMB(),
 		GPU:          o.GetGPU(),
+		CPUModel:     o.GetCPUModel(),
 		Commitment:   o.GetCommitment(),
 		Generation:   o.GetGeneration(),
 		Availability: o.GetAvailability(),
@@ -24513,6 +24594,16 @@ func (o *ServerPlan) GetGPU() int {
 // SetGPU sets value to GPU
 func (o *ServerPlan) SetGPU(v int) {
 	o.GPU = v
+}
+
+// GetCPUModel returns value of CPUModel
+func (o *ServerPlan) GetCPUModel() string {
+	return o.CPUModel
+}
+
+// SetCPUModel sets value to CPUModel
+func (o *ServerPlan) SetCPUModel(v string) {
+	o.CPUModel = v
 }
 
 // GetCommitment returns value of Commitment

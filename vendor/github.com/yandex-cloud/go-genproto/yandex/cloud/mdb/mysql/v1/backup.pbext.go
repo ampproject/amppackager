@@ -25,3 +25,15 @@ func (m *Backup) SetSourceClusterId(v string) {
 func (m *Backup) SetStartedAt(v *timestamppb.Timestamp) {
 	m.StartedAt = v
 }
+
+func (m *Backup) SetSize(v int64) {
+	m.Size = v
+}
+
+func (m *Backup) SetType(v Backup_BackupCreationType) {
+	m.Type = v
+}
+
+func (m *Backup) SetStatus(v Backup_BackupStatus) {
+	m.Status = v
+}

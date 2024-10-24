@@ -41,3 +41,13 @@ func (m *PlacementGroup) SetSpreadPlacementStrategy(v *SpreadPlacementStrategy) 
 		SpreadPlacementStrategy: v,
 	}
 }
+
+func (m *PlacementGroup) SetPartitionPlacementStrategy(v *PartitionPlacementStrategy) {
+	m.PlacementStrategy = &PlacementGroup_PartitionPlacementStrategy{
+		PartitionPlacementStrategy: v,
+	}
+}
+
+func (m *PartitionPlacementStrategy) SetPartitions(v int64) {
+	m.Partitions = v
+}

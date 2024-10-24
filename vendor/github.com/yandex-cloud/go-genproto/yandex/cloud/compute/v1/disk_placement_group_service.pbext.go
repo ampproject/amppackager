@@ -27,6 +27,10 @@ func (m *ListDiskPlacementGroupsRequest) SetFilter(v string) {
 	m.Filter = v
 }
 
+func (m *ListDiskPlacementGroupsRequest) SetOrderBy(v string) {
+	m.OrderBy = v
+}
+
 func (m *ListDiskPlacementGroupsResponse) SetDiskPlacementGroups(v []*DiskPlacementGroup) {
 	m.DiskPlacementGroups = v
 }
@@ -64,6 +68,12 @@ func (m *CreateDiskPlacementGroupRequest) SetZoneId(v string) {
 func (m *CreateDiskPlacementGroupRequest) SetSpreadPlacementStrategy(v *DiskSpreadPlacementStrategy) {
 	m.PlacementStrategy = &CreateDiskPlacementGroupRequest_SpreadPlacementStrategy{
 		SpreadPlacementStrategy: v,
+	}
+}
+
+func (m *CreateDiskPlacementGroupRequest) SetPartitionPlacementStrategy(v *DiskPartitionPlacementStrategy) {
+	m.PlacementStrategy = &CreateDiskPlacementGroupRequest_PartitionPlacementStrategy{
+		PartitionPlacementStrategy: v,
 	}
 }
 

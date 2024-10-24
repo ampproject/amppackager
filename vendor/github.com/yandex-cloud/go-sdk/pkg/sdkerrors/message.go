@@ -49,6 +49,10 @@ func (e *errWithMessage) Cause() error {
 	return e.err
 }
 
+func (e *errWithMessage) Unwrap() error {
+	return e.err
+}
+
 func (e *statusErrWithMessage) GRPCStatus() *status.Status {
 	return status.Convert(e.err)
 }

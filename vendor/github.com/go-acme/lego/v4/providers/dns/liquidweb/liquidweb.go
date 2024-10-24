@@ -4,7 +4,9 @@ package liquidweb
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,11 +16,12 @@ import (
 	"github.com/liquidweb/liquidweb-go/network"
 )
 
-const defaultBaseURL = "https://api.stormondemand.com"
+const defaultBaseURL = "https://api.liquidweb.com"
 
 // Environment variables names.
 const (
-	envNamespace = "LIQUID_WEB_"
+	envNamespace    = "LIQUID_WEB_"
+	altEnvNamespace = "LWAPI_"
 
 	EnvURL      = envNamespace + "URL"
 	EnvUsername = envNamespace + "USERNAME"
@@ -45,15 +48,13 @@ type Config struct {
 
 // NewDefaultConfig returns a default configuration for the DNSProvider.
 func NewDefaultConfig() *Config {
-	config := &Config{
+	return &Config{
 		BaseURL:            defaultBaseURL,
-		TTL:                env.GetOrDefaultInt(EnvTTL, 300),
-		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, 2*time.Minute),
-		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, 2*time.Second),
-		HTTPTimeout:        env.GetOrDefaultSecond(EnvHTTPTimeout, 1*time.Minute),
+		TTL:                env.GetOneWithFallback(EnvTTL, 300, strconv.Atoi, altEnvName(EnvTTL)),
+		PropagationTimeout: env.GetOneWithFallback(EnvPropagationTimeout, 2*time.Minute, env.ParseSecond, altEnvName(EnvPropagationTimeout)),
+		PollingInterval:    env.GetOneWithFallback(EnvPollingInterval, 2*time.Second, env.ParseSecond, altEnvName(EnvPollingInterval)),
+		HTTPTimeout:        env.GetOneWithFallback(EnvHTTPTimeout, 1*time.Minute, env.ParseSecond, altEnvName(EnvHTTPTimeout)),
 	}
-
-	return config
 }
 
 // DNSProvider implements the challenge.Provider interface.
@@ -66,16 +67,19 @@ type DNSProvider struct {
 
 // NewDNSProvider returns a DNSProvider instance configured for Liquid Web.
 func NewDNSProvider() (*DNSProvider, error) {
-	values, err := env.Get(EnvUsername, EnvPassword, EnvZone)
+	values, err := env.GetWithFallback(
+		[]string{EnvUsername, altEnvName(EnvUsername)},
+		[]string{EnvPassword, altEnvName(EnvPassword)},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("liquidweb: %w", err)
 	}
 
 	config := NewDefaultConfig()
-	config.BaseURL = env.GetOrFile(EnvURL)
+	config.BaseURL = env.GetOneWithFallback(EnvURL, defaultBaseURL, env.ParseString, altEnvName(EnvURL))
 	config.Username = values[EnvUsername]
 	config.Password = values[EnvPassword]
-	config.Zone = values[EnvZone]
+	config.Zone = env.GetOneWithFallback(EnvZone, "", env.ParseString, altEnvName(EnvZone))
 
 	return NewDNSProviderConfig(config)
 }
@@ -90,19 +94,6 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		config.BaseURL = defaultBaseURL
 	}
 
-	if config.Zone == "" {
-		return nil, errors.New("liquidweb: zone is missing")
-	}
-
-	if config.Username == "" {
-		return nil, errors.New("liquidweb: username is missing")
-	}
-
-	if config.Password == "" {
-		return nil, errors.New("liquidweb: password is missing")
-	}
-
-	// Initialize LW client.
 	client, err := lw.NewAPI(config.Username, config.Password, config.BaseURL, int(config.HTTPTimeout.Seconds()))
 	if err != nil {
 		return nil, fmt.Errorf("liquidweb: could not create Liquid Web API client: %w", err)
@@ -131,6 +122,15 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		Type:  "TXT",
 		Zone:  d.config.Zone,
 		TTL:   d.config.TTL,
+	}
+
+	if params.Zone == "" {
+		bestZone, err := d.findZone(params.Name)
+		if err != nil {
+			return fmt.Errorf("liquidweb: %w", err)
+		}
+
+		params.Zone = bestZone
 	}
 
 	dnsEntry, err := d.client.NetworkDNS.Create(params)
@@ -166,4 +166,36 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	d.recordIDsMu.Unlock()
 
 	return nil
+}
+
+func (d *DNSProvider) findZone(domain string) (string, error) {
+	zones, err := d.client.NetworkDNSZone.ListAll()
+	if err != nil {
+		return "", fmt.Errorf("failed to retrieve zones for account: %w", err)
+	}
+
+	// filter the zones on the account to only ones that match
+	var zs []network.DNSZone
+	for _, item := range zones.Items {
+		if strings.HasSuffix(domain, item.Name) {
+			zs = append(zs, item)
+		}
+	}
+
+	if len(zs) < 1 {
+		return "", fmt.Errorf("no valid zone in account for certificate '%s'", domain)
+	}
+
+	// powerdns _only_ looks for records on the longest matching subdomain zone aka,
+	// for test.sub.example.com if sub.example.com exists,
+	// it will look there it will not look atexample.com even if it also exists
+	sort.Slice(zs, func(i, j int) bool {
+		return len(zs[i].Name) > len(zs[j].Name)
+	})
+
+	return zs[0].Name, nil
+}
+
+func altEnvName(v string) string {
+	return strings.ReplaceAll(v, envNamespace, altEnvNamespace)
 }

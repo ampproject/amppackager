@@ -5,6 +5,7 @@ package greenplum
 import (
 	timeofday "google.golang.org/genproto/googleapis/type/timeofday"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func (m *Cluster) SetId(v string) {
@@ -103,6 +104,18 @@ func (m *Cluster) SetClusterConfig(v *ClusterConfigSet) {
 	m.ClusterConfig = v
 }
 
+func (m *Cluster) SetCloudStorage(v *CloudStorage) {
+	m.CloudStorage = v
+}
+
+func (m *Cluster) SetMasterHostGroupIds(v []string) {
+	m.MasterHostGroupIds = v
+}
+
+func (m *Cluster) SetSegmentHostGroupIds(v []string) {
+	m.SegmentHostGroupIds = v
+}
+
 type ClusterConfigSet_GreenplumConfig = isClusterConfigSet_GreenplumConfig
 
 func (m *ClusterConfigSet) SetGreenplumConfig(v ClusterConfigSet_GreenplumConfig) {
@@ -121,8 +134,34 @@ func (m *ClusterConfigSet) SetGreenplumConfigSet_6_19(v *GreenplumConfigSet6_19)
 	}
 }
 
+func (m *ClusterConfigSet) SetGreenplumConfigSet_6_21(v *GreenplumConfigSet6_21) {
+	m.GreenplumConfig = &ClusterConfigSet_GreenplumConfigSet_6_21{
+		GreenplumConfigSet_6_21: v,
+	}
+}
+
+func (m *ClusterConfigSet) SetGreenplumConfigSet_6_22(v *GreenplumConfigSet6_22) {
+	m.GreenplumConfig = &ClusterConfigSet_GreenplumConfigSet_6_22{
+		GreenplumConfigSet_6_22: v,
+	}
+}
+
+func (m *ClusterConfigSet) SetGreenplumConfigSet_6(v *GreenplumConfigSet6) {
+	m.GreenplumConfig = &ClusterConfigSet_GreenplumConfigSet_6{
+		GreenplumConfigSet_6: v,
+	}
+}
+
 func (m *ClusterConfigSet) SetPool(v *ConnectionPoolerConfigSet) {
 	m.Pool = v
+}
+
+func (m *ClusterConfigSet) SetBackgroundActivities(v *BackgroundActivitiesConfig) {
+	m.BackgroundActivities = v
+}
+
+func (m *ClusterConfigSet) SetPxfConfig(v *PXFConfigSet) {
+	m.PxfConfig = v
 }
 
 func (m *Monitoring) SetName(v string) {
@@ -143,6 +182,10 @@ func (m *GreenplumConfig) SetVersion(v string) {
 
 func (m *GreenplumConfig) SetBackupWindowStart(v *timeofday.TimeOfDay) {
 	m.BackupWindowStart = v
+}
+
+func (m *GreenplumConfig) SetBackupRetainPeriodDays(v *wrapperspb.Int64Value) {
+	m.BackupRetainPeriodDays = v
 }
 
 func (m *GreenplumConfig) SetAccess(v *Access) {
@@ -173,6 +216,10 @@ func (m *Access) SetDataTransfer(v bool) {
 	m.DataTransfer = v
 }
 
+func (m *Access) SetYandexQuery(v bool) {
+	m.YandexQuery = v
+}
+
 func (m *GreenplumRestoreConfig) SetBackupWindowStart(v *timeofday.TimeOfDay) {
 	m.BackupWindowStart = v
 }
@@ -199,4 +246,8 @@ func (m *RestoreResources) SetResourcePresetId(v string) {
 
 func (m *RestoreResources) SetDiskSize(v int64) {
 	m.DiskSize = v
+}
+
+func (m *CloudStorage) SetEnable(v bool) {
+	m.Enable = v
 }

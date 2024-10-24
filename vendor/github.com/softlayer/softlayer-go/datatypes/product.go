@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
 
@@ -213,6 +206,9 @@ type Product_Item struct {
 	// Detailed product description
 	LongDescription *string `json:"longDescription,omitempty" xmlrpc:"longDescription,omitempty"`
 
+	// Indicates whether an item is a M.2 disk controller.
+	M2ControllerFlag *bool `json:"m2ControllerFlag,omitempty" xmlrpc:"m2ControllerFlag,omitempty"`
+
 	// Indicates whether an item is a M.2 drive.
 	M2DriveFlag *bool `json:"m2DriveFlag,omitempty" xmlrpc:"m2DriveFlag,omitempty"`
 
@@ -269,6 +265,12 @@ type Product_Item struct {
 
 	// The unique identifier of the SoftLayer_Software_Description tied to this item.
 	SoftwareDescriptionId *int `json:"softwareDescriptionId,omitempty" xmlrpc:"softwareDescriptionId,omitempty"`
+
+	// The total number of cores for a speed select server product.
+	SpeedSelectServerCoreCount *string `json:"speedSelectServerCoreCount,omitempty" xmlrpc:"speedSelectServerCoreCount,omitempty"`
+
+	// Indicates a speed select server item.
+	SpeedSelectServerFlag *bool `json:"speedSelectServerFlag,omitempty" xmlrpc:"speedSelectServerFlag,omitempty"`
 
 	// An item's tax category, if applicable.
 	TaxCategory *Product_Item_Tax_Category `json:"taxCategory,omitempty" xmlrpc:"taxCategory,omitempty"`

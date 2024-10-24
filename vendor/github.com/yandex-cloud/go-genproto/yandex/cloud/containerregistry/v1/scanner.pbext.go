@@ -89,3 +89,11 @@ func (m *PackageVulnerability) SetVersion(v string) {
 func (m *PackageVulnerability) SetFixedBy(v string) {
 	m.FixedBy = v
 }
+
+func (m *PackageVulnerability) SetOrigin(v string) {
+	m.Origin = v
+}
+
+func (m *PackageVulnerability) SetType(v string) {
+	m.Type = v
+}

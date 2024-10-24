@@ -62,3 +62,7 @@ func (m *Federation) SetLabels(v map[string]string) {
 func (m *FederationSecuritySettings) SetEncryptedAssertions(v bool) {
 	m.EncryptedAssertions = v
 }
+
+func (m *FederationSecuritySettings) SetForceAuthn(v bool) {
+	m.ForceAuthn = v
+}

@@ -25,7 +25,7 @@ const (
 	// This is a pro-forma convention given that Go dependencies
 	// tends to be fetched directly from the repo.
 	// It is also used in the user-agent identify the client.
-	Version = "1.2.0"
+	Version = "1.7.0"
 
 	// defaultBaseURL to the DNSimple production API.
 	defaultBaseURL = "https://api.dnsimple.com"
@@ -53,9 +53,11 @@ type Client struct {
 	// Services used for talking to different parts of the DNSimple API.
 	Identity          *IdentityService
 	Accounts          *AccountsService
+	Billing           *BillingService
 	Certificates      *CertificatesService
 	Contacts          *ContactsService
 	Domains           *DomainsService
+	DnsAnalytics      *DnsAnalyticsService
 	Oauth             *OauthService
 	Registrar         *RegistrarService
 	Services          *ServicesService
@@ -92,9 +94,11 @@ func NewClient(httpClient *http.Client) *Client {
 	c := &Client{httpClient: httpClient, BaseURL: defaultBaseURL}
 	c.Identity = &IdentityService{client: c}
 	c.Accounts = &AccountsService{client: c}
+	c.Billing = &BillingService{client: c}
 	c.Certificates = &CertificatesService{client: c}
 	c.Contacts = &ContactsService{client: c}
 	c.Domains = &DomainsService{client: c}
+	c.DnsAnalytics = &DnsAnalyticsService{client: c}
 	c.Oauth = &OauthService{client: c}
 	c.Registrar = &RegistrarService{client: c}
 	c.Services = &ServicesService{client: c}
@@ -262,7 +266,15 @@ func (c *Client) request(ctx context.Context, req *http.Request, obj interface{}
 		if w, ok := obj.(io.Writer); ok {
 			_, err = io.Copy(w, resp.Body)
 		} else {
-			err = json.NewDecoder(resp.Body).Decode(obj)
+			var raw []byte
+			raw, err = io.ReadAll(resp.Body)
+			if err == nil {
+				if len(raw) == 0 {
+					// TODO Ignore empty body as temporary workaround for server sending Content-Type: application/json with an empty body.
+				} else {
+					err = json.Unmarshal(raw, obj)
+				}
+			}
 		}
 	}
 

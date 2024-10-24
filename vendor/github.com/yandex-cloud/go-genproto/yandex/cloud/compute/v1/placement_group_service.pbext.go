@@ -27,6 +27,10 @@ func (m *ListPlacementGroupsRequest) SetFilter(v string) {
 	m.Filter = v
 }
 
+func (m *ListPlacementGroupsRequest) SetOrderBy(v string) {
+	m.OrderBy = v
+}
+
 func (m *ListPlacementGroupsResponse) SetPlacementGroups(v []*PlacementGroup) {
 	m.PlacementGroups = v
 }
@@ -60,6 +64,12 @@ func (m *CreatePlacementGroupRequest) SetLabels(v map[string]string) {
 func (m *CreatePlacementGroupRequest) SetSpreadPlacementStrategy(v *SpreadPlacementStrategy) {
 	m.PlacementStrategy = &CreatePlacementGroupRequest_SpreadPlacementStrategy{
 		SpreadPlacementStrategy: v,
+	}
+}
+
+func (m *CreatePlacementGroupRequest) SetPartitionPlacementStrategy(v *PartitionPlacementStrategy) {
+	m.PlacementStrategy = &CreatePlacementGroupRequest_PartitionPlacementStrategy{
+		PartitionPlacementStrategy: v,
 	}
 }
 

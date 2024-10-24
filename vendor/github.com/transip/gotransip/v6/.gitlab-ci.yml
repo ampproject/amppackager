@@ -11,7 +11,7 @@ stages:
 
 analyze:lint:
   stage: analyze
-  image: golangci/golangci-lint:v1.45
+  image: golangci/golangci-lint:v1.57
   script:
     - golangci-lint run -v
   tags:
@@ -27,7 +27,7 @@ lint:golint:
 lint:vet:
   stage: lint
   script:
-    - ci/vet.sh
+    - go vet ./...
   tags:
     - k8s-tbk
 
@@ -41,7 +41,7 @@ lint:modtidy:
 test:go:
   stage: test
   script:
-    - ci/test.sh
+    - go test ./...
   tags:
     - k8s-tbk
 

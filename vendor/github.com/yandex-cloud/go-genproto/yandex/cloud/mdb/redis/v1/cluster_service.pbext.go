@@ -11,6 +11,14 @@ import (
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
+func (m *EnableShardingClusterMetadata) SetClusterId(v string) {
+	m.ClusterId = v
+}
+
+func (m *EnableShardingClusterRequest) SetClusterId(v string) {
+	m.ClusterId = v
+}
+
 func (m *GetClusterRequest) SetClusterId(v string) {
 	m.ClusterId = v
 }
@@ -91,6 +99,14 @@ func (m *CreateClusterRequest) SetPersistenceMode(v Cluster_PersistenceMode) {
 	m.PersistenceMode = v
 }
 
+func (m *CreateClusterRequest) SetAnnounceHostnames(v bool) {
+	m.AnnounceHostnames = v
+}
+
+func (m *CreateClusterRequest) SetMaintenanceWindow(v *MaintenanceWindow) {
+	m.MaintenanceWindow = v
+}
+
 func (m *CreateClusterMetadata) SetClusterId(v string) {
 	m.ClusterId = v
 }
@@ -133,6 +149,14 @@ func (m *UpdateClusterRequest) SetDeletionProtection(v bool) {
 
 func (m *UpdateClusterRequest) SetPersistenceMode(v Cluster_PersistenceMode) {
 	m.PersistenceMode = v
+}
+
+func (m *UpdateClusterRequest) SetNetworkId(v string) {
+	m.NetworkId = v
+}
+
+func (m *UpdateClusterRequest) SetAnnounceHostnames(v bool) {
+	m.AnnounceHostnames = v
 }
 
 func (m *UpdateClusterMetadata) SetClusterId(v string) {
@@ -253,6 +277,18 @@ func (m *RestoreClusterRequest) SetTlsEnabled(v *wrapperspb.BoolValue) {
 
 func (m *RestoreClusterRequest) SetPersistenceMode(v Cluster_PersistenceMode) {
 	m.PersistenceMode = v
+}
+
+func (m *RestoreClusterRequest) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
+}
+
+func (m *RestoreClusterRequest) SetAnnounceHostnames(v bool) {
+	m.AnnounceHostnames = v
+}
+
+func (m *RestoreClusterRequest) SetMaintenanceWindow(v *MaintenanceWindow) {
+	m.MaintenanceWindow = v
 }
 
 func (m *RestoreClusterMetadata) SetClusterId(v string) {
@@ -607,6 +643,12 @@ func (m *ConfigSpec) SetRedisConfig_6_2(v *config.RedisConfig6_2) {
 	}
 }
 
+func (m *ConfigSpec) SetRedisConfig_7_0(v *config.RedisConfig7_0) {
+	m.RedisSpec = &ConfigSpec_RedisConfig_7_0{
+		RedisConfig_7_0: v,
+	}
+}
+
 func (m *ConfigSpec) SetResources(v *Resources) {
 	m.Resources = v
 }
@@ -617,4 +659,12 @@ func (m *ConfigSpec) SetBackupWindowStart(v *timeofday.TimeOfDay) {
 
 func (m *ConfigSpec) SetAccess(v *Access) {
 	m.Access = v
+}
+
+func (m *ConfigSpec) SetRedis(v *config.RedisConfig) {
+	m.Redis = v
+}
+
+func (m *ConfigSpec) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }

@@ -58,12 +58,16 @@ func (m *UserSettings) SetAllowDdl(v *wrapperspb.BoolValue) {
 	m.AllowDdl = v
 }
 
-func (m *UserSettings) SetInsertQuorum(v *wrapperspb.Int64Value) {
-	m.InsertQuorum = v
+func (m *UserSettings) SetAllowIntrospectionFunctions(v *wrapperspb.BoolValue) {
+	m.AllowIntrospectionFunctions = v
 }
 
 func (m *UserSettings) SetConnectTimeout(v *wrapperspb.Int64Value) {
 	m.ConnectTimeout = v
+}
+
+func (m *UserSettings) SetConnectTimeoutWithFailover(v *wrapperspb.Int64Value) {
+	m.ConnectTimeoutWithFailover = v
 }
 
 func (m *UserSettings) SetReceiveTimeout(v *wrapperspb.Int64Value) {
@@ -74,12 +78,36 @@ func (m *UserSettings) SetSendTimeout(v *wrapperspb.Int64Value) {
 	m.SendTimeout = v
 }
 
+func (m *UserSettings) SetTimeoutBeforeCheckingExecutionSpeed(v *wrapperspb.Int64Value) {
+	m.TimeoutBeforeCheckingExecutionSpeed = v
+}
+
+func (m *UserSettings) SetInsertQuorum(v *wrapperspb.Int64Value) {
+	m.InsertQuorum = v
+}
+
 func (m *UserSettings) SetInsertQuorumTimeout(v *wrapperspb.Int64Value) {
 	m.InsertQuorumTimeout = v
 }
 
+func (m *UserSettings) SetInsertQuorumParallel(v *wrapperspb.BoolValue) {
+	m.InsertQuorumParallel = v
+}
+
+func (m *UserSettings) SetInsertNullAsDefault(v *wrapperspb.BoolValue) {
+	m.InsertNullAsDefault = v
+}
+
 func (m *UserSettings) SetSelectSequentialConsistency(v *wrapperspb.BoolValue) {
 	m.SelectSequentialConsistency = v
+}
+
+func (m *UserSettings) SetDeduplicateBlocksInDependentMaterializedViews(v *wrapperspb.BoolValue) {
+	m.DeduplicateBlocksInDependentMaterializedViews = v
+}
+
+func (m *UserSettings) SetReplicationAlterPartitionsSync(v *wrapperspb.Int64Value) {
+	m.ReplicationAlterPartitionsSync = v
 }
 
 func (m *UserSettings) SetMaxReplicaDelayForDistributedQueries(v *wrapperspb.Int64Value) {
@@ -88,10 +116,6 @@ func (m *UserSettings) SetMaxReplicaDelayForDistributedQueries(v *wrapperspb.Int
 
 func (m *UserSettings) SetFallbackToStaleReplicasForDistributedQueries(v *wrapperspb.BoolValue) {
 	m.FallbackToStaleReplicasForDistributedQueries = v
-}
-
-func (m *UserSettings) SetReplicationAlterPartitionsSync(v *wrapperspb.Int64Value) {
-	m.ReplicationAlterPartitionsSync = v
 }
 
 func (m *UserSettings) SetDistributedProductMode(v UserSettings_DistributedProductMode) {
@@ -108,14 +132,6 @@ func (m *UserSettings) SetDistributedDdlTaskTimeout(v *wrapperspb.Int64Value) {
 
 func (m *UserSettings) SetSkipUnavailableShards(v *wrapperspb.BoolValue) {
 	m.SkipUnavailableShards = v
-}
-
-func (m *UserSettings) SetCompile(v *wrapperspb.BoolValue) {
-	m.Compile = v
-}
-
-func (m *UserSettings) SetMinCountToCompile(v *wrapperspb.Int64Value) {
-	m.MinCountToCompile = v
 }
 
 func (m *UserSettings) SetCompileExpressions(v *wrapperspb.BoolValue) {
@@ -204,6 +220,14 @@ func (m *UserSettings) SetMaxNetworkBandwidth(v *wrapperspb.Int64Value) {
 
 func (m *UserSettings) SetMaxNetworkBandwidthForUser(v *wrapperspb.Int64Value) {
 	m.MaxNetworkBandwidthForUser = v
+}
+
+func (m *UserSettings) SetMaxPartitionsPerInsertBlock(v *wrapperspb.Int64Value) {
+	m.MaxPartitionsPerInsertBlock = v
+}
+
+func (m *UserSettings) SetMaxConcurrentQueriesForUser(v *wrapperspb.Int64Value) {
+	m.MaxConcurrentQueriesForUser = v
 }
 
 func (m *UserSettings) SetForceIndexByDate(v *wrapperspb.BoolValue) {
@@ -314,6 +338,14 @@ func (m *UserSettings) SetJoinOverflowMode(v UserSettings_OverflowMode) {
 	m.JoinOverflowMode = v
 }
 
+func (m *UserSettings) SetJoinAlgorithm(v []UserSettings_JoinAlgorithm) {
+	m.JoinAlgorithm = v
+}
+
+func (m *UserSettings) SetAnyJoinDistinctRightTableKeys(v *wrapperspb.BoolValue) {
+	m.AnyJoinDistinctRightTableKeys = v
+}
+
 func (m *UserSettings) SetMaxColumnsToRead(v *wrapperspb.Int64Value) {
 	m.MaxColumnsToRead = v
 }
@@ -362,6 +394,18 @@ func (m *UserSettings) SetInputFormatDefaultsForOmittedFields(v *wrapperspb.Bool
 	m.InputFormatDefaultsForOmittedFields = v
 }
 
+func (m *UserSettings) SetInputFormatNullAsDefault(v *wrapperspb.BoolValue) {
+	m.InputFormatNullAsDefault = v
+}
+
+func (m *UserSettings) SetDateTimeInputFormat(v UserSettings_DateTimeInputFormat) {
+	m.DateTimeInputFormat = v
+}
+
+func (m *UserSettings) SetInputFormatWithNamesUseHeader(v *wrapperspb.BoolValue) {
+	m.InputFormatWithNamesUseHeader = v
+}
+
 func (m *UserSettings) SetOutputFormatJsonQuote_64BitIntegers(v *wrapperspb.BoolValue) {
 	m.OutputFormatJsonQuote_64BitIntegers = v
 }
@@ -370,24 +414,20 @@ func (m *UserSettings) SetOutputFormatJsonQuoteDenormals(v *wrapperspb.BoolValue
 	m.OutputFormatJsonQuoteDenormals = v
 }
 
+func (m *UserSettings) SetDateTimeOutputFormat(v UserSettings_DateTimeOutputFormat) {
+	m.DateTimeOutputFormat = v
+}
+
 func (m *UserSettings) SetLowCardinalityAllowInNativeFormat(v *wrapperspb.BoolValue) {
 	m.LowCardinalityAllowInNativeFormat = v
 }
 
+func (m *UserSettings) SetAllowSuspiciousLowCardinalityTypes(v *wrapperspb.BoolValue) {
+	m.AllowSuspiciousLowCardinalityTypes = v
+}
+
 func (m *UserSettings) SetEmptyResultForAggregationByEmptySet(v *wrapperspb.BoolValue) {
 	m.EmptyResultForAggregationByEmptySet = v
-}
-
-func (m *UserSettings) SetJoinedSubqueryRequiresAlias(v *wrapperspb.BoolValue) {
-	m.JoinedSubqueryRequiresAlias = v
-}
-
-func (m *UserSettings) SetJoinUseNulls(v *wrapperspb.BoolValue) {
-	m.JoinUseNulls = v
-}
-
-func (m *UserSettings) SetTransformNullIn(v *wrapperspb.BoolValue) {
-	m.TransformNullIn = v
 }
 
 func (m *UserSettings) SetHttpConnectionTimeout(v *wrapperspb.Int64Value) {
@@ -418,8 +458,168 @@ func (m *UserSettings) SetAddHttpCorsHeader(v *wrapperspb.BoolValue) {
 	m.AddHttpCorsHeader = v
 }
 
+func (m *UserSettings) SetCancelHttpReadonlyQueriesOnClientClose(v *wrapperspb.BoolValue) {
+	m.CancelHttpReadonlyQueriesOnClientClose = v
+}
+
+func (m *UserSettings) SetMaxHttpGetRedirects(v *wrapperspb.Int64Value) {
+	m.MaxHttpGetRedirects = v
+}
+
+func (m *UserSettings) SetJoinedSubqueryRequiresAlias(v *wrapperspb.BoolValue) {
+	m.JoinedSubqueryRequiresAlias = v
+}
+
+func (m *UserSettings) SetJoinUseNulls(v *wrapperspb.BoolValue) {
+	m.JoinUseNulls = v
+}
+
+func (m *UserSettings) SetTransformNullIn(v *wrapperspb.BoolValue) {
+	m.TransformNullIn = v
+}
+
 func (m *UserSettings) SetQuotaMode(v UserSettings_QuotaMode) {
 	m.QuotaMode = v
+}
+
+func (m *UserSettings) SetFlattenNested(v *wrapperspb.BoolValue) {
+	m.FlattenNested = v
+}
+
+func (m *UserSettings) SetFormatRegexp(v string) {
+	m.FormatRegexp = v
+}
+
+func (m *UserSettings) SetFormatRegexpEscapingRule(v UserSettings_FormatRegexpEscapingRule) {
+	m.FormatRegexpEscapingRule = v
+}
+
+func (m *UserSettings) SetFormatRegexpSkipUnmatched(v *wrapperspb.BoolValue) {
+	m.FormatRegexpSkipUnmatched = v
+}
+
+func (m *UserSettings) SetAsyncInsert(v *wrapperspb.BoolValue) {
+	m.AsyncInsert = v
+}
+
+func (m *UserSettings) SetAsyncInsertThreads(v *wrapperspb.Int64Value) {
+	m.AsyncInsertThreads = v
+}
+
+func (m *UserSettings) SetWaitForAsyncInsert(v *wrapperspb.BoolValue) {
+	m.WaitForAsyncInsert = v
+}
+
+func (m *UserSettings) SetWaitForAsyncInsertTimeout(v *wrapperspb.Int64Value) {
+	m.WaitForAsyncInsertTimeout = v
+}
+
+func (m *UserSettings) SetAsyncInsertMaxDataSize(v *wrapperspb.Int64Value) {
+	m.AsyncInsertMaxDataSize = v
+}
+
+func (m *UserSettings) SetAsyncInsertBusyTimeout(v *wrapperspb.Int64Value) {
+	m.AsyncInsertBusyTimeout = v
+}
+
+func (m *UserSettings) SetAsyncInsertStaleTimeout(v *wrapperspb.Int64Value) {
+	m.AsyncInsertStaleTimeout = v
+}
+
+func (m *UserSettings) SetMemoryProfilerStep(v *wrapperspb.Int64Value) {
+	m.MemoryProfilerStep = v
+}
+
+func (m *UserSettings) SetMemoryProfilerSampleProbability(v *wrapperspb.DoubleValue) {
+	m.MemoryProfilerSampleProbability = v
+}
+
+func (m *UserSettings) SetMaxFinalThreads(v *wrapperspb.Int64Value) {
+	m.MaxFinalThreads = v
+}
+
+func (m *UserSettings) SetInputFormatParallelParsing(v *wrapperspb.BoolValue) {
+	m.InputFormatParallelParsing = v
+}
+
+func (m *UserSettings) SetInputFormatImportNestedJson(v *wrapperspb.BoolValue) {
+	m.InputFormatImportNestedJson = v
+}
+
+func (m *UserSettings) SetLocalFilesystemReadMethod(v UserSettings_LocalFilesystemReadMethod) {
+	m.LocalFilesystemReadMethod = v
+}
+
+func (m *UserSettings) SetMaxReadBufferSize(v *wrapperspb.Int64Value) {
+	m.MaxReadBufferSize = v
+}
+
+func (m *UserSettings) SetInsertKeeperMaxRetries(v *wrapperspb.Int64Value) {
+	m.InsertKeeperMaxRetries = v
+}
+
+func (m *UserSettings) SetMaxTemporaryDataOnDiskSizeForUser(v *wrapperspb.Int64Value) {
+	m.MaxTemporaryDataOnDiskSizeForUser = v
+}
+
+func (m *UserSettings) SetMaxTemporaryDataOnDiskSizeForQuery(v *wrapperspb.Int64Value) {
+	m.MaxTemporaryDataOnDiskSizeForQuery = v
+}
+
+func (m *UserSettings) SetMaxParserDepth(v *wrapperspb.Int64Value) {
+	m.MaxParserDepth = v
+}
+
+func (m *UserSettings) SetRemoteFilesystemReadMethod(v UserSettings_RemoteFilesystemReadMethod) {
+	m.RemoteFilesystemReadMethod = v
+}
+
+func (m *UserSettings) SetMemoryOvercommitRatioDenominator(v *wrapperspb.Int64Value) {
+	m.MemoryOvercommitRatioDenominator = v
+}
+
+func (m *UserSettings) SetMemoryOvercommitRatioDenominatorForUser(v *wrapperspb.Int64Value) {
+	m.MemoryOvercommitRatioDenominatorForUser = v
+}
+
+func (m *UserSettings) SetMemoryUsageOvercommitMaxWaitMicroseconds(v *wrapperspb.Int64Value) {
+	m.MemoryUsageOvercommitMaxWaitMicroseconds = v
+}
+
+func (m *UserSettings) SetLogQueryThreads(v *wrapperspb.BoolValue) {
+	m.LogQueryThreads = v
+}
+
+func (m *UserSettings) SetMaxInsertThreads(v *wrapperspb.Int64Value) {
+	m.MaxInsertThreads = v
+}
+
+func (m *UserSettings) SetUseHedgedRequests(v *wrapperspb.BoolValue) {
+	m.UseHedgedRequests = v
+}
+
+func (m *UserSettings) SetIdleConnectionTimeout(v *wrapperspb.Int64Value) {
+	m.IdleConnectionTimeout = v
+}
+
+func (m *UserSettings) SetHedgedConnectionTimeoutMs(v *wrapperspb.Int64Value) {
+	m.HedgedConnectionTimeoutMs = v
+}
+
+func (m *UserSettings) SetLoadBalancing(v UserSettings_LoadBalancing) {
+	m.LoadBalancing = v
+}
+
+func (m *UserSettings) SetPreferLocalhostReplica(v *wrapperspb.BoolValue) {
+	m.PreferLocalhostReplica = v
+}
+
+func (m *UserSettings) SetCompile(v *wrapperspb.BoolValue) {
+	m.Compile = v
+}
+
+func (m *UserSettings) SetMinCountToCompile(v *wrapperspb.Int64Value) {
+	m.MinCountToCompile = v
 }
 
 func (m *UserQuota) SetIntervalDuration(v *wrapperspb.Int64Value) {

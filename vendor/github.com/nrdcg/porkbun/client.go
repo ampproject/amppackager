@@ -9,12 +9,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
 	"time"
 )
 
-const defaultBaseURL = "https://porkbun.com/api/json/v3/"
+const defaultBaseURL = "https://api.porkbun.com/api/json/v3/"
 
 const statusSuccess = "SUCCESS"
 
@@ -44,10 +43,7 @@ func New(secretAPIKey, apiKey string) *Client {
 
 // Ping tests communication with the API.
 func (c *Client) Ping(ctx context.Context) (string, error) {
-	endpoint, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "ping"))
-	if err != nil {
-		return "", fmt.Errorf("failed to parse endpoint: %w", err)
-	}
+	endpoint := c.BaseURL.JoinPath("ping")
 
 	respBody, err := c.do(ctx, endpoint, nil)
 	if err != nil {
@@ -75,10 +71,7 @@ func (c *Client) Ping(ctx context.Context) (string, error) {
 //	ttl (optional): The time to live in seconds for the record. The minimum and the default is 300 seconds.
 //	prio (optional) The priority of the record for those that support it.
 func (c *Client) CreateRecord(ctx context.Context, domain string, record Record) (int, error) {
-	endpoint, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "dns", "create", domain))
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse endpoint: %w", err)
-	}
+	endpoint := c.BaseURL.JoinPath("dns", "create", domain)
 
 	respBody, err := c.do(ctx, endpoint, record)
 	if err != nil {
@@ -106,10 +99,7 @@ func (c *Client) CreateRecord(ctx context.Context, domain string, record Record)
 //	ttl (optional): The time to live in seconds for the record. The minimum and the default is 300 seconds.
 //	prio (optional) The priority of the record for those that support it.
 func (c *Client) EditRecord(ctx context.Context, domain string, id int, record Record) error {
-	endpoint, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "dns", "edit", domain, strconv.Itoa(id)))
-	if err != nil {
-		return fmt.Errorf("failed to parse endpoint: %w", err)
-	}
+	endpoint := c.BaseURL.JoinPath("dns", "edit", domain, strconv.Itoa(id))
 
 	respBody, err := c.do(ctx, endpoint, record)
 	if err != nil {
@@ -131,10 +121,7 @@ func (c *Client) EditRecord(ctx context.Context, domain string, id int, record R
 
 // DeleteRecord deletes a specific DNS record.
 func (c *Client) DeleteRecord(ctx context.Context, domain string, id int) error {
-	endpoint, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "dns", "delete", domain, strconv.Itoa(id)))
-	if err != nil {
-		return fmt.Errorf("failed to parse endpoint: %w", err)
-	}
+	endpoint := c.BaseURL.JoinPath("dns", "delete", domain, strconv.Itoa(id))
 
 	respBody, err := c.do(ctx, endpoint, nil)
 	if err != nil {
@@ -156,10 +143,7 @@ func (c *Client) DeleteRecord(ctx context.Context, domain string, id int) error 
 
 // RetrieveRecords retrieve all editable DNS records associated with a domain.
 func (c *Client) RetrieveRecords(ctx context.Context, domain string) ([]Record, error) {
-	endpoint, err := c.BaseURL.Parse(path.Join(c.BaseURL.Path, "dns", "retrieve", domain))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
-	}
+	endpoint := c.BaseURL.JoinPath("dns", "retrieve", domain)
 
 	respBody, err := c.do(ctx, endpoint, nil)
 	if err != nil {
@@ -177,6 +161,28 @@ func (c *Client) RetrieveRecords(ctx context.Context, domain string) ([]Record, 
 	}
 
 	return retrieveResp.Records, nil
+}
+
+// RetrieveSSLBundle retrieve the SSL certificate bundle for the domain.
+func (c *Client) RetrieveSSLBundle(ctx context.Context, domain string) (SSLBundle, error) {
+	endpoint := c.BaseURL.JoinPath("ssl", "retrieve", domain)
+
+	respBody, err := c.do(ctx, endpoint, nil)
+	if err != nil {
+		return SSLBundle{}, err
+	}
+
+	bundleResp := sslBundleResponse{}
+	err = json.Unmarshal(respBody, &bundleResp)
+	if err != nil {
+		return SSLBundle{}, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if bundleResp.Status.Status != statusSuccess {
+		return SSLBundle{}, bundleResp.Status
+	}
+
+	return bundleResp.SSLBundle, nil
 }
 
 func (c *Client) do(ctx context.Context, endpoint *url.URL, apiRequest interface{}) ([]byte, error) {
@@ -208,12 +214,21 @@ func (c *Client) do(ctx context.Context, endpoint *url.URL, apiRequest interface
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return respBody, nil
+
+	case http.StatusServiceUnavailable:
+		// related to https://github.com/nrdcg/porkbun/issues/5
+		return nil, &ServerError{
+			StatusCode: resp.StatusCode,
+			Message:    http.StatusText(http.StatusServiceUnavailable),
+		}
+
+	default:
 		return nil, &ServerError{
 			StatusCode: resp.StatusCode,
 			Message:    string(respBody),
 		}
 	}
-
-	return respBody, nil
 }

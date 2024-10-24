@@ -51,8 +51,9 @@ func NewDefaultConfig() *Config {
 
 // DNSProvider implements the challenge.Provider interface.
 type DNSProvider struct {
-	config *Config
-	client *goinwx.Client
+	config         *Config
+	client         *goinwx.Client
+	previousUnlock time.Time
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for Dyn DNS.
@@ -108,7 +109,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	defer func() {
 		errL := d.client.Account.Logout()
 		if errL != nil {
-			log.Infof("inwx: failed to logout: %v", errL)
+			log.Infof("inwx: failed to log out: %v", errL)
 		}
 	}()
 
@@ -158,7 +159,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	defer func() {
 		errL := d.client.Account.Logout()
 		if errL != nil {
-			log.Infof("inwx: failed to logout: %v", errL)
+			log.Infof("inwx: failed to log out: %v", errL)
 		}
 	}()
 
@@ -199,13 +200,38 @@ func (d *DNSProvider) twoFactorAuth(info *goinwx.LoginResponse) error {
 	}
 
 	if d.config.SharedSecret == "" {
-		return errors.New("two factor authentication but no shared secret is given")
+		return errors.New("two-factor authentication but no shared secret is given")
 	}
 
-	tan, err := totp.GenerateCode(d.config.SharedSecret, time.Now())
+	// INWX forbids re-authentication with a previously used TAN.
+	// To avoid using the same TAN twice, we wait until the next TOTP period.
+	sleep := d.computeSleep(time.Now())
+	if sleep != 0 {
+		log.Infof("inwx: waiting %s for next TOTP token", sleep)
+		time.Sleep(sleep)
+	}
+
+	now := time.Now()
+
+	tan, err := totp.GenerateCode(d.config.SharedSecret, now)
 	if err != nil {
 		return err
 	}
 
+	d.previousUnlock = now.Truncate(30 * time.Second)
+
 	return d.client.Account.Unlock(tan)
+}
+
+func (d *DNSProvider) computeSleep(now time.Time) time.Duration {
+	if d.previousUnlock.IsZero() {
+		return 0
+	}
+
+	endPeriod := d.previousUnlock.Add(30 * time.Second)
+	if endPeriod.After(now) {
+		return endPeriod.Sub(now)
+	}
+
+	return 0
 }

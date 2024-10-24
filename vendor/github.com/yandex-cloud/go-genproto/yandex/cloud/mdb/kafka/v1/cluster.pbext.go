@@ -123,6 +123,14 @@ func (m *ConfigSpec) SetAccess(v *Access) {
 	m.Access = v
 }
 
+func (m *ConfigSpec) SetRestApiConfig(v *ConfigSpec_RestAPIConfig) {
+	m.RestApiConfig = v
+}
+
+func (m *ConfigSpec) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 type ConfigSpec_Kafka_KafkaConfig = isConfigSpec_Kafka_KafkaConfig
 
 func (m *ConfigSpec_Kafka) SetKafkaConfig(v ConfigSpec_Kafka_KafkaConfig) {
@@ -131,18 +139,6 @@ func (m *ConfigSpec_Kafka) SetKafkaConfig(v ConfigSpec_Kafka_KafkaConfig) {
 
 func (m *ConfigSpec_Kafka) SetResources(v *Resources) {
 	m.Resources = v
-}
-
-func (m *ConfigSpec_Kafka) SetKafkaConfig_2_1(v *KafkaConfig2_1) {
-	m.KafkaConfig = &ConfigSpec_Kafka_KafkaConfig_2_1{
-		KafkaConfig_2_1: v,
-	}
-}
-
-func (m *ConfigSpec_Kafka) SetKafkaConfig_2_6(v *KafkaConfig2_6) {
-	m.KafkaConfig = &ConfigSpec_Kafka_KafkaConfig_2_6{
-		KafkaConfig_2_6: v,
-	}
 }
 
 func (m *ConfigSpec_Kafka) SetKafkaConfig_2_8(v *KafkaConfig2_8) {
@@ -161,6 +157,10 @@ func (m *ConfigSpec_Zookeeper) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *ConfigSpec_RestAPIConfig) SetEnabled(v bool) {
+	m.Enabled = v
+}
+
 func (m *Resources) SetResourcePresetId(v string) {
 	m.ResourcePresetId = v
 }
@@ -171,158 +171,6 @@ func (m *Resources) SetDiskSize(v int64) {
 
 func (m *Resources) SetDiskTypeId(v string) {
 	m.DiskTypeId = v
-}
-
-func (m *KafkaConfig2_1) SetCompressionType(v CompressionType) {
-	m.CompressionType = v
-}
-
-func (m *KafkaConfig2_1) SetLogFlushIntervalMessages(v *wrapperspb.Int64Value) {
-	m.LogFlushIntervalMessages = v
-}
-
-func (m *KafkaConfig2_1) SetLogFlushIntervalMs(v *wrapperspb.Int64Value) {
-	m.LogFlushIntervalMs = v
-}
-
-func (m *KafkaConfig2_1) SetLogFlushSchedulerIntervalMs(v *wrapperspb.Int64Value) {
-	m.LogFlushSchedulerIntervalMs = v
-}
-
-func (m *KafkaConfig2_1) SetLogRetentionBytes(v *wrapperspb.Int64Value) {
-	m.LogRetentionBytes = v
-}
-
-func (m *KafkaConfig2_1) SetLogRetentionHours(v *wrapperspb.Int64Value) {
-	m.LogRetentionHours = v
-}
-
-func (m *KafkaConfig2_1) SetLogRetentionMinutes(v *wrapperspb.Int64Value) {
-	m.LogRetentionMinutes = v
-}
-
-func (m *KafkaConfig2_1) SetLogRetentionMs(v *wrapperspb.Int64Value) {
-	m.LogRetentionMs = v
-}
-
-func (m *KafkaConfig2_1) SetLogSegmentBytes(v *wrapperspb.Int64Value) {
-	m.LogSegmentBytes = v
-}
-
-func (m *KafkaConfig2_1) SetLogPreallocate(v *wrapperspb.BoolValue) {
-	m.LogPreallocate = v
-}
-
-func (m *KafkaConfig2_1) SetSocketSendBufferBytes(v *wrapperspb.Int64Value) {
-	m.SocketSendBufferBytes = v
-}
-
-func (m *KafkaConfig2_1) SetSocketReceiveBufferBytes(v *wrapperspb.Int64Value) {
-	m.SocketReceiveBufferBytes = v
-}
-
-func (m *KafkaConfig2_1) SetAutoCreateTopicsEnable(v *wrapperspb.BoolValue) {
-	m.AutoCreateTopicsEnable = v
-}
-
-func (m *KafkaConfig2_1) SetNumPartitions(v *wrapperspb.Int64Value) {
-	m.NumPartitions = v
-}
-
-func (m *KafkaConfig2_1) SetDefaultReplicationFactor(v *wrapperspb.Int64Value) {
-	m.DefaultReplicationFactor = v
-}
-
-func (m *KafkaConfig2_1) SetMessageMaxBytes(v *wrapperspb.Int64Value) {
-	m.MessageMaxBytes = v
-}
-
-func (m *KafkaConfig2_1) SetReplicaFetchMaxBytes(v *wrapperspb.Int64Value) {
-	m.ReplicaFetchMaxBytes = v
-}
-
-func (m *KafkaConfig2_1) SetSslCipherSuites(v []string) {
-	m.SslCipherSuites = v
-}
-
-func (m *KafkaConfig2_1) SetOffsetsRetentionMinutes(v *wrapperspb.Int64Value) {
-	m.OffsetsRetentionMinutes = v
-}
-
-func (m *KafkaConfig2_6) SetCompressionType(v CompressionType) {
-	m.CompressionType = v
-}
-
-func (m *KafkaConfig2_6) SetLogFlushIntervalMessages(v *wrapperspb.Int64Value) {
-	m.LogFlushIntervalMessages = v
-}
-
-func (m *KafkaConfig2_6) SetLogFlushIntervalMs(v *wrapperspb.Int64Value) {
-	m.LogFlushIntervalMs = v
-}
-
-func (m *KafkaConfig2_6) SetLogFlushSchedulerIntervalMs(v *wrapperspb.Int64Value) {
-	m.LogFlushSchedulerIntervalMs = v
-}
-
-func (m *KafkaConfig2_6) SetLogRetentionBytes(v *wrapperspb.Int64Value) {
-	m.LogRetentionBytes = v
-}
-
-func (m *KafkaConfig2_6) SetLogRetentionHours(v *wrapperspb.Int64Value) {
-	m.LogRetentionHours = v
-}
-
-func (m *KafkaConfig2_6) SetLogRetentionMinutes(v *wrapperspb.Int64Value) {
-	m.LogRetentionMinutes = v
-}
-
-func (m *KafkaConfig2_6) SetLogRetentionMs(v *wrapperspb.Int64Value) {
-	m.LogRetentionMs = v
-}
-
-func (m *KafkaConfig2_6) SetLogSegmentBytes(v *wrapperspb.Int64Value) {
-	m.LogSegmentBytes = v
-}
-
-func (m *KafkaConfig2_6) SetLogPreallocate(v *wrapperspb.BoolValue) {
-	m.LogPreallocate = v
-}
-
-func (m *KafkaConfig2_6) SetSocketSendBufferBytes(v *wrapperspb.Int64Value) {
-	m.SocketSendBufferBytes = v
-}
-
-func (m *KafkaConfig2_6) SetSocketReceiveBufferBytes(v *wrapperspb.Int64Value) {
-	m.SocketReceiveBufferBytes = v
-}
-
-func (m *KafkaConfig2_6) SetAutoCreateTopicsEnable(v *wrapperspb.BoolValue) {
-	m.AutoCreateTopicsEnable = v
-}
-
-func (m *KafkaConfig2_6) SetNumPartitions(v *wrapperspb.Int64Value) {
-	m.NumPartitions = v
-}
-
-func (m *KafkaConfig2_6) SetDefaultReplicationFactor(v *wrapperspb.Int64Value) {
-	m.DefaultReplicationFactor = v
-}
-
-func (m *KafkaConfig2_6) SetMessageMaxBytes(v *wrapperspb.Int64Value) {
-	m.MessageMaxBytes = v
-}
-
-func (m *KafkaConfig2_6) SetReplicaFetchMaxBytes(v *wrapperspb.Int64Value) {
-	m.ReplicaFetchMaxBytes = v
-}
-
-func (m *KafkaConfig2_6) SetSslCipherSuites(v []string) {
-	m.SslCipherSuites = v
-}
-
-func (m *KafkaConfig2_6) SetOffsetsRetentionMinutes(v *wrapperspb.Int64Value) {
-	m.OffsetsRetentionMinutes = v
 }
 
 func (m *KafkaConfig2_8) SetCompressionType(v CompressionType) {
@@ -401,6 +249,10 @@ func (m *KafkaConfig2_8) SetOffsetsRetentionMinutes(v *wrapperspb.Int64Value) {
 	m.OffsetsRetentionMinutes = v
 }
 
+func (m *KafkaConfig2_8) SetSaslEnabledMechanisms(v []SaslMechanism) {
+	m.SaslEnabledMechanisms = v
+}
+
 func (m *KafkaConfig3) SetCompressionType(v CompressionType) {
 	m.CompressionType = v
 }
@@ -477,6 +329,10 @@ func (m *KafkaConfig3) SetOffsetsRetentionMinutes(v *wrapperspb.Int64Value) {
 	m.OffsetsRetentionMinutes = v
 }
 
+func (m *KafkaConfig3) SetSaslEnabledMechanisms(v []SaslMechanism) {
+	m.SaslEnabledMechanisms = v
+}
+
 func (m *Host) SetName(v string) {
 	m.Name = v
 }
@@ -511,4 +367,16 @@ func (m *Host) SetAssignPublicIp(v bool) {
 
 func (m *Access) SetDataTransfer(v bool) {
 	m.DataTransfer = v
+}
+
+func (m *DiskSizeAutoscaling) SetPlannedUsageThreshold(v int64) {
+	m.PlannedUsageThreshold = v
+}
+
+func (m *DiskSizeAutoscaling) SetEmergencyUsageThreshold(v int64) {
+	m.EmergencyUsageThreshold = v
+}
+
+func (m *DiskSizeAutoscaling) SetDiskSizeLimit(v int64) {
+	m.DiskSizeLimit = v
 }

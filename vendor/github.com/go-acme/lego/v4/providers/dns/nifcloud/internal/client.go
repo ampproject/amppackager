@@ -121,12 +121,7 @@ func (c *Client) do(req *http.Request, result any) error {
 
 func (c *Client) sign(req *http.Request) error {
 	if req.Header.Get("Date") == "" {
-		location, err := time.LoadLocation("GMT")
-		if err != nil {
-			return err
-		}
-
-		req.Header.Set("Date", time.Now().In(location).Format(time.RFC1123))
+		req.Header.Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	}
 
 	if req.URL.Path == "" {
@@ -149,10 +144,9 @@ func (c *Client) sign(req *http.Request) error {
 }
 
 func newXMLRequest(ctx context.Context, method string, endpoint *url.URL, payload any) (*http.Request, error) {
-	buf := new(bytes.Buffer)
+	body := new(bytes.Buffer)
 
 	if payload != nil {
-		body := new(bytes.Buffer)
 		body.WriteString(xml.Header)
 		err := xml.NewEncoder(body).Encode(payload)
 		if err != nil {
@@ -160,7 +154,7 @@ func newXMLRequest(ctx context.Context, method string, endpoint *url.URL, payloa
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), buf)
+	req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), body)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create request: %w", err)
 	}

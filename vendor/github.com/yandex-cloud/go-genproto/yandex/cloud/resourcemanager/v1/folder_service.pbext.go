@@ -96,6 +96,14 @@ func (m *DeleteFolderMetadata) SetDeleteAfter(v *timestamppb.Timestamp) {
 	m.DeleteAfter = v
 }
 
+func (m *DeleteFolderMetadata) SetCancelledBy(v string) {
+	m.CancelledBy = v
+}
+
+func (m *DeleteFolderMetadata) SetCancelledAt(v *timestamppb.Timestamp) {
+	m.CancelledAt = v
+}
+
 func (m *ListFolderOperationsRequest) SetFolderId(v string) {
 	m.FolderId = v
 }

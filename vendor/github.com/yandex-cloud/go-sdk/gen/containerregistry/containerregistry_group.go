@@ -42,3 +42,8 @@ func (c *ContainerRegistry) LifecyclePolicy() *LifecyclePolicyServiceClient {
 func (c *ContainerRegistry) Scanner() *ScannerServiceClient {
 	return &ScannerServiceClient{getConn: c.getConn}
 }
+
+// ScanPolicy gets ScanPolicyService client
+func (c *ContainerRegistry) ScanPolicy() *ScanPolicyServiceClient {
+	return &ScanPolicyServiceClient{getConn: c.getConn}
+}

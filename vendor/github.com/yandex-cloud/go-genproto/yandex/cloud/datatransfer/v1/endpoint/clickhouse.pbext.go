@@ -36,20 +36,16 @@ func (m *ClickhouseConnectionOptions) SetAddress(v ClickhouseConnectionOptions_A
 	m.Address = v
 }
 
-func (m *ClickhouseConnectionOptions) SetMdbClusterId(v string) {
-	m.Address = &ClickhouseConnectionOptions_MdbClusterId{
-		MdbClusterId: v,
-	}
-}
-
 func (m *ClickhouseConnectionOptions) SetOnPremise(v *OnPremiseClickhouse) {
 	m.Address = &ClickhouseConnectionOptions_OnPremise{
 		OnPremise: v,
 	}
 }
 
-func (m *ClickhouseConnectionOptions) SetDatabase(v string) {
-	m.Database = v
+func (m *ClickhouseConnectionOptions) SetMdbClusterId(v string) {
+	m.Address = &ClickhouseConnectionOptions_MdbClusterId{
+		MdbClusterId: v,
+	}
 }
 
 func (m *ClickhouseConnectionOptions) SetUser(v string) {
@@ -58,6 +54,10 @@ func (m *ClickhouseConnectionOptions) SetUser(v string) {
 
 func (m *ClickhouseConnectionOptions) SetPassword(v *Secret) {
 	m.Password = v
+}
+
+func (m *ClickhouseConnectionOptions) SetDatabase(v string) {
+	m.Database = v
 }
 
 type ClickhouseConnection_Connection = isClickhouseConnection_Connection
@@ -96,6 +96,12 @@ func (m *ClickhouseSharding) SetTransferId(v *emptypb.Empty) {
 	}
 }
 
+func (m *ClickhouseSharding) SetRoundRobin(v *emptypb.Empty) {
+	m.Sharding = &ClickhouseSharding_RoundRobin{
+		RoundRobin: v,
+	}
+}
+
 func (m *ClickhouseSharding_ColumnValueHash) SetColumnName(v string) {
 	m.ColumnName = v
 }
@@ -120,6 +126,14 @@ func (m *ClickhouseSource) SetConnection(v *ClickhouseConnection) {
 	m.Connection = v
 }
 
+func (m *ClickhouseSource) SetIncludeTables(v []string) {
+	m.IncludeTables = v
+}
+
+func (m *ClickhouseSource) SetExcludeTables(v []string) {
+	m.ExcludeTables = v
+}
+
 func (m *ClickhouseSource) SetSubnetId(v string) {
 	m.SubnetId = v
 }
@@ -128,12 +142,8 @@ func (m *ClickhouseSource) SetSecurityGroups(v []string) {
 	m.SecurityGroups = v
 }
 
-func (m *ClickhouseSource) SetIncludeTables(v []string) {
-	m.IncludeTables = v
-}
-
-func (m *ClickhouseSource) SetExcludeTables(v []string) {
-	m.ExcludeTables = v
+func (m *ClickhouseSource) SetClickhouseClusterName(v string) {
+	m.ClickhouseClusterName = v
 }
 
 func (m *ClickhouseTarget) SetConnection(v *ClickhouseConnection) {
@@ -144,22 +154,22 @@ func (m *ClickhouseTarget) SetSubnetId(v string) {
 	m.SubnetId = v
 }
 
-func (m *ClickhouseTarget) SetSecurityGroups(v []string) {
-	m.SecurityGroups = v
-}
-
-func (m *ClickhouseTarget) SetClickhouseClusterName(v string) {
-	m.ClickhouseClusterName = v
-}
-
 func (m *ClickhouseTarget) SetAltNames(v []*AltName) {
 	m.AltNames = v
+}
+
+func (m *ClickhouseTarget) SetCleanupPolicy(v ClickhouseCleanupPolicy) {
+	m.CleanupPolicy = v
 }
 
 func (m *ClickhouseTarget) SetSharding(v *ClickhouseSharding) {
 	m.Sharding = v
 }
 
-func (m *ClickhouseTarget) SetCleanupPolicy(v ClickhouseCleanupPolicy) {
-	m.CleanupPolicy = v
+func (m *ClickhouseTarget) SetClickhouseClusterName(v string) {
+	m.ClickhouseClusterName = v
+}
+
+func (m *ClickhouseTarget) SetSecurityGroups(v []string) {
+	m.SecurityGroups = v
 }

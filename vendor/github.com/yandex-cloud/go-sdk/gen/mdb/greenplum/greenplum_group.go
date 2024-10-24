@@ -27,3 +27,18 @@ func (g *Greenplum) Cluster() *ClusterServiceClient {
 func (g *Greenplum) ResourcePreset() *ResourcePresetServiceClient {
 	return &ResourcePresetServiceClient{getConn: g.getConn}
 }
+
+// PXFDatasource gets PXFDatasourceService client
+func (g *Greenplum) PXFDatasource() *PXFDatasourceServiceClient {
+	return &PXFDatasourceServiceClient{getConn: g.getConn}
+}
+
+// Backup gets BackupService client
+func (g *Greenplum) Backup() *BackupServiceClient {
+	return &BackupServiceClient{getConn: g.getConn}
+}
+
+// HBARule gets HBARuleService client
+func (g *Greenplum) HBARule() *HBARuleServiceClient {
+	return &HBARuleServiceClient{getConn: g.getConn}
+}

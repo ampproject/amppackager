@@ -116,6 +116,14 @@ func (m *Master) SetRegionalMaster(v *RegionalMaster) {
 	}
 }
 
+func (m *Master) SetLocations(v []*Location) {
+	m.Locations = v
+}
+
+func (m *Master) SetEtcdClusterSize(v int64) {
+	m.EtcdClusterSize = v
+}
+
 func (m *Master) SetVersion(v string) {
 	m.Version = v
 }
@@ -138,6 +146,10 @@ func (m *Master) SetMaintenancePolicy(v *MasterMaintenancePolicy) {
 
 func (m *Master) SetSecurityGroupIds(v []string) {
 	m.SecurityGroupIds = v
+}
+
+func (m *Master) SetMasterLogging(v *MasterLogging) {
+	m.MasterLogging = v
 }
 
 func (m *MasterAuth) SetClusterCaCertificate(v string) {
@@ -170,6 +182,14 @@ func (m *RegionalMaster) SetExternalV4Address(v string) {
 
 func (m *RegionalMaster) SetExternalV6Address(v string) {
 	m.ExternalV6Address = v
+}
+
+func (m *Location) SetZoneId(v string) {
+	m.ZoneId = v
+}
+
+func (m *Location) SetSubnetId(v string) {
+	m.SubnetId = v
 }
 
 func (m *MasterEndpoints) SetInternalV4Endpoint(v string) {
@@ -210,6 +230,44 @@ func (m *MasterMaintenancePolicy) SetAutoUpgrade(v bool) {
 
 func (m *MasterMaintenancePolicy) SetMaintenanceWindow(v *MaintenanceWindow) {
 	m.MaintenanceWindow = v
+}
+
+type MasterLogging_Destination = isMasterLogging_Destination
+
+func (m *MasterLogging) SetDestination(v MasterLogging_Destination) {
+	m.Destination = v
+}
+
+func (m *MasterLogging) SetEnabled(v bool) {
+	m.Enabled = v
+}
+
+func (m *MasterLogging) SetLogGroupId(v string) {
+	m.Destination = &MasterLogging_LogGroupId{
+		LogGroupId: v,
+	}
+}
+
+func (m *MasterLogging) SetFolderId(v string) {
+	m.Destination = &MasterLogging_FolderId{
+		FolderId: v,
+	}
+}
+
+func (m *MasterLogging) SetAuditEnabled(v bool) {
+	m.AuditEnabled = v
+}
+
+func (m *MasterLogging) SetClusterAutoscalerEnabled(v bool) {
+	m.ClusterAutoscalerEnabled = v
+}
+
+func (m *MasterLogging) SetKubeApiserverEnabled(v bool) {
+	m.KubeApiserverEnabled = v
+}
+
+func (m *MasterLogging) SetEventsEnabled(v bool) {
+	m.EventsEnabled = v
 }
 
 func (m *NetworkPolicy) SetProvider(v NetworkPolicy_Provider) {

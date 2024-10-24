@@ -3,6 +3,7 @@
 package containers
 
 import (
+	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -91,6 +92,22 @@ func (m *Revision) SetProvisionPolicy(v *ProvisionPolicy) {
 	m.ProvisionPolicy = v
 }
 
+func (m *Revision) SetScalingPolicy(v *ScalingPolicy) {
+	m.ScalingPolicy = v
+}
+
+func (m *Revision) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
+}
+
+func (m *Revision) SetStorageMounts(v []*StorageMount) {
+	m.StorageMounts = v
+}
+
+func (m *Revision) SetMounts(v []*Mount) {
+	m.Mounts = v
+}
+
 func (m *Image) SetImageUrl(v string) {
 	m.ImageUrl = v
 }
@@ -169,4 +186,96 @@ func (m *Connectivity) SetNetworkId(v string) {
 
 func (m *Connectivity) SetSubnetIds(v []string) {
 	m.SubnetIds = v
+}
+
+type LogOptions_Destination = isLogOptions_Destination
+
+func (m *LogOptions) SetDestination(v LogOptions_Destination) {
+	m.Destination = v
+}
+
+func (m *LogOptions) SetDisabled(v bool) {
+	m.Disabled = v
+}
+
+func (m *LogOptions) SetLogGroupId(v string) {
+	m.Destination = &LogOptions_LogGroupId{
+		LogGroupId: v,
+	}
+}
+
+func (m *LogOptions) SetFolderId(v string) {
+	m.Destination = &LogOptions_FolderId{
+		FolderId: v,
+	}
+}
+
+func (m *LogOptions) SetMinLevel(v v1.LogLevel_Level) {
+	m.MinLevel = v
+}
+
+func (m *ScalingPolicy) SetZoneInstancesLimit(v int64) {
+	m.ZoneInstancesLimit = v
+}
+
+func (m *ScalingPolicy) SetZoneRequestsLimit(v int64) {
+	m.ZoneRequestsLimit = v
+}
+
+func (m *StorageMount) SetBucketId(v string) {
+	m.BucketId = v
+}
+
+func (m *StorageMount) SetPrefix(v string) {
+	m.Prefix = v
+}
+
+func (m *StorageMount) SetReadOnly(v bool) {
+	m.ReadOnly = v
+}
+
+func (m *StorageMount) SetMountPointPath(v string) {
+	m.MountPointPath = v
+}
+
+type Mount_Target = isMount_Target
+
+func (m *Mount) SetTarget(v Mount_Target) {
+	m.Target = v
+}
+
+func (m *Mount) SetMountPointPath(v string) {
+	m.MountPointPath = v
+}
+
+func (m *Mount) SetMode(v Mount_Mode) {
+	m.Mode = v
+}
+
+func (m *Mount) SetObjectStorage(v *Mount_ObjectStorage) {
+	m.Target = &Mount_ObjectStorage_{
+		ObjectStorage: v,
+	}
+}
+
+func (m *Mount) SetEphemeralDiskSpec(v *Mount_DiskSpec) {
+	m.Target = &Mount_EphemeralDiskSpec{
+		EphemeralDiskSpec: v,
+	}
+}
+
+func (m *Mount_ObjectStorage) SetBucketId(v string) {
+	m.BucketId = v
+}
+
+func (m *Mount_ObjectStorage) SetPrefix(v string) {
+	m.Prefix = v
+}
+
+func (m *Mount_DiskSpec) SetSize(v int64) {
+	m.Size = v
+}
+
+func (m *Mount_DiskSpec) SetBlockSize(v int64) {
+	m.BlockSize = v
 }

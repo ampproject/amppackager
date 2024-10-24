@@ -42,6 +42,10 @@ func (m *SubjectClaims) SetPhoneNumber(v string) {
 	m.PhoneNumber = v
 }
 
+func (m *SubjectClaims) SetSubType(v SubjectType) {
+	m.SubType = v
+}
+
 func (m *SubjectClaims) SetFederation(v *Federation) {
 	m.Federation = v
 }

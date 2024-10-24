@@ -4,6 +4,7 @@ package apigateway
 
 import (
 	operation "github.com/yandex-cloud/go-genproto/yandex/cloud/operation"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
@@ -67,6 +68,22 @@ func (m *CreateApiGatewayRequest) SetConnectivity(v *Connectivity) {
 	m.Connectivity = v
 }
 
+func (m *CreateApiGatewayRequest) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
+}
+
+func (m *CreateApiGatewayRequest) SetVariables(v map[string]*VariableInput) {
+	m.Variables = v
+}
+
+func (m *CreateApiGatewayRequest) SetCanary(v *Canary) {
+	m.Canary = v
+}
+
+func (m *CreateApiGatewayRequest) SetExecutionTimeout(v *durationpb.Duration) {
+	m.ExecutionTimeout = v
+}
+
 type UpdateApiGatewayRequest_Spec = isUpdateApiGatewayRequest_Spec
 
 func (m *UpdateApiGatewayRequest) SetSpec(v UpdateApiGatewayRequest_Spec) {
@@ -103,16 +120,28 @@ func (m *UpdateApiGatewayRequest) SetConnectivity(v *Connectivity) {
 	m.Connectivity = v
 }
 
+func (m *UpdateApiGatewayRequest) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
+}
+
+func (m *UpdateApiGatewayRequest) SetVariables(v map[string]*VariableInput) {
+	m.Variables = v
+}
+
+func (m *UpdateApiGatewayRequest) SetCanary(v *Canary) {
+	m.Canary = v
+}
+
+func (m *UpdateApiGatewayRequest) SetExecutionTimeout(v *durationpb.Duration) {
+	m.ExecutionTimeout = v
+}
+
 func (m *DeleteApiGatewayRequest) SetApiGatewayId(v string) {
 	m.ApiGatewayId = v
 }
 
 func (m *AddDomainRequest) SetApiGatewayId(v string) {
 	m.ApiGatewayId = v
-}
-
-func (m *AddDomainRequest) SetDomainId(v string) {
-	m.DomainId = v
 }
 
 func (m *AddDomainRequest) SetDomainName(v string) {
@@ -153,6 +182,10 @@ func (m *AddDomainMetadata) SetDomainId(v string) {
 
 func (m *AddDomainMetadata) SetDomainName(v string) {
 	m.DomainName = v
+}
+
+func (m *AddDomainMetadata) SetCertificateId(v string) {
+	m.CertificateId = v
 }
 
 func (m *RemoveDomainMetadata) SetApiGatewayId(v string) {

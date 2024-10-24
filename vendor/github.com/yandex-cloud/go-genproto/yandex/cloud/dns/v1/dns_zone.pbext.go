@@ -42,6 +42,10 @@ func (m *DnsZone) SetPublicVisibility(v *PublicVisibility) {
 	m.PublicVisibility = v
 }
 
+func (m *DnsZone) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
+}
+
 func (m *RecordSet) SetName(v string) {
 	m.Name = v
 }

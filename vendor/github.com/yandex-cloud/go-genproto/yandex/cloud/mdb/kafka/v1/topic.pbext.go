@@ -28,18 +28,6 @@ func (m *Topic) SetReplicationFactor(v *wrapperspb.Int64Value) {
 	m.ReplicationFactor = v
 }
 
-func (m *Topic) SetTopicConfig_2_1(v *TopicConfig2_1) {
-	m.TopicConfig = &Topic_TopicConfig_2_1{
-		TopicConfig_2_1: v,
-	}
-}
-
-func (m *Topic) SetTopicConfig_2_6(v *TopicConfig2_6) {
-	m.TopicConfig = &Topic_TopicConfig_2_6{
-		TopicConfig_2_6: v,
-	}
-}
-
 func (m *Topic) SetTopicConfig_2_8(v *TopicConfig2_8) {
 	m.TopicConfig = &Topic_TopicConfig_2_8{
 		TopicConfig_2_8: v,
@@ -70,18 +58,6 @@ func (m *TopicSpec) SetReplicationFactor(v *wrapperspb.Int64Value) {
 	m.ReplicationFactor = v
 }
 
-func (m *TopicSpec) SetTopicConfig_2_1(v *TopicConfig2_1) {
-	m.TopicConfig = &TopicSpec_TopicConfig_2_1{
-		TopicConfig_2_1: v,
-	}
-}
-
-func (m *TopicSpec) SetTopicConfig_2_6(v *TopicConfig2_6) {
-	m.TopicConfig = &TopicSpec_TopicConfig_2_6{
-		TopicConfig_2_6: v,
-	}
-}
-
 func (m *TopicSpec) SetTopicConfig_2_8(v *TopicConfig2_8) {
 	m.TopicConfig = &TopicSpec_TopicConfig_2_8{
 		TopicConfig_2_8: v,
@@ -92,110 +68,6 @@ func (m *TopicSpec) SetTopicConfig_3(v *TopicConfig3) {
 	m.TopicConfig = &TopicSpec_TopicConfig_3{
 		TopicConfig_3: v,
 	}
-}
-
-func (m *TopicConfig2_1) SetCleanupPolicy(v TopicConfig2_1_CleanupPolicy) {
-	m.CleanupPolicy = v
-}
-
-func (m *TopicConfig2_1) SetCompressionType(v CompressionType) {
-	m.CompressionType = v
-}
-
-func (m *TopicConfig2_1) SetDeleteRetentionMs(v *wrapperspb.Int64Value) {
-	m.DeleteRetentionMs = v
-}
-
-func (m *TopicConfig2_1) SetFileDeleteDelayMs(v *wrapperspb.Int64Value) {
-	m.FileDeleteDelayMs = v
-}
-
-func (m *TopicConfig2_1) SetFlushMessages(v *wrapperspb.Int64Value) {
-	m.FlushMessages = v
-}
-
-func (m *TopicConfig2_1) SetFlushMs(v *wrapperspb.Int64Value) {
-	m.FlushMs = v
-}
-
-func (m *TopicConfig2_1) SetMinCompactionLagMs(v *wrapperspb.Int64Value) {
-	m.MinCompactionLagMs = v
-}
-
-func (m *TopicConfig2_1) SetRetentionBytes(v *wrapperspb.Int64Value) {
-	m.RetentionBytes = v
-}
-
-func (m *TopicConfig2_1) SetRetentionMs(v *wrapperspb.Int64Value) {
-	m.RetentionMs = v
-}
-
-func (m *TopicConfig2_1) SetMaxMessageBytes(v *wrapperspb.Int64Value) {
-	m.MaxMessageBytes = v
-}
-
-func (m *TopicConfig2_1) SetMinInsyncReplicas(v *wrapperspb.Int64Value) {
-	m.MinInsyncReplicas = v
-}
-
-func (m *TopicConfig2_1) SetSegmentBytes(v *wrapperspb.Int64Value) {
-	m.SegmentBytes = v
-}
-
-func (m *TopicConfig2_1) SetPreallocate(v *wrapperspb.BoolValue) {
-	m.Preallocate = v
-}
-
-func (m *TopicConfig2_6) SetCleanupPolicy(v TopicConfig2_6_CleanupPolicy) {
-	m.CleanupPolicy = v
-}
-
-func (m *TopicConfig2_6) SetCompressionType(v CompressionType) {
-	m.CompressionType = v
-}
-
-func (m *TopicConfig2_6) SetDeleteRetentionMs(v *wrapperspb.Int64Value) {
-	m.DeleteRetentionMs = v
-}
-
-func (m *TopicConfig2_6) SetFileDeleteDelayMs(v *wrapperspb.Int64Value) {
-	m.FileDeleteDelayMs = v
-}
-
-func (m *TopicConfig2_6) SetFlushMessages(v *wrapperspb.Int64Value) {
-	m.FlushMessages = v
-}
-
-func (m *TopicConfig2_6) SetFlushMs(v *wrapperspb.Int64Value) {
-	m.FlushMs = v
-}
-
-func (m *TopicConfig2_6) SetMinCompactionLagMs(v *wrapperspb.Int64Value) {
-	m.MinCompactionLagMs = v
-}
-
-func (m *TopicConfig2_6) SetRetentionBytes(v *wrapperspb.Int64Value) {
-	m.RetentionBytes = v
-}
-
-func (m *TopicConfig2_6) SetRetentionMs(v *wrapperspb.Int64Value) {
-	m.RetentionMs = v
-}
-
-func (m *TopicConfig2_6) SetMaxMessageBytes(v *wrapperspb.Int64Value) {
-	m.MaxMessageBytes = v
-}
-
-func (m *TopicConfig2_6) SetMinInsyncReplicas(v *wrapperspb.Int64Value) {
-	m.MinInsyncReplicas = v
-}
-
-func (m *TopicConfig2_6) SetSegmentBytes(v *wrapperspb.Int64Value) {
-	m.SegmentBytes = v
-}
-
-func (m *TopicConfig2_6) SetPreallocate(v *wrapperspb.BoolValue) {
-	m.Preallocate = v
 }
 
 func (m *TopicConfig2_8) SetCleanupPolicy(v TopicConfig2_8_CleanupPolicy) {

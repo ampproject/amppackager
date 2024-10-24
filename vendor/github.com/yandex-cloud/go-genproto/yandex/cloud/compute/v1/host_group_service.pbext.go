@@ -5,6 +5,7 @@ package compute
 import (
 	operation "github.com/yandex-cloud/go-genproto/yandex/cloud/operation"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *GetHostGroupRequest) SetHostGroupId(v string) {
@@ -25,6 +26,10 @@ func (m *ListHostGroupsRequest) SetPageToken(v string) {
 
 func (m *ListHostGroupsRequest) SetFilter(v string) {
 	m.Filter = v
+}
+
+func (m *ListHostGroupsRequest) SetOrderBy(v string) {
+	m.OrderBy = v
 }
 
 func (m *ListHostGroupsResponse) SetHostGroups(v []*HostGroup) {
@@ -153,6 +158,30 @@ func (m *ListHostGroupHostsResponse) SetHosts(v []*Host) {
 
 func (m *ListHostGroupHostsResponse) SetNextPageToken(v string) {
 	m.NextPageToken = v
+}
+
+func (m *UpdateHostGroupHostRequest) SetHostGroupId(v string) {
+	m.HostGroupId = v
+}
+
+func (m *UpdateHostGroupHostRequest) SetHostId(v string) {
+	m.HostId = v
+}
+
+func (m *UpdateHostGroupHostRequest) SetUpdateMask(v *fieldmaskpb.FieldMask) {
+	m.UpdateMask = v
+}
+
+func (m *UpdateHostGroupHostRequest) SetDeadlineAt(v *timestamppb.Timestamp) {
+	m.DeadlineAt = v
+}
+
+func (m *UpdateHostGroupHostMetadata) SetHostGroupId(v string) {
+	m.HostGroupId = v
+}
+
+func (m *UpdateHostGroupHostMetadata) SetHostId(v string) {
+	m.HostId = v
 }
 
 func (m *ListHostGroupOperationsRequest) SetHostGroupId(v string) {

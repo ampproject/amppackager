@@ -18,6 +18,10 @@ func (m *MongodConfig4_4) SetNet(v *MongodConfig4_4_Network) {
 	m.Net = v
 }
 
+func (m *MongodConfig4_4) SetSetParameter(v *MongodConfig4_4_SetParameter) {
+	m.SetParameter = v
+}
+
 func (m *MongodConfig4_4_Storage) SetWiredTiger(v *MongodConfig4_4_Storage_WiredTiger) {
 	m.WiredTiger = v
 }
@@ -34,12 +38,20 @@ func (m *MongodConfig4_4_Storage_WiredTiger) SetCollectionConfig(v *MongodConfig
 	m.CollectionConfig = v
 }
 
+func (m *MongodConfig4_4_Storage_WiredTiger) SetIndexConfig(v *MongodConfig4_4_Storage_WiredTiger_IndexConfig) {
+	m.IndexConfig = v
+}
+
 func (m *MongodConfig4_4_Storage_WiredTiger_EngineConfig) SetCacheSizeGb(v *wrapperspb.DoubleValue) {
 	m.CacheSizeGb = v
 }
 
 func (m *MongodConfig4_4_Storage_WiredTiger_CollectionConfig) SetBlockCompressor(v MongodConfig4_4_Storage_WiredTiger_CollectionConfig_Compressor) {
 	m.BlockCompressor = v
+}
+
+func (m *MongodConfig4_4_Storage_WiredTiger_IndexConfig) SetPrefixCompression(v *wrapperspb.BoolValue) {
+	m.PrefixCompression = v
 }
 
 func (m *MongodConfig4_4_Storage_Journal) SetCommitInterval(v *wrapperspb.Int64Value) {
@@ -54,8 +66,24 @@ func (m *MongodConfig4_4_OperationProfiling) SetSlowOpThreshold(v *wrapperspb.In
 	m.SlowOpThreshold = v
 }
 
+func (m *MongodConfig4_4_OperationProfiling) SetSlowOpSampleRate(v *wrapperspb.DoubleValue) {
+	m.SlowOpSampleRate = v
+}
+
 func (m *MongodConfig4_4_Network) SetMaxIncomingConnections(v *wrapperspb.Int64Value) {
 	m.MaxIncomingConnections = v
+}
+
+func (m *MongodConfig4_4_Network) SetCompression(v *MongodConfig4_4_Network_Compression) {
+	m.Compression = v
+}
+
+func (m *MongodConfig4_4_Network_Compression) SetCompressors(v []MongodConfig4_4_Network_Compression_Compressor) {
+	m.Compressors = v
+}
+
+func (m *MongodConfig4_4_SetParameter) SetEnableFlowControl(v *wrapperspb.BoolValue) {
+	m.EnableFlowControl = v
 }
 
 func (m *MongoCfgConfig4_4) SetStorage(v *MongoCfgConfig4_4_Storage) {
@@ -100,6 +128,14 @@ func (m *MongosConfig4_4) SetNet(v *MongosConfig4_4_Network) {
 
 func (m *MongosConfig4_4_Network) SetMaxIncomingConnections(v *wrapperspb.Int64Value) {
 	m.MaxIncomingConnections = v
+}
+
+func (m *MongosConfig4_4_Network) SetCompression(v *MongosConfig4_4_Network_Compression) {
+	m.Compression = v
+}
+
+func (m *MongosConfig4_4_Network_Compression) SetCompressors(v []MongosConfig4_4_Network_Compression_Compressor) {
+	m.Compressors = v
 }
 
 func (m *MongodConfigSet4_4) SetEffectiveConfig(v *MongodConfig4_4) {

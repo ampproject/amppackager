@@ -1,53 +1,17 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
-
-// no documentation yet
-type Auxiliary_Marketing_Event struct {
-	Entity
-
-	// no documentation yet
-	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
-
-	// no documentation yet
-	EnabledFlag *int `json:"enabledFlag,omitempty" xmlrpc:"enabledFlag,omitempty"`
-
-	// no documentation yet
-	EndDate *Time `json:"endDate,omitempty" xmlrpc:"endDate,omitempty"`
-
-	// no documentation yet
-	Location *string `json:"location,omitempty" xmlrpc:"location,omitempty"`
-
-	// no documentation yet
-	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
-
-	// no documentation yet
-	StartDate *Time `json:"startDate,omitempty" xmlrpc:"startDate,omitempty"`
-
-	// no documentation yet
-	Title *string `json:"title,omitempty" xmlrpc:"title,omitempty"`
-
-	// no documentation yet
-	Url *string `json:"url,omitempty" xmlrpc:"url,omitempty"`
-}
 
 // no documentation yet
 type Auxiliary_Network_Status struct {

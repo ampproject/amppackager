@@ -64,6 +64,12 @@ func (m *Trigger_Rule) SetIotMessage(v *Trigger_IoTMessage) {
 	}
 }
 
+func (m *Trigger_Rule) SetIotBrokerMessage(v *Trigger_IoTBrokerMessage) {
+	m.Rule = &Trigger_Rule_IotBrokerMessage{
+		IotBrokerMessage: v,
+	}
+}
+
 func (m *Trigger_Rule) SetObjectStorage(v *Trigger_ObjectStorage) {
 	m.Rule = &Trigger_Rule_ObjectStorage{
 		ObjectStorage: v,
@@ -116,6 +122,10 @@ func (m *Trigger_Timer) SetCronExpression(v string) {
 	m.CronExpression = v
 }
 
+func (m *Trigger_Timer) SetPayload(v string) {
+	m.Payload = v
+}
+
 func (m *Trigger_Timer) SetInvokeFunction(v *InvokeFunctionOnce) {
 	m.Action = &Trigger_Timer_InvokeFunction{
 		InvokeFunction: v,
@@ -131,6 +141,12 @@ func (m *Trigger_Timer) SetInvokeFunctionWithRetry(v *InvokeFunctionWithRetry) {
 func (m *Trigger_Timer) SetInvokeContainerWithRetry(v *InvokeContainerWithRetry) {
 	m.Action = &Trigger_Timer_InvokeContainerWithRetry{
 		InvokeContainerWithRetry: v,
+	}
+}
+
+func (m *Trigger_Timer) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &Trigger_Timer_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
 	}
 }
 
@@ -168,6 +184,12 @@ func (m *Trigger_MessageQueue) SetInvokeContainer(v *InvokeContainerOnce) {
 	}
 }
 
+func (m *Trigger_MessageQueue) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &Trigger_MessageQueue_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
+	}
+}
+
 type Trigger_IoTMessage_Action = isTrigger_IoTMessage_Action
 
 func (m *Trigger_IoTMessage) SetAction(v Trigger_IoTMessage_Action) {
@@ -186,6 +208,10 @@ func (m *Trigger_IoTMessage) SetMqttTopic(v string) {
 	m.MqttTopic = v
 }
 
+func (m *Trigger_IoTMessage) SetBatchSettings(v *BatchSettings) {
+	m.BatchSettings = v
+}
+
 func (m *Trigger_IoTMessage) SetInvokeFunction(v *InvokeFunctionWithRetry) {
 	m.Action = &Trigger_IoTMessage_InvokeFunction{
 		InvokeFunction: v,
@@ -195,6 +221,48 @@ func (m *Trigger_IoTMessage) SetInvokeFunction(v *InvokeFunctionWithRetry) {
 func (m *Trigger_IoTMessage) SetInvokeContainer(v *InvokeContainerWithRetry) {
 	m.Action = &Trigger_IoTMessage_InvokeContainer{
 		InvokeContainer: v,
+	}
+}
+
+func (m *Trigger_IoTMessage) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &Trigger_IoTMessage_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
+	}
+}
+
+type Trigger_IoTBrokerMessage_Action = isTrigger_IoTBrokerMessage_Action
+
+func (m *Trigger_IoTBrokerMessage) SetAction(v Trigger_IoTBrokerMessage_Action) {
+	m.Action = v
+}
+
+func (m *Trigger_IoTBrokerMessage) SetBrokerId(v string) {
+	m.BrokerId = v
+}
+
+func (m *Trigger_IoTBrokerMessage) SetMqttTopic(v string) {
+	m.MqttTopic = v
+}
+
+func (m *Trigger_IoTBrokerMessage) SetBatchSettings(v *BatchSettings) {
+	m.BatchSettings = v
+}
+
+func (m *Trigger_IoTBrokerMessage) SetInvokeFunction(v *InvokeFunctionWithRetry) {
+	m.Action = &Trigger_IoTBrokerMessage_InvokeFunction{
+		InvokeFunction: v,
+	}
+}
+
+func (m *Trigger_IoTBrokerMessage) SetInvokeContainer(v *InvokeContainerWithRetry) {
+	m.Action = &Trigger_IoTBrokerMessage_InvokeContainer{
+		InvokeContainer: v,
+	}
+}
+
+func (m *Trigger_IoTBrokerMessage) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &Trigger_IoTBrokerMessage_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
 	}
 }
 
@@ -220,6 +288,10 @@ func (m *Trigger_ObjectStorage) SetSuffix(v string) {
 	m.Suffix = v
 }
 
+func (m *Trigger_ObjectStorage) SetBatchSettings(v *BatchSettings) {
+	m.BatchSettings = v
+}
+
 func (m *Trigger_ObjectStorage) SetInvokeFunction(v *InvokeFunctionWithRetry) {
 	m.Action = &Trigger_ObjectStorage_InvokeFunction{
 		InvokeFunction: v,
@@ -229,6 +301,12 @@ func (m *Trigger_ObjectStorage) SetInvokeFunction(v *InvokeFunctionWithRetry) {
 func (m *Trigger_ObjectStorage) SetInvokeContainer(v *InvokeContainerWithRetry) {
 	m.Action = &Trigger_ObjectStorage_InvokeContainer{
 		InvokeContainer: v,
+	}
+}
+
+func (m *Trigger_ObjectStorage) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &Trigger_ObjectStorage_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
 	}
 }
 
@@ -254,6 +332,10 @@ func (m *Trigger_ContainerRegistry) SetTag(v string) {
 	m.Tag = v
 }
 
+func (m *Trigger_ContainerRegistry) SetBatchSettings(v *BatchSettings) {
+	m.BatchSettings = v
+}
+
 func (m *Trigger_ContainerRegistry) SetInvokeFunction(v *InvokeFunctionWithRetry) {
 	m.Action = &Trigger_ContainerRegistry_InvokeFunction{
 		InvokeFunction: v,
@@ -263,6 +345,12 @@ func (m *Trigger_ContainerRegistry) SetInvokeFunction(v *InvokeFunctionWithRetry
 func (m *Trigger_ContainerRegistry) SetInvokeContainer(v *InvokeContainerWithRetry) {
 	m.Action = &Trigger_ContainerRegistry_InvokeContainer{
 		InvokeContainer: v,
+	}
+}
+
+func (m *Trigger_ContainerRegistry) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &Trigger_ContainerRegistry_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
 	}
 }
 
@@ -310,6 +398,10 @@ func (m *Trigger_Logging) SetResourceId(v []string) {
 	m.ResourceId = v
 }
 
+func (m *Trigger_Logging) SetStreamName(v []string) {
+	m.StreamName = v
+}
+
 func (m *Trigger_Logging) SetLevels(v []v1.LogLevel_Level) {
 	m.Levels = v
 }
@@ -327,6 +419,12 @@ func (m *Trigger_Logging) SetInvokeFunction(v *InvokeFunctionWithRetry) {
 func (m *Trigger_Logging) SetInvokeContainer(v *InvokeContainerWithRetry) {
 	m.Action = &Trigger_Logging_InvokeContainer{
 		InvokeContainer: v,
+	}
+}
+
+func (m *Trigger_Logging) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &Trigger_Logging_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
 	}
 }
 
@@ -392,6 +490,18 @@ func (m *InvokeContainerWithRetry) SetRetrySettings(v *RetrySettings) {
 
 func (m *InvokeContainerWithRetry) SetDeadLetterQueue(v *PutQueueMessage) {
 	m.DeadLetterQueue = v
+}
+
+func (m *GatewayWebsocketBroadcast) SetGatewayId(v string) {
+	m.GatewayId = v
+}
+
+func (m *GatewayWebsocketBroadcast) SetPath(v string) {
+	m.Path = v
+}
+
+func (m *GatewayWebsocketBroadcast) SetServiceAccountId(v string) {
+	m.ServiceAccountId = v
 }
 
 func (m *PutQueueMessage) SetQueueId(v string) {
@@ -460,6 +570,12 @@ func (m *BillingBudget) SetInvokeContainer(v *InvokeContainerWithRetry) {
 	}
 }
 
+func (m *BillingBudget) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &BillingBudget_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
+	}
+}
+
 func (m *DataStreamBatchSettings) SetSize(v int64) {
 	m.Size = v
 }
@@ -506,6 +622,20 @@ func (m *DataStream) SetInvokeContainer(v *InvokeContainerWithRetry) {
 	}
 }
 
+func (m *DataStream) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &DataStream_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
+	}
+}
+
+func (m *ObjectStorageBucketSettings) SetBucketId(v string) {
+	m.BucketId = v
+}
+
+func (m *ObjectStorageBucketSettings) SetServiceAccountId(v string) {
+	m.ServiceAccountId = v
+}
+
 type Mail_Action = isMail_Action
 
 func (m *Mail) SetAction(v Mail_Action) {
@@ -514,6 +644,14 @@ func (m *Mail) SetAction(v Mail_Action) {
 
 func (m *Mail) SetEmail(v string) {
 	m.Email = v
+}
+
+func (m *Mail) SetBatchSettings(v *BatchSettings) {
+	m.BatchSettings = v
+}
+
+func (m *Mail) SetAttachmentsBucket(v *ObjectStorageBucketSettings) {
+	m.AttachmentsBucket = v
 }
 
 func (m *Mail) SetInvokeFunction(v *InvokeFunctionWithRetry) {
@@ -525,5 +663,11 @@ func (m *Mail) SetInvokeFunction(v *InvokeFunctionWithRetry) {
 func (m *Mail) SetInvokeContainer(v *InvokeContainerWithRetry) {
 	m.Action = &Mail_InvokeContainer{
 		InvokeContainer: v,
+	}
+}
+
+func (m *Mail) SetGatewayWebsocketBroadcast(v *GatewayWebsocketBroadcast) {
+	m.Action = &Mail_GatewayWebsocketBroadcast{
+		GatewayWebsocketBroadcast: v,
 	}
 }

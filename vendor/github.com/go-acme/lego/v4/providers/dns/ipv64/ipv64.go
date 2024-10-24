@@ -24,7 +24,7 @@ const (
 	EnvPropagationTimeout = envNamespace + "PROPAGATION_TIMEOUT"
 	EnvPollingInterval    = envNamespace + "POLLING_INTERVAL"
 	EnvHTTPTimeout        = envNamespace + "HTTP_TIMEOUT"
-	EnvSequenceInterval   = envNamespace + "SEQUENCE_INTERVAL"
+	EnvSequenceInterval   = envNamespace + "SEQUENCE_INTERVAL" // Deprecated: unused, will be removed in v5.
 )
 
 // Config is used to configure the creation of the DNSProvider.
@@ -32,8 +32,8 @@ type Config struct {
 	APIKey             string
 	PropagationTimeout time.Duration
 	PollingInterval    time.Duration
-	SequenceInterval   time.Duration
 	HTTPClient         *http.Client
+	SequenceInterval   time.Duration // Deprecated: unused, will be removed in v5.
 }
 
 // NewDefaultConfig returns a default configuration for the DNSProvider.
@@ -41,7 +41,6 @@ func NewDefaultConfig() *Config {
 	return &Config{
 		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, dns01.DefaultPropagationTimeout),
 		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, dns01.DefaultPollingInterval),
-		SequenceInterval:   env.GetOrDefaultSecond(EnvSequenceInterval, dns01.DefaultPropagationTimeout),
 		HTTPClient: &http.Client{
 			Timeout: env.GetOrDefaultSecond(EnvHTTPTimeout, 30*time.Second),
 		},
@@ -78,7 +77,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("ipv64: credentials missing")
 	}
 
-	client := internal.NewClient(config.APIKey)
+	client := internal.NewClient(internal.OAuthStaticAccessToken(config.HTTPClient, config.APIKey))
 
 	if config.HTTPClient != nil {
 		client.HTTPClient = config.HTTPClient

@@ -7,10 +7,6 @@ type PermissionsMap struct {
 	Account    PermissionsAccount    `json:"account"`
 	Monitoring PermissionsMonitoring `json:"monitoring"`
 	Security   *PermissionsSecurity  `json:"security,omitempty"`
-
-	// DHCP and IPAM are only relevant for DDI and should not be provided in managed.
-	DHCP *PermissionsDHCP `json:"dhcp,omitempty"`
-	IPAM *PermissionsIPAM `json:"ipam,omitempty"`
 }
 
 // PermissionsDNS wraps a User's "permissions.dns" attribute
@@ -58,31 +54,9 @@ type PermissionsMonitoring struct {
 	ManageLists bool `json:"manage_lists"`
 	ManageJobs  bool `json:"manage_jobs"`
 	ViewJobs    bool `json:"view_jobs"`
-}
-
-// PermissionsDHCP wraps a User's "permissions.dhcp" attribute for DDI.
-type PermissionsDHCP struct {
-	ManageDHCP bool `json:"manage_dhcp"`
-	ViewDHCP   bool `json:"view_dhcp"`
-	// The fields below are only relevant in DDI v2.5+
-	TagsAllow *[]AuthTag `json:"tags_allow,omitempty"`
-	TagsDeny  *[]AuthTag `json:"tags_deny,omitempty"`
-}
-
-// PermissionsIPAM wraps a User's "permissions.ipam" attribute for DDI.
-type PermissionsIPAM struct {
-	ManageIPAM bool `json:"manage_ipam"`
-	ViewIPAM   bool `json:"view_ipam"`
-	// The fields below are only relevant in DDI v2.5+
-	TagsAllow *[]AuthTag `json:"tags_allow,omitempty"`
-	TagsDeny  *[]AuthTag `json:"tags_deny,omitempty"`
-}
-
-// AuthTag wraps the tags used in "tags_allow" and "tags_deny" in DDI and IPAM permissions in DDI.
-// Tag Names must start with prefix "auth:"
-type AuthTag struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	CreateJobs  bool `json:"create_jobs"`
+	UpdateJobs  bool `json:"update_jobs"`
+	DeleteJobs  bool `json:"delete_jobs"`
 }
 
 // PermissionsRecord wraps a User's "permissions.record" attribute

@@ -290,6 +290,70 @@ func (m *MysqlConfig5_7) SetBinlogTransactionDependencyTracking(v MysqlConfig5_7
 	m.BinlogTransactionDependencyTracking = v
 }
 
+func (m *MysqlConfig5_7) SetAutocommit(v *wrapperspb.BoolValue) {
+	m.Autocommit = v
+}
+
+func (m *MysqlConfig5_7) SetInnodbStatusOutput(v *wrapperspb.BoolValue) {
+	m.InnodbStatusOutput = v
+}
+
+func (m *MysqlConfig5_7) SetInnodbStrictMode(v *wrapperspb.BoolValue) {
+	m.InnodbStrictMode = v
+}
+
+func (m *MysqlConfig5_7) SetInnodbPrintLockWaitTimeoutInfo(v *wrapperspb.BoolValue) {
+	m.InnodbPrintLockWaitTimeoutInfo = v
+}
+
+func (m *MysqlConfig5_7) SetLogErrorVerbosity(v *wrapperspb.Int64Value) {
+	m.LogErrorVerbosity = v
+}
+
+func (m *MysqlConfig5_7) SetMaxDigestLength(v *wrapperspb.Int64Value) {
+	m.MaxDigestLength = v
+}
+
+func (m *MysqlConfig5_7) SetQueryCacheLimit(v *wrapperspb.Int64Value) {
+	m.QueryCacheLimit = v
+}
+
+func (m *MysqlConfig5_7) SetQueryCacheSize(v *wrapperspb.Int64Value) {
+	m.QueryCacheSize = v
+}
+
+func (m *MysqlConfig5_7) SetQueryCacheType(v *wrapperspb.Int64Value) {
+	m.QueryCacheType = v
+}
+
+func (m *MysqlConfig5_7) SetLockWaitTimeout(v *wrapperspb.Int64Value) {
+	m.LockWaitTimeout = v
+}
+
+func (m *MysqlConfig5_7) SetMaxPreparedStmtCount(v *wrapperspb.Int64Value) {
+	m.MaxPreparedStmtCount = v
+}
+
+func (m *MysqlConfig5_7) SetOptimizerSwitch(v string) {
+	m.OptimizerSwitch = v
+}
+
+func (m *MysqlConfig5_7) SetOptimizerSearchDepth(v *wrapperspb.Int64Value) {
+	m.OptimizerSearchDepth = v
+}
+
+func (m *MysqlConfig5_7) SetQueryResponseTimeStats(v *wrapperspb.BoolValue) {
+	m.QueryResponseTimeStats = v
+}
+
+func (m *MysqlConfig5_7) SetUserstat(v *wrapperspb.BoolValue) {
+	m.Userstat = v
+}
+
+func (m *MysqlConfig5_7) SetMaxExecutionTime(v *wrapperspb.Int64Value) {
+	m.MaxExecutionTime = v
+}
+
 func (m *MysqlConfigSet5_7) SetEffectiveConfig(v *MysqlConfig5_7) {
 	m.EffectiveConfig = v
 }

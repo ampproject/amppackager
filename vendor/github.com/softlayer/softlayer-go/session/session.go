@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 package session
 
@@ -46,6 +47,8 @@ const DefaultEndpoint = "https://api.softlayer.com/rest/v3.1"
 var retryableErrorCodes = []string{"SoftLayer_Exception_WebService_RateLimitExceeded"}
 
 // TransportHandler interface for the protocol-specific handling of API requests.
+//
+//counterfeiter:generate . TransportHandler
 type TransportHandler interface {
 	// DoRequest is the protocol-specific handler for making API requests.
 	//
@@ -84,8 +87,8 @@ const (
 	DefaultRetryWait = time.Second * 3
 )
 
-// Session stores the information required for communication with the SoftLayer
-// API
+// Session stores the information required for communication with the SoftLayer API
+
 type Session struct {
 	// UserName is the name of the SoftLayer API user
 	UserName string
@@ -137,6 +140,16 @@ type Session struct {
 	// userAgent is the user agent to send with each API request
 	// User shouldn't be able to change or set the base user agent
 	userAgent string
+}
+
+//counterfeiter:generate . SLSession
+type SLSession interface {
+	DoRequest(service string, method string, args []interface{}, options *sl.Options, pResult interface{}) error
+	SetTimeout(timeout time.Duration) *Session
+	SetRetries(retries int) *Session
+	SetRetryWait(retryWait time.Duration) *Session
+	AppendUserAgent(agent string)
+	ResetUserAgent()
 }
 
 func init() {
@@ -249,7 +262,11 @@ func (r *Session) DoRequest(service string, method string, args []interface{}, o
 		r.TransportHandler = getDefaultTransport(r.Endpoint)
 	}
 
-	return r.TransportHandler.DoRequest(r, service, method, args, options, pResult)
+	err := r.TransportHandler.DoRequest(r, service, method, args, options, pResult)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 // SetTimeout creates a copy of the session and sets the passed timeout into it
