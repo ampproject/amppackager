@@ -26,6 +26,26 @@ func (m *Secret) SetRaw(v string) {
 	}
 }
 
+func (m *ColSchema) SetName(v string) {
+	m.Name = v
+}
+
+func (m *ColSchema) SetType(v ColumnType) {
+	m.Type = v
+}
+
+func (m *ColSchema) SetKey(v bool) {
+	m.Key = v
+}
+
+func (m *ColSchema) SetRequired(v bool) {
+	m.Required = v
+}
+
+func (m *ColSchema) SetPath(v string) {
+	m.Path = v
+}
+
 type TLSMode_TlsMode = isTLSMode_TlsMode
 
 func (m *TLSMode) SetTlsMode(v TLSMode_TlsMode) {
@@ -57,5 +77,51 @@ func (m *ColumnValue) SetValue(v ColumnValue_Value) {
 func (m *ColumnValue) SetStringValue(v string) {
 	m.Value = &ColumnValue_StringValue{
 		StringValue: v,
+	}
+}
+
+func (m *DataTransformationOptions) SetCloudFunction(v string) {
+	m.CloudFunction = v
+}
+
+func (m *DataTransformationOptions) SetNumberOfRetries(v int64) {
+	m.NumberOfRetries = v
+}
+
+func (m *DataTransformationOptions) SetBufferSize(v string) {
+	m.BufferSize = v
+}
+
+func (m *DataTransformationOptions) SetBufferFlushInterval(v string) {
+	m.BufferFlushInterval = v
+}
+
+func (m *DataTransformationOptions) SetInvocationTimeout(v string) {
+	m.InvocationTimeout = v
+}
+
+func (m *DataTransformationOptions) SetServiceAccountId(v string) {
+	m.ServiceAccountId = v
+}
+
+func (m *FieldList) SetFields(v []*ColSchema) {
+	m.Fields = v
+}
+
+type DataSchema_Schema = isDataSchema_Schema
+
+func (m *DataSchema) SetSchema(v DataSchema_Schema) {
+	m.Schema = v
+}
+
+func (m *DataSchema) SetJsonFields(v string) {
+	m.Schema = &DataSchema_JsonFields{
+		JsonFields: v,
+	}
+}
+
+func (m *DataSchema) SetFields(v *FieldList) {
+	m.Schema = &DataSchema_Fields{
+		Fields: v,
 	}
 }

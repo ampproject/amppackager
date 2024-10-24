@@ -1,26 +1,19 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
 
-// Every piece of hardware and network connection owned by SoftLayer is tracked physically by location and stored in the SoftLayer_Location data type. SoftLayer locations exist in parent/child relationships, a convenient way to track equipment from it's city, datacenter, server room, rack, then slot. Network backbones are tied to datacenters only, not to a room, rack, or slot.
+// Every piece of hardware and network connection owned by SoftLayer is tracked physically by location and stored in the SoftLayer_Location data type. SoftLayer locations exist in parent/child relationships, a convenient way to track equipment from it's city, datacenter, server room, rack, then slot.
 type Location struct {
 	Entity
 
@@ -29,12 +22,6 @@ type Location struct {
 
 	// no documentation yet
 	ActivePresaleEvents []Sales_Presale_Event `json:"activePresaleEvents,omitempty" xmlrpc:"activePresaleEvents,omitempty"`
-
-	// A count of
-	BackboneDependentCount *uint `json:"backboneDependentCount,omitempty" xmlrpc:"backboneDependentCount,omitempty"`
-
-	// no documentation yet
-	BackboneDependents []Network_Backbone_Location_Dependent `json:"backboneDependents,omitempty" xmlrpc:"backboneDependents,omitempty"`
 
 	// A flag indicating whether or not the datacenter/location is BNPP compliant.
 	BnppCompliantFlag *bool `json:"bnppCompliantFlag,omitempty" xmlrpc:"bnppCompliantFlag,omitempty"`

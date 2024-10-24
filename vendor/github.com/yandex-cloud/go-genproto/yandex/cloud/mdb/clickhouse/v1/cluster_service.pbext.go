@@ -95,6 +95,10 @@ func (m *CreateClusterRequest) SetDeletionProtection(v bool) {
 	m.DeletionProtection = v
 }
 
+func (m *CreateClusterRequest) SetMaintenanceWindow(v *MaintenanceWindow) {
+	m.MaintenanceWindow = v
+}
+
 func (m *CreateClusterMetadata) SetClusterId(v string) {
 	m.ClusterId = v
 }
@@ -137,6 +141,10 @@ func (m *UpdateClusterRequest) SetSecurityGroupIds(v []string) {
 
 func (m *UpdateClusterRequest) SetDeletionProtection(v bool) {
 	m.DeletionProtection = v
+}
+
+func (m *UpdateClusterRequest) SetNetworkId(v string) {
+	m.NetworkId = v
 }
 
 func (m *UpdateClusterMetadata) SetClusterId(v string) {
@@ -199,6 +207,10 @@ func (m *AddClusterZookeeperRequest) SetHostSpecs(v []*HostSpec) {
 	m.HostSpecs = v
 }
 
+func (m *AddClusterZookeeperRequest) SetConvertTablesToReplicated(v *wrapperspb.BoolValue) {
+	m.ConvertTablesToReplicated = v
+}
+
 func (m *AddClusterZookeeperMetadata) SetClusterId(v string) {
 	m.ClusterId = v
 }
@@ -257,6 +269,10 @@ func (m *RestoreClusterRequest) SetServiceAccountId(v string) {
 
 func (m *RestoreClusterRequest) SetSecurityGroupIds(v []string) {
 	m.SecurityGroupIds = v
+}
+
+func (m *RestoreClusterRequest) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
 }
 
 func (m *RestoreClusterMetadata) SetClusterId(v string) {
@@ -491,6 +507,22 @@ func (m *DeleteClusterHostsMetadata) SetHostNames(v []string) {
 	m.HostNames = v
 }
 
+func (m *RestartClusterHostsRequest) SetClusterId(v string) {
+	m.ClusterId = v
+}
+
+func (m *RestartClusterHostsRequest) SetHostNames(v []string) {
+	m.HostNames = v
+}
+
+func (m *RestartClusterHostsMetadata) SetClusterId(v string) {
+	m.ClusterId = v
+}
+
+func (m *RestartClusterHostsMetadata) SetHostNames(v []string) {
+	m.HostNames = v
+}
+
 func (m *GetClusterShardRequest) SetClusterId(v string) {
 	m.ClusterId = v
 }
@@ -683,6 +715,26 @@ func (m *DeleteClusterShardGroupMetadata) SetShardGroupName(v string) {
 	m.ShardGroupName = v
 }
 
+func (m *ListClusterExternalDictionariesRequest) SetClusterId(v string) {
+	m.ClusterId = v
+}
+
+func (m *ListClusterExternalDictionariesRequest) SetPageSize(v int64) {
+	m.PageSize = v
+}
+
+func (m *ListClusterExternalDictionariesRequest) SetPageToken(v string) {
+	m.PageToken = v
+}
+
+func (m *ListClusterExternalDictionariesResponse) SetExternalDictionaries(v []*config.ClickhouseConfig_ExternalDictionary) {
+	m.ExternalDictionaries = v
+}
+
+func (m *ListClusterExternalDictionariesResponse) SetNextPageToken(v string) {
+	m.NextPageToken = v
+}
+
 func (m *CreateClusterExternalDictionaryRequest) SetClusterId(v string) {
 	m.ClusterId = v
 }
@@ -785,6 +837,10 @@ func (m *ConfigSpec) SetAdminPassword(v string) {
 
 func (m *ConfigSpec) SetEmbeddedKeeper(v *wrapperspb.BoolValue) {
 	m.EmbeddedKeeper = v
+}
+
+func (m *ConfigSpec) SetBackupRetainPeriodDays(v *wrapperspb.Int64Value) {
+	m.BackupRetainPeriodDays = v
 }
 
 func (m *ConfigSpec_Clickhouse) SetConfig(v *config.ClickhouseConfig) {

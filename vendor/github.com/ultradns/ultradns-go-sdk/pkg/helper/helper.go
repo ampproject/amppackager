@@ -23,8 +23,8 @@ func GetZoneFQDN(zoneName string) string {
 
 func GetOwnerFQDN(owner, zone string) string {
 	result := GetZoneFQDN(owner)
-	if !strings.Contains(GetZoneFQDN(owner), strings.ToLower(zone)) {
-		result = appendRootDot(owner) + GetZoneFQDN(zone)
+	if !strings.Contains(result, strings.ToLower(zone)) {
+		result = result + GetZoneFQDN(zone)
 	}
 
 	return strings.ToLower(result)
@@ -62,6 +62,14 @@ func GetRecordTypeFullString(key string) string {
 		"44":        "SSHFP (44)",
 		"TLSA":      "TLSA (52)",
 		"52":        "TLSA (52)",
+		"CDS":       "CDS (59)",
+		"59":        "CDS (59)",
+		"CDNSKEY":   "CDNSKEY (60)",
+		"60":        "CDNSKEY (60)",
+		"SVCB":      "SVCB (64)",
+		"64":        "SVCB (64)",
+		"HTTPS":     "HTTPS (65)",
+		"65":        "HTTPS (65)",
 		"SPF":       "SPF (99)",
 		"99":        "SPF (99)",
 		"CAA":       "CAA (257)",
@@ -90,6 +98,10 @@ func GetRecordTypeString(key string) string {
 		"DS (43)":           "DS",
 		"SSHFP (44)":        "SSHFP",
 		"TLSA (52)":         "TLSA",
+		"CDS (59)":          "CDS",
+		"CDNSKEY (60)":      "CDNSKEY",
+		"SVCB (64)":         "SVCB",
+		"HTTPS (65)":        "HTTPS",
 		"SPF (99)":          "SPF",
 		"CAA (257)":         "CAA",
 		"APEXALIAS (65282)": "APEXALIAS",
@@ -115,6 +127,10 @@ func GetRecordTypeNumber(key string) string {
 		"DS (43)":           "43",
 		"SSHFP (44)":        "44",
 		"TLSA (52)":         "52",
+		"CDS (59)":          "59",
+		"CDNSKEY (60)":      "60",
+		"SVCB (64)":         "64",
+		"HTTPS (65)":        "65",
 		"SPF (99)":          "99",
 		"CAA (257)":         "257",
 		"APEXALIAS (65282)": "65282",
@@ -125,17 +141,27 @@ func GetRecordTypeNumber(key string) string {
 
 func GetAccountName(id string) string {
 	geoAccount := strings.Split(id, ":")
+	if len(geoAccount) < 2 {
+		return id
+	}
 	return geoAccount[1]
 }
 
 func GetAccountNameFromURI(uri string) string {
 	geoAccount := strings.Split(uri, "/")
+	if len(geoAccount) < 2 {
+		return uri
+	}
 	return geoAccount[1]
 }
 
 func GetDirGroupURI(groupID, groupType string) string {
 	groupID = url.PathEscape(groupID)
 	groupData := strings.Split(groupID, ":")
+
+	if len(groupData) < 2 {
+		return fmt.Sprintf("accounts/%s/dirgroups/%s/%s", "", groupType, "")
+	}
 
 	return fmt.Sprintf("accounts/%s/dirgroups/%s/%s", groupData[1], groupType, groupData[0])
 }

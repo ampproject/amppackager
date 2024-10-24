@@ -58,6 +58,10 @@ func (m *CreateVirtualHostRequest) SetModifyResponseHeaders(v []*HeaderModificat
 	m.ModifyResponseHeaders = v
 }
 
+func (m *CreateVirtualHostRequest) SetRouteOptions(v *RouteOptions) {
+	m.RouteOptions = v
+}
+
 func (m *CreateVirtualHostMetadata) SetHttpRouterId(v string) {
 	m.HttpRouterId = v
 }
@@ -92,6 +96,10 @@ func (m *UpdateVirtualHostRequest) SetModifyRequestHeaders(v []*HeaderModificati
 
 func (m *UpdateVirtualHostRequest) SetModifyResponseHeaders(v []*HeaderModification) {
 	m.ModifyResponseHeaders = v
+}
+
+func (m *UpdateVirtualHostRequest) SetRouteOptions(v *RouteOptions) {
+	m.RouteOptions = v
 }
 
 func (m *UpdateVirtualHostMetadata) SetHttpRouterId(v string) {
@@ -174,6 +182,10 @@ func (m *UpdateRouteRequest) SetGrpc(v *GrpcRoute) {
 	m.Route = &UpdateRouteRequest_Grpc{
 		Grpc: v,
 	}
+}
+
+func (m *UpdateRouteRequest) SetRouteOptions(v *RouteOptions) {
+	m.RouteOptions = v
 }
 
 func (m *UpdateRouteMetadata) SetHttpRouterId(v string) {

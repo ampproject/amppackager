@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // SoftLayer_Software_AccountLicense is a class that represents software licenses that are tied only to a customer's account and not to any particular hardware, IP address, etc.
 type Software_AccountLicense struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSoftwareAccountLicenseService returns an instance of the Software_AccountLicense SoftLayer service
-func GetSoftwareAccountLicenseService(sess *session.Session) Software_AccountLicense {
+func GetSoftwareAccountLicenseService(sess session.SLSession) Software_AccountLicense {
 	return Software_AccountLicense{Session: sess}
 }
 
@@ -105,12 +98,12 @@ func (r Software_AccountLicense) GetSoftwareDescription() (resp datatypes.Softwa
 //
 // <ul> <li>SoftLayer_Software_Component is the installation of a specific piece of software onto a specific piece of hardware in accordance to a software license. <ul> <li>SoftLayer_Software_License dictates when and how a specific piece of software may be installed onto a piece of hardware. <ul> <li>SoftLayer_Software_Description describes a specific piece of software which can be installed onto hardware in accordance with it's license agreement. </li></ul></li></ul></li></ul>
 type Software_Component struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSoftwareComponentService returns an instance of the Software_Component SoftLayer service
-func GetSoftwareComponentService(sess *session.Session) Software_Component {
+func GetSoftwareComponentService(sess session.SLSession) Software_Component {
 	return Software_Component{Session: sess}
 }
 
@@ -213,12 +206,12 @@ func (r Software_Component) GetVirtualGuest() (resp datatypes.Virtual_Guest, err
 
 // This object specifies a specific type of Software Component:  An Anti-virus/spyware instance. Anti-virus/spyware installations have specific properties and methods such as SoftLayer_Software_Component_AntivirusSpyware::updateAntivirusSpywarePolicy. Defaults are initiated by this object.
 type Software_Component_AntivirusSpyware struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSoftwareComponentAntivirusSpywareService returns an instance of the Software_Component_AntivirusSpyware SoftLayer service
-func GetSoftwareComponentAntivirusSpywareService(sess *session.Session) Software_Component_AntivirusSpyware {
+func GetSoftwareComponentAntivirusSpywareService(sess session.SLSession) Software_Component_AntivirusSpyware {
 	return Software_Component_AntivirusSpyware{Session: sess}
 }
 
@@ -334,12 +327,12 @@ func (r Software_Component_AntivirusSpyware) UpdateAntivirusSpywarePolicy(newPol
 
 // This object specifies a specific type of Software Component:  A Host Intrusion Protection System instance.
 type Software_Component_HostIps struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSoftwareComponentHostIpsService returns an instance of the Software_Component_HostIps SoftLayer service
-func GetSoftwareComponentHostIpsService(sess *session.Session) Software_Component_HostIps {
+func GetSoftwareComponentHostIpsService(sess session.SLSession) Software_Component_HostIps {
 	return Software_Component_HostIps{Session: sess}
 }
 
@@ -461,12 +454,12 @@ func (r Software_Component_HostIps) UpdateHipsPolicies(newIpsMode *string, newIp
 
 // This SoftLayer_Software_Component_Password data type contains a password for a specific software component instance.
 type Software_Component_Password struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSoftwareComponentPasswordService returns an instance of the Software_Component_Password SoftLayer service
-func GetSoftwareComponentPasswordService(sess *session.Session) Software_Component_Password {
+func GetSoftwareComponentPasswordService(sess session.SLSession) Software_Component_Password {
 	return Software_Component_Password{Session: sess}
 }
 
@@ -570,12 +563,12 @@ func (r Software_Component_Password) GetSshKeys() (resp []datatypes.Security_Ssh
 
 // This object specifies a specific type of Software Component:  An Trellix instance. Trellix installations have specific properties and methods such as SoftLayer_Software_Component_Trellix::updateTrellixPolicy. Defaults are initiated by this object.
 type Software_Component_Trellix struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSoftwareComponentTrellixService returns an instance of the Software_Component_Trellix SoftLayer service
-func GetSoftwareComponentTrellixService(sess *session.Session) Software_Component_Trellix {
+func GetSoftwareComponentTrellixService(sess session.SLSession) Software_Component_Trellix {
 	return Software_Component_Trellix{Session: sess}
 }
 
@@ -716,12 +709,12 @@ func (r Software_Component_Trellix) UpdateHipsPolicies(newIpsMode *string, newIp
 //
 // The "Manufacturer" and "Name" properties of a SoftLayer_Software_Description are used by the framework to factory specific objects, objects that may have special methods for that specific piece of software, or objects that contain application specific data, such as default ports.  For example, if you create a SoftLayer_Software_Component who's SoftLayer_Software_License points to the SoftLayer_Software_Description for "Swsoft" "Plesk", you'll actually get a SoftLayer_Software_Component_Swsoft_Plesk object.
 type Software_Description struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSoftwareDescriptionService returns an instance of the Software_Description SoftLayer service
-func GetSoftwareDescriptionService(sess *session.Session) Software_Description {
+func GetSoftwareDescriptionService(sess session.SLSession) Software_Description {
 	return Software_Description{Session: sess}
 }
 
@@ -852,12 +845,12 @@ func (r Software_Description) GetValidFilesystemTypes() (resp []datatypes.Config
 
 // SoftLayer_Software_VirtualLicense is the application class that handles a special type of Software License.  Most software licenses are licensed to a specific hardware ID;  virtual licenses are designed for virtual machines and therefore are assigned to an IP Address.  Not all software packages can be "virtual licensed".
 type Software_VirtualLicense struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetSoftwareVirtualLicenseService returns an instance of the Software_VirtualLicense SoftLayer service
-func GetSoftwareVirtualLicenseService(sess *session.Session) Software_VirtualLicense {
+func GetSoftwareVirtualLicenseService(sess session.SLSession) Software_VirtualLicense {
 	return Software_VirtualLicense{Session: sess}
 }
 

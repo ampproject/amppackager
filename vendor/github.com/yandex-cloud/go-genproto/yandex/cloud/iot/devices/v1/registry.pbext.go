@@ -3,6 +3,7 @@
 package devices
 
 import (
+	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -36,6 +37,10 @@ func (m *Registry) SetStatus(v Registry_Status) {
 
 func (m *Registry) SetLogGroupId(v string) {
 	m.LogGroupId = v
+}
+
+func (m *Registry) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
 }
 
 func (m *RegistryCertificate) SetRegistryId(v string) {
@@ -76,4 +81,62 @@ func (m *RegistryPassword) SetId(v string) {
 
 func (m *RegistryPassword) SetCreatedAt(v *timestamppb.Timestamp) {
 	m.CreatedAt = v
+}
+
+func (m *DataStreamExport) SetId(v string) {
+	m.Id = v
+}
+
+func (m *DataStreamExport) SetName(v string) {
+	m.Name = v
+}
+
+func (m *DataStreamExport) SetRegistryId(v string) {
+	m.RegistryId = v
+}
+
+func (m *DataStreamExport) SetMqttTopicFilter(v string) {
+	m.MqttTopicFilter = v
+}
+
+func (m *DataStreamExport) SetDatabase(v string) {
+	m.Database = v
+}
+
+func (m *DataStreamExport) SetStream(v string) {
+	m.Stream = v
+}
+
+func (m *DataStreamExport) SetServiceAccountId(v string) {
+	m.ServiceAccountId = v
+}
+
+func (m *DataStreamExport) SetCreatedAt(v *timestamppb.Timestamp) {
+	m.CreatedAt = v
+}
+
+type LogOptions_Destination = isLogOptions_Destination
+
+func (m *LogOptions) SetDestination(v LogOptions_Destination) {
+	m.Destination = v
+}
+
+func (m *LogOptions) SetDisabled(v bool) {
+	m.Disabled = v
+}
+
+func (m *LogOptions) SetLogGroupId(v string) {
+	m.Destination = &LogOptions_LogGroupId{
+		LogGroupId: v,
+	}
+}
+
+func (m *LogOptions) SetFolderId(v string) {
+	m.Destination = &LogOptions_FolderId{
+		FolderId: v,
+	}
+}
+
+func (m *LogOptions) SetMinLevel(v v1.LogLevel_Level) {
+	m.MinLevel = v
 }

@@ -92,7 +92,7 @@ func (r *Response) ParseResponse(dest interface{}) error {
 		return nil
 	}
 
-	return json.Unmarshal(r.Body, &dest)
+	return json.Unmarshal(r.Body, dest)
 }
 
 // parseErrorResponse tries to unmarshal the error response body

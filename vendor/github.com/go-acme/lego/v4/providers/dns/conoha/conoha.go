@@ -105,7 +105,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 	tokens, err := identifier.GetToken(context.TODO(), auth)
 	if err != nil {
-		return nil, fmt.Errorf("conoha: failed to login: %w", err)
+		return nil, fmt.Errorf("conoha: failed to log in: %w", err)
 	}
 
 	client, err := internal.NewClient(config.Region, tokens.Access.Token.ID)
@@ -126,7 +126,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("conoha: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+		return fmt.Errorf("conoha: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()
@@ -157,7 +157,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("conoha: could not find zone for domain %q (%s): %w", domain, info.EffectiveFQDN, err)
+		return fmt.Errorf("conoha: could not find zone for domain %q: %w", domain, err)
 	}
 
 	ctx := context.Background()

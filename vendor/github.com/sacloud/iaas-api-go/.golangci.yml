@@ -8,7 +8,6 @@ issues:
 linters:
   disable-all: true
   enable:
-    - depguard
     - errcheck
     - exportloopref
     - gocritic
@@ -29,6 +28,7 @@ linters:
 
   # don't enable:
   #  - asciicheck
+  #  - depguard
   #  - dogsled
   #  - dupl
   #  - funlen

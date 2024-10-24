@@ -38,6 +38,18 @@ func (m *InviteCustomerRequest) SetPerson(v *CustomerPerson) {
 	m.Person = v
 }
 
+func (m *CreateResellerServedCustomerRequest) SetResellerId(v string) {
+	m.ResellerId = v
+}
+
+func (m *CreateResellerServedCustomerRequest) SetName(v string) {
+	m.Name = v
+}
+
+func (m *CreateResellerServedCustomerRequest) SetPerson(v *CustomerPerson) {
+	m.Person = v
+}
+
 func (m *ActivateCustomerRequest) SetCustomerId(v string) {
 	m.CustomerId = v
 }

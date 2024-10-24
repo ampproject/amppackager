@@ -230,6 +230,10 @@ func (o *ServerOp) ChangePlan(ctx context.Context, zone string, id types.ID, pla
 
 	value.CPU = plan.CPU
 	value.MemoryMB = plan.MemoryMB
+	value.ServerPlanCPUModel = plan.ServerPlanCPUModel
+	if value.ServerPlanCPUModel == "" {
+		value.ServerPlanCPUModel = "uncategorized"
+	}
 	value.ServerPlanCommitment = plan.ServerPlanCommitment
 	value.ServerPlanGeneration = plan.ServerPlanGeneration
 	value.ServerPlanID = types.StringID(fmt.Sprintf("%03d%03d%03d", value.ServerPlanGeneration, value.GetMemoryGB(), value.CPU))

@@ -3,14 +3,18 @@ package cloudflare
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/goccy/go-json"
 )
 
 var (
@@ -22,6 +26,22 @@ var (
 	ErrMissingVideoID = errors.New("required video id missing")
 	// ErrMissingFilePath is for when FilePath is required but missing.
 	ErrMissingFilePath = errors.New("required file path missing")
+	// ErrMissingTusResumable is for when TusResumable is required but missing.
+	ErrMissingTusResumable = errors.New("required tus resumable missing")
+	// ErrInvalidTusResumable is for when TusResumable is invalid.
+	ErrInvalidTusResumable = errors.New("invalid tus resumable")
+	// ErrMarshallingTUSMetadata is for when TUS metadata cannot be marshalled.
+	ErrMarshallingTUSMetadata = errors.New("error marshalling TUS metadata")
+	// ErrMissingUploadLength is for when UploadLength is required but missing.
+	ErrMissingUploadLength = errors.New("required upload length missing")
+	// ErrInvalidStatusCode is for when the status code is invalid.
+	ErrInvalidStatusCode = errors.New("invalid status code")
+)
+
+type TusProtocolVersion string
+
+const (
+	TusProtocolVersion1_0_0 TusProtocolVersion = "1.0.0"
 )
 
 // StreamVideo represents a stream video.
@@ -46,6 +66,7 @@ type StreamVideo struct {
 	Creator               string                   `json:"creator,omitempty"`
 	LiveInput             string                   `json:"liveInput,omitempty"`
 	Uploaded              *time.Time               `json:"uploaded,omitempty"`
+	ScheduledDeletion     *time.Time               `json:"scheduledDeletion,omitempty"`
 	Watermark             StreamVideoWatermark     `json:"watermark,omitempty"`
 	NFT                   StreamVideoNFTParameters `json:"nft,omitempty"`
 }
@@ -104,6 +125,7 @@ type StreamUploadFromURLParameters struct {
 	RequireSignedURLs     bool                    `json:"requireSignedURLs,omitempty"`
 	Watermark             UploadVideoURLWatermark `json:"watermark,omitempty"`
 	Meta                  map[string]interface{}  `json:"meta,omitempty"`
+	ScheduledDeletion     *time.Time              `json:"scheduledDeletion,omitempty"`
 }
 
 // StreamCreateVideoParameters are parameters used when creating a video.
@@ -117,6 +139,7 @@ type StreamCreateVideoParameters struct {
 	RequireSignedURLs     bool                    `json:"requireSignedURLs,omitempty"`
 	Watermark             UploadVideoURLWatermark `json:"watermark,omitempty"`
 	Meta                  map[string]interface{}  `json:"meta,omitempty"`
+	ScheduledDeletion     *time.Time              `json:"scheduledDeletion,omitempty"`
 }
 
 // UploadVideoURLWatermark represents UID of an existing watermark.
@@ -126,9 +149,10 @@ type UploadVideoURLWatermark struct {
 
 // StreamVideoCreate represents parameters returned after creating a video.
 type StreamVideoCreate struct {
-	UploadURL string               `json:"uploadURL,omitempty"`
-	UID       string               `json:"uid,omitempty"`
-	Watermark StreamVideoWatermark `json:"watermark,omitempty"`
+	UploadURL         string               `json:"uploadURL,omitempty"`
+	UID               string               `json:"uid,omitempty"`
+	Watermark         StreamVideoWatermark `json:"watermark,omitempty"`
+	ScheduledDeletion *time.Time           `json:"scheduledDeletion,omitempty"`
 }
 
 // StreamParameters are the basic parameters needed.
@@ -139,9 +163,10 @@ type StreamParameters struct {
 
 // StreamUploadFileParameters are parameters needed for file upload of a video.
 type StreamUploadFileParameters struct {
-	AccountID string
-	VideoID   string
-	FilePath  string
+	AccountID         string
+	VideoID           string
+	FilePath          string
+	ScheduledDeletion *time.Time
 }
 
 // StreamListParameters represents parameters used when listing stream videos.
@@ -168,6 +193,63 @@ type StreamSignedURLParameters struct {
 	NBF          int                `json:"nbf,omitempty"`
 	Downloadable bool               `json:"downloadable,omitempty"`
 	AccessRules  []StreamAccessRule `json:"accessRules,omitempty"`
+}
+
+type StreamInitiateTUSUploadParameters struct {
+	DirectUserUpload bool               `url:"direct_user,omitempty"`
+	TusResumable     TusProtocolVersion `url:"-"`
+	UploadLength     int64              `url:"-"`
+	UploadCreator    string             `url:"-"`
+	Metadata         TUSUploadMetadata  `url:"-"`
+}
+
+type StreamInitiateTUSUploadResponse struct {
+	ResponseHeaders http.Header
+}
+
+type TUSUploadMetadata struct {
+	Name                  string     `json:"name,omitempty"`
+	MaxDurationSeconds    int        `json:"maxDurationSeconds,omitempty"`
+	RequireSignedURLs     bool       `json:"requiresignedurls,omitempty"`
+	AllowedOrigins        string     `json:"allowedorigins,omitempty"`
+	ThumbnailTimestampPct float64    `json:"thumbnailtimestamppct,omitempty"`
+	ScheduledDeletion     *time.Time `json:"scheduledDeletion,omitempty"`
+	Expiry                *time.Time `json:"expiry,omitempty"`
+	Watermark             string     `json:"watermark,omitempty"`
+}
+
+func (t TUSUploadMetadata) ToTUSCsv() (string, error) {
+	var metadataValues []string
+	if t.Name != "" {
+		metadataValues = append(metadataValues, fmt.Sprintf("%s %s", "name", base64.StdEncoding.EncodeToString([]byte(t.Name))))
+	}
+	if t.MaxDurationSeconds != 0 {
+		metadataValues = append(metadataValues, fmt.Sprintf("%s %s", "maxDurationSeconds", base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(t.MaxDurationSeconds)))))
+	}
+	if t.RequireSignedURLs {
+		metadataValues = append(metadataValues, "requiresignedurls")
+	}
+	if t.AllowedOrigins != "" {
+		metadataValues = append(metadataValues, fmt.Sprintf("%s %s", "allowedorigins", base64.StdEncoding.EncodeToString([]byte(t.AllowedOrigins))))
+	}
+	if t.ThumbnailTimestampPct != 0 {
+		metadataValues = append(metadataValues, fmt.Sprintf("%s %s", "thumbnailtimestamppct", base64.StdEncoding.EncodeToString([]byte(strconv.FormatFloat(t.ThumbnailTimestampPct, 'f', -1, 64)))))
+	}
+	if t.ScheduledDeletion != nil {
+		metadataValues = append(metadataValues, fmt.Sprintf("%s %s", "scheduledDeletion", base64.StdEncoding.EncodeToString([]byte(t.ScheduledDeletion.Format(time.RFC3339)))))
+	}
+	if t.Expiry != nil {
+		metadataValues = append(metadataValues, fmt.Sprintf("%s %s", "expiry", base64.StdEncoding.EncodeToString([]byte(t.Expiry.Format(time.RFC3339)))))
+	}
+	if t.Watermark != "" {
+		metadataValues = append(metadataValues, fmt.Sprintf("%s %s", "watermark", base64.StdEncoding.EncodeToString([]byte(t.Watermark))))
+	}
+
+	if len(metadataValues) > 0 {
+		return strings.Join(metadataValues, ","), nil
+	}
+
+	return "", nil
 }
 
 // StreamVideoResponse represents an API response of a stream video.
@@ -327,7 +409,53 @@ func (api *API) StreamListVideos(ctx context.Context, params StreamListParameter
 	return streamListResponse.Result, nil
 }
 
-// Skipped: https://api.cloudflare.com/#stream-videos-initiate-a-video-upload-using-tus
+// StreamInitiateTUSVideoUpload generates a direct upload TUS url for a video.
+//
+// API Reference: https://developers.cloudflare.com/api/operations/stream-videos-initiate-video-uploads-using-tus
+func (api *API) StreamInitiateTUSVideoUpload(ctx context.Context, rc *ResourceContainer, params StreamInitiateTUSUploadParameters) (StreamInitiateTUSUploadResponse, error) {
+	if rc.Level != AccountRouteLevel {
+		return StreamInitiateTUSUploadResponse{}, ErrRequiredAccountLevelResourceContainer
+	}
+
+	headers := http.Header{}
+	if params.TusResumable == "" {
+		return StreamInitiateTUSUploadResponse{}, ErrMissingTusResumable
+	} else if params.TusResumable != TusProtocolVersion1_0_0 {
+		return StreamInitiateTUSUploadResponse{}, ErrInvalidTusResumable
+	} else {
+		headers.Set("Tus-Resumable", string(params.TusResumable))
+	}
+
+	if params.UploadLength == 0 {
+		return StreamInitiateTUSUploadResponse{}, ErrMissingUploadLength
+	} else {
+		headers.Set("Upload-Length", strconv.FormatInt(params.UploadLength, 10))
+	}
+
+	if params.UploadCreator != "" {
+		headers.Set("Upload-Creator", params.UploadCreator)
+	}
+
+	metadataTusCsv, err := params.Metadata.ToTUSCsv()
+	if err != nil {
+		return StreamInitiateTUSUploadResponse{}, ErrMarshallingTUSMetadata
+	}
+	if metadataTusCsv != "" {
+		headers.Set("Upload-Metadata", metadataTusCsv)
+	}
+
+	uri := buildURI(fmt.Sprintf("/accounts/%s/stream", rc.Identifier), params)
+	res, err := api.makeRequestWithAuthTypeAndHeadersComplete(ctx, http.MethodPost, uri, nil, api.authType, headers)
+	if err != nil {
+		return StreamInitiateTUSUploadResponse{}, err
+	}
+
+	if res.StatusCode != http.StatusCreated {
+		return StreamInitiateTUSUploadResponse{}, ErrInvalidStatusCode
+	}
+
+	return StreamInitiateTUSUploadResponse{ResponseHeaders: res.Headers}, nil
+}
 
 // StreamGetVideo gets the details for a specific video.
 //

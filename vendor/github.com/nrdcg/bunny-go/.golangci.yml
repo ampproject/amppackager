@@ -1,0 +1,167 @@
+build-tags:
+  - integrationtest
+
+run:
+  timeout: 10m
+  show-stats: true
+  skip-files: []
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/nrdcg/bunny-go
+  govet:
+    check-shadowing: true
+  gocyclo:
+    min-complexity: 12
+  maligned:
+    suggest-new: true
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  funlen:
+    lines: -1
+    statements: 50
+  misspell:
+    locale: US
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: "github.com/instana/testify"
+            desc: not allowed
+          - pkg: "github.com/pkg/errors"
+            desc: Should be replaced by standard lib errors package
+  tagalign:
+    align: false
+    order:
+      - xml
+      - json
+      - yaml
+      - yml
+      - toml
+      - mapstructure
+      - url
+  godox:
+    keywords:
+      - FIXME
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+    disabled-checks:
+      - paramTypeCombine # already handle by gofumpt.extra-rules
+      - whyNoLint # already handle by nonolint
+      - unnamedResult
+      - hugeParam
+      - sloppyReassign
+      - rangeValCopy
+      - octalLiteral
+      - ptrToRefParam
+      - appendAssign
+      - ruleguard
+      - httpNoBody
+      - exposedSyncMutex
+  revive:
+    rules:
+      - name: struct-tag
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+        disabled: true
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+        disabled: true
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+        disabled: true
+      - name: unreachable-code
+      - name: redefines-builtin-id
+  testifylint:
+    disable:
+      - require-error
+      - go-require
+
+linters:
+  enable-all: true
+  disable:
+    - deadcode # deprecated
+    - exhaustivestruct # deprecated
+    - golint # deprecated
+    - ifshort # deprecated
+    - interfacer # deprecated
+    - maligned # deprecated
+    - nosnakecase # deprecated
+    - scopelint # deprecated
+    - structcheck # deprecated
+    - varcheck # deprecated
+    - cyclop # duplicate of gocyclo
+    - sqlclosecheck # not relevant (SQL)
+    - rowserrcheck # not relevant (SQL)
+    - execinquery # not relevant (SQL)
+    - lll
+    - gosec
+    - dupl # not relevant
+    - prealloc # too many false-positive
+    - bodyclose # too many false-positive
+    - gomnd
+    - testpackage # not relevant
+    - tparallel # not relevant
+    - paralleltest # not relevant
+    - nestif # too many false-positive
+    - wrapcheck
+    - goerr113 # not relevant
+    - nlreturn # not relevant
+    - wsl # not relevant
+    - exhaustive # not relevant
+    - exhaustruct # not relevant
+    - makezero # not relevant
+    - forbidigo
+    - varnamelen # not relevant
+    - nilnil # not relevant
+    - ireturn # not relevant
+    - contextcheck # too many false-positive
+    - tenv # we already have a test "framework" to handle env vars
+    - noctx
+    - forcetypeassert
+    - tagliatelle
+    - errname
+    - errchkjson
+    - nonamedreturns
+    - musttag # false-positive https://github.com/junk1tm/musttag/issues/17
+    - gosmopolitan  # not relevant
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude:
+    - 'Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked'
+    - 'exported (type|method|function) (.+) should have comment or be unexported'
+    - 'ST1000: at least one file in a package should have a package comment'
+    - 'fmt.Sprintf can be replaced with string addition'
+  exclude-rules:
+    - path: (.+)_test.go
+      linters:
+        - funlen
+        - goconst
+        - maintidx
+    - path: client.go
+      text: discardLogF is a global variable
+    - path: client_example_test.go
+      text: missing output for example, go test can't validate it

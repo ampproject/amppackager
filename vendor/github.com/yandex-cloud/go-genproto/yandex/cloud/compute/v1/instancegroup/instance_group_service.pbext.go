@@ -187,6 +187,30 @@ func (m *StopInstanceGroupMetadata) SetInstanceGroupId(v string) {
 	m.InstanceGroupId = v
 }
 
+func (m *RollingRestartRequest) SetInstanceGroupId(v string) {
+	m.InstanceGroupId = v
+}
+
+func (m *RollingRestartRequest) SetManagedInstanceIds(v []string) {
+	m.ManagedInstanceIds = v
+}
+
+func (m *RollingRestartMetadata) SetInstanceGroupId(v string) {
+	m.InstanceGroupId = v
+}
+
+func (m *RollingRecreateRequest) SetInstanceGroupId(v string) {
+	m.InstanceGroupId = v
+}
+
+func (m *RollingRecreateRequest) SetManagedInstanceIds(v []string) {
+	m.ManagedInstanceIds = v
+}
+
+func (m *RollingRecreateMetadata) SetInstanceGroupId(v string) {
+	m.InstanceGroupId = v
+}
+
 func (m *DeleteInstanceGroupRequest) SetInstanceGroupId(v string) {
 	m.InstanceGroupId = v
 }

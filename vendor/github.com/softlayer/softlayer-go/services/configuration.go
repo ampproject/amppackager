@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // Supported hardware raid modes
 type Configuration_Storage_Group_Array_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationStorageGroupArrayTypeService returns an instance of the Configuration_Storage_Group_Array_Type SoftLayer service
-func GetConfigurationStorageGroupArrayTypeService(sess *session.Session) Configuration_Storage_Group_Array_Type {
+func GetConfigurationStorageGroupArrayTypeService(sess session.SLSession) Configuration_Storage_Group_Array_Type {
 	return Configuration_Storage_Group_Array_Type{Session: sess}
 }
 
@@ -89,12 +82,12 @@ func (r Configuration_Storage_Group_Array_Type) GetObject() (resp datatypes.Conf
 
 // The SoftLayer_Configuration_Template data type contains general information of an arbitrary resource.
 type Configuration_Template struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateService returns an instance of the Configuration_Template SoftLayer service
-func GetConfigurationTemplateService(sess *session.Session) Configuration_Template {
+func GetConfigurationTemplateService(sess session.SLSession) Configuration_Template {
 	return Configuration_Template{Session: sess}
 }
 
@@ -224,12 +217,12 @@ func (r Configuration_Template) UpdateDefaultValues(configurationValues []dataty
 //
 // Configuration can contain sub-sections.
 type Configuration_Template_Section struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateSectionService returns an instance of the Configuration_Template_Section SoftLayer service
-func GetConfigurationTemplateSectionService(sess *session.Session) Configuration_Template_Section {
+func GetConfigurationTemplateSectionService(sess session.SLSession) Configuration_Template_Section {
 	return Configuration_Template_Section{Session: sess}
 }
 
@@ -332,12 +325,12 @@ func (r Configuration_Template_Section) HasSubSections() (resp bool, err error) 
 //
 // If value type is defined as "Resource Specific Values", you will have to make an additional API call to retrieve your system specific values.
 type Configuration_Template_Section_Definition struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateSectionDefinitionService returns an instance of the Configuration_Template_Section_Definition SoftLayer service
-func GetConfigurationTemplateSectionDefinitionService(sess *session.Session) Configuration_Template_Section_Definition {
+func GetConfigurationTemplateSectionDefinitionService(sess session.SLSession) Configuration_Template_Section_Definition {
 	return Configuration_Template_Section_Definition{Session: sess}
 }
 
@@ -414,12 +407,12 @@ func (r Configuration_Template_Section_Definition) GetValueType() (resp datatype
 
 // Configuration definition group gives you details of the definition and allows extra functionality.
 type Configuration_Template_Section_Definition_Group struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateSectionDefinitionGroupService returns an instance of the Configuration_Template_Section_Definition_Group SoftLayer service
-func GetConfigurationTemplateSectionDefinitionGroupService(sess *session.Session) Configuration_Template_Section_Definition_Group {
+func GetConfigurationTemplateSectionDefinitionGroupService(sess session.SLSession) Configuration_Template_Section_Definition_Group {
 	return Configuration_Template_Section_Definition_Group{Session: sess}
 }
 
@@ -474,12 +467,12 @@ func (r Configuration_Template_Section_Definition_Group) GetParent() (resp datat
 
 // SoftLayer_Configuration_Template_Section_Definition_Type further defines the value of a configuration definition.
 type Configuration_Template_Section_Definition_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateSectionDefinitionTypeService returns an instance of the Configuration_Template_Section_Definition_Type SoftLayer service
-func GetConfigurationTemplateSectionDefinitionTypeService(sess *session.Session) Configuration_Template_Section_Definition_Type {
+func GetConfigurationTemplateSectionDefinitionTypeService(sess session.SLSession) Configuration_Template_Section_Definition_Type {
 	return Configuration_Template_Section_Definition_Type{Session: sess}
 }
 
@@ -520,12 +513,12 @@ func (r Configuration_Template_Section_Definition_Type) GetObject() (resp dataty
 
 // SoftLayer_Configuration_Section_Value is used to set the value for a configuration definition
 type Configuration_Template_Section_Definition_Value struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateSectionDefinitionValueService returns an instance of the Configuration_Template_Section_Definition_Value SoftLayer service
-func GetConfigurationTemplateSectionDefinitionValueService(sess *session.Session) Configuration_Template_Section_Definition_Value {
+func GetConfigurationTemplateSectionDefinitionValueService(sess session.SLSession) Configuration_Template_Section_Definition_Value {
 	return Configuration_Template_Section_Definition_Value{Session: sess}
 }
 
@@ -580,12 +573,12 @@ func (r Configuration_Template_Section_Definition_Value) GetTemplate() (resp dat
 //
 // For example, you can create multiple configuration profiles to monitor multiple hard drives with "CPU/Memory/Disk Monitoring Agent". SoftLayer_Configuration_Template_Section_Profile help you keep track of custom configuration profiles.
 type Configuration_Template_Section_Profile struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateSectionProfileService returns an instance of the Configuration_Template_Section_Profile SoftLayer service
-func GetConfigurationTemplateSectionProfileService(sess *session.Session) Configuration_Template_Section_Profile {
+func GetConfigurationTemplateSectionProfileService(sess session.SLSession) Configuration_Template_Section_Profile {
 	return Configuration_Template_Section_Profile{Session: sess}
 }
 
@@ -632,12 +625,12 @@ func (r Configuration_Template_Section_Profile) GetObject() (resp datatypes.Conf
 
 // The SoftLayer_Configuration_Template_Section_Reference data type contains information of a configuration section and its associated configuration template.
 type Configuration_Template_Section_Reference struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateSectionReferenceService returns an instance of the Configuration_Template_Section_Reference SoftLayer service
-func GetConfigurationTemplateSectionReferenceService(sess *session.Session) Configuration_Template_Section_Reference {
+func GetConfigurationTemplateSectionReferenceService(sess session.SLSession) Configuration_Template_Section_Reference {
 	return Configuration_Template_Section_Reference{Session: sess}
 }
 
@@ -692,12 +685,12 @@ func (r Configuration_Template_Section_Reference) GetTemplate() (resp datatypes.
 //
 // Configuration can contain sub-sections.
 type Configuration_Template_Section_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateSectionTypeService returns an instance of the Configuration_Template_Section_Type SoftLayer service
-func GetConfigurationTemplateSectionTypeService(sess *session.Session) Configuration_Template_Section_Type {
+func GetConfigurationTemplateSectionTypeService(sess session.SLSession) Configuration_Template_Section_Type {
 	return Configuration_Template_Section_Type{Session: sess}
 }
 
@@ -738,12 +731,12 @@ func (r Configuration_Template_Section_Type) GetObject() (resp datatypes.Configu
 
 // The SoftLayer_Configuration_Template_Type data type contains configuration template type information.
 type Configuration_Template_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetConfigurationTemplateTypeService returns an instance of the Configuration_Template_Type SoftLayer service
-func GetConfigurationTemplateTypeService(sess *session.Session) Configuration_Template_Type {
+func GetConfigurationTemplateTypeService(sess session.SLSession) Configuration_Template_Type {
 	return Configuration_Template_Type{Session: sess}
 }
 

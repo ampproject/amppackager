@@ -5,6 +5,7 @@ package iam
 import (
 	operation "github.com/yandex-cloud/go-genproto/yandex/cloud/operation"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (m *GetApiKeyRequest) SetApiKeyId(v string) {
@@ -37,6 +38,14 @@ func (m *CreateApiKeyRequest) SetServiceAccountId(v string) {
 
 func (m *CreateApiKeyRequest) SetDescription(v string) {
 	m.Description = v
+}
+
+func (m *CreateApiKeyRequest) SetScope(v string) {
+	m.Scope = v
+}
+
+func (m *CreateApiKeyRequest) SetExpiresAt(v *timestamppb.Timestamp) {
+	m.ExpiresAt = v
 }
 
 func (m *CreateApiKeyResponse) SetApiKey(v *ApiKey) {
@@ -88,5 +97,21 @@ func (m *ListApiKeyOperationsResponse) SetOperations(v []*operation.Operation) {
 }
 
 func (m *ListApiKeyOperationsResponse) SetNextPageToken(v string) {
+	m.NextPageToken = v
+}
+
+func (m *ListApiKeyScopesRequest) SetPageSize(v int64) {
+	m.PageSize = v
+}
+
+func (m *ListApiKeyScopesRequest) SetPageToken(v string) {
+	m.PageToken = v
+}
+
+func (m *ListApiKeyScopesResponse) SetScopes(v []string) {
+	m.Scopes = v
+}
+
+func (m *ListApiKeyScopesResponse) SetNextPageToken(v string) {
 	m.NextPageToken = v
 }

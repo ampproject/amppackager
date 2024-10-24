@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // Contains business partner channel information
 type Business_Partner_Channel struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBusinessPartnerChannelService returns an instance of the Business_Partner_Channel SoftLayer service
-func GetBusinessPartnerChannelService(sess *session.Session) Business_Partner_Channel {
+func GetBusinessPartnerChannelService(sess session.SLSession) Business_Partner_Channel {
 	return Business_Partner_Channel{Session: sess}
 }
 
@@ -77,12 +70,12 @@ func (r Business_Partner_Channel) GetObject() (resp datatypes.Business_Partner_C
 
 // Contains business partner segment information
 type Business_Partner_Segment struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetBusinessPartnerSegmentService returns an instance of the Business_Partner_Segment SoftLayer service
-func GetBusinessPartnerSegmentService(sess *session.Session) Business_Partner_Segment {
+func GetBusinessPartnerSegmentService(sess session.SLSession) Business_Partner_Segment {
 	return Business_Partner_Segment{Session: sess}
 }
 

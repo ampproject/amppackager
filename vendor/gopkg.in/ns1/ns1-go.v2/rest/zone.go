@@ -36,9 +36,14 @@ func (s *ZonesService) List() ([]*dns.Zone, *http.Response, error) {
 
 // Get takes a zone name and returns a single active zone and its basic configuration details.
 //
+//	records Optional Query Parameter, if false records array in payload returns empty
+//
 // NS1 API docs: https://ns1.com/api/#zones-zone-get
-func (s *ZonesService) Get(zone string) (*dns.Zone, *http.Response, error) {
+func (s *ZonesService) Get(zone string, records bool) (*dns.Zone, *http.Response, error) {
 	path := fmt.Sprintf("zones/%s", zone)
+	if !records {
+		path = fmt.Sprintf("%s%s", path, "?records=false")
+	}
 
 	req, err := s.client.NewRequest("GET", path, nil)
 	if err != nil {

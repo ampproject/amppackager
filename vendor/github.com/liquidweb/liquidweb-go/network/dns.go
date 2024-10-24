@@ -5,6 +5,28 @@ import (
 	"github.com/liquidweb/liquidweb-go/types"
 )
 
+type DNSZoneCreateParams struct {
+	Name                    string        `json:"name"`
+	ImportRecords           types.FlexInt `json:"live_domain,omitempty"`
+	SkipCreateCommonRecords types.FlexInt `json:"no_extra,omitempty"`
+}
+
+// DNSRecord is the resource representing a DNS record entry.
+type DNSZone struct {
+	ID                types.FlexInt  `json:"id,omitempty"`
+	Name              string         `json:"name,omitempty"`
+	Active            types.FlexInt  `json:"active,omitempty"`
+	DelegationStatus  string         `json:"delegation_status,omitempty"`
+	PrimaryNameserver string         `json:"master,omitempty"`
+	NotifiedSerial    *types.FlexInt `json:"notified_serial,omitempty"`
+	Contact           string         `json:"contact,omitempty"`
+}
+
+type DNSZoneList struct {
+	liquidweb.ListMeta
+	Items []DNSZone `json:"items,omitempty"`
+}
+
 // DNSRecordParams is the set of parameters used when creating or updating a DNS record.
 type DNSRecordParams struct {
 	ID              int              `json:"id,omitempty"`
@@ -30,6 +52,7 @@ type DNSRecordParams struct {
 	Serial          int              `json:"serial,omitempty"`
 	Target          string           `json:"target,omitempty"`
 	Weight          int              `json:"weight,omitempty"`
+	PageNum         int              `json:"page_num,omitempty"`
 }
 
 // RegionOverrides contains region data.

@@ -87,6 +87,10 @@ func (m *CreateClusterRequest) SetDeletionProtection(v bool) {
 	m.DeletionProtection = v
 }
 
+func (m *CreateClusterRequest) SetMaintenanceWindow(v *MaintenanceWindow) {
+	m.MaintenanceWindow = v
+}
+
 func (m *CreateClusterMetadata) SetClusterId(v string) {
 	m.ClusterId = v
 }
@@ -125,6 +129,10 @@ func (m *UpdateClusterRequest) SetSecurityGroupIds(v []string) {
 
 func (m *UpdateClusterRequest) SetDeletionProtection(v bool) {
 	m.DeletionProtection = v
+}
+
+func (m *UpdateClusterRequest) SetNetworkId(v string) {
+	m.NetworkId = v
 }
 
 func (m *UpdateClusterMetadata) SetClusterId(v string) {
@@ -225,6 +233,14 @@ func (m *RestoreClusterRequest) SetRecoveryTargetSpec(v *RestoreClusterRequest_R
 
 func (m *RestoreClusterRequest) SetSecurityGroupIds(v []string) {
 	m.SecurityGroupIds = v
+}
+
+func (m *RestoreClusterRequest) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
+}
+
+func (m *RestoreClusterRequest) SetMaintenanceWindow(v *MaintenanceWindow) {
+	m.MaintenanceWindow = v
 }
 
 func (m *RestoreClusterRequest_RecoveryTargetSpec) SetTimestamp(v int64) {
@@ -431,6 +447,50 @@ func (m *DeleteClusterHostsMetadata) SetHostNames(v []string) {
 	m.HostNames = v
 }
 
+func (m *UpdateClusterHostsRequest) SetClusterId(v string) {
+	m.ClusterId = v
+}
+
+func (m *UpdateClusterHostsRequest) SetUpdateHostSpecs(v []*UpdateHostSpec) {
+	m.UpdateHostSpecs = v
+}
+
+func (m *UpdateClusterHostsMetadata) SetClusterId(v string) {
+	m.ClusterId = v
+}
+
+func (m *UpdateClusterHostsMetadata) SetHostNames(v []string) {
+	m.HostNames = v
+}
+
+func (m *UpdateHostSpec) SetHostName(v string) {
+	m.HostName = v
+}
+
+func (m *UpdateHostSpec) SetHidden(v *wrapperspb.BoolValue) {
+	m.Hidden = v
+}
+
+func (m *UpdateHostSpec) SetSecondaryDelaySecs(v *wrapperspb.Int64Value) {
+	m.SecondaryDelaySecs = v
+}
+
+func (m *UpdateHostSpec) SetPriority(v *wrapperspb.DoubleValue) {
+	m.Priority = v
+}
+
+func (m *UpdateHostSpec) SetAssignPublicIp(v bool) {
+	m.AssignPublicIp = v
+}
+
+func (m *UpdateHostSpec) SetUpdateMask(v *fieldmaskpb.FieldMask) {
+	m.UpdateMask = v
+}
+
+func (m *UpdateHostSpec) SetTags(v map[string]string) {
+	m.Tags = v
+}
+
 func (m *EnableClusterShardingRequest) SetClusterId(v string) {
 	m.ClusterId = v
 }
@@ -599,6 +659,22 @@ func (m *HostSpec) SetShardName(v string) {
 	m.ShardName = v
 }
 
+func (m *HostSpec) SetHidden(v *wrapperspb.BoolValue) {
+	m.Hidden = v
+}
+
+func (m *HostSpec) SetSecondaryDelaySecs(v *wrapperspb.Int64Value) {
+	m.SecondaryDelaySecs = v
+}
+
+func (m *HostSpec) SetPriority(v *wrapperspb.DoubleValue) {
+	m.Priority = v
+}
+
+func (m *HostSpec) SetTags(v map[string]string) {
+	m.Tags = v
+}
+
 func (m *MongodbSpec3_6) SetMongod(v *MongodbSpec3_6_Mongod) {
 	m.Mongod = v
 }
@@ -623,6 +699,10 @@ func (m *MongodbSpec3_6_Mongod) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec3_6_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec3_6_MongoCfg) SetConfig(v *config.MongoCfgConfig3_6) {
 	m.Config = v
 }
@@ -631,12 +711,20 @@ func (m *MongodbSpec3_6_MongoCfg) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec3_6_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec3_6_Mongos) SetConfig(v *config.MongosConfig3_6) {
 	m.Config = v
 }
 
 func (m *MongodbSpec3_6_Mongos) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec3_6_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec3_6_MongoInfra) SetConfigMongos(v *config.MongosConfig3_6) {
@@ -649,6 +737,10 @@ func (m *MongodbSpec3_6_MongoInfra) SetConfigMongocfg(v *config.MongoCfgConfig3_
 
 func (m *MongodbSpec3_6_MongoInfra) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec3_6_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec4_0) SetMongod(v *MongodbSpec4_0_Mongod) {
@@ -675,6 +767,10 @@ func (m *MongodbSpec4_0_Mongod) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec4_0_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec4_0_MongoCfg) SetConfig(v *config.MongoCfgConfig4_0) {
 	m.Config = v
 }
@@ -683,12 +779,20 @@ func (m *MongodbSpec4_0_MongoCfg) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec4_0_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec4_0_Mongos) SetConfig(v *config.MongosConfig4_0) {
 	m.Config = v
 }
 
 func (m *MongodbSpec4_0_Mongos) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec4_0_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec4_0_MongoInfra) SetConfigMongos(v *config.MongosConfig4_0) {
@@ -701,6 +805,10 @@ func (m *MongodbSpec4_0_MongoInfra) SetConfigMongocfg(v *config.MongoCfgConfig4_
 
 func (m *MongodbSpec4_0_MongoInfra) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec4_0_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec4_2) SetMongod(v *MongodbSpec4_2_Mongod) {
@@ -727,6 +835,10 @@ func (m *MongodbSpec4_2_Mongod) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec4_2_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec4_2_MongoCfg) SetConfig(v *config.MongoCfgConfig4_2) {
 	m.Config = v
 }
@@ -735,12 +847,20 @@ func (m *MongodbSpec4_2_MongoCfg) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec4_2_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec4_2_Mongos) SetConfig(v *config.MongosConfig4_2) {
 	m.Config = v
 }
 
 func (m *MongodbSpec4_2_Mongos) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec4_2_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec4_2_MongoInfra) SetConfigMongos(v *config.MongosConfig4_2) {
@@ -753,6 +873,10 @@ func (m *MongodbSpec4_2_MongoInfra) SetConfigMongocfg(v *config.MongoCfgConfig4_
 
 func (m *MongodbSpec4_2_MongoInfra) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec4_2_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec4_4) SetMongod(v *MongodbSpec4_4_Mongod) {
@@ -779,6 +903,10 @@ func (m *MongodbSpec4_4_Mongod) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec4_4_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec4_4_MongoCfg) SetConfig(v *config.MongoCfgConfig4_4) {
 	m.Config = v
 }
@@ -787,12 +915,20 @@ func (m *MongodbSpec4_4_MongoCfg) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec4_4_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec4_4_Mongos) SetConfig(v *config.MongosConfig4_4) {
 	m.Config = v
 }
 
 func (m *MongodbSpec4_4_Mongos) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec4_4_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec4_4_MongoInfra) SetConfigMongos(v *config.MongosConfig4_4) {
@@ -805,6 +941,10 @@ func (m *MongodbSpec4_4_MongoInfra) SetConfigMongocfg(v *config.MongoCfgConfig4_
 
 func (m *MongodbSpec4_4_MongoInfra) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec4_4_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec4_4Enterprise) SetMongod(v *MongodbSpec4_4Enterprise_Mongod) {
@@ -831,6 +971,10 @@ func (m *MongodbSpec4_4Enterprise_Mongod) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec4_4Enterprise_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec4_4Enterprise_MongoCfg) SetConfig(v *config.MongoCfgConfig4_4Enterprise) {
 	m.Config = v
 }
@@ -839,12 +983,20 @@ func (m *MongodbSpec4_4Enterprise_MongoCfg) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec4_4Enterprise_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec4_4Enterprise_Mongos) SetConfig(v *config.MongosConfig4_4Enterprise) {
 	m.Config = v
 }
 
 func (m *MongodbSpec4_4Enterprise_Mongos) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec4_4Enterprise_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec4_4Enterprise_MongoInfra) SetConfigMongos(v *config.MongosConfig4_4Enterprise) {
@@ -857,6 +1009,10 @@ func (m *MongodbSpec4_4Enterprise_MongoInfra) SetConfigMongocfg(v *config.MongoC
 
 func (m *MongodbSpec4_4Enterprise_MongoInfra) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec4_4Enterprise_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec5_0) SetMongod(v *MongodbSpec5_0_Mongod) {
@@ -883,6 +1039,10 @@ func (m *MongodbSpec5_0_Mongod) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec5_0_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec5_0_MongoCfg) SetConfig(v *config.MongoCfgConfig5_0) {
 	m.Config = v
 }
@@ -891,12 +1051,20 @@ func (m *MongodbSpec5_0_MongoCfg) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec5_0_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec5_0_Mongos) SetConfig(v *config.MongosConfig5_0) {
 	m.Config = v
 }
 
 func (m *MongodbSpec5_0_Mongos) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec5_0_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec5_0_MongoInfra) SetConfigMongos(v *config.MongosConfig5_0) {
@@ -909,6 +1077,10 @@ func (m *MongodbSpec5_0_MongoInfra) SetConfigMongocfg(v *config.MongoCfgConfig5_
 
 func (m *MongodbSpec5_0_MongoInfra) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec5_0_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec5_0Enterprise) SetMongod(v *MongodbSpec5_0Enterprise_Mongod) {
@@ -935,6 +1107,10 @@ func (m *MongodbSpec5_0Enterprise_Mongod) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec5_0Enterprise_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec5_0Enterprise_MongoCfg) SetConfig(v *config.MongoCfgConfig5_0Enterprise) {
 	m.Config = v
 }
@@ -943,12 +1119,20 @@ func (m *MongodbSpec5_0Enterprise_MongoCfg) SetResources(v *Resources) {
 	m.Resources = v
 }
 
+func (m *MongodbSpec5_0Enterprise_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
 func (m *MongodbSpec5_0Enterprise_Mongos) SetConfig(v *config.MongosConfig5_0Enterprise) {
 	m.Config = v
 }
 
 func (m *MongodbSpec5_0Enterprise_Mongos) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec5_0Enterprise_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *MongodbSpec5_0Enterprise_MongoInfra) SetConfigMongos(v *config.MongosConfig5_0Enterprise) {
@@ -961,6 +1145,214 @@ func (m *MongodbSpec5_0Enterprise_MongoInfra) SetConfigMongocfg(v *config.MongoC
 
 func (m *MongodbSpec5_0Enterprise_MongoInfra) SetResources(v *Resources) {
 	m.Resources = v
+}
+
+func (m *MongodbSpec5_0Enterprise_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec6_0) SetMongod(v *MongodbSpec6_0_Mongod) {
+	m.Mongod = v
+}
+
+func (m *MongodbSpec6_0) SetMongocfg(v *MongodbSpec6_0_MongoCfg) {
+	m.Mongocfg = v
+}
+
+func (m *MongodbSpec6_0) SetMongos(v *MongodbSpec6_0_Mongos) {
+	m.Mongos = v
+}
+
+func (m *MongodbSpec6_0) SetMongoinfra(v *MongodbSpec6_0_MongoInfra) {
+	m.Mongoinfra = v
+}
+
+func (m *MongodbSpec6_0_Mongod) SetConfig(v *config.MongodConfig6_0) {
+	m.Config = v
+}
+
+func (m *MongodbSpec6_0_Mongod) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec6_0_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec6_0_MongoCfg) SetConfig(v *config.MongoCfgConfig6_0) {
+	m.Config = v
+}
+
+func (m *MongodbSpec6_0_MongoCfg) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec6_0_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec6_0_Mongos) SetConfig(v *config.MongosConfig6_0) {
+	m.Config = v
+}
+
+func (m *MongodbSpec6_0_Mongos) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec6_0_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec6_0_MongoInfra) SetConfigMongos(v *config.MongosConfig6_0) {
+	m.ConfigMongos = v
+}
+
+func (m *MongodbSpec6_0_MongoInfra) SetConfigMongocfg(v *config.MongoCfgConfig6_0) {
+	m.ConfigMongocfg = v
+}
+
+func (m *MongodbSpec6_0_MongoInfra) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec6_0_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec6_0Enterprise) SetMongod(v *MongodbSpec6_0Enterprise_Mongod) {
+	m.Mongod = v
+}
+
+func (m *MongodbSpec6_0Enterprise) SetMongocfg(v *MongodbSpec6_0Enterprise_MongoCfg) {
+	m.Mongocfg = v
+}
+
+func (m *MongodbSpec6_0Enterprise) SetMongos(v *MongodbSpec6_0Enterprise_Mongos) {
+	m.Mongos = v
+}
+
+func (m *MongodbSpec6_0Enterprise) SetMongoinfra(v *MongodbSpec6_0Enterprise_MongoInfra) {
+	m.Mongoinfra = v
+}
+
+func (m *MongodbSpec6_0Enterprise_Mongod) SetConfig(v *config.MongodConfig6_0Enterprise) {
+	m.Config = v
+}
+
+func (m *MongodbSpec6_0Enterprise_Mongod) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec6_0Enterprise_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec6_0Enterprise_MongoCfg) SetConfig(v *config.MongoCfgConfig6_0Enterprise) {
+	m.Config = v
+}
+
+func (m *MongodbSpec6_0Enterprise_MongoCfg) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec6_0Enterprise_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec6_0Enterprise_Mongos) SetConfig(v *config.MongosConfig6_0Enterprise) {
+	m.Config = v
+}
+
+func (m *MongodbSpec6_0Enterprise_Mongos) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec6_0Enterprise_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec6_0Enterprise_MongoInfra) SetConfigMongos(v *config.MongosConfig6_0Enterprise) {
+	m.ConfigMongos = v
+}
+
+func (m *MongodbSpec6_0Enterprise_MongoInfra) SetConfigMongocfg(v *config.MongoCfgConfig6_0Enterprise) {
+	m.ConfigMongocfg = v
+}
+
+func (m *MongodbSpec6_0Enterprise_MongoInfra) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec6_0Enterprise_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec) SetMongod(v *MongodbSpec_Mongod) {
+	m.Mongod = v
+}
+
+func (m *MongodbSpec) SetMongocfg(v *MongodbSpec_MongoCfg) {
+	m.Mongocfg = v
+}
+
+func (m *MongodbSpec) SetMongos(v *MongodbSpec_Mongos) {
+	m.Mongos = v
+}
+
+func (m *MongodbSpec) SetMongoinfra(v *MongodbSpec_MongoInfra) {
+	m.Mongoinfra = v
+}
+
+func (m *MongodbSpec_Mongod) SetConfig(v *config.MongodConfig) {
+	m.Config = v
+}
+
+func (m *MongodbSpec_Mongod) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec_Mongod) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec_MongoCfg) SetConfig(v *config.MongoCfgConfig) {
+	m.Config = v
+}
+
+func (m *MongodbSpec_MongoCfg) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec_MongoCfg) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec_Mongos) SetConfig(v *config.MongosConfig) {
+	m.Config = v
+}
+
+func (m *MongodbSpec_Mongos) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec_Mongos) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
+}
+
+func (m *MongodbSpec_MongoInfra) SetConfigMongos(v *config.MongosConfig) {
+	m.ConfigMongos = v
+}
+
+func (m *MongodbSpec_MongoInfra) SetConfigMongocfg(v *config.MongoCfgConfig) {
+	m.ConfigMongocfg = v
+}
+
+func (m *MongodbSpec_MongoInfra) SetResources(v *Resources) {
+	m.Resources = v
+}
+
+func (m *MongodbSpec_MongoInfra) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 type ConfigSpec_MongodbSpec = isConfigSpec_MongodbSpec
@@ -1007,6 +1399,12 @@ func (m *ConfigSpec) SetMongodbSpec_5_0(v *MongodbSpec5_0) {
 	}
 }
 
+func (m *ConfigSpec) SetMongodbSpec_6_0(v *MongodbSpec6_0) {
+	m.MongodbSpec = &ConfigSpec_MongodbSpec_6_0{
+		MongodbSpec_6_0: v,
+	}
+}
+
 func (m *ConfigSpec) SetMongodbSpec_4_4Enterprise(v *MongodbSpec4_4Enterprise) {
 	m.MongodbSpec = &ConfigSpec_MongodbSpec_4_4Enterprise{
 		MongodbSpec_4_4Enterprise: v,
@@ -1019,6 +1417,12 @@ func (m *ConfigSpec) SetMongodbSpec_5_0Enterprise(v *MongodbSpec5_0Enterprise) {
 	}
 }
 
+func (m *ConfigSpec) SetMongodbSpec_6_0Enterprise(v *MongodbSpec6_0Enterprise) {
+	m.MongodbSpec = &ConfigSpec_MongodbSpec_6_0Enterprise{
+		MongodbSpec_6_0Enterprise: v,
+	}
+}
+
 func (m *ConfigSpec) SetBackupWindowStart(v *timeofday.TimeOfDay) {
 	m.BackupWindowStart = v
 }
@@ -1027,6 +1431,14 @@ func (m *ConfigSpec) SetBackupRetainPeriodDays(v *wrapperspb.Int64Value) {
 	m.BackupRetainPeriodDays = v
 }
 
+func (m *ConfigSpec) SetPerformanceDiagnostics(v *PerformanceDiagnosticsConfig) {
+	m.PerformanceDiagnostics = v
+}
+
 func (m *ConfigSpec) SetAccess(v *Access) {
 	m.Access = v
+}
+
+func (m *ConfigSpec) SetMongodb(v *MongodbSpec) {
+	m.Mongodb = v
 }

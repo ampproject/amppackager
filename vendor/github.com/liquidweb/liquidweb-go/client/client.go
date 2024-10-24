@@ -1,7 +1,7 @@
 package client
 
 import (
-	lwApi "github.com/liquidweb/go-lwApi"
+	lwApi "github.com/liquidweb/liquidweb-go/lib/legacy"
 )
 
 // Client provides the HTTP backend.

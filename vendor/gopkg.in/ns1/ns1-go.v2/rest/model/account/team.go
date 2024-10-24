@@ -7,10 +7,3 @@ type Team struct {
 	Permissions PermissionsMap `json:"permissions"`
 	IPWhitelist []IPWhitelist  `json:"ip_whitelist"`
 }
-
-// IPWhitelist wraps the IP whitelist for Teams.
-type IPWhitelist struct {
-	ID     string   `json:"id,omitempty"`
-	Name   string   `json:"name"`
-	Values []string `json:"values"`
-}

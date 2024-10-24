@@ -85,6 +85,10 @@ func (m *Cluster) SetPersistenceMode(v Cluster_PersistenceMode) {
 	m.PersistenceMode = v
 }
 
+func (m *Cluster) SetAnnounceHostnames(v bool) {
+	m.AnnounceHostnames = v
+}
+
 func (m *Monitoring) SetName(v string) {
 	m.Name = v
 }
@@ -125,6 +129,12 @@ func (m *ClusterConfig) SetRedisConfig_6_2(v *config.RedisConfigSet6_2) {
 	}
 }
 
+func (m *ClusterConfig) SetRedisConfig_7_0(v *config.RedisConfigSet7_0) {
+	m.RedisConfig = &ClusterConfig_RedisConfig_7_0{
+		RedisConfig_7_0: v,
+	}
+}
+
 func (m *ClusterConfig) SetResources(v *Resources) {
 	m.Resources = v
 }
@@ -135,6 +145,14 @@ func (m *ClusterConfig) SetBackupWindowStart(v *timeofday.TimeOfDay) {
 
 func (m *ClusterConfig) SetAccess(v *Access) {
 	m.Access = v
+}
+
+func (m *ClusterConfig) SetRedis(v *config.RedisConfigSet) {
+	m.Redis = v
+}
+
+func (m *ClusterConfig) SetDiskSizeAutoscaling(v *DiskSizeAutoscaling) {
+	m.DiskSizeAutoscaling = v
 }
 
 func (m *Shard) SetName(v string) {
@@ -211,4 +229,20 @@ func (m *Resources) SetDiskTypeId(v string) {
 
 func (m *Access) SetDataLens(v bool) {
 	m.DataLens = v
+}
+
+func (m *Access) SetWebSql(v bool) {
+	m.WebSql = v
+}
+
+func (m *DiskSizeAutoscaling) SetPlannedUsageThreshold(v *wrapperspb.Int64Value) {
+	m.PlannedUsageThreshold = v
+}
+
+func (m *DiskSizeAutoscaling) SetEmergencyUsageThreshold(v *wrapperspb.Int64Value) {
+	m.EmergencyUsageThreshold = v
+}
+
+func (m *DiskSizeAutoscaling) SetDiskSizeLimit(v *wrapperspb.Int64Value) {
+	m.DiskSizeLimit = v
 }

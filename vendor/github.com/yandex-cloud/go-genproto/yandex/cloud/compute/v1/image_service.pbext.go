@@ -35,6 +35,10 @@ func (m *ListImagesRequest) SetFilter(v string) {
 	m.Filter = v
 }
 
+func (m *ListImagesRequest) SetOrderBy(v string) {
+	m.OrderBy = v
+}
+
 func (m *ListImagesResponse) SetImages(v []*Image) {
 	m.Images = v
 }
@@ -107,6 +111,10 @@ func (m *CreateImageRequest) SetOs(v *Os) {
 
 func (m *CreateImageRequest) SetPooled(v bool) {
 	m.Pooled = v
+}
+
+func (m *CreateImageRequest) SetHardwareGeneration(v *HardwareGeneration) {
+	m.HardwareGeneration = v
 }
 
 func (m *CreateImageMetadata) SetImageId(v string) {

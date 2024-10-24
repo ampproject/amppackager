@@ -7,6 +7,22 @@ import (
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
+func (m *UpdateDnsZonePrivateNetworksRequest) SetDnsZoneId(v string) {
+	m.DnsZoneId = v
+}
+
+func (m *UpdateDnsZonePrivateNetworksRequest) SetPrivateNetworkIdAdditions(v []string) {
+	m.PrivateNetworkIdAdditions = v
+}
+
+func (m *UpdateDnsZonePrivateNetworksRequest) SetPrivateNetworkIdDeletions(v []string) {
+	m.PrivateNetworkIdDeletions = v
+}
+
+func (m *UpdateDnsZonePrivateNetworksMetadata) SetDnsZoneId(v string) {
+	m.DnsZoneId = v
+}
+
 func (m *GetDnsZoneRequest) SetDnsZoneId(v string) {
 	m.DnsZoneId = v
 }
@@ -63,6 +79,10 @@ func (m *CreateDnsZoneRequest) SetPublicVisibility(v *PublicVisibility) {
 	m.PublicVisibility = v
 }
 
+func (m *CreateDnsZoneRequest) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
+}
+
 func (m *CreateDnsZoneMetadata) SetDnsZoneId(v string) {
 	m.DnsZoneId = v
 }
@@ -93,6 +113,10 @@ func (m *UpdateDnsZoneRequest) SetPrivateVisibility(v *PrivateVisibility) {
 
 func (m *UpdateDnsZoneRequest) SetPublicVisibility(v *PublicVisibility) {
 	m.PublicVisibility = v
+}
+
+func (m *UpdateDnsZoneRequest) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
 }
 
 func (m *UpdateDnsZoneMetadata) SetDnsZoneId(v string) {
@@ -169,6 +193,14 @@ func (m *UpsertRecordSetsRequest) SetReplacements(v []*RecordSet) {
 
 func (m *UpsertRecordSetsRequest) SetMerges(v []*RecordSet) {
 	m.Merges = v
+}
+
+func (m *RecordSetDiff) SetAdditions(v []*RecordSet) {
+	m.Additions = v
+}
+
+func (m *RecordSetDiff) SetDeletions(v []*RecordSet) {
+	m.Deletions = v
 }
 
 func (m *ListDnsZoneOperationsRequest) SetDnsZoneId(v string) {

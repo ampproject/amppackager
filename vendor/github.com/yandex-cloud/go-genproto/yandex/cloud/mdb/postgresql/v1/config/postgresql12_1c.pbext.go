@@ -314,6 +314,10 @@ func (m *PostgresqlConfig12_1C) SetTrackActivityQuerySize(v *wrapperspb.Int64Val
 	m.TrackActivityQuerySize = v
 }
 
+func (m *PostgresqlConfig12_1C) SetOnlineAnalyzeEnable(v *wrapperspb.BoolValue) {
+	m.OnlineAnalyzeEnable = v
+}
+
 func (m *PostgresqlConfig12_1C) SetEnableBitmapscan(v *wrapperspb.BoolValue) {
 	m.EnableBitmapscan = v
 }
@@ -508,6 +512,74 @@ func (m *PostgresqlConfig12_1C) SetPgQualstatsResolveOids(v *wrapperspb.BoolValu
 
 func (m *PostgresqlConfig12_1C) SetPgQualstatsSampleRate(v *wrapperspb.DoubleValue) {
 	m.PgQualstatsSampleRate = v
+}
+
+func (m *PostgresqlConfig12_1C) SetPlantunerFixEmptyTable(v *wrapperspb.BoolValue) {
+	m.PlantunerFixEmptyTable = v
+}
+
+func (m *PostgresqlConfig12_1C) SetMaxStackDepth(v *wrapperspb.Int64Value) {
+	m.MaxStackDepth = v
+}
+
+func (m *PostgresqlConfig12_1C) SetGeqo(v *wrapperspb.BoolValue) {
+	m.Geqo = v
+}
+
+func (m *PostgresqlConfig12_1C) SetGeqoThreshold(v *wrapperspb.Int64Value) {
+	m.GeqoThreshold = v
+}
+
+func (m *PostgresqlConfig12_1C) SetGeqoEffort(v *wrapperspb.Int64Value) {
+	m.GeqoEffort = v
+}
+
+func (m *PostgresqlConfig12_1C) SetGeqoPoolSize(v *wrapperspb.Int64Value) {
+	m.GeqoPoolSize = v
+}
+
+func (m *PostgresqlConfig12_1C) SetGeqoGenerations(v *wrapperspb.Int64Value) {
+	m.GeqoGenerations = v
+}
+
+func (m *PostgresqlConfig12_1C) SetGeqoSelectionBias(v *wrapperspb.DoubleValue) {
+	m.GeqoSelectionBias = v
+}
+
+func (m *PostgresqlConfig12_1C) SetGeqoSeed(v *wrapperspb.DoubleValue) {
+	m.GeqoSeed = v
+}
+
+func (m *PostgresqlConfig12_1C) SetPgTrgmSimilarityThreshold(v *wrapperspb.DoubleValue) {
+	m.PgTrgmSimilarityThreshold = v
+}
+
+func (m *PostgresqlConfig12_1C) SetPgTrgmWordSimilarityThreshold(v *wrapperspb.DoubleValue) {
+	m.PgTrgmWordSimilarityThreshold = v
+}
+
+func (m *PostgresqlConfig12_1C) SetPgTrgmStrictWordSimilarityThreshold(v *wrapperspb.DoubleValue) {
+	m.PgTrgmStrictWordSimilarityThreshold = v
+}
+
+func (m *PostgresqlConfig12_1C) SetMaxStandbyArchiveDelay(v *wrapperspb.Int64Value) {
+	m.MaxStandbyArchiveDelay = v
+}
+
+func (m *PostgresqlConfig12_1C) SetSessionDurationTimeout(v *wrapperspb.Int64Value) {
+	m.SessionDurationTimeout = v
+}
+
+func (m *PostgresqlConfig12_1C) SetLogReplicationCommands(v *wrapperspb.BoolValue) {
+	m.LogReplicationCommands = v
+}
+
+func (m *PostgresqlConfig12_1C) SetLogAutovacuumMinDuration(v *wrapperspb.Int64Value) {
+	m.LogAutovacuumMinDuration = v
+}
+
+func (m *PostgresqlConfig12_1C) SetPasswordEncryption(v PostgresqlConfig12_1C_PasswordEncryption) {
+	m.PasswordEncryption = v
 }
 
 func (m *PostgresqlConfigSet12_1C) SetEffectiveConfig(v *PostgresqlConfig12_1C) {

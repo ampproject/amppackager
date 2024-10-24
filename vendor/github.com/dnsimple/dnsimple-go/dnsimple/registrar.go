@@ -323,6 +323,21 @@ type DomainRenewalResponse struct {
 	Data *DomainRenewal `json:"data"`
 }
 
+// DomainRestore represents the result of a domain restore call.
+type DomainRestore struct {
+	ID        int64  `json:"id"`
+	DomainID  int64  `json:"domain_id"`
+	State     string `json:"state"`
+	CreatedAt string `json:"created_at,omitempty"`
+	UpdatedAt string `json:"updated_at,omitempty"`
+}
+
+// DomainRestoreResponse represents a response from an API method that returns a domain restore.
+type DomainRestoreResponse struct {
+	Response
+	Data *DomainRestore `json:"data"`
+}
+
 // GetDomainRenewal gets the details of an existing domain renewal.
 //
 // See https://developer.dnsimple.com/v2/registrar/#getDomainRenewal
@@ -363,4 +378,37 @@ func (s *RegistrarService) RenewDomain(ctx context.Context, accountID string, do
 
 	renewalResponse.HTTPResponse = resp
 	return renewalResponse, nil
+}
+
+// RestoreDomain restores a domain name.
+//
+// See https://developer.dnsimple.com/v2/registrar/#renewDomain
+func (s *RegistrarService) RestoreDomain(ctx context.Context, accountID string, domainName string, input *RenewDomainInput) (*DomainRenewalResponse, error) {
+	path := versioned(fmt.Sprintf("/%v/registrar/domains/%v/restores", accountID, domainName))
+	renewalResponse := &DomainRenewalResponse{}
+
+	resp, err := s.client.post(ctx, path, input, renewalResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	renewalResponse.HTTPResponse = resp
+	return renewalResponse, nil
+}
+
+// GetDomainRestore gets the details of an existing domain restore.
+//
+// See https://developer.dnsimple.com/v2/registrar/#getDomainRestore
+func (s *RegistrarService) GetDomainRestore(ctx context.Context, accountID string, domainName string, domainRestoreID string) (*DomainRestoreResponse, error) {
+	var err error
+	path := versioned(fmt.Sprintf("/%v/registrar/domains/%v/restores/%v", accountID, domainName, domainRestoreID))
+	res := &DomainRestoreResponse{}
+
+	resp, err := s.client.get(ctx, path, res)
+	if err != nil {
+		return nil, err
+	}
+
+	res.HTTPResponse = resp
+	return res, nil
 }

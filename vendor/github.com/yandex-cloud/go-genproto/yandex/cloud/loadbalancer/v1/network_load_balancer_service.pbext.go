@@ -67,6 +67,10 @@ func (m *CreateNetworkLoadBalancerRequest) SetAttachedTargetGroups(v []*Attached
 	m.AttachedTargetGroups = v
 }
 
+func (m *CreateNetworkLoadBalancerRequest) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
+}
+
 func (m *CreateNetworkLoadBalancerMetadata) SetNetworkLoadBalancerId(v string) {
 	m.NetworkLoadBalancerId = v
 }
@@ -97,6 +101,10 @@ func (m *UpdateNetworkLoadBalancerRequest) SetListenerSpecs(v []*ListenerSpec) {
 
 func (m *UpdateNetworkLoadBalancerRequest) SetAttachedTargetGroups(v []*AttachedTargetGroup) {
 	m.AttachedTargetGroups = v
+}
+
+func (m *UpdateNetworkLoadBalancerRequest) SetDeletionProtection(v bool) {
+	m.DeletionProtection = v
 }
 
 func (m *UpdateNetworkLoadBalancerMetadata) SetNetworkLoadBalancerId(v string) {

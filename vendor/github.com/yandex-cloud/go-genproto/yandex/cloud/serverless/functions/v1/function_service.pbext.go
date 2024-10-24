@@ -101,6 +101,18 @@ func (m *DeleteFunctionMetadata) SetFunctionId(v string) {
 	m.FunctionId = v
 }
 
+func (m *DeleteFunctionVersionRequest) SetFunctionVersionId(v string) {
+	m.FunctionVersionId = v
+}
+
+func (m *DeleteFunctionVersionRequest) SetForce(v bool) {
+	m.Force = v
+}
+
+func (m *DeleteFunctionVersionMetadata) SetFunctionVersionId(v string) {
+	m.FunctionVersionId = v
+}
+
 func (m *ListRuntimesResponse) SetRuntimes(v []string) {
 	m.Runtimes = v
 }
@@ -237,6 +249,30 @@ func (m *CreateFunctionVersionRequest) SetNamedServiceAccounts(v map[string]stri
 
 func (m *CreateFunctionVersionRequest) SetSecrets(v []*Secret) {
 	m.Secrets = v
+}
+
+func (m *CreateFunctionVersionRequest) SetLogOptions(v *LogOptions) {
+	m.LogOptions = v
+}
+
+func (m *CreateFunctionVersionRequest) SetStorageMounts(v []*StorageMount) {
+	m.StorageMounts = v
+}
+
+func (m *CreateFunctionVersionRequest) SetAsyncInvocationConfig(v *AsyncInvocationConfig) {
+	m.AsyncInvocationConfig = v
+}
+
+func (m *CreateFunctionVersionRequest) SetTmpfsSize(v int64) {
+	m.TmpfsSize = v
+}
+
+func (m *CreateFunctionVersionRequest) SetConcurrency(v int64) {
+	m.Concurrency = v
+}
+
+func (m *CreateFunctionVersionRequest) SetMounts(v []*Mount) {
+	m.Mounts = v
 }
 
 func (m *CreateFunctionVersionMetadata) SetFunctionVersionId(v string) {

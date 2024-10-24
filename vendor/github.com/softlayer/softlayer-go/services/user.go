@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package services
 
@@ -31,12 +24,12 @@ import (
 
 // The SoftLayer_User_Customer data type contains general information relating to a single SoftLayer customer portal user. Personal information in this type such as names, addresses, and phone numbers are not necessarily associated with the customer account the user is assigned to.
 type User_Customer struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerService returns an instance of the User_Customer SoftLayer service
-func GetUserCustomerService(sess *session.Session) User_Customer {
+func GetUserCustomerService(sess session.SLSession) User_Customer {
 	return User_Customer{Session: sess}
 }
 
@@ -517,12 +510,6 @@ func (r User_Customer) GetMappedAccounts(providerType *string) (resp []datatypes
 		providerType,
 	}
 	err = r.Session.DoRequest("SoftLayer_User_Customer", "getMappedAccounts", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve A portal user's associated mobile device profiles.
-func (r User_Customer) GetMobileDevices() (resp []datatypes.User_Customer_MobileDevice, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer", "getMobileDevices", nil, &r.Options, &resp)
 	return
 }
 
@@ -1174,12 +1161,12 @@ func (r User_Customer) ValidateAuthenticationToken(authenticationToken *datatype
 
 // The SoftLayer_User_Customer_ApiAuthentication type contains user's authentication key(s).
 type User_Customer_ApiAuthentication struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerApiAuthenticationService returns an instance of the User_Customer_ApiAuthentication SoftLayer service
-func GetUserCustomerApiAuthenticationService(sess *session.Session) User_Customer_ApiAuthentication {
+func GetUserCustomerApiAuthenticationService(sess session.SLSession) User_Customer_ApiAuthentication {
 	return User_Customer_ApiAuthentication{Session: sess}
 }
 
@@ -1235,12 +1222,12 @@ func (r User_Customer_ApiAuthentication) GetUser() (resp datatypes.User_Customer
 
 // Each SoftLayer portal account is assigned a series of permissions that determine what access the user has to functions within the SoftLayer customer portal. This status is reflected in the SoftLayer_User_Customer_Status data type. Permissions differ from user status in that user status applies globally to the portal while user permissions are applied to specific portal functions.
 type User_Customer_CustomerPermission_Permission struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerCustomerPermissionPermissionService returns an instance of the User_Customer_CustomerPermission_Permission SoftLayer service
-func GetUserCustomerCustomerPermissionPermissionService(sess *session.Session) User_Customer_CustomerPermission_Permission {
+func GetUserCustomerCustomerPermissionPermissionService(sess session.SLSession) User_Customer_CustomerPermission_Permission {
 	return User_Customer_CustomerPermission_Permission{Session: sess}
 }
 
@@ -1288,12 +1275,12 @@ func (r User_Customer_CustomerPermission_Permission) GetObject() (resp datatypes
 
 // The SoftLayer_User_Customer_External_Binding data type contains general information for a single external binding.  This includes the 3rd party vendor, type of binding, and a unique identifier and password that is used to authenticate against the 3rd party service.
 type User_Customer_External_Binding struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerExternalBindingService returns an instance of the User_Customer_External_Binding SoftLayer service
-func GetUserCustomerExternalBindingService(sess *session.Session) User_Customer_External_Binding {
+func GetUserCustomerExternalBindingService(sess session.SLSession) User_Customer_External_Binding {
 	return User_Customer_External_Binding{Session: sess}
 }
 
@@ -1416,12 +1403,12 @@ func (r User_Customer_External_Binding) UpdateNote(text *string) (resp bool, err
 //
 // SoftLayer users with an active external binding will be prohibited from using the API for security reasons.
 type User_Customer_External_Binding_Totp struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerExternalBindingTotpService returns an instance of the User_Customer_External_Binding_Totp SoftLayer service
-func GetUserCustomerExternalBindingTotpService(sess *session.Session) User_Customer_External_Binding_Totp {
+func GetUserCustomerExternalBindingTotpService(sess session.SLSession) User_Customer_External_Binding_Totp {
 	return User_Customer_External_Binding_Totp{Session: sess}
 }
 
@@ -1554,12 +1541,12 @@ func (r User_Customer_External_Binding_Totp) UpdateNote(text *string) (resp bool
 
 // The SoftLayer_User_Customer_External_Binding_Vendor data type contains information for a single external binding vendor.  This information includes a user friendly vendor name, a unique version of the vendor name, and a unique internal identifier that can be used when creating a new external binding.
 type User_Customer_External_Binding_Vendor struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerExternalBindingVendorService returns an instance of the User_Customer_External_Binding_Vendor SoftLayer service
-func GetUserCustomerExternalBindingVendorService(sess *session.Session) User_Customer_External_Binding_Vendor {
+func GetUserCustomerExternalBindingVendorService(sess session.SLSession) User_Customer_External_Binding_Vendor {
 	return User_Customer_External_Binding_Vendor{Session: sess}
 }
 
@@ -1617,12 +1604,12 @@ func (r User_Customer_External_Binding_Vendor) GetObject() (resp datatypes.User_
 //
 // SoftLayer users with an active external binding will be prohibited from using the API for security reasons.
 type User_Customer_External_Binding_Verisign struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerExternalBindingVerisignService returns an instance of the User_Customer_External_Binding_Verisign SoftLayer service
-func GetUserCustomerExternalBindingVerisignService(sess *session.Session) User_Customer_External_Binding_Verisign {
+func GetUserCustomerExternalBindingVerisignService(sess session.SLSession) User_Customer_External_Binding_Verisign {
 	return User_Customer_External_Binding_Verisign{Session: sess}
 }
 
@@ -1788,12 +1775,12 @@ func (r User_Customer_External_Binding_Verisign) ValidateCredentialId(userId *in
 
 // no documentation yet
 type User_Customer_Invitation struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerInvitationService returns an instance of the User_Customer_Invitation SoftLayer service
-func GetUserCustomerInvitationService(sess *session.Session) User_Customer_Invitation {
+func GetUserCustomerInvitationService(sess session.SLSession) User_Customer_Invitation {
 	return User_Customer_Invitation{Session: sess}
 }
 
@@ -1838,218 +1825,14 @@ func (r User_Customer_Invitation) GetUser() (resp datatypes.User_Customer, err e
 	return
 }
 
-// This class represents a mobile device belonging to a user.  The device can be a phone, tablet, or possibly even some Android based net books.  The purpose is to tie just enough info with the device and the user to enable push notifications through non-softlayer entities (Google, Apple, RIM).
-type User_Customer_MobileDevice struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetUserCustomerMobileDeviceService returns an instance of the User_Customer_MobileDevice SoftLayer service
-func GetUserCustomerMobileDeviceService(sess *session.Session) User_Customer_MobileDevice {
-	return User_Customer_MobileDevice{Session: sess}
-}
-
-func (r User_Customer_MobileDevice) Id(id int) User_Customer_MobileDevice {
-	r.Options.Id = &id
-	return r
-}
-
-func (r User_Customer_MobileDevice) Mask(mask string) User_Customer_MobileDevice {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r User_Customer_MobileDevice) Filter(filter string) User_Customer_MobileDevice {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r User_Customer_MobileDevice) Limit(limit int) User_Customer_MobileDevice {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r User_Customer_MobileDevice) Offset(offset int) User_Customer_MobileDevice {
-	r.Options.Offset = &offset
-	return r
-}
-
-// Create a new mobile device association for a user.
-func (r User_Customer_MobileDevice) CreateObject(templateObject *datatypes.User_Customer_MobileDevice) (resp datatypes.User_Customer_MobileDevice, err error) {
-	params := []interface{}{
-		templateObject,
-	}
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "createObject", params, &r.Options, &resp)
-	return
-}
-
-// Delete a mobile device association for a user.
-func (r User_Customer_MobileDevice) DeleteObject() (resp bool, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "deleteObject", nil, &r.Options, &resp)
-	return
-}
-
-// Edit the object by passing in a modified instance of the object
-func (r User_Customer_MobileDevice) EditObject(templateObject *datatypes.User_Customer_MobileDevice) (resp bool, err error) {
-	params := []interface{}{
-		templateObject,
-	}
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "editObject", params, &r.Options, &resp)
-	return
-}
-
-// Retrieve Notification subscriptions available to a mobile device.
-func (r User_Customer_MobileDevice) GetAvailablePushNotificationSubscriptions() (resp []datatypes.Notification, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getAvailablePushNotificationSubscriptions", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The user this mobile device belongs to.
-func (r User_Customer_MobileDevice) GetCustomer() (resp datatypes.User_Customer, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getCustomer", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice) GetObject() (resp datatypes.User_Customer_MobileDevice, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The operating system this device is using
-func (r User_Customer_MobileDevice) GetOperatingSystem() (resp datatypes.User_Customer_MobileDevice_OperatingSystem, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getOperatingSystem", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve Notification subscriptions attached to a mobile device.
-func (r User_Customer_MobileDevice) GetPushNotificationSubscriptions() (resp []datatypes.Notification_User_Subscriber, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getPushNotificationSubscriptions", nil, &r.Options, &resp)
-	return
-}
-
-// Retrieve The type of device this user is using
-func (r User_Customer_MobileDevice) GetType() (resp datatypes.User_Customer_MobileDevice_Type, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice", "getType", nil, &r.Options, &resp)
-	return
-}
-
-// This class represents the mobile operating system installed on a user's registered mobile device. It assists us when determining the how to get a push notification to the user.
-type User_Customer_MobileDevice_OperatingSystem struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetUserCustomerMobileDeviceOperatingSystemService returns an instance of the User_Customer_MobileDevice_OperatingSystem SoftLayer service
-func GetUserCustomerMobileDeviceOperatingSystemService(sess *session.Session) User_Customer_MobileDevice_OperatingSystem {
-	return User_Customer_MobileDevice_OperatingSystem{Session: sess}
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Id(id int) User_Customer_MobileDevice_OperatingSystem {
-	r.Options.Id = &id
-	return r
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Mask(mask string) User_Customer_MobileDevice_OperatingSystem {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Filter(filter string) User_Customer_MobileDevice_OperatingSystem {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Limit(limit int) User_Customer_MobileDevice_OperatingSystem {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r User_Customer_MobileDevice_OperatingSystem) Offset(offset int) User_Customer_MobileDevice_OperatingSystem {
-	r.Options.Offset = &offset
-	return r
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice_OperatingSystem) GetAllObjects() (resp []datatypes.User_Customer_MobileDevice_OperatingSystem, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice_OperatingSystem", "getAllObjects", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice_OperatingSystem) GetObject() (resp datatypes.User_Customer_MobileDevice_OperatingSystem, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice_OperatingSystem", "getObject", nil, &r.Options, &resp)
-	return
-}
-
-// Describes a supported class of mobile device. In this the word class is used in the context of classes of consumer electronic devices, the two most prominent examples being mobile phones and tablets.
-type User_Customer_MobileDevice_Type struct {
-	Session *session.Session
-	Options sl.Options
-}
-
-// GetUserCustomerMobileDeviceTypeService returns an instance of the User_Customer_MobileDevice_Type SoftLayer service
-func GetUserCustomerMobileDeviceTypeService(sess *session.Session) User_Customer_MobileDevice_Type {
-	return User_Customer_MobileDevice_Type{Session: sess}
-}
-
-func (r User_Customer_MobileDevice_Type) Id(id int) User_Customer_MobileDevice_Type {
-	r.Options.Id = &id
-	return r
-}
-
-func (r User_Customer_MobileDevice_Type) Mask(mask string) User_Customer_MobileDevice_Type {
-	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
-		mask = fmt.Sprintf("mask[%s]", mask)
-	}
-
-	r.Options.Mask = mask
-	return r
-}
-
-func (r User_Customer_MobileDevice_Type) Filter(filter string) User_Customer_MobileDevice_Type {
-	r.Options.Filter = filter
-	return r
-}
-
-func (r User_Customer_MobileDevice_Type) Limit(limit int) User_Customer_MobileDevice_Type {
-	r.Options.Limit = &limit
-	return r
-}
-
-func (r User_Customer_MobileDevice_Type) Offset(offset int) User_Customer_MobileDevice_Type {
-	r.Options.Offset = &offset
-	return r
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice_Type) GetAllObjects() (resp []datatypes.User_Customer_MobileDevice_Type, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice_Type", "getAllObjects", nil, &r.Options, &resp)
-	return
-}
-
-// no documentation yet
-func (r User_Customer_MobileDevice_Type) GetObject() (resp datatypes.User_Customer_MobileDevice_Type, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_MobileDevice_Type", "getObject", nil, &r.Options, &resp)
-	return
-}
-
 // The Customer_Notification_Hardware object stores links between customers and the hardware devices they wish to monitor.  This link is not enough, the user must be sure to also create SoftLayer_Network_Monitor_Version1_Query_Host instance with the response action set to "notify users" in order for the users linked to that hardware object to be notified on failure.
 type User_Customer_Notification_Hardware struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerNotificationHardwareService returns an instance of the User_Customer_Notification_Hardware SoftLayer service
-func GetUserCustomerNotificationHardwareService(sess *session.Session) User_Customer_Notification_Hardware {
+func GetUserCustomerNotificationHardwareService(sess session.SLSession) User_Customer_Notification_Hardware {
 	return User_Customer_Notification_Hardware{Session: sess}
 }
 
@@ -2140,12 +1923,12 @@ func (r User_Customer_Notification_Hardware) GetUser() (resp datatypes.User_Cust
 
 // The SoftLayer_User_Customer_Notification_Virtual_Guest object stores links between customers and the virtual guests they wish to monitor.  This link is not enough, the user must be sure to also create SoftLayer_Network_Monitor_Version1_Query_Host instance with the response action set to "notify users" in order for the users linked to that Virtual Guest object to be notified on failure.
 type User_Customer_Notification_Virtual_Guest struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerNotificationVirtualGuestService returns an instance of the User_Customer_Notification_Virtual_Guest SoftLayer service
-func GetUserCustomerNotificationVirtualGuestService(sess *session.Session) User_Customer_Notification_Virtual_Guest {
+func GetUserCustomerNotificationVirtualGuestService(sess session.SLSession) User_Customer_Notification_Virtual_Guest {
 	return User_Customer_Notification_Virtual_Guest{Session: sess}
 }
 
@@ -2236,12 +2019,12 @@ func (r User_Customer_Notification_Virtual_Guest) GetUser() (resp datatypes.User
 
 // no documentation yet
 type User_Customer_OpenIdConnect struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerOpenIdConnectService returns an instance of the User_Customer_OpenIdConnect SoftLayer service
-func GetUserCustomerOpenIdConnectService(sess *session.Session) User_Customer_OpenIdConnect {
+func GetUserCustomerOpenIdConnectService(sess session.SLSession) User_Customer_OpenIdConnect {
 	return User_Customer_OpenIdConnect{Session: sess}
 }
 
@@ -2783,12 +2566,6 @@ func (r User_Customer_OpenIdConnect) GetMappedAccounts(providerType *string) (re
 	return
 }
 
-// Retrieve A portal user's associated mobile device profiles.
-func (r User_Customer_OpenIdConnect) GetMobileDevices() (resp []datatypes.User_Customer_MobileDevice, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect", "getMobileDevices", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Notification subscription records for the user.
 func (r User_Customer_OpenIdConnect) GetNotificationSubscribers() (resp []datatypes.Notification_Subscriber, err error) {
 	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect", "getNotificationSubscribers", nil, &r.Options, &resp)
@@ -2987,11 +2764,12 @@ func (r User_Customer_OpenIdConnect) GetUnsuccessfulLogins() (resp []datatypes.U
 }
 
 // Returns an IMS User Object from the provided OpenIdConnect User ID or IBMid Unique Identifier for the Account of the active user. Enforces the User Management permissions for the Active User. An exception will be thrown if no matching IMS User is found. NOTE that providing IBMid Unique Identifier is optional, but it will be preferred over OpenIdConnect User ID if provided.
-func (r User_Customer_OpenIdConnect) GetUserForUnifiedInvitation(openIdConnectUserId *string, uniqueIdentifier *string, searchInvitationsNotLinksFlag *string) (resp datatypes.User_Customer_OpenIdConnect, err error) {
+func (r User_Customer_OpenIdConnect) GetUserForUnifiedInvitation(openIdConnectUserId *string, uniqueIdentifier *string, searchInvitationsNotLinksFlag *string, accountId *string) (resp datatypes.User_Customer_OpenIdConnect, err error) {
 	params := []interface{}{
 		openIdConnectUserId,
 		uniqueIdentifier,
 		searchInvitationsNotLinksFlag,
+		accountId,
 	}
 	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect", "getUserForUnifiedInvitation", params, &r.Options, &resp)
 	return
@@ -3472,12 +3250,12 @@ func (r User_Customer_OpenIdConnect) ValidateAuthenticationToken(authenticationT
 
 // no documentation yet
 type User_Customer_OpenIdConnect_TrustedProfile struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerOpenIdConnectTrustedProfileService returns an instance of the User_Customer_OpenIdConnect_TrustedProfile SoftLayer service
-func GetUserCustomerOpenIdConnectTrustedProfileService(sess *session.Session) User_Customer_OpenIdConnect_TrustedProfile {
+func GetUserCustomerOpenIdConnectTrustedProfileService(sess session.SLSession) User_Customer_OpenIdConnect_TrustedProfile {
 	return User_Customer_OpenIdConnect_TrustedProfile{Session: sess}
 }
 
@@ -3997,12 +3775,6 @@ func (r User_Customer_OpenIdConnect_TrustedProfile) GetMappedAccounts(providerTy
 	return
 }
 
-// Retrieve A portal user's associated mobile device profiles.
-func (r User_Customer_OpenIdConnect_TrustedProfile) GetMobileDevices() (resp []datatypes.User_Customer_MobileDevice, err error) {
-	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect_TrustedProfile", "getMobileDevices", nil, &r.Options, &resp)
-	return
-}
-
 // Retrieve Notification subscription records for the user.
 func (r User_Customer_OpenIdConnect_TrustedProfile) GetNotificationSubscribers() (resp []datatypes.Notification_Subscriber, err error) {
 	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect_TrustedProfile", "getNotificationSubscribers", nil, &r.Options, &resp)
@@ -4201,11 +3973,12 @@ func (r User_Customer_OpenIdConnect_TrustedProfile) GetUnsuccessfulLogins() (res
 }
 
 // Returns an IMS User Object from the provided OpenIdConnect User ID or IBMid Unique Identifier for the Account of the active user. Enforces the User Management permissions for the Active User. An exception will be thrown if no matching IMS User is found. NOTE that providing IBMid Unique Identifier is optional, but it will be preferred over OpenIdConnect User ID if provided.
-func (r User_Customer_OpenIdConnect_TrustedProfile) GetUserForUnifiedInvitation(openIdConnectUserId *string, uniqueIdentifier *string, searchInvitationsNotLinksFlag *string) (resp datatypes.User_Customer_OpenIdConnect, err error) {
+func (r User_Customer_OpenIdConnect_TrustedProfile) GetUserForUnifiedInvitation(openIdConnectUserId *string, uniqueIdentifier *string, searchInvitationsNotLinksFlag *string, accountId *string) (resp datatypes.User_Customer_OpenIdConnect, err error) {
 	params := []interface{}{
 		openIdConnectUserId,
 		uniqueIdentifier,
 		searchInvitationsNotLinksFlag,
+		accountId,
 	}
 	err = r.Session.DoRequest("SoftLayer_User_Customer_OpenIdConnect_TrustedProfile", "getUserForUnifiedInvitation", params, &r.Options, &resp)
 	return
@@ -4686,12 +4459,12 @@ func (r User_Customer_OpenIdConnect_TrustedProfile) ValidateAuthenticationToken(
 
 // no documentation yet
 type User_Customer_Profile_Event_HyperWarp struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerProfileEventHyperWarpService returns an instance of the User_Customer_Profile_Event_HyperWarp SoftLayer service
-func GetUserCustomerProfileEventHyperWarpService(sess *session.Session) User_Customer_Profile_Event_HyperWarp {
+func GetUserCustomerProfileEventHyperWarpService(sess session.SLSession) User_Customer_Profile_Event_HyperWarp {
 	return User_Customer_Profile_Event_HyperWarp{Session: sess}
 }
 
@@ -4735,12 +4508,12 @@ func (r User_Customer_Profile_Event_HyperWarp) ReceiveEventDirect(eventJson *dat
 
 // Contains user information for Service Provider Enrollment.
 type User_Customer_Prospect_ServiceProvider_EnrollRequest struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerProspectServiceProviderEnrollRequestService returns an instance of the User_Customer_Prospect_ServiceProvider_EnrollRequest SoftLayer service
-func GetUserCustomerProspectServiceProviderEnrollRequestService(sess *session.Session) User_Customer_Prospect_ServiceProvider_EnrollRequest {
+func GetUserCustomerProspectServiceProviderEnrollRequestService(sess session.SLSession) User_Customer_Prospect_ServiceProvider_EnrollRequest {
 	return User_Customer_Prospect_ServiceProvider_EnrollRequest{Session: sess}
 }
 
@@ -4796,12 +4569,12 @@ func (r User_Customer_Prospect_ServiceProvider_EnrollRequest) GetObject() (resp 
 
 // The SoftLayer_User_Customer_Security_Answer type contains user's answers to security questions.
 type User_Customer_Security_Answer struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerSecurityAnswerService returns an instance of the User_Customer_Security_Answer SoftLayer service
-func GetUserCustomerSecurityAnswerService(sess *session.Session) User_Customer_Security_Answer {
+func GetUserCustomerSecurityAnswerService(sess session.SLSession) User_Customer_Security_Answer {
 	return User_Customer_Security_Answer{Session: sess}
 }
 
@@ -4856,12 +4629,12 @@ func (r User_Customer_Security_Answer) GetUser() (resp datatypes.User_Customer, 
 //
 // Note that a status of "PENDING" also has been added. This status is specific to users that are configured to use IBMid authentication. This would include some (not all) users on accounts that are linked to Platform Services (PaaS, formerly Bluemix) accounts, but is not limited to users in such accounts. Using IBMid authentication is optional for active users even if it is not required by the account type. PENDING status indicates that a relationship between an IBMid and a user is being set up but is not complete. To be complete, PENDING users need to perform an action ("accepting the invitation") before becoming an active user within IBM Cloud and/or IMS. PENDING is a system state, and can not be administered by users (including the account master user). SoftLayer Commercial is the only environment where IBMid and/or account linking are used.
 type User_Customer_Status struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserCustomerStatusService returns an instance of the User_Customer_Status SoftLayer service
-func GetUserCustomerStatusService(sess *session.Session) User_Customer_Status {
+func GetUserCustomerStatusService(sess session.SLSession) User_Customer_Status {
 	return User_Customer_Status{Session: sess}
 }
 
@@ -4908,12 +4681,12 @@ func (r User_Customer_Status) GetObject() (resp datatypes.User_Customer_Status, 
 
 // The SoftLayer_User_External_Binding data type contains general information for a single external binding.  This includes the 3rd party vendor, type of binding, and a unique identifier and password that is used to authenticate against the 3rd party service.
 type User_External_Binding struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserExternalBindingService returns an instance of the User_External_Binding SoftLayer service
-func GetUserExternalBindingService(sess *session.Session) User_External_Binding {
+func GetUserExternalBindingService(sess session.SLSession) User_External_Binding {
 	return User_External_Binding{Session: sess}
 }
 
@@ -4999,12 +4772,12 @@ func (r User_External_Binding) UpdateNote(text *string) (resp bool, err error) {
 
 // The SoftLayer_User_External_Binding_Vendor data type contains information for a single external binding vendor.  This information includes a user friendly vendor name, a unique version of the vendor name, and a unique internal identifier that can be used when creating a new external binding.
 type User_External_Binding_Vendor struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserExternalBindingVendorService returns an instance of the User_External_Binding_Vendor SoftLayer service
-func GetUserExternalBindingVendorService(sess *session.Session) User_External_Binding_Vendor {
+func GetUserExternalBindingVendorService(sess session.SLSession) User_External_Binding_Vendor {
 	return User_External_Binding_Vendor{Session: sess}
 }
 
@@ -5053,12 +4826,12 @@ func (r User_External_Binding_Vendor) GetObject() (resp datatypes.User_External_
 //
 // It also contains relational attributes that indicate which SoftLayer_User_Permission_Group's include the action.
 type User_Permission_Action struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserPermissionActionService returns an instance of the User_Permission_Action SoftLayer service
-func GetUserPermissionActionService(sess *session.Session) User_Permission_Action {
+func GetUserPermissionActionService(sess session.SLSession) User_Permission_Action {
 	return User_Permission_Action{Session: sess}
 }
 
@@ -5097,9 +4870,73 @@ func (r User_Permission_Action) GetAllObjects() (resp []datatypes.User_Permissio
 	return
 }
 
+// Retrieve
+func (r User_Permission_Action) GetDepartment() (resp datatypes.User_Permission_Department, err error) {
+	err = r.Session.DoRequest("SoftLayer_User_Permission_Action", "getDepartment", nil, &r.Options, &resp)
+	return
+}
+
 // no documentation yet
 func (r User_Permission_Action) GetObject() (resp datatypes.User_Permission_Action, err error) {
 	err = r.Session.DoRequest("SoftLayer_User_Permission_Action", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+type User_Permission_Department struct {
+	Session session.SLSession
+	Options sl.Options
+}
+
+// GetUserPermissionDepartmentService returns an instance of the User_Permission_Department SoftLayer service
+func GetUserPermissionDepartmentService(sess session.SLSession) User_Permission_Department {
+	return User_Permission_Department{Session: sess}
+}
+
+func (r User_Permission_Department) Id(id int) User_Permission_Department {
+	r.Options.Id = &id
+	return r
+}
+
+func (r User_Permission_Department) Mask(mask string) User_Permission_Department {
+	if !strings.HasPrefix(mask, "mask[") && (strings.Contains(mask, "[") || strings.Contains(mask, ",")) {
+		mask = fmt.Sprintf("mask[%s]", mask)
+	}
+
+	r.Options.Mask = mask
+	return r
+}
+
+func (r User_Permission_Department) Filter(filter string) User_Permission_Department {
+	r.Options.Filter = filter
+	return r
+}
+
+func (r User_Permission_Department) Limit(limit int) User_Permission_Department {
+	r.Options.Limit = &limit
+	return r
+}
+
+func (r User_Permission_Department) Offset(offset int) User_Permission_Department {
+	r.Options.Offset = &offset
+	return r
+}
+
+// no documentation yet
+func (r User_Permission_Department) GetAllObjects() (resp []datatypes.User_Permission_Department, err error) {
+	err = r.Session.DoRequest("SoftLayer_User_Permission_Department", "getAllObjects", nil, &r.Options, &resp)
+	return
+}
+
+// no documentation yet
+func (r User_Permission_Department) GetObject() (resp datatypes.User_Permission_Department, err error) {
+	err = r.Session.DoRequest("SoftLayer_User_Permission_Department", "getObject", nil, &r.Options, &resp)
+	return
+}
+
+// Retrieve
+func (r User_Permission_Department) GetPermissions() (resp []datatypes.User_Permission_Action, err error) {
+	err = r.Session.DoRequest("SoftLayer_User_Permission_Department", "getPermissions", nil, &r.Options, &resp)
 	return
 }
 
@@ -5107,12 +4944,12 @@ func (r User_Permission_Action) GetObject() (resp datatypes.User_Permission_Acti
 //
 // It also contains relational attributes that indicate what SoftLayer_User_Permission_Action objects belong to a particular group, and what SoftLayer_User_Permission_Role objects the group is linked.
 type User_Permission_Group struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserPermissionGroupService returns an instance of the User_Permission_Group SoftLayer service
-func GetUserPermissionGroupService(sess *session.Session) User_Permission_Group {
+func GetUserPermissionGroupService(sess session.SLSession) User_Permission_Group {
 	return User_Permission_Group{Session: sess}
 }
 
@@ -5303,12 +5140,12 @@ func (r User_Permission_Group) UnlinkRole(role *datatypes.User_Permission_Role) 
 //
 // For further information see: [[SoftLayer_User_Permission_Group]].
 type User_Permission_Group_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserPermissionGroupTypeService returns an instance of the User_Permission_Group_Type SoftLayer service
-func GetUserPermissionGroupTypeService(sess *session.Session) User_Permission_Group_Type {
+func GetUserPermissionGroupTypeService(sess session.SLSession) User_Permission_Group_Type {
 	return User_Permission_Group_Type{Session: sess}
 }
 
@@ -5355,12 +5192,12 @@ func (r User_Permission_Group_Type) GetObject() (resp datatypes.User_Permission_
 
 // These are the variables relating to SoftLayer_User_Permission_Resource_Type. Collectively they describe the types of resources which can be linked to [[SoftLayer_User_Permission_Group]].
 type User_Permission_Resource_Type struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserPermissionResourceTypeService returns an instance of the User_Permission_Resource_Type SoftLayer service
-func GetUserPermissionResourceTypeService(sess *session.Session) User_Permission_Resource_Type {
+func GetUserPermissionResourceTypeService(sess session.SLSession) User_Permission_Resource_Type {
 	return User_Permission_Resource_Type{Session: sess}
 }
 
@@ -5409,12 +5246,12 @@ func (r User_Permission_Resource_Type) GetObject() (resp datatypes.User_Permissi
 //
 // It also contains relational attributes that indicate what SoftLayer_User_Permission_Group objects are linked to a particular role, and the SoftLayer_User_Customer objects assigned to the role.
 type User_Permission_Role struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserPermissionRoleService returns an instance of the User_Permission_Role SoftLayer service
-func GetUserPermissionRoleService(sess *session.Session) User_Permission_Role {
+func GetUserPermissionRoleService(sess session.SLSession) User_Permission_Role {
 	return User_Permission_Role{Session: sess}
 }
 
@@ -5543,12 +5380,12 @@ func (r User_Permission_Role) UnlinkGroup(group *datatypes.User_Permission_Group
 
 // The SoftLayer_User_Security_Question data type contains questions.
 type User_Security_Question struct {
-	Session *session.Session
+	Session session.SLSession
 	Options sl.Options
 }
 
 // GetUserSecurityQuestionService returns an instance of the User_Security_Question SoftLayer service
-func GetUserSecurityQuestionService(sess *session.Session) User_Security_Question {
+func GetUserSecurityQuestionService(sess session.SLSession) User_Security_Question {
 	return User_Security_Question{Session: sess}
 }
 

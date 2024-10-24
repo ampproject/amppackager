@@ -21,3 +21,15 @@ func (m *ApiKey) SetCreatedAt(v *timestamppb.Timestamp) {
 func (m *ApiKey) SetDescription(v string) {
 	m.Description = v
 }
+
+func (m *ApiKey) SetLastUsedAt(v *timestamppb.Timestamp) {
+	m.LastUsedAt = v
+}
+
+func (m *ApiKey) SetScope(v string) {
+	m.Scope = v
+}
+
+func (m *ApiKey) SetExpiresAt(v *timestamppb.Timestamp) {
+	m.ExpiresAt = v
+}

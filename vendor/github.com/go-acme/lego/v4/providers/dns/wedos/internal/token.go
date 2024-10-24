@@ -2,6 +2,7 @@ package internal
 
 import (
 	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"time"
@@ -14,7 +15,7 @@ func authToken(userName string, wapiPass string) string {
 func sha1string(txt string) string {
 	h := sha1.New()
 	_, _ = io.WriteString(h, txt)
-	return fmt.Sprintf("%x", h.Sum(nil))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func czechHourString() string {
@@ -38,7 +39,7 @@ func czechHour() int {
 
 func utcToCet(utc time.Time) time.Time {
 	// https://en.wikipedia.org/wiki/Central_European_Time
-	// As of 2011, all member states of the European Union observe summer time (daylight saving time),
+	// As of 2011, all member states of the European Union observe Summer Time (daylight saving time),
 	// from the last Sunday in March to the last Sunday in October.
 	// States within the CET area switch to Central European Summer Time (CEST -- UTC+02:00) for the summer.[1]
 	utcMonth := utc.Month()

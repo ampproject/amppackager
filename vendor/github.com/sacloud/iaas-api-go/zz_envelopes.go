@@ -2584,6 +2584,7 @@ type serverChangePlanRequestEnvelope struct {
 	CPU                  int                   `json:",omitempty"`
 	MemoryMB             int                   `json:",omitempty"`
 	GPU                  int                   `json:",omitempty"`
+	ServerPlanCPUModel   string                `json:"CPUModel,omitempty"`
 	ServerPlanGeneration types.EPlanGeneration `json:"Generation,omitempty"`
 	ServerPlanCommitment types.ECommitment     `json:"Commitment,omitempty"`
 }

@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
 
@@ -284,12 +277,6 @@ type User_Customer struct {
 
 	// The minimum number of hours that must pass between password resets.
 	MinimumPasswordLifeHours *int `json:"minimumPasswordLifeHours,omitempty" xmlrpc:"minimumPasswordLifeHours,omitempty"`
-
-	// A count of a portal user's associated mobile device profiles.
-	MobileDeviceCount *uint `json:"mobileDeviceCount,omitempty" xmlrpc:"mobileDeviceCount,omitempty"`
-
-	// A portal user's associated mobile device profiles.
-	MobileDevices []User_Customer_MobileDevice `json:"mobileDevices,omitempty" xmlrpc:"mobileDevices,omitempty"`
 
 	// The date a portal user's record was last modified.
 	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
@@ -739,117 +726,6 @@ type User_Customer_Link_VerifiedIamIdLinkCollection struct {
 	GoodLinks []User_Customer_Link `json:"goodLinks,omitempty" xmlrpc:"goodLinks,omitempty"`
 }
 
-// This class represents a mobile device belonging to a user.  The device can be a phone, tablet, or possibly even some Android based net books.  The purpose is to tie just enough info with the device and the user to enable push notifications through non-softlayer entities (Google, Apple, RIM).
-type User_Customer_MobileDevice struct {
-	Entity
-
-	// A count of notification subscriptions available to a mobile device.
-	AvailablePushNotificationSubscriptionCount *uint `json:"availablePushNotificationSubscriptionCount,omitempty" xmlrpc:"availablePushNotificationSubscriptionCount,omitempty"`
-
-	// Notification subscriptions available to a mobile device.
-	AvailablePushNotificationSubscriptions []Notification `json:"availablePushNotificationSubscriptions,omitempty" xmlrpc:"availablePushNotificationSubscriptions,omitempty"`
-
-	// Created date for the record.
-	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
-
-	// The user this mobile device belongs to.
-	Customer *User_Customer `json:"customer,omitempty" xmlrpc:"customer,omitempty"`
-
-	// The device resolution formatted width x height
-	DisplayResolutionXxY *string `json:"displayResolutionXxY,omitempty" xmlrpc:"displayResolutionXxY,omitempty"`
-
-	// Record Identifier
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// Device type identifier.
-	MobileDeviceTypeId *int `json:"mobileDeviceTypeId,omitempty" xmlrpc:"mobileDeviceTypeId,omitempty"`
-
-	// Mobile OS identifier.
-	MobileOperatingSystemId *int `json:"mobileOperatingSystemId,omitempty" xmlrpc:"mobileOperatingSystemId,omitempty"`
-
-	// Device model number
-	ModelNumber *string `json:"modelNumber,omitempty" xmlrpc:"modelNumber,omitempty"`
-
-	// Last modify date for the record.
-	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
-
-	// The name of the device the user is using.
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-
-	// The operating system this device is using
-	OperatingSystem *User_Customer_MobileDevice_OperatingSystem `json:"operatingSystem,omitempty" xmlrpc:"operatingSystem,omitempty"`
-
-	// Device phone number
-	PhoneNumber *string `json:"phoneNumber,omitempty" xmlrpc:"phoneNumber,omitempty"`
-
-	// A count of notification subscriptions attached to a mobile device.
-	PushNotificationSubscriptionCount *uint `json:"pushNotificationSubscriptionCount,omitempty" xmlrpc:"pushNotificationSubscriptionCount,omitempty"`
-
-	// Notification subscriptions attached to a mobile device.
-	PushNotificationSubscriptions []Notification_User_Subscriber `json:"pushNotificationSubscriptions,omitempty" xmlrpc:"pushNotificationSubscriptions,omitempty"`
-
-	// Device serial number
-	SerialNumber *string `json:"serialNumber,omitempty" xmlrpc:"serialNumber,omitempty"`
-
-	// The token that is provided by the mobile device.
-	Token *string `json:"token,omitempty" xmlrpc:"token,omitempty"`
-
-	// The type of device this user is using
-	Type *User_Customer_MobileDevice_Type `json:"type,omitempty" xmlrpc:"type,omitempty"`
-
-	// User Identifier
-	UserId *int `json:"userId,omitempty" xmlrpc:"userId,omitempty"`
-}
-
-// This class represents the mobile operating system installed on a user's registered mobile device. It assists us when determining the how to get a push notification to the user.
-type User_Customer_MobileDevice_OperatingSystem struct {
-	Entity
-
-	// Build revision number of the operating system.
-	BuildVersion *int `json:"buildVersion,omitempty" xmlrpc:"buildVersion,omitempty"`
-
-	// Create date of the record.
-	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
-
-	// Description of the mobile operating system..
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// Indentifier for the record.
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// Major revision number of the operating system.
-	MajorVersion *int `json:"majorVersion,omitempty" xmlrpc:"majorVersion,omitempty"`
-
-	// Minor revision number of the operating system.
-	MinorVersion *int `json:"minorVersion,omitempty" xmlrpc:"minorVersion,omitempty"`
-
-	// Modify date of the record.
-	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
-
-	// Name of the mobile operating system.
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-}
-
-// Describes a supported class of mobile device. In this the word class is used in the context of classes of consumer electronic devices, the two most prominent examples being mobile phones and tablets.
-type User_Customer_MobileDevice_Type struct {
-	Entity
-
-	// Record create date.
-	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
-
-	// A description of the device
-	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
-
-	// Indentifier for record.
-	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
-
-	// Last modify date for record.
-	ModifyDate *Time `json:"modifyDate,omitempty" xmlrpc:"modifyDate,omitempty"`
-
-	// The common name of the device.
-	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
-}
-
 // The Customer_Notification_Hardware object stores links between customers and the hardware devices they wish to monitor.  This link is not enough, the user must be sure to also create SoftLayer_Network_Monitor_Version1_Query_Host instance with the response action set to "notify users" in order for the users linked to that hardware object to be notified on failure.
 type User_Customer_Notification_Hardware struct {
 	Entity
@@ -1260,6 +1136,12 @@ type User_Permission_Action struct {
 	CreateDate *Time `json:"createDate,omitempty" xmlrpc:"createDate,omitempty"`
 
 	// no documentation yet
+	Department *User_Permission_Department `json:"department,omitempty" xmlrpc:"department,omitempty"`
+
+	// no documentation yet
+	DepartmentId *int `json:"departmentId,omitempty" xmlrpc:"departmentId,omitempty"`
+
+	// no documentation yet
 	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
 
 	// no documentation yet
@@ -1277,6 +1159,29 @@ type User_Permission_Action struct {
 
 	// no documentation yet
 	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+}
+
+// no documentation yet
+type User_Permission_Department struct {
+	Entity
+
+	// Department description
+	Description *string `json:"description,omitempty" xmlrpc:"description,omitempty"`
+
+	// Department primary identifier
+	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// Department key name
+	KeyName *string `json:"keyName,omitempty" xmlrpc:"keyName,omitempty"`
+
+	// Department readable name
+	Name *string `json:"name,omitempty" xmlrpc:"name,omitempty"`
+
+	// A count of
+	PermissionCount *uint `json:"permissionCount,omitempty" xmlrpc:"permissionCount,omitempty"`
+
+	// no documentation yet
+	Permissions []User_Permission_Action `json:"permissions,omitempty" xmlrpc:"permissions,omitempty"`
 }
 
 // The SoftLayer_User_Permission_Group data type contains local attributes to identify and describe the permission groups that have been created within IMS.  These includes a name, description, and account id.  Permission groups are defined specifically for a single [[SoftLayer_Account]].

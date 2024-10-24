@@ -1,22 +1,15 @@
 /**
- * Copyright 2016 IBM Corp.
+ * Copyright 2016-2024 IBM Corp.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS,WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- * AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
- */
+// AUTOMATICALLY GENERATED CODE - DO NOT MODIFY
 
 package datatypes
 
@@ -69,6 +62,9 @@ type Metric_Tracking_Object_Bandwidth_Summary struct {
 
 	// The metric tracking id for this resource.
 	Id *int `json:"id,omitempty" xmlrpc:"id,omitempty"`
+
+	// The amount of inbound bandwidth (measured in gigabytes) currently used this billing period
+	InboundBandwidthAmount *Float64 `json:"inboundBandwidthAmount,omitempty" xmlrpc:"inboundBandwidthAmount,omitempty"`
 
 	// The amount of outbound bandwidth (measured in gigabytes) currently used this billing period
 	OutboundBandwidthAmount *Float64 `json:"outboundBandwidthAmount,omitempty" xmlrpc:"outboundBandwidthAmount,omitempty"`

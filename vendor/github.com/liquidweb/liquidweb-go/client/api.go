@@ -1,7 +1,7 @@
 package client
 
 import (
-	lwApi "github.com/liquidweb/go-lwApi"
+	lwApi "github.com/liquidweb/liquidweb-go/lib/legacy"
 
 	"github.com/liquidweb/liquidweb-go/asset"
 	network "github.com/liquidweb/liquidweb-go/network"
@@ -12,6 +12,7 @@ import (
 // API is the structure that houses all of our various API clients that interact with various Storm resources.
 type API struct {
 	NetworkDNS          network.DNSBackend
+	NetworkDNSZone      network.DNSZoneBackend
 	NetworkLoadBalancer network.LoadBalancerBackend
 	NetworkVIP          network.VIPBackend
 	NetworkZone         network.ZoneBackend
@@ -38,6 +39,7 @@ func NewAPI(username string, password string, url string, timeout int) (*API, er
 	}
 
 	api := &API{
+		NetworkDNSZone:      &network.DNSZoneClient{Backend: client.httpClient},
 		NetworkDNS:          &network.DNSClient{Backend: client.httpClient},
 		NetworkLoadBalancer: &network.LoadBalancerClient{Backend: client.httpClient},
 		NetworkVIP:          &network.VIPClient{Backend: client.httpClient},
